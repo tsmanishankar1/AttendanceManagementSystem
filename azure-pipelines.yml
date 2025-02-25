@@ -1,0 +1,135 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  dotnetVersion: '9.0.x'  # Change this to match your project
+
+stages:
+- stage: Build
+  displayName: 'Build and Publish Application'
+  jobs:
+  - job: Build
+    displayName: 'Build and Publish'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET 9.0'
+      inputs:
+        packageType: 'sdk'
+        version: '$(dotnetVersion)'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore Dependencies'
+      inputs:
+        command: 'restore'
+        projects: '**/*.csproj'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build Solution'
+      inputs:
+        command: 'build'
+        projects: '**/*.csproj'
+        arguments: '--configuration $(buildConfiguration)'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Tests'
+      inputs:
+        command: 'test'
+        projects: '**/*Tests.csproj'
+        arguments: '--configuration $(buildConfiguration) --collect "Code Coverage"'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Publish Application'
+      inputs:
+        command: 'publish'
+        projects: '**/*.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+
+    # Zip only the necessary files and name it correctly
+    - task: PowerShell@2
+      displayName: 'Create ZIP of Published Build'
+      inputs:
+        targetType: 'inline'
+        script: |
+          Compress-Archive -Path "$(Build.ArtifactStagingDirectory)/publish/*" -DestinationPath "$(Build.ArtifactStagingDirectory)/s.zip"
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifacts'
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)/s.zip'
+        artifactName: 'drop'
+
+
+- stage: Deploy
+  displayName: 'Deploy to Windows VM'
+  jobs:
+  - deployment: DeployToVM
+    displayName: 'Deploy WebApp to Windows VM'
+    environment:
+      name: 'Vlead'
+      resourceName: 'HA-1'  # Ensure this matches the VM name in the environment
+      resourceType: 'virtualMachine'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifacts'
+            inputs:
+              buildType: 'current'
+              artifactName: 'drop'
+              downloadPath: '$(Pipeline.Workspace)'
+
+          - task: PowerShell@2
+            displayName: 'Extract and Deploy WebApp to IIS'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Deploying WebApp to Windows VM"
+                
+                # Define paths
+                $zipFilePath = "$(Pipeline.Workspace)\drop\AttendanceSystemAPI.zip"
+                $extractPath = "E:\Vlead_Projects\Attendance\API"
+
+                # Ensure the ZIP file exists
+                if (!(Test-Path $zipFilePath)) {
+                  Write-Host "ERROR: ZIP file not found!"
+                  exit 1
+                }
+                # Stop IIS before deleting files
+                Write-Host "Stopping IIS..."
+                Stop-Service -Name W3SVC -Force
+                
+                # Remove old files before extracting
+                if (Test-Path $extractPath) {
+                  Remove-Item -Recurse -Force "$extractPath\*"
+                } else {
+                  New-Item -ItemType Directory -Path $extractPath -Force
+                }
+
+                # Extract the first ZIP (AttendanceSystemAPI.zip)
+                Add-Type -AssemblyName System.IO.Compression.FileSystem
+                [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $extractPath)
+
+                # Find and extract the inner "s.zip"
+                $innerZip = Get-ChildItem -Path $extractPath -Filter "s.zip" -Recurse | Select-Object -ExpandProperty FullName
+                if ($innerZip) {
+                  Write-Host "Extracting inner s.zip..."
+                  [System.IO.Compression.ZipFile]::ExtractToDirectory($innerZip, $extractPath)
+                  Remove-Item -Force $innerZip  # Clean up inner ZIP after extraction
+                }
+
+                # Display extracted files for debugging
+                Write-Host "Extracted files:"
+                Get-ChildItem -Path $extractPath -Recurse
+
+                # Restart IIS to apply changes
+                IISReset /Restart
+
+                Write-Host "Deployment completed successfully."
+
+

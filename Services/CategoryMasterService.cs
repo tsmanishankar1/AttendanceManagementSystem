@@ -1,0 +1,97 @@
+﻿using AttendanceManagement.Input_Models;
+using AttendanceManagement.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace AttendanceManagement.Services;
+
+public class CategoryMasterService
+{
+    private readonly AttendanceManagementSystemContext _context;
+
+    public CategoryMasterService(AttendanceManagementSystemContext context)
+    {
+        _context = context;
+    }
+    public async Task<List<CategoryMasterResponse>> GetAllCategoriesAsync()
+    {
+        var allCategory = await _context.CategoryMasters
+            .Select(category => new CategoryMasterResponse
+            {
+                CategoryMasterId = category.Id,
+                FullName = category.FullName,
+                ShortName = category.ShortName,
+                IsActive = category.IsActive
+            })
+            .ToListAsync();
+        if (allCategory.Count == 0)
+        {
+            throw new MessageNotFoundException("No Categories found");
+        }
+        return allCategory;
+    }
+
+    public async Task<CategoryMasterResponse> GetCategoryByIdAsync(int categoryMasterId)
+    {
+        var category = await _context.CategoryMasters
+            .Where(category => category.Id == categoryMasterId)
+            .Select(category => new CategoryMasterResponse
+            {
+                CategoryMasterId = category.Id,
+                FullName = category.FullName,
+                ShortName = category.ShortName,
+                IsActive = category.IsActive
+            })
+            .FirstOrDefaultAsync();
+        if (category == null)
+        {
+            throw new MessageNotFoundException("Category not found");
+        }
+        return category;
+    }
+
+    public async Task<string> CreateCategoryAsync(CategoryMasterRequest request)
+    {
+        var message = "Category Master added successfully";
+        if (request == null)
+        {
+            throw new ArgumentNullException(nameof(request), "Branch details cannot be null.");
+        }
+
+        var newCategory = new CategoryMaster
+        {
+            FullName = request.FullName,
+            ShortName = request.ShortName,
+            IsActive = request.IsActive,
+            CreatedBy = request.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        _context.CategoryMasters.Add(newCategory);
+        await _context.SaveChangesAsync();
+        return message;
+    }
+
+    public async Task<string?> UpdateCategoryAsync(UpdateCategory request)
+    {
+        var message = "Category Master Updated Successfully";
+        if (request == null)
+        {
+            throw new ArgumentNullException(nameof(request), "Branch details cannot be null.");
+        }
+        var existingCategory = await _context.CategoryMasters
+            .FirstOrDefaultAsync(c => c.Id == request.CategoryMasterId);
+
+        if (existingCategory == null)
+        {
+            throw new MessageNotFoundException("Category not found");
+        }
+        existingCategory.FullName = request.FullName ?? existingCategory.FullName;
+        existingCategory.ShortName = request.ShortName ?? existingCategory.ShortName;
+        existingCategory.IsActive = request.IsActive;
+        existingCategory.UpdatedBy = request.UpdatedBy;
+        existingCategory.UpdatedUtc = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return message;
+    }
+}

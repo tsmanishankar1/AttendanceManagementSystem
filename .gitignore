@@ -1,0 +1,39 @@
+# Ignore Visual Studio specific files
+.vs/
+*.suo
+*.user
+*.vcxproj.user
+*.csproj.user
+*.dbmdl
+*.pdb
+
+# Ignore build output
+bin/
+obj/
+*.exe
+*.dll
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.nupkg
+*.snupkg
+
+# Ignore packages and dependencies
+packages/
+node_modules/
+
+# Ignore publish and deployment files
+publish/
+dist/
+out/
+
+# Ignore logs and temporary files
+*.log
+*.cache
+*.tmp
+*.lock
+/obj/Debug/net9.0/EndpointInfo/AttendanceManagement.json
+/obj/Debug/net9.0/AttendanceManagement.AssemblyInfo.cs
+/bin/Debug/net9.0/AttendanceManagement.exe
+/bin/Debug/net9.0/AttendanceManagement.pdb
