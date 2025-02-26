@@ -1,7 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -10,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class WorkstationMasterController : ControllerBase
 {
     private readonly WorkstationMasterService _service;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public WorkstationMasterController(WorkstationMasterService service, AttendanceManagementSystemContext context)
+    public WorkstationMasterController(WorkstationMasterService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllWorkStations")]
@@ -75,66 +75,17 @@ public class WorkstationMasterController : ControllerBase
                 Success = true,
                 Message = createdWorkstation
             };
-
-            AuditLog log = new AuditLog
-            {
-                Module = "CreateWorkstation",
-                HttpMethod = "POST",
-                ApiEndpoint = "/api/WorkstationMaster/CreateWorkstation",
-                SuccessMessage = "Created workstation successfully",
-                Payload = System.Text.Json.JsonSerializer.Serialize(workstation),
-                StaffId = workstation.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Workstation Master", "POST", "/WorkstationMaster/CreateWorkstation", createdWorkstation, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateWorkstation",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WorkstationMaster/CreateWorkstation",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = workstation.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(workstation),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateWorkstation",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WorkstationMaster/CreateWorkstation",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = workstation.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(workstation),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -150,61 +101,17 @@ public class WorkstationMasterController : ControllerBase
                 Success = true,
                 Message = success
             };
-
-            AuditLog log = new AuditLog
-            {
-                Module = "UpdateWorkstation",
-                HttpMethod = "POST",
-                ApiEndpoint = "/api/WorkstationMaster/UpdateWorkstation",
-                SuccessMessage = "Updated workstation successfully",
-                Payload = System.Text.Json.JsonSerializer.Serialize(updatedWorkstation),
-                StaffId = updatedWorkstation.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Workstation Master", "POST", "/WorkstationMaster/UpdateWorkstation", success, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateWorkstation",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WorkstationMaster/UpdateWorkstation",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedWorkstation.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedWorkstation),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateWorkstation",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WorkstationMaster/UpdateWorkstation",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedWorkstation.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedWorkstation),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

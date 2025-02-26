@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AttendanceManagement.Models;
 
-public partial class ExcelImport
+public partial class WorkingStatus
 {
     public int Id { get; set; }
 

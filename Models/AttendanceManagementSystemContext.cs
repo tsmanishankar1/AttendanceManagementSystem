@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace AttendanceManagement.Models;
 
@@ -34,6 +33,10 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<ApprovalLevel> ApprovalLevels { get; set; }
 
     public virtual DbSet<ApprovalNotification> ApprovalNotifications { get; set; }
+
+    public virtual DbSet<ApprovalOwner> ApprovalOwners { get; set; }
+
+    public virtual DbSet<AssignLeaveType> AssignLeaveTypes { get; set; }
 
     public virtual DbSet<AssignShift> AssignShifts { get; set; }
 
@@ -118,6 +121,8 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<IndividualLeaveCreditDebit> IndividualLeaveCreditDebits { get; set; }
 
     public virtual DbSet<LeaveAvailability> LeaveAvailabilities { get; set; }
+
+    public virtual DbSet<LeaveCreditDebitReason> LeaveCreditDebitReasons { get; set; }
 
     public virtual DbSet<LeaveGroup> LeaveGroups { get; set; }
 
@@ -209,6 +214,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<Volume> Volumes { get; set; }
 
+    public virtual DbSet<WeeklyOffDetail> WeeklyOffDetails { get; set; }
+
     public virtual DbSet<WeeklyOffHolidayWorking> WeeklyOffHolidayWorkings { get; set; }
 
     public virtual DbSet<WeeklyOffMaster> WeeklyOffMasters { get; set; }
@@ -217,16 +224,15 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<WorkingDayPattern> WorkingDayPatterns { get; set; }
 
+    public virtual DbSet<WorkingStatus> WorkingStatuses { get; set; }
+
     public virtual DbSet<WorkstationMaster> WorkstationMasters { get; set; }
 
     public virtual DbSet<ZoneMaster> ZoneMasters { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
     //=> optionsBuilder.UseSqlServer("Server=172.16.10.233;Initial Catalog=AttendanceManagementSystem;Persist Security info=False;User ID=vis2;Password=password@1;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;");
-        => optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DBConnection"), option => option.CommandTimeout(300));
- 
-
+           => optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DBConnection"), option => option.CommandTimeout(300));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccessLevel>(entity =>
@@ -383,6 +389,57 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ApprovalNotificationUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_04UpId");
+        });
+
+        modelBuilder.Entity<ApprovalOwner>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ApprovalOwn__869767EADE6795EB");
+
+            entity.ToTable("ApprovalOwner");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ApprovalOwnerCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRAOId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ApprovalOwnerUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPAOId");
+        });
+
+        modelBuilder.Entity<AssignLeaveType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AssignLe__3214EC07C9F79283");
+
+            entity.ToTable("AssignLeaveType");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AssignLeaveTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssignLeaveType_CreatedBy");
+
+            entity.HasOne(d => d.LeaveType).WithMany(p => p.AssignLeaveTypes)
+                .HasForeignKey(d => d.LeaveTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssignLeaveType_LeaveType");
+
+            entity.HasOne(d => d.OrganizationType).WithMany(p => p.AssignLeaveTypes)
+                .HasForeignKey(d => d.OrganizationTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AssignLeaveType_OrganizationType");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.AssignLeaveTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_AssignLeaveType_UpdatedBy");
         });
 
         modelBuilder.Entity<AssignShift>(entity =>
@@ -1349,9 +1406,20 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__ExcelImp__869767EADE6795EB");
 
-            entity.Property(e => e.ImportName)
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ExcelImportCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CREIId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ExcelImportUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPEIId");
         });
 
         modelBuilder.Entity<FamilyDetail>(entity =>
@@ -1776,6 +1844,26 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.UserManagementId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__LeaveAvai__Updat__73BA3083");
+        });
+
+        modelBuilder.Entity<LeaveCreditDebitReason>(entity =>
+        {
+            entity.ToTable("LeaveCreditDebitReason");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.LeaveCreditDebitReasonCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRLRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.LeaveCreditDebitReasonUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPLRId");
         });
 
         modelBuilder.Entity<LeaveGroup>(entity =>
@@ -2293,7 +2381,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<PasswordHistory>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Password__3214EC077C0761AA");
+            entity.HasKey(e => e.Id).HasName("PK__Password__3214EC07A7A422BB");
 
             entity.ToTable("PasswordHistory");
 
@@ -2309,11 +2397,11 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PasswordHistoryCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PasswordH__Creat__46735417");
+                .HasConstraintName("FK__PasswordH__Creat__4D2051A6");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PasswordHistoryUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__PasswordH__Updat__47677850");
+                .HasConstraintName("FK__PasswordH__Updat__4E1475DF");
         });
 
         modelBuilder.Entity<PaymentDetail>(entity =>
@@ -3353,7 +3441,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.StaffCreation).WithMany(p => p.UserManagementStaffCreations)
                 .HasForeignKey(d => d.StaffCreationId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserManagement_StaffCreation");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.UserManagementUpdatedByNavigations)
@@ -3381,6 +3468,33 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.VolumeUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPVLId");
+        });
+
+        modelBuilder.Entity<WeeklyOffDetail>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__WeeklyOf__3214EC07F362FADF");
+
+            entity.Property(e => e.CreatedUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("CreatedUTC");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.UpdatedUtc)
+                .HasColumnType("datetime")
+                .HasColumnName("UpdatedUTC");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.WeeklyOffDetailCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_WeeklyOffDetails_CreatedBy");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.WeeklyOffDetailUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_WeeklyOffDetails_UpdatedBy");
+
+            entity.HasOne(d => d.WeeklyOffMaster).WithMany(p => p.WeeklyOffDetails)
+                .HasForeignKey(d => d.WeeklyOffMasterId)
+                .HasConstraintName("FK_WeeklyOffMaster");
         });
 
         modelBuilder.Entity<WeeklyOffHolidayWorking>(entity =>
@@ -3517,6 +3631,26 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.WorkingDayPatternUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPWDPId");
+        });
+
+        modelBuilder.Entity<WorkingStatus>(entity =>
+        {
+            entity.ToTable("WorkingStatus");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.WorkingStatusCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_WSCRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.WorkingStatusUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_WSUPId");
         });
 
         modelBuilder.Entity<WorkstationMaster>(entity =>

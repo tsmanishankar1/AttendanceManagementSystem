@@ -42,4 +42,31 @@
     {
         public int StaffId { get; set; }
     }
+    public class AssignLeaveTypeDTO
+    {
+        public int Id { get; set; }
+        public int LeaveTypeId { get; set; }
+        public int OrganizationTypeId { get; set; }
+    }
+    public class CreateAssignLeaveTypeDTO
+    {
+        public int LeaveTypeId { get; set; }
+        public int OrganizationTypeId { get; set; }
+        public int CreatedBy { get; set; }
+    }
+    public class UpdateAssignLeaveTypeDTO
+    {
+        public int Id { get; set; }
+        public int LeaveTypeId { get; set; }
+        public int OrganizationTypeId { get; set; }
+        public int UpdatedBy { get; set; }
+    }
+    public class StaffLeaveDto
+    {
+        public int StaffId { get; set; }
+        public string StaffName { get; set; }
+        public string DepartmentName { get; set; }
+        public int LeaveTypeId { get; set; }
+        public decimal? AvailableBalance { get; set; }
+    }
 }

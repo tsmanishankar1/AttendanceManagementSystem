@@ -6,6 +6,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using AttendanceManagement.Input_Models.AttendanceManagement.Models;
 using NSwag.Annotations;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers
 {
@@ -14,12 +15,12 @@ namespace AttendanceManagement.Controllers
     public class EmergencyContactController : ControllerBase
     {
         private readonly EmergencyContactService _emergencyContactService;
-        private readonly AttendanceManagementSystemContext _context;
+        private readonly LoggingService _loggingService;
 
-        public EmergencyContactController(EmergencyContactService emergencyContactService, AttendanceManagementSystemContext context)
+        public EmergencyContactController(EmergencyContactService emergencyContactService, LoggingService loggingService)
         {
             _emergencyContactService = emergencyContactService;
-            _context = context;
+            _loggingService = loggingService;
         }
 
         [HttpGet("GetAllEmergencyContacts")]
@@ -79,41 +80,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = createdContact
                 };
-                AuditLog log = new AuditLog
-                {
-                    Module = "Emergency Contact",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/EmergencyContact/CreateEmergencyContact",
-                    SuccessMessage = createdContact,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(model),
-                    StaffId = model.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.AuditLogs.Add(log);
-                await _context.SaveChangesAsync();
+                await _loggingService.AuditLog("Emergency Contact", "POST", "/EmergencyContact/CreateEmergencyContact", createdContact, model.CreatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Emergency Contact",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/EmergencyContact/CreateEmergencyContact",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = model.CreatedBy,
-                        Payload = System.Text.Json.JsonSerializer.Serialize(model),
-                        CreatedUtc = DateTime.UtcNow
-                    };
-
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Emergency Contact", "POST", "/EmergencyContact/CreateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -129,63 +101,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updatedContact
                 };
-                AuditLog log = new AuditLog
-                {
-                    Module = "Emergency Contact",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/EmergencyContact/UpdateEmergencyContact",
-                    SuccessMessage = updatedContact,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(model),
-                    StaffId = model.UpdatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.AuditLogs.Add(log);
-                await _context.SaveChangesAsync();
+                await _loggingService.AuditLog("Emergency Contact", "POST", "/EmergencyContact/UpdateEmergencyContact", updatedContact, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Emergency Contact",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/EmergencyContact/UpdateEmergencyContact",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = model.UpdatedBy,
-                        Payload = System.Text.Json.JsonSerializer.Serialize(model),
-                        CreatedUtc = DateTime.UtcNow
-                    };
-
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Emergency Contact", "POST", "/EmergencyContact/UpdateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Emergency Contact",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/EmergencyContact/UpdateEmergencyContact",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = model.UpdatedBy,
-                        Payload = System.Text.Json.JsonSerializer.Serialize(model),
-                        CreatedUtc = DateTime.UtcNow
-                    };
-
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Emergency Contact", "POST", "/EmergencyContact/UpdateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

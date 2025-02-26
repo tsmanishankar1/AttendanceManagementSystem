@@ -1,8 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
-using ErrorLog = AttendanceManagement.Models.ErrorLog;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -11,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class ZoneMasterController : ControllerBase
 {
     private readonly ZoneMasterService _service;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public ZoneMasterController(ZoneMasterService service, AttendanceManagementSystemContext context)
+    public ZoneMasterController(ZoneMasterService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllZones")]
@@ -25,11 +24,7 @@ public class ZoneMasterController : ControllerBase
         try
         {
             var zones = await _service.GetAllZonesAsync();
-            var response = new
-            {
-                Success = true,
-                Message = zones
-            };
+            var response = new { Success = true, Message = zones };
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -48,11 +43,7 @@ public class ZoneMasterController : ControllerBase
         try
         {
             var zone = await _service.GetZoneByIdAsync(zoneMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = zone
-            };
+            var response = new { Success = true, Message = zone };
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -71,65 +62,13 @@ public class ZoneMasterController : ControllerBase
         try
         {
             var createdZone = await _service.CreateZoneAsync(zoneMaster);
-            var response = new
-            {
-                Success = true,
-                Message = createdZone
-            };
-            AuditLog log = new AuditLog
-            {
-                Module = "CreateZone",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Skills/CreateZone",
-                SuccessMessage = createdZone,
-                Payload = System.Text.Json.JsonSerializer.Serialize(zoneMaster),
-                StaffId = zoneMaster.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            var response = new { Success = true, Message = createdZone };
+            await _loggingService.AuditLog("Zone Master", "POST", "/ZoneMaster/CreateZone", createdZone, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
             return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateZone",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Skills/CreateZone",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = zoneMaster.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(zoneMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
-            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateZone",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Skills/CreateZone",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = zoneMaster.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(zoneMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Zone Master", "POST", "/ZoneMaster/CreateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -140,68 +79,19 @@ public class ZoneMasterController : ControllerBase
         try
         {
             var updatedZone = await _service.UpdateZoneAsync(zoneMaster);
-            var response = new
-            {
-                Success = true,
-                Message = updatedZone
-            };
-            AuditLog log = new AuditLog
-            {
-                Module = "UpdateZone",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Zone/UpdateZone",
-                SuccessMessage = updatedZone,
-                Payload = System.Text.Json.JsonSerializer.Serialize(zoneMaster),
-                StaffId = zoneMaster.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            var response = new { Success = true, Message = updatedZone };
+            await _loggingService.AuditLog("Zone Master", "POST", "/ZoneMaster/UpdateZone", updatedZone, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateZone",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Zone/UpdateZone",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = zoneMaster.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(zoneMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Zone Master", "POST", "/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateZone",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Zone/UpdateZone",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = zoneMaster.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(zoneMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Zone Master", "POST", "/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
 }
-
-

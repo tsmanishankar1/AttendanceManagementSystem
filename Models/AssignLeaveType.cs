@@ -3,11 +3,13 @@ using System.Collections.Generic;
 
 namespace AttendanceManagement.Models;
 
-public partial class ExcelImport
+public partial class AssignLeaveType
 {
     public int Id { get; set; }
 
-    public string Name { get; set; } = null!;
+    public int LeaveTypeId { get; set; }
+
+    public int OrganizationTypeId { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -20,6 +22,10 @@ public partial class ExcelImport
     public DateTime? UpdatedUtc { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
+    public virtual LeaveType LeaveType { get; set; } = null!;
+
+    public virtual OrganizationType OrganizationType { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

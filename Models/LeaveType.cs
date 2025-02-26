@@ -33,6 +33,8 @@ public partial class LeaveType
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public virtual ICollection<AssignLeaveType> AssignLeaveTypes { get; set; } = new List<AssignLeaveType>();
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<IndividualLeaveCreditDebit> IndividualLeaveCreditDebits { get; set; } = new List<IndividualLeaveCreditDebit>();

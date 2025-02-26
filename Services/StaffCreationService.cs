@@ -48,36 +48,28 @@ namespace AttendanceManagement.Services
         }
         public async Task<StaffCreationResponse> GetByUserManagementIdAsync(int staffId)
         {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
             var getUser = await (from s in _context.StaffCreations
-                                 join branch in _context.BranchMasters
-                                 on s.BranchId equals branch.Id
-                                 join department in _context.DepartmentMasters
-                                 on s.DepartmentId equals department.Id
-                                 join division in _context.DivisionMasters
-                                 on s.DivisionId equals division.Id
-                                 join designation in _context.DesignationMasters
-                                 on s.DesignationId equals designation.Id
-                                 join grade in _context.GradeMasters
-                                 on s.GradeId equals grade.Id
-                                 join category in _context.CategoryMasters
-                                 on s.CategoryId equals category.Id
-                                 join cost in _context.CostCentreMasters
-                                 on s.CostCenterId equals cost.Id
-                                 join work in _context.WorkstationMasters
-                                 on s.WorkStationId equals work.Id
-                                 join status in _context.Statuses
-                                 on s.StatusId equals status.Id
-                                 join org in _context.OrganizationTypes
-                                 on s.OrganizationTypeId equals org.Id
-                                 join leaveGroup in _context.LeaveGroups
-                                 on s.LeaveGroupId equals leaveGroup.Id
-                                 join company in _context.CompanyMasters
-                                 on s.CompanyMasterId equals company.Id
-                                 join holiday in _context.HolidayCalendarConfigurations
-                                 on s.HolidayCalendarId equals holiday.Id
-                                 join location in _context.LocationMasters
-                                 on s.LocationMasterId equals location.Id
+                                 join branch in _context.BranchMasters on s.BranchId equals branch.Id
+                                 join department in _context.DepartmentMasters on s.DepartmentId equals department.Id
+                                 join division in _context.DivisionMasters on s.DivisionId equals division.Id
+                                 join designation in _context.DesignationMasters on s.DesignationId equals designation.Id
+                                 join grade in _context.GradeMasters on s.GradeId equals grade.Id
+                                 join category in _context.CategoryMasters on s.CategoryId equals category.Id
+                                 join cost in _context.CostCentreMasters on s.CostCenterId equals cost.Id
+                                 join work in _context.WorkstationMasters on s.WorkStationId equals work.Id
+                                 join status in _context.Statuses on s.StatusId equals status.Id
+                                 join org in _context.OrganizationTypes on s.OrganizationTypeId equals org.Id
+                                 join leaveGroup in _context.LeaveGroups on s.LeaveGroupId equals leaveGroup.Id
+                                 join company in _context.CompanyMasters on s.CompanyMasterId equals company.Id
+                                 join holiday in _context.HolidayCalendarConfigurations on s.HolidayCalendarId equals holiday.Id
+                                 join location in _context.LocationMasters on s.LocationMasterId equals location.Id
+                                 join geoStatus in _context.GeoStatuses on s.GeoStatus equals geoStatus.Name
+                                 join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
+                                 join accessLevel in _context.AccessLevels on s.AccessLevel equals accessLevel.Name
+                                 join policyGroup in _context.PolicyGroups on s.PolicyGroup equals policyGroup.Name
+                                 join workingDayPattern in _context.WorkingDayPatterns on s.WorkingDayPattern equals workingDayPattern.Name
+                                 join volume in _context.Volumes on s.Volume equals volume.Name
+                                 join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
                                  where s.Id == staffId && s.IsActive == true
                                  select new StaffCreationResponse
                                  {
@@ -88,11 +80,11 @@ namespace AttendanceManagement.Services
                                      FirstName = s.FirstName,
                                      LastName = s.LastName,
                                      ShortName = s.ShortName,
+                                     StatusId = status.Id,
                                      Status = status.Name,
                                      Gender = s.Gender,
                                      BloodGroup = s.BloodGroup,
                                      ProfilePhoto = s.ProfilePhoto,
-                                     MaritalStatus = s.MaritalStatus,
                                      Dob = s.Dob,
                                      MarriageDate = s.MarriageDate,
                                      PersonalPhone = s.PersonalPhone,
@@ -103,19 +95,27 @@ namespace AttendanceManagement.Services
                                      PersonalEmail = s.PersonalEmail,
                                      OfficialEmail = s.OfficialEmail,
                                      City = s.City,
-                                     AccessLevel = s.AccessLevel,
+                                     AccessLevelId = accessLevel.Id,
+                                     AccessLevel = accessLevel.Name,
                                      MiddleName = s.MiddleName,
                                      PersonalLocation = s.PersonalLocation,
-                                     PolicyGroup = s.PolicyGroup,
-                                     WorkingDayPattern = s.WorkingDayPattern,
+                                     PolicyGroupId = policyGroup.Id,
+                                     PolicyGroup = policyGroup.Name,
+                                     WorkingDayPatternId = workingDayPattern.Id,
+                                     WorkingDayPattern = workingDayPattern.Name,
+                                     WorkingStatusId = workingStatus.Id,
+                                     WorkingStatus = workingStatus.Name,
+                                     GeoStatusId = geoStatus.Id,
+                                     GeoStatus = geoStatus.Name,
                                      Tenure = s.Tenure,
                                      ApprovalLevel = s.ApprovalLevel,
+                                     ApprovalLevelId1 = s.ApprovalLevel1,
                                      ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
+                                     ApprovalLevelId2 = s.ApprovalLevel2,
                                      ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
                                      UanNumber = s.UanNumber,
                                      EsiNumber = s.EsiNumber,
                                      IsMobileAppEligible = s.IsMobileAppEligible,
-                                     GeoStatus = s.GeoStatus,
                                      District = s.District,
                                      State = s.State,
                                      Country = s.Country,
@@ -127,7 +127,10 @@ namespace AttendanceManagement.Services
                                      Department = department.FullName,
                                      DivisionId = s.DivisionId,
                                      Division = division.FullName,
-                                     Volume = s.Volume,
+                                     MaritalStatusId = maritalStatus.Id,
+                                     MaritalStatus = maritalStatus.Name,
+                                     VolumeId = volume.Id,
+                                     Volume = volume.Name,
                                      DesignationId = s.DesignationId,
                                      Designation = designation.FullName,
                                      GradeId = s.GradeId,
@@ -140,11 +143,11 @@ namespace AttendanceManagement.Services
                                      WorkStation = work.FullName,
                                      LeaveGroupId = s.LeaveGroupId,
                                      LeaveGroup = leaveGroup.LeaveGroupName,
-                                     CompanyId = s.CompanyMasterId,
+                                     CompanyMasterId = s.CompanyMasterId,
                                      Company = company.FullName,
                                      HolidayCalendarId = s.HolidayCalendarId,
                                      HolidayCalendar = holiday.GroupName,
-                                     LocationId = s.LocationMasterId,
+                                     LocationMasterId = s.LocationMasterId,
                                      Location = location.FullName,
                                      AadharNo = s.AadharNo,
                                      PanNo = s.PanNo,
@@ -166,7 +169,6 @@ namespace AttendanceManagement.Services
                                      EmergencyContactNo2 = s.EmergencyContactNo2,
                                      OrganizationTypeId = s.OrganizationTypeId,
                                      OrganizationTypeName = org.Name,
-                                     WorkingStatus = s.WorkingStatus,
                                      CreatedBy = s.CreatedBy
                                  })
                                 .FirstOrDefaultAsync();
@@ -318,7 +320,7 @@ namespace AttendanceManagement.Services
 
             var reportingManager = await _context.StaffCreations
                 .Where(u => u.Id == staffInput.ApprovalLevel1 && u.IsActive == true)
-                .Select(u => u.PersonalEmail)
+                .Select(u => u.OfficialEmail)
                 .FirstOrDefaultAsync();
 
             if (!string.IsNullOrEmpty(reportingManager))
@@ -335,7 +337,7 @@ namespace AttendanceManagement.Services
                 throw new ArgumentNullException("Staff or Manager Email is null.");
 
             var reportingManager = await _context.StaffCreations
-               .Where(u => u.Id == staff.ApprovalLevel1 && u.PersonalEmail == managerEmail && u.IsActive == true)
+               .Where(u => u.Id == staff.ApprovalLevel1 && u.OfficialEmail == managerEmail && u.IsActive == true)
                .FirstOrDefaultAsync();
 
             if (reportingManager == null)
@@ -558,6 +560,13 @@ namespace AttendanceManagement.Services
                                  on s.HolidayCalendarId equals holiday.Id
                                  join location in _context.LocationMasters
                                  on s.LocationMasterId equals location.Id
+                                 join geoStatus in _context.GeoStatuses on s.GeoStatus equals geoStatus.Name
+                                 join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
+                                 join accessLevel in _context.AccessLevels on s.AccessLevel equals accessLevel.Name
+                                 join policyGroup in _context.PolicyGroups on s.PolicyGroup equals policyGroup.Name
+                                 join workingDayPattern in _context.WorkingDayPatterns on s.WorkingDayPattern equals workingDayPattern.Name
+                                 join volume in _context.Volumes on s.Volume equals volume.Name
+                                 join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
                                  where s.ApprovalLevel1 == staff.Id && s.IsActive == true
                                  select new StaffCreationResponse
                                  {
@@ -568,11 +577,11 @@ namespace AttendanceManagement.Services
                                      FirstName = s.FirstName,
                                      LastName = s.LastName,
                                      ShortName = s.ShortName,
+                                     StatusId = status.Id,
                                      Status = status.Name,
                                      Gender = s.Gender,
                                      BloodGroup = s.BloodGroup,
                                      ProfilePhoto = s.ProfilePhoto,
-                                     MaritalStatus = s.MaritalStatus,
                                      Dob = s.Dob,
                                      MarriageDate = s.MarriageDate,
                                      PersonalPhone = s.PersonalPhone,
@@ -583,19 +592,27 @@ namespace AttendanceManagement.Services
                                      PersonalEmail = s.PersonalEmail,
                                      OfficialEmail = s.OfficialEmail,
                                      City = s.City,
-                                     AccessLevel = s.AccessLevel,
+                                     AccessLevelId = accessLevel.Id,
+                                     AccessLevel = accessLevel.Name,
                                      MiddleName = s.MiddleName,
                                      PersonalLocation = s.PersonalLocation,
-                                     PolicyGroup = s.PolicyGroup,
-                                     WorkingDayPattern = s.WorkingDayPattern,
+                                     PolicyGroupId = policyGroup.Id,
+                                     PolicyGroup = policyGroup.Name,
+                                     WorkingDayPatternId = workingDayPattern.Id,
+                                     WorkingDayPattern = workingDayPattern.Name,
+                                     WorkingStatusId = workingStatus.Id,
+                                     WorkingStatus = workingStatus.Name,
+                                     GeoStatusId = geoStatus.Id,
+                                     GeoStatus = geoStatus.Name,
                                      Tenure = s.Tenure,
                                      ApprovalLevel = s.ApprovalLevel,
+                                     ApprovalLevelId1 = s.ApprovalLevel1,
                                      ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
+                                     ApprovalLevelId2 = s.ApprovalLevel2,
                                      ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
                                      UanNumber = s.UanNumber,
                                      EsiNumber = s.EsiNumber,
                                      IsMobileAppEligible = s.IsMobileAppEligible,
-                                     GeoStatus = s.GeoStatus,
                                      District = s.District,
                                      State = s.State,
                                      Country = s.Country,
@@ -607,7 +624,10 @@ namespace AttendanceManagement.Services
                                      Department = department.FullName,
                                      DivisionId = s.DivisionId,
                                      Division = division.FullName,
-                                     Volume = s.Volume,
+                                     MaritalStatusId = maritalStatus.Id,
+                                     MaritalStatus = maritalStatus.Name,
+                                     VolumeId = volume.Id,
+                                     Volume = volume.Name,
                                      DesignationId = s.DesignationId,
                                      Designation = designation.FullName,
                                      GradeId = s.GradeId,
@@ -620,11 +640,11 @@ namespace AttendanceManagement.Services
                                      WorkStation = work.FullName,
                                      LeaveGroupId = s.LeaveGroupId,
                                      LeaveGroup = leaveGroup.LeaveGroupName,
-                                     CompanyId = s.CompanyMasterId,
+                                     CompanyMasterId = s.CompanyMasterId,
                                      Company = company.FullName,
                                      HolidayCalendarId = s.HolidayCalendarId,
                                      HolidayCalendar = holiday.GroupName,
-                                     LocationId = s.LocationMasterId,
+                                     LocationMasterId = s.LocationMasterId,
                                      Location = location.FullName,
                                      AadharNo = s.AadharNo,
                                      PanNo = s.PanNo,
@@ -646,7 +666,6 @@ namespace AttendanceManagement.Services
                                      EmergencyContactNo2 = s.EmergencyContactNo2,
                                      OrganizationTypeId = s.OrganizationTypeId,
                                      OrganizationTypeName = org.Name,
-                                     WorkingStatus = s.WorkingStatus,
                                      CreatedBy = s.CreatedBy
                                  })
                                  .ToListAsync();
@@ -688,6 +707,13 @@ namespace AttendanceManagement.Services
                                  on s.HolidayCalendarId equals holiday.Id
                                  join location in _context.LocationMasters
                                  on s.LocationMasterId equals location.Id
+                                 join geoStatus in _context.GeoStatuses on s.GeoStatus equals geoStatus.Name
+                                 join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
+                                 join accessLevel in _context.AccessLevels on s.AccessLevel equals accessLevel.Name
+                                 join policyGroup in _context.PolicyGroups on s.PolicyGroup equals policyGroup.Name
+                                 join workingDayPattern in _context.WorkingDayPatterns on s.WorkingDayPattern equals workingDayPattern.Name
+                                 join volume in _context.Volumes on s.Volume equals volume.Name
+                                 join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
                                  where s.ApprovalLevel1 == approverId && s.IsActive == null
                                  select new StaffCreationResponse
                                  {
@@ -698,11 +724,11 @@ namespace AttendanceManagement.Services
                                      FirstName = s.FirstName,
                                      LastName = s.LastName,
                                      ShortName = s.ShortName,
+                                     StatusId = status.Id,
                                      Status = status.Name,
                                      Gender = s.Gender,
                                      BloodGroup = s.BloodGroup,
                                      ProfilePhoto = s.ProfilePhoto,
-                                     MaritalStatus = s.MaritalStatus,
                                      Dob = s.Dob,
                                      MarriageDate = s.MarriageDate,
                                      PersonalPhone = s.PersonalPhone,
@@ -713,19 +739,27 @@ namespace AttendanceManagement.Services
                                      PersonalEmail = s.PersonalEmail,
                                      OfficialEmail = s.OfficialEmail,
                                      City = s.City,
-                                     AccessLevel = s.AccessLevel,
-                                     MiddleName = s.MiddleName,
                                      ApprovalLevel = s.ApprovalLevel,
+                                     ApprovalLevelId1 = s.ApprovalLevel1,
                                      ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
+                                     ApprovalLevelId2 = s.ApprovalLevel2,
                                      ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
                                      PersonalLocation = s.PersonalLocation,
-                                     PolicyGroup = s.PolicyGroup,
-                                     WorkingDayPattern = s.WorkingDayPattern,
+                                     AccessLevelId = accessLevel.Id,
+                                     AccessLevel = accessLevel.Name,
+                                     MiddleName = s.MiddleName,
+                                     PolicyGroupId = policyGroup.Id,
+                                     PolicyGroup = policyGroup.Name,
+                                     WorkingDayPatternId = workingDayPattern.Id,
+                                     WorkingDayPattern = workingDayPattern.Name,
+                                     WorkingStatusId = workingStatus.Id,
+                                     WorkingStatus = workingStatus.Name,
+                                     GeoStatusId = geoStatus.Id,
+                                     GeoStatus = geoStatus.Name,
                                      Tenure = s.Tenure,
                                      UanNumber = s.UanNumber,
                                      EsiNumber = s.EsiNumber,
                                      IsMobileAppEligible = s.IsMobileAppEligible,
-                                     GeoStatus = s.GeoStatus,
                                      District = s.District,
                                      State = s.State,
                                      Country = s.Country,
@@ -737,7 +771,10 @@ namespace AttendanceManagement.Services
                                      Department = department.FullName,
                                      DivisionId = s.DivisionId,
                                      Division = division.FullName,
-                                     Volume = s.Volume,
+                                     MaritalStatusId = maritalStatus.Id,
+                                     MaritalStatus = maritalStatus.Name,
+                                     VolumeId = volume.Id,
+                                     Volume = volume.Name,
                                      DesignationId = s.DesignationId,
                                      Designation = designation.FullName,
                                      GradeId = s.GradeId,
@@ -750,11 +787,11 @@ namespace AttendanceManagement.Services
                                      WorkStation = work.FullName,
                                      LeaveGroupId = s.LeaveGroupId,
                                      LeaveGroup = leaveGroup.LeaveGroupName,
-                                     CompanyId = s.CompanyMasterId,
+                                     CompanyMasterId = s.CompanyMasterId,
                                      Company = company.FullName,
                                      HolidayCalendarId = s.HolidayCalendarId,
                                      HolidayCalendar = holiday.GroupName,
-                                     LocationId = s.LocationMasterId,
+                                     LocationMasterId = s.LocationMasterId,
                                      Location = location.FullName,
                                      AadharNo = s.AadharNo,
                                      PanNo = s.PanNo,
@@ -776,7 +813,6 @@ namespace AttendanceManagement.Services
                                      EmergencyContactNo2 = s.EmergencyContactNo2,
                                      OrganizationTypeId = s.OrganizationTypeId,
                                      OrganizationTypeName = org.Name,
-                                     WorkingStatus = s.WorkingStatus,
                                      CreatedBy = s.CreatedBy
                                  })
                      .ToListAsync();
@@ -882,7 +918,11 @@ namespace AttendanceManagement.Services
                 { 9, new AccessLevel() },
                 { 10, new PolicyGroup() },
                 { 11, new WorkingDayPattern() },
-                { 12, new GeoStatus() }
+                { 12, new GeoStatus() },
+                {1002, new WorkingStatus() },
+                {1003, new ApprovalOwner() },
+                {1004, new LeaveCreditDebitReason() },
+                {1005, new ExcelImport() }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
@@ -917,7 +957,12 @@ namespace AttendanceManagement.Services
                 { 9, _context.AccessLevels.Where(acl => acl.IsActive).Select(acl => new DropDownResponse { Id = acl.Id, Name = acl.Name, CreatedBy = acl.CreatedBy }) },
                 { 10, _context.PolicyGroups.Where(pg => pg.IsActive).Select(pg => new DropDownResponse { Id = pg.Id, Name = pg.Name, CreatedBy = pg.CreatedBy }) },
                 { 11, _context.WorkingDayPatterns.Where(wdp => wdp.IsActive).Select(wdp => new DropDownResponse { Id = wdp.Id, Name = wdp.Name, CreatedBy = wdp.CreatedBy }) },
-                { 12, _context.GeoStatuses.Where(gs => gs.IsActive).Select(gs => new DropDownResponse { Id = gs.Id, Name = gs.Name, CreatedBy = gs.CreatedBy }) }
+                { 12, _context.GeoStatuses.Where(gs => gs.IsActive).Select(gs => new DropDownResponse { Id = gs.Id, Name = gs.Name, CreatedBy = gs.CreatedBy }) },
+                { 1002, _context.WorkingStatuses.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1003, _context.ApprovalOwners.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1004, _context.LeaveCreditDebitReasons.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1005, _context.ExcelImports.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -950,7 +995,11 @@ namespace AttendanceManagement.Services
                 { 9, async () => await _context.AccessLevels.FirstOrDefaultAsync(al => al.Id == dropDownDetailsRequest.DropDownDetailId && al.IsActive) },
                 { 10, async () => await _context.PolicyGroups.FirstOrDefaultAsync(pg => pg.Id == dropDownDetailsRequest.DropDownDetailId && pg.IsActive) },
                 { 11, async () => await _context.WorkingDayPatterns.FirstOrDefaultAsync(wdp => wdp.Id == dropDownDetailsRequest.DropDownDetailId && wdp.IsActive) },
-                { 12, async () => await _context.GeoStatuses.FirstOrDefaultAsync(gs => gs.Id == dropDownDetailsRequest.DropDownDetailId && gs.IsActive) }
+                { 12, async () => await _context.GeoStatuses.FirstOrDefaultAsync(gs => gs.Id == dropDownDetailsRequest.DropDownDetailId && gs.IsActive) },
+                { 1002, async () => await _context.WorkingStatuses.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1003, async () => await _context.ApprovalOwners.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1004, async () => await _context.LeaveCreditDebitReasons.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1005, async () => await _context.ExcelImports.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

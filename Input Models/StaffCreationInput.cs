@@ -166,7 +166,7 @@ namespace AttendanceManagement.Input_Models
         public string BloodGroup { get; set; } = null!;
 
         public string? ProfilePhoto { get; set; }
-
+        public int MaritalStatusId { get; set; }
         public string MaritalStatus { get; set; } = null!;
 
         public DateOnly Dob { get; set; }
@@ -186,7 +186,7 @@ namespace AttendanceManagement.Input_Models
         public string Department { get; set; } = null!;
         public int DivisionId { get; set; }
         public string Division { get; set; } = null!;
-
+        public int VolumeId { get; set; }
         public string Volume { get; set; } = null!;
         public int DesignationId { get; set; }
         public string Designation { get; set; } = null!;
@@ -209,14 +209,15 @@ namespace AttendanceManagement.Input_Models
         public int PostalCode { get; set; }
         public bool OtEligible { get; set; }
         public string ApprovalLevel { get; set; } = null!;
+        public int? ApprovalLevelId1 { get; set; }
         public string ApprovalLevel1 { get; set; } = null!;
-
+        public int? ApprovalLevelId2 { get; set; }
         public string? ApprovalLevel2 { get; set; }
-
+        public int AccessLevelId { get; set; }
         public string AccessLevel { get; set; } = null!;
-
+        public int PolicyGroupId { get; set; }
         public string PolicyGroup { get; set; } = null!;
-
+        public int WorkingDayPatternId { get; set; }
         public string WorkingDayPattern { get; set; } = null!;
 
         public decimal Tenure { get; set; }
@@ -226,7 +227,7 @@ namespace AttendanceManagement.Input_Models
         public string? EsiNumber { get; set; }
 
         public bool IsMobileAppEligible { get; set; }
-
+        public int GeoStatusId { get; set; }
         public string GeoStatus { get; set; } = null!;
 
         public string? MiddleName { get; set; }
@@ -237,13 +238,13 @@ namespace AttendanceManagement.Input_Models
         public string PersonalEmail { get; set; } = null!;
         public int LeaveGroupId { get; set; }
         public string LeaveGroup { get; set; } = null!;
-        public int CompanyId { get; set; }
+        public int CompanyMasterId { get; set; }
         public string Company { get; set; } = null!;
-        public int LocationId { get; set; }
+        public int LocationMasterId { get; set; }
         public string Location { get; set; } = null!;
         public int HolidayCalendarId { get; set; }
         public string HolidayCalendar { get; set; } = null!;
-
+        public int StatusId { get; set; }
         public string Status { get; set; } = null!;
 
         public long? AadharNo { get; set; }
@@ -284,6 +285,7 @@ namespace AttendanceManagement.Input_Models
         public int CreatedBy { get; set; }
         public int OrganizationTypeId { get; set; }
         public string OrganizationTypeName { get; set; } = null!;
+        public int WorkingStatusId { get; set; }
         public string WorkingStatus { get; set; } = null!;
     }
 
@@ -337,7 +339,7 @@ namespace AttendanceManagement.Input_Models
         public string? OrganizationTypeName { get; set; }
         public string? ShiftName { get; set; }
         public string? Status { get; set; }
-        public string? LoginUserName {  get; set; }
+        public string? LoginUserName { get; set; }
     }
     public class UpdateStaff
     {

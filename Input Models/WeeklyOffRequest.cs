@@ -3,23 +3,26 @@
     public class WeeklyOffRequest
     {
         public string WeeklyOffName { get; set; } = null!;
-
-        public int MarkWeeklyOff { get; set; }
+        public List<int> MarkWeeklyOff { get; set; } = new List<int>();
         public bool IsActive { get; set; }
-
         public int CreatedBy { get; set; }
     }
 
     public class WeeklyOffResponse
     {
         public int WeeklyOffId { get; set; }
-
         public string WeeklyOffName { get; set; } = null!;
-
-        public string MarkWeeklyOff { get; set; } = null!;
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
+        public List<WeeklyOffDetailResponse> MarkWeeklyOffs { get; set; } = new();
     }
+
+    public class WeeklyOffDetailResponse
+    {
+        public int MarkWeeklyOffId { get; set; }
+        public string MarkWeeklyOff { get; set; } = null!;
+    }
+
 
     public class UpdateWeeklyOff
     {
@@ -27,7 +30,7 @@
 
         public string WeeklyOffName { get; set; } = null!;
 
-        public int MarkWeeklyOff { get; set; }
+        public List<int> MarkWeeklyOff { get; set; } = new List<int>();
 
         public bool IsActive { get; set; }
         public int UpdatedBy { get; set; }

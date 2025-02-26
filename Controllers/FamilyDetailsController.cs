@@ -4,6 +4,7 @@ using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AttendanceManagement.Controllers
@@ -13,12 +14,12 @@ namespace AttendanceManagement.Controllers
     public class FamilyDetailsController : ControllerBase
     {
         private readonly FamilyDetailsService _service;
-        private readonly AttendanceManagementSystemContext _context;
+        private readonly LoggingService _loggingService;
 
-        public FamilyDetailsController(FamilyDetailsService service, AttendanceManagementSystemContext context)
+        public FamilyDetailsController(FamilyDetailsService service, LoggingService loggingService)
         {
             _service = service;
-            _context = context;
+            _loggingService = loggingService;
         }
 
         [HttpGet("GetAllFamilyDetails")]
@@ -78,41 +79,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = createdDetail
                 };
-                AuditLog log = new AuditLog
-                {
-                    Module = "Family Details",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/FamilyDetails/CreateFamilyDetails",
-                    SuccessMessage = createdDetail,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(familyDetailsDTO),
-                    StaffId = familyDetailsDTO.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.AuditLogs.Add(log);
-                await _context.SaveChangesAsync();
+                await _loggingService.AuditLog("Family Details", "POST", "/FamilyDetails/CreateFamilyDetails", createdDetail, familyDetailsDTO.CreatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Family Details",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/FamilyDetails/CreateFamilyDetails",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = familyDetailsDTO.CreatedBy,
-                        Payload = System.Text.Json.JsonSerializer.Serialize(familyDetailsDTO),
-                        CreatedUtc = DateTime.UtcNow
-                    };
-
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Family Details", "POST", "/FamilyDetails/CreateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.CreatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -128,62 +100,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updated
                 };
-                AuditLog log = new AuditLog
-                {
-                    Module = "Family Details",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/FamilyDetails/UpdateFamilyDetails",
-                    SuccessMessage = updated,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(familyDetailsDTO),
-                    StaffId = familyDetailsDTO.UpdatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.AuditLogs.Add(log);
-                await _context.SaveChangesAsync();
+                await _loggingService.AuditLog("Family Details", "POST", "/FamilyDetails/UpdateFamilyDetails", updated, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Family Details",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/FamilyDetails/UpdateFamilyDetails",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = familyDetailsDTO.UpdatedBy,
-                        Payload = System.Text.Json.JsonSerializer.Serialize(familyDetailsDTO),
-                        CreatedUtc = DateTime.UtcNow
-                    };
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Family Details", "POST", "/FamilyDetails/UpdateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Family Details",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/FamilyDetails/UpdateFamilyDetails",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = familyDetailsDTO.UpdatedBy,
-                        Payload = System.Text.Json.JsonSerializer.Serialize(familyDetailsDTO),
-                        CreatedUtc = DateTime.UtcNow
-                    };
-
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Family Details", "POST", "/FamilyDetails/UpdateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

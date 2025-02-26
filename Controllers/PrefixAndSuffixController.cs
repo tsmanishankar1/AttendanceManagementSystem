@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AttendanceManagement.Models;
 using AttendanceManagement.Input_Models;
+using AttendanceManagement.Services;
+using System.Text.Json;
 namespace AttendanceManagement.Controllers;
 
 [Route("api/[controller]")]
@@ -8,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class PrefixAndSuffixController : ControllerBase
 {
     private readonly PrefixAndSuffixService _prefixAndSuffixService;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public PrefixAndSuffixController(PrefixAndSuffixService prefixAndSuffixService, AttendanceManagementSystemContext context)
+    public PrefixAndSuffixController(PrefixAndSuffixService prefixAndSuffixService, LoggingService loggingService)
     {
         _prefixAndSuffixService = prefixAndSuffixService;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllSuffixLeaveType")]
@@ -157,41 +159,12 @@ public class PrefixAndSuffixController : ControllerBase
                 Success = true,
                 Message = createdPrefixAndSuffix
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Prefix And Suffix",
-                HttpMethod = "POST",
-                ApiEndpoint = "/PrefixAndSuffix/AddPrefixAndSuffix",
-                SuccessMessage = createdPrefixAndSuffix,
-                Payload = System.Text.Json.JsonSerializer.Serialize(prefixAndSuffix),
-                StaffId = prefixAndSuffix.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Prefix And Suffix", "POST", "/PrefixAndSuffix/AddPrefixAndSuffix", createdPrefixAndSuffix, prefixAndSuffix.CreatedBy, JsonSerializer.Serialize(prefixAndSuffix));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Prefix And Suffix",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/PrefixAndSuffix/AddPrefixAndSuffix",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = prefixAndSuffix.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(prefixAndSuffix),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Prefix And Suffix", "POST", "/PrefixAndSuffix/AddPrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, prefixAndSuffix.CreatedBy, JsonSerializer.Serialize(prefixAndSuffix));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -207,62 +180,17 @@ public class PrefixAndSuffixController : ControllerBase
                 Success = true,
                 Message = updatedRecord
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Prefix And Suffix",
-                HttpMethod = "POST",
-                ApiEndpoint = "/PrefixAndSuffix/UpdatePrefixAndSuffix",
-                SuccessMessage = updatedRecord,
-                Payload = System.Text.Json.JsonSerializer.Serialize(updatedPrefixAndSuffix),
-                StaffId = updatedPrefixAndSuffix.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Prefix And Suffix", "POST", "/PrefixAndSuffix/UpdatePrefixAndSuffix", updatedRecord, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Prefix And Suffix",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/PrefixAndSuffix/UpdatePrefixAndSuffix",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedPrefixAndSuffix.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedPrefixAndSuffix),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Prefix And Suffix", "POST", "/PrefixAndSuffix/UpdatePrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Prefix And Suffix",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/PrefixAndSuffix/UpdatePrefixAndSuffix",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedPrefixAndSuffix.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedPrefixAndSuffix),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Prefix And Suffix", "POST", "/PrefixAndSuffix/UpdatePrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

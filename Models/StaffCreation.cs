@@ -187,7 +187,15 @@ public partial class StaffCreation
 
     public virtual ICollection<ApprovalNotification> ApprovalNotificationUpdatedByNavigations { get; set; } = new List<ApprovalNotification>();
 
+    public virtual ICollection<ApprovalOwner> ApprovalOwnerCreatedByNavigations { get; set; } = new List<ApprovalOwner>();
+
+    public virtual ICollection<ApprovalOwner> ApprovalOwnerUpdatedByNavigations { get; set; } = new List<ApprovalOwner>();
+
     public virtual ICollection<Approval> ApprovalUpdatedByNavigations { get; set; } = new List<Approval>();
+
+    public virtual ICollection<AssignLeaveType> AssignLeaveTypeCreatedByNavigations { get; set; } = new List<AssignLeaveType>();
+
+    public virtual ICollection<AssignLeaveType> AssignLeaveTypeUpdatedByNavigations { get; set; } = new List<AssignLeaveType>();
 
     public virtual ICollection<AssignShift> AssignShiftCreatedByNavigations { get; set; } = new List<AssignShift>();
 
@@ -321,6 +329,10 @@ public partial class StaffCreation
 
     public virtual ICollection<EmploymentHistory> EmploymentHistoryUpdatedByNavigations { get; set; } = new List<EmploymentHistory>();
 
+    public virtual ICollection<ExcelImport> ExcelImportCreatedByNavigations { get; set; } = new List<ExcelImport>();
+
+    public virtual ICollection<ExcelImport> ExcelImportUpdatedByNavigations { get; set; } = new List<ExcelImport>();
+
     public virtual ICollection<FamilyDetail> FamilyDetailCreatedByNavigations { get; set; } = new List<FamilyDetail>();
 
     public virtual ICollection<FamilyDetail> FamilyDetailStaffCreations { get; set; } = new List<FamilyDetail>();
@@ -390,6 +402,10 @@ public partial class StaffCreation
     public virtual ICollection<LeaveAvailability> LeaveAvailabilityCreatedByNavigations { get; set; } = new List<LeaveAvailability>();
 
     public virtual ICollection<LeaveAvailability> LeaveAvailabilityUpdatedByNavigations { get; set; } = new List<LeaveAvailability>();
+
+    public virtual ICollection<LeaveCreditDebitReason> LeaveCreditDebitReasonCreatedByNavigations { get; set; } = new List<LeaveCreditDebitReason>();
+
+    public virtual ICollection<LeaveCreditDebitReason> LeaveCreditDebitReasonUpdatedByNavigations { get; set; } = new List<LeaveCreditDebitReason>();
 
     public virtual LeaveGroup LeaveGroup { get; set; } = null!;
 
@@ -583,6 +599,10 @@ public partial class StaffCreation
 
     public virtual ICollection<Volume> VolumeUpdatedByNavigations { get; set; } = new List<Volume>();
 
+    public virtual ICollection<WeeklyOffDetail> WeeklyOffDetailCreatedByNavigations { get; set; } = new List<WeeklyOffDetail>();
+
+    public virtual ICollection<WeeklyOffDetail> WeeklyOffDetailUpdatedByNavigations { get; set; } = new List<WeeklyOffDetail>();
+
     public virtual ICollection<WeeklyOffHolidayWorking> WeeklyOffHolidayWorkingCreatedByNavigations { get; set; } = new List<WeeklyOffHolidayWorking>();
 
     public virtual ICollection<WeeklyOffHolidayWorking> WeeklyOffHolidayWorkingStaffs { get; set; } = new List<WeeklyOffHolidayWorking>();
@@ -604,6 +624,10 @@ public partial class StaffCreation
     public virtual ICollection<WorkingDayPattern> WorkingDayPatternCreatedByNavigations { get; set; } = new List<WorkingDayPattern>();
 
     public virtual ICollection<WorkingDayPattern> WorkingDayPatternUpdatedByNavigations { get; set; } = new List<WorkingDayPattern>();
+
+    public virtual ICollection<WorkingStatus> WorkingStatusCreatedByNavigations { get; set; } = new List<WorkingStatus>();
+
+    public virtual ICollection<WorkingStatus> WorkingStatusUpdatedByNavigations { get; set; } = new List<WorkingStatus>();
 
     public virtual ICollection<WorkstationMaster> WorkstationMasterCreatedByNavigations { get; set; } = new List<WorkstationMaster>();
 

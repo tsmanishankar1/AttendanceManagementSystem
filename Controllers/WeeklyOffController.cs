@@ -2,6 +2,7 @@
 using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -10,12 +11,12 @@ namespace AttendanceManagement.Controllers;
 public class WeeklyOffController : ControllerBase
 {
     private readonly WeeklyOffService _weeklyOffService;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public WeeklyOffController(WeeklyOffService weeklyOffService, AttendanceManagementSystemContext context)
+    public WeeklyOffController(WeeklyOffService weeklyOffService, LoggingService loggingService)
     {
         _weeklyOffService = weeklyOffService;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllWeeklyOffs")]
@@ -75,61 +76,17 @@ public class WeeklyOffController : ControllerBase
                 Success = true,
                 Message = createdWeeklyOff
             };
-
-            AuditLog log = new AuditLog
-            {
-                Module = "CreateWeeklyOff",
-                HttpMethod = "POST",
-                ApiEndpoint = "/api/WeeklyOff/AddWeeklyOff",
-                SuccessMessage = "Created weekly off successfully",
-                Payload = System.Text.Json.JsonSerializer.Serialize(weeklyOff),
-                StaffId = weeklyOff.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("CreateWeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", createdWeeklyOff, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateWeeklyOff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WeeklyOff/AddWeeklyOff",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = weeklyOff.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(weeklyOff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("CreateWeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateWeeklyOff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WeeklyOff/AddWeeklyOff",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = weeklyOff.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(weeklyOff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("CreateWeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -145,60 +102,17 @@ public class WeeklyOffController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "UpdateWeeklyOff",
-                HttpMethod = "POST",
-                ApiEndpoint = "/api/WeeklyOff/UpdateWeeklyOff",
-                SuccessMessage = "Updated weekly off successfully",
-                Payload = System.Text.Json.JsonSerializer.Serialize(updatedWeeklyOff),
-                StaffId = updatedWeeklyOff.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("UpdateWeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", updated, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateWeeklyOff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WeeklyOff/UpdateWeeklyOff",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedWeeklyOff.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedWeeklyOff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("UpdateWeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateWeeklyOff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/WeeklyOff/UpdateWeeklyOff",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedWeeklyOff.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedWeeklyOff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("UpdateWeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

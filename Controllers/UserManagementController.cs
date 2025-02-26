@@ -1,18 +1,18 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
+using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 [Route("api/[controller]")]
 [ApiController]
 public class UserManagementController : ControllerBase
 {
     private readonly UserManagementService _userService;
-    private readonly AttendanceManagementSystemContext _context;
-
-    public UserManagementController(UserManagementService userService, AttendanceManagementSystemContext context)
+    private readonly LoggingService _loggingService;
+    public UserManagementController(UserManagementService userService, LoggingService loggingService)
     {
         _userService = userService;
-        _context = context;
+        _loggingService = loggingService;
 
     }
 
@@ -27,65 +27,17 @@ public class UserManagementController : ControllerBase
                 Success = true,
                 Message = result
             };
-
-            AuditLog log = new AuditLog
-            {
-                Module = "RegisterUser",
-                HttpMethod = "POST",
-                ApiEndpoint = "/api/User/RegisterUser",
-                SuccessMessage = "User registered successfully",
-                Payload = System.Text.Json.JsonSerializer.Serialize(userRequest),
-                StaffId = userRequest.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Register User", "POST", "/api/User/RegisterUser", result, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "RegisterUser",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/User/RegisterUser",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = userRequest.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(userRequest),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Register User", "POST", "/api/User/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "RegisterUser",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/api/User/RegisterUser",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = userRequest.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(userRequest),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Register User", "POST", "/api/User/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

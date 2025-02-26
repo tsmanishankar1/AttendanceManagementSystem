@@ -1898,6 +1898,53 @@
 			<response code="404">If no application types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.GetStaffInfoByStaffId(System.Int32)">
+			<summary>
+				Retrieves staff leave information by Staff ID.
+			</summary>
+			<param name="staffId">The ID of the staff member.</param>
+			<returns>Staff leave details.</returns>
+			<response code="200">Returns staff leave information</response>
+			<response code="404">If no staff is found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.GetAll">
+			<summary>
+				Retrieves all assigned leave types.
+			</summary>
+			<returns>A list of all assigned leave types.</returns>
+			<response code="200">Returns the list of assigned leave types</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.GetById(System.Int32)">
+			<summary>
+				Retrieves an assigned leave type by its ID.
+			</summary>
+			<param name="id">The ID of the assigned leave type.</param>
+			<returns>The assigned leave type with the specified ID.</returns>
+			<response code="200">Returns the assigned leave type</response>
+			<response code="404">If the assigned leave type is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.Create(AttendanceManagement.Input_Models.CreateAssignLeaveTypeDTO)">
+			<summary>
+				Creates a new assigned leave type.
+			</summary>
+			<param name="assignLeaveType">The assigned leave type details to create.</param>
+			<returns>The created assigned leave type.</returns>
+			<response code="200">Returns the created assigned leave type</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.Update(AttendanceManagement.Input_Models.UpdateAssignLeaveTypeDTO)">
+			<summary>
+				Updates an existing assigned leave type.
+			</summary>
+			<param name="assignLeaveType">The assigned leave type details to update.</param>
+			<returns>The updated assigned leave type.</returns>
+			<response code="200">Returns the updated assigned leave type</response>
+			<response code="404">If the assigned leave type is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.GetStaffInfoByOrganizationType(System.Int32)">
 			<summary>
 				Retrieves all Organization types.

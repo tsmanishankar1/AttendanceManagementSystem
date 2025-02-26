@@ -1,7 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 namespace AttendanceManagement.Controllers;
 
 [Route("api/[controller]")]
@@ -9,12 +9,12 @@ namespace AttendanceManagement.Controllers;
 public class LocationMasterController : ControllerBase
 {
     private readonly LocationService _service;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public LocationMasterController(LocationService service, AttendanceManagementSystemContext context)
+    public LocationMasterController(LocationService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllLocations")]
@@ -74,41 +74,12 @@ public class LocationMasterController : ControllerBase
                 Success = true,
                 Message = createdLocation
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Location Master",
-                HttpMethod = "POST",
-                ApiEndpoint = "/LocationMaster/CreateLocation",
-                SuccessMessage = createdLocation,
-                Payload = System.Text.Json.JsonSerializer.Serialize(location),
-                StaffId = location.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Location Master", "POST", "/LocationMaster/CreateLocation", createdLocation, location.CreatedBy, JsonSerializer.Serialize(location));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Location Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LocationMaster/CreateLocation",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = location.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(location),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Location Master", "POST", "/LocationMaster/CreateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.CreatedBy, JsonSerializer.Serialize(location));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -124,63 +95,17 @@ public class LocationMasterController : ControllerBase
                 Success = true,
                 Message = updatedLocation
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Location Master",
-                HttpMethod = "POST",
-                ApiEndpoint = "/LocationMaster/UpdateLocation",
-                SuccessMessage = updatedLocation,
-                Payload = System.Text.Json.JsonSerializer.Serialize(location),
-                StaffId = location.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Location Master", "POST", "/LocationMaster/UpdateLocation", updatedLocation, location.UpdatedBy, JsonSerializer.Serialize(location));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Location Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LocationMaster/UpdateLocation",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = location.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(location),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Location Master", "POST", "/LocationMaster/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Location Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LocationMaster/UpdateLocation",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = location.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(location),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Location Master", "POST", "/LocationMaster/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

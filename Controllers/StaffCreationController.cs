@@ -3,8 +3,8 @@ using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -13,12 +13,13 @@ namespace AttendanceManagement.Controllers;
 public class StaffCreationController : ControllerBase
 {
     private readonly StaffCreationService _service;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public StaffCreationController(StaffCreationService service, AttendanceManagementSystemContext context)
+    public StaffCreationController(StaffCreationService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
+
     }
 
     [HttpGet("GetByStaffId")]
@@ -67,6 +68,7 @@ public class StaffCreationController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = ex.Message });
         }
     }
+
     [HttpPost("UpdateStaffCreation")]
     public async Task<IActionResult> UpdateStaffCreation(UpdateStaff updatedStaff)
     {
@@ -79,63 +81,17 @@ public class StaffCreationController : ControllerBase
                 Message = success
             };
 
-            AuditLog log = new AuditLog
-            {
-                Module = "UpdateStaff",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Staff/UpdateStaffById",
-                SuccessMessage = success,
-                Payload = System.Text.Json.JsonSerializer.Serialize(updatedStaff),
-                StaffId = updatedStaff.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("UpdateStaff", "POST", "/Staff/UpdateStaffById", success, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateStaff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/UpdateStaffById",
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedStaff.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedStaff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                _context.ErrorLogs.Add(log);
-                await _context.SaveChangesAsync();
-            }
-
+            await _loggingService.LogError("UpdateStaff", "POST", "/Staff/UpdateStaffById", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateStaff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/UpdateStaffById",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedStaff.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedStaff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("UpdateStaff", "POST", "/Staff/UpdateStaffById", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -151,64 +107,17 @@ public class StaffCreationController : ControllerBase
                 Success = true,
                 Message = addStaff
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "CreateStaff",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Staff/CreateStaff",
-                SuccessMessage = addStaff,
-                Payload = System.Text.Json.JsonSerializer.Serialize(staffInput),
-                StaffId = staffInput.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("CreateStaff", "POST", "/Staff/CreateStaff", addStaff, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateStaff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/CreateStaff",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = staffInput.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(staffInput),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.ErrorLogs.Add(log);
-                await _context.SaveChangesAsync();
-            }
-                return ErrorClass.NotFoundResponse(ex.Message);
+            await _loggingService.LogError("CreateStaff", "POST", "/Staff/CreateStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "CreateStaff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/CreateStaff",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = staffInput.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(staffInput),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("CreateStaff", "POST", "/Staff/CreateStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -235,6 +144,7 @@ public class StaffCreationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("UpdateApprovers")]
     public async Task<IActionResult> UpdateApprovers(ApproverUpdateRequest request)
     {
@@ -251,66 +161,21 @@ public class StaffCreationController : ControllerBase
             {
                 return BadRequest(new { Success = false, Message = result });
             }
-            var auditLog = new AuditLog
-            {
-                Module = "Staff",
-                HttpMethod = "POST",
-                ApiEndpoint = "/api/Staff/update-approvers",
-                SuccessMessage = result,
-                Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                StaffId = request.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(auditLog);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Staff", "POST", "/api/Staff/update-approvers", result, request.UpdatedBy, JsonSerializer.Serialize(request));
             return Ok(new { Success = true, Message = "Approvers updated successfully" });
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateStaff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/UpdateStaffByApprovers",
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = request.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                _context.ErrorLogs.Add(log);
-                await _context.SaveChangesAsync();
-            }
-
+            await _loggingService.LogError("Staff", "POST", "/api/Staff/update-approvers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "UpdateStaff",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/UpdateStaffByApprovers",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = request.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Staff", "POST", "/api/Staff/update-approvers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpGet("GetPendingStaffForManagerApproval")]
     public async Task<IActionResult> GetPendingStaffForManagerApproval(int approverId)
     {
@@ -346,64 +211,17 @@ public class StaffCreationController : ControllerBase
                 Success = true,
                 Message = approveStaff
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "ApprovePendingStaffs",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Staff/ApprovePendingStaffs",
-                SuccessMessage = approveStaff,
-                Payload = System.Text.Json.JsonSerializer.Serialize(approvePendingStaff),
-                StaffId = approvePendingStaff.ApprovedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("ApprovePendingStaffs", "POST", "/Staff/ApprovePendingStaffs", approveStaff, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "ApprovePendingStaffs",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/ApprovePendingStaffs",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = approvePendingStaff.ApprovedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(approvePendingStaff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.ErrorLogs.Add(log);
-                await _context.SaveChangesAsync();
-            }
+            await _loggingService.LogError("ApprovePendingStaffs", "POST", "/Staff/ApprovePendingStaffs", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "ApprovePendingStaffs",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Staff/ApprovePendingStaffs",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = approvePendingStaff.ApprovedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(approvePendingStaff),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("ApprovePendingStaffs", "POST", "/Staff/ApprovePendingStaffs", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -419,10 +237,12 @@ public class StaffCreationController : ControllerBase
                 Success = true,
                 Message = createdDropDownMaster
             };
+            await _loggingService.AuditLog("DropDownMaster", "POST", "/Staff/CreateDropDownMaster", createdDropDownMaster, dropDownRequest.CreatedBy, JsonSerializer.Serialize(dropDownRequest));
             return Ok(response);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("DropDownMaster", "POST", "/Staff/CreateDropDownMaster", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dropDownRequest.CreatedBy, JsonSerializer.Serialize(dropDownRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -461,14 +281,17 @@ public class StaffCreationController : ControllerBase
                 Success = true,
                 Message = updatedDropDownMaster
             };
+            await _loggingService.AuditLog("DropDownMaster", "POST", "/Staff/UpdateDropDownMaster", updatedDropDownMaster, updateDropDown.UpdatedBy, JsonSerializer.Serialize(updateDropDown));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
+            await _loggingService.LogError("DropDownMaster", "POST", "/Staff/UpdateDropDownMaster", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updateDropDown.UpdatedBy, JsonSerializer.Serialize(updateDropDown));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("DropDownMaster", "POST", "/Staff/UpdateDropDownMaster", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updateDropDown.UpdatedBy, JsonSerializer.Serialize(updateDropDown));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -484,14 +307,17 @@ public class StaffCreationController : ControllerBase
                 Success = true,
                 Message = dropDown
             };
+            await _loggingService.AuditLog("DropDownDetails", "POST", "/Staff/CreateDropDownDetails", dropDown, dropDownDetailsRequest.CreatedBy, JsonSerializer.Serialize(dropDownDetailsRequest));
             return Ok(response);
         }
         catch(MessageNotFoundException ex)
         {
+            await _loggingService.LogError("DropDownDetails", "POST", "/Staff/CreateDropDownDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dropDownDetailsRequest.CreatedBy, JsonSerializer.Serialize(dropDownDetailsRequest));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch(Exception ex)
         {
+            await _loggingService.LogError("DropDownDetails", "POST", "/Staff/CreateDropDownDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dropDownDetailsRequest.CreatedBy, JsonSerializer.Serialize(dropDownDetailsRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -530,14 +356,17 @@ public class StaffCreationController : ControllerBase
                 Success = true,
                 Message = dropDown
             };
+            await _loggingService.AuditLog("DropDownDetails", "POST", "/Staff/UpdateDropDownDetails", dropDown, dropDownDetailsRequest.UpdatedBy, JsonSerializer.Serialize(dropDownDetailsRequest));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
+            await _loggingService.LogError("DropDownDetails", "POST", "/Staff/UpdateDropDownDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dropDownDetailsRequest.UpdatedBy, JsonSerializer.Serialize(dropDownDetailsRequest));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("DropDownDetails", "POST", "/Staff/UpdateDropDownDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dropDownDetailsRequest.UpdatedBy, JsonSerializer.Serialize(dropDownDetailsRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

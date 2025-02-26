@@ -1,7 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -10,12 +10,11 @@ namespace AttendanceManagement.Controllers;
 public class SubFunctionMasterController : ControllerBase
 {
     private readonly SubFunctionMasterService _service;
-    private readonly AttendanceManagementSystemContext _context;
-
-    public SubFunctionMasterController(SubFunctionMasterService service, AttendanceManagementSystemContext context)
+    private readonly LoggingService _loggingService;
+    public SubFunctionMasterController(SubFunctionMasterService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllSubFunctions")]
@@ -75,41 +74,12 @@ public class SubFunctionMasterController : ControllerBase
                 Success = true,
                 Message = createdSubFunction
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "SubFunction Master",
-                HttpMethod = "POST",
-                ApiEndpoint = "/SubFunction/CreateSubFunction",
-                SuccessMessage = createdSubFunction,
-                Payload = System.Text.Json.JsonSerializer.Serialize(subFunctionMaster),
-                StaffId = subFunctionMaster.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("SubFunction Master", "POST", "/SubFunction/CreateSubFunction", createdSubFunction, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "SubFunction Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/SubFunction/CreateSubFunction",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = subFunctionMaster.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(subFunctionMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("SubFunction Master", "POST", "/SubFunction/CreateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -125,63 +95,17 @@ public class SubFunctionMasterController : ControllerBase
                 Success = true,
                 Message = updatedSubFunction
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "SubFunction Master",
-                HttpMethod = "POST",
-                ApiEndpoint = "/SubFunction/UpdateSubFunction",
-                SuccessMessage = updatedSubFunction,
-                Payload = System.Text.Json.JsonSerializer.Serialize(subFunctionMaster),
-                StaffId = subFunctionMaster.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("SubFunction Master", "POST", "/SubFunction/CreateSubFunction", updatedSubFunction, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "SubFunction Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/SubFunction/UpdateSubFunction",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = subFunctionMaster.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(subFunctionMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("SubFunction Master", "POST", "/SubFunction/UpdateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "SubFunction Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/SubFunction/UpdateSubFunction",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = subFunctionMaster.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(subFunctionMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("SubFunction Master", "POST", "/SubFunction/UpdateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

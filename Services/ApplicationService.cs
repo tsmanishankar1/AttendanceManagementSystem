@@ -26,7 +26,6 @@ public class ApplicationService
         var application = applicationTypeId switch
         {
             1 => await _context.LeaveRequisitions
-         .Where(lr => (staffId != null ? lr.CreatedBy == staffId : true) && lr.ApplicationTypeId == applicationTypeId)
          .Join(_context.ApplicationTypes, lr => lr.ApplicationTypeId, at => at.Id,
                (lr, at) => new { lr, at })
          .Join(_context.LeaveTypes, temp => temp.lr.LeaveTypeId, lt => lt.Id,
@@ -46,7 +45,6 @@ public class ApplicationService
          .ToListAsync(),
 
             2 => await _context.CommonPermissions
-             .Where(cp => (staffId != null ? cp.CreatedBy == staffId : true) && cp.ApplicationTypeId == applicationTypeId)
              .Join(_context.ApplicationTypes, cp => cp.ApplicationTypeId, at => at.Id,
                    (cp, at) => new PermissionDto
                    {
@@ -63,7 +61,6 @@ public class ApplicationService
              .ToListAsync(),
 
             3 => await _context.ManualPunchRequistions
-            .Where(mp => (staffId != null ? mp.CreatedBy == staffId : true) && mp.ApplicationTypeId == applicationTypeId)
             .Select(mp => new ManualPunch
             {
                 ApplicationTypeId = mp.ApplicationTypeId,
@@ -77,7 +74,6 @@ public class ApplicationService
             .ToListAsync(),
 
             4 => await _context.OnDutyRequisitions
-             .Where(od => (staffId != null ? od.CreatedBy == staffId : true) && od.ApplicationTypeId == applicationTypeId)
              .Select(od => new OnDutyRequest
              {
                  ApplicationTypeId = od.ApplicationTypeId,
@@ -94,7 +90,6 @@ public class ApplicationService
              .ToListAsync(),
 
             5 => await _context.BusinessTravels
-                .Where(bt => (staffId != null ? bt.CreatedBy == staffId : true) && bt.ApplicationTypeId == applicationTypeId)
                 .Select(bt => new Business
                 {
                     ApplicationTypeId = bt.ApplicationTypeId,
@@ -112,7 +107,6 @@ public class ApplicationService
 
 
             6 => await _context.WorkFromHomes
-         .Where(wfh => (staffId != null ? wfh.CreatedBy == staffId : true) && wfh.ApplicationTypeId == applicationTypeId)
          .Select(wfh => new WorkFrom
          {
              ApplicationTypeId = wfh.ApplicationTypeId,
@@ -129,7 +123,6 @@ public class ApplicationService
      .ToListAsync(),
 
             7 => await _context.ShiftChanges
-      .Where(sc => (staffId != null ? sc.CreatedBy == staffId : true) && sc.ApplicationTypeId == applicationTypeId)
       .Join(_context.ApplicationTypes, sc => sc.ApplicationTypeId, at => at.Id,
             (sc, at) => new { sc, at })
       .Join(_context.Shifts, temp => temp.sc.ShiftId, s => s.Id,
@@ -146,7 +139,6 @@ public class ApplicationService
       .ToListAsync(),
 
             8 => await _context.ShiftExtensions
-          .Where(se => (staffId != null ? se.CreatedBy == staffId : true) && se.ApplicationTypeId == applicationTypeId)
           .Select(se => new ShiftExte
           {
               ApplicationTypeId = se.ApplicationTypeId,
@@ -162,7 +154,6 @@ public class ApplicationService
 
 
             9 => await _context.WeeklyOffHolidayWorkings
-      .Where(wh => (staffId != null ? wh.CreatedBy == staffId : true) && wh.ApplicationTypeId == applicationTypeId)
       .Join(_context.ApplicationTypes,
             wh => wh.ApplicationTypeId, at => at.Id, (wh, at) => new { wh, at })
       .Join(_context.Shifts,
@@ -180,7 +171,6 @@ public class ApplicationService
       .ToListAsync(),
 
             10 => await _context.CompOffAvails
-     .Where(coa => (staffId != null ? coa.CreatedBy == staffId : true) && coa.ApplicationTypeId == applicationTypeId)
      .Select(coa => new CompOffAvai
      {
          ApplicationTypeId = coa.ApplicationTypeId,
@@ -197,7 +187,6 @@ public class ApplicationService
      .ToListAsync(),
 
             11 => await _context.CompOffCredits
-     .Where(coc => (staffId != null ? coc.CreatedBy == staffId : true) && coc.ApplicationTypeId == applicationTypeId)
      .Select(coc => new CompOffCred
      {
          ApplicationTypeId = coc.ApplicationTypeId,

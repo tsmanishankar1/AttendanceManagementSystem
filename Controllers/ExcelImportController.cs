@@ -1,10 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NSwag.Annotations;
-using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -13,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class ExcelImportController : ControllerBase
 {
     private readonly ExcelImportService _excelImportService;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public ExcelImportController(ExcelImportService excelImportService, AttendanceManagementSystemContext context)
+    public ExcelImportController(ExcelImportService excelImportService, LoggingService loggingService)
     {
         _excelImportService = excelImportService;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpPost("ImportExcel")]
@@ -32,41 +29,12 @@ public class ExcelImportController : ControllerBase
                 Success = true,
                 Message = result
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Excel Import",
-                HttpMethod = "POST",
-                ApiEndpoint = "/ExcelImport/ImportExcelFiles",
-                SuccessMessage = result,
-                Payload = System.Text.Json.JsonSerializer.Serialize(excelImportDto),
-                StaffId = excelImportDto.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Excel Import", "POST", "/ExcelImport/ImportExcelFiles", result, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Excel Import",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/ExcelImport/ImportExcelFiles",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = excelImportDto.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(excelImportDto),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Excel Import", "POST", "/ExcelImport/ImportExcelFiles", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

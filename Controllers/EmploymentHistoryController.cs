@@ -6,6 +6,7 @@ using NSwag.Annotations;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AttendanceManagement.Controllers
@@ -15,12 +16,12 @@ namespace AttendanceManagement.Controllers
     public class EmploymentHistoryController : ControllerBase
     {
         private readonly EmploymentHistoryService _employmentHistoryService;
-        private readonly AttendanceManagementSystemContext _context;
+        private readonly LoggingService _loggingService;
 
-        public EmploymentHistoryController(EmploymentHistoryService employmentHistoryService, AttendanceManagementSystemContext context)
+        public EmploymentHistoryController(EmploymentHistoryService employmentHistoryService, LoggingService loggingService)
         {
             _employmentHistoryService = employmentHistoryService;
-            _context = context;
+            _loggingService = loggingService;
         }
 
         [HttpGet("GetAllEmploymentHistory")]
@@ -80,40 +81,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = newEmploymentHistory
                 };
-                AuditLog log = new AuditLog
-                {
-                    Module = "Employment History",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/EmploymentHistory/CreateEmploymentHistory",
-                    SuccessMessage = newEmploymentHistory,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(model),
-                    StaffId = model.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.AuditLogs.Add(log);
-                await _context.SaveChangesAsync();
+                await _loggingService.AuditLog("Employment History", "POST", "/EmploymentHistory/CreateEmploymentHistory", newEmploymentHistory, model.CreatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Employment History",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/EmploymentHistory/CreateEmploymentHistory",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = model.CreatedBy,
-                        Payload = System.Text.Json.JsonSerializer.Serialize(model),
-                        CreatedUtc = DateTime.UtcNow
-                    };
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Employment History", "POST", "/EmploymentHistory/CreateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -129,61 +102,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updatedEmploymentHistory
                 };
-                AuditLog log = new AuditLog
-                {
-                    Module = "Employment History",
-                    HttpMethod = "GET",
-                    ApiEndpoint = "/EmploymentHistory/UpdateEmploymentHistory",
-                    SuccessMessage = updatedEmploymentHistory,
-                    StaffId = model.UpdatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.AuditLogs.Add(log);
-                await _context.SaveChangesAsync();
-
+                await _loggingService.AuditLog("Employment History", "POST", "/EmploymentHistory/UpdateEmploymentHistory", updatedEmploymentHistory, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Employment History",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/EmploymentHistory/UpdateEmploymentHistory",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = model.UpdatedBy,
-                        CreatedUtc = DateTime.UtcNow
-                    };
-
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Employment History", "POST", "/EmploymentHistory/UpdateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                using (var logContext = new AttendanceManagementSystemContext())
-                {
-                    ErrorLog log = new ErrorLog
-                    {
-                        Module = "Employment History",
-                        HttpMethod = "POST",
-                        ApiEndpoint = "/EmploymentHistory/UpdateEmploymentHistory",
-                        ErrorMessage = ex.Message,
-                        StackTrace = ex.StackTrace,
-                        InnerException = ex.InnerException?.ToString(),
-                        StaffId = model.UpdatedBy,
-                        CreatedUtc = DateTime.UtcNow
-                    };
-
-                    logContext.ErrorLogs.Add(log);
-                    await logContext.SaveChangesAsync();
-                }
+                await _loggingService.LogError("Employment History", "POST", "/EmploymentHistory/UpdateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

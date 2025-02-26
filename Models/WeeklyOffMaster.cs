@@ -24,4 +24,6 @@ public partial class WeeklyOffMaster
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
+
+    public virtual ICollection<WeeklyOffDetail> WeeklyOffDetails { get; set; } = new List<WeeklyOffDetail>();
 }

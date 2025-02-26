@@ -1,5 +1,6 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System.Text.Json;
 
 namespace AttendanceManagement.Services
@@ -12,7 +13,11 @@ namespace AttendanceManagement.Services
 
         public async Task LogError(string module, string httpMethod, string apiEndpoint, string errorMessage, string stackTrace, string innerException, int staffId, object? payload)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
+            var configuration = new ConfigurationBuilder()
+               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+               .Build();
+
+            using (var logContext = new AttendanceManagementSystemContext(configuration))
             {
                 var errorLog = new ErrorLog
                 {
@@ -33,7 +38,11 @@ namespace AttendanceManagement.Services
 
         public async Task AuditLog(string module, string httpMethod, string apiEndpoint, string successMessage, int staffId, object? payload)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
+            var configuration = new ConfigurationBuilder()
+               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+               .Build();
+
+            using (var logContext = new AttendanceManagementSystemContext(configuration))
             {
                 var auditLog = new AuditLog
                 {

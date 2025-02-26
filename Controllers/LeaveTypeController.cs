@@ -1,8 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -11,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class LeaveTypeController : ControllerBase
 {
     private readonly LeaveTypeService _leaveTypeService;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public LeaveTypeController(LeaveTypeService leaveTypeService, AttendanceManagementSystemContext context)
+    public LeaveTypeController(LeaveTypeService leaveTypeService, LoggingService loggingService)
     {
         _leaveTypeService = leaveTypeService;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllLeaveTypes")]
@@ -76,41 +75,12 @@ public class LeaveTypeController : ControllerBase
                 Success = true,
                 Message = createdLeaveType
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Leave Type",
-                HttpMethod = "POST",
-                ApiEndpoint = "/LeaveType/CreateLeaveType",
-                SuccessMessage = createdLeaveType,
-                Payload = System.Text.Json.JsonSerializer.Serialize(leaveType),
-                StaffId = leaveType.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Leave Type", "POST", "/LeaveType/CreateLeaveType", createdLeaveType, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Leave Type",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LeaveType/CreateLeaveType",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = leaveType.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(leaveType),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Leave Type", "POST", "/LeaveType/CreateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -126,63 +96,17 @@ public class LeaveTypeController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Leave Type",
-                HttpMethod = "POST",
-                ApiEndpoint = "/LeaveType/UpdateLeaveType",
-                SuccessMessage = updated,
-                Payload = System.Text.Json.JsonSerializer.Serialize(leaveType),
-                StaffId = leaveType.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Leave Type", "POST", "/LeaveType/UpdateLeaveType", updated, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Leave Type",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LeaveType/UpdateLeaveType",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = leaveType.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(leaveType),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Leave Type", "POST", "/LeaveType/UpdateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Leave Type",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LeaveType/UpdateLeaveType",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = leaveType.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(leaveType),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Leave Type", "POST", "/LeaveType/UpdateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

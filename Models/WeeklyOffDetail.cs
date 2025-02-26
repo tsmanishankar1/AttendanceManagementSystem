@@ -3,11 +3,13 @@ using System.Collections.Generic;
 
 namespace AttendanceManagement.Models;
 
-public partial class ExcelImport
+public partial class WeeklyOffDetail
 {
     public int Id { get; set; }
 
-    public string Name { get; set; } = null!;
+    public int WeeklyOffMasterId { get; set; }
+
+    public int MarkWeeklyOff { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -22,4 +24,6 @@ public partial class ExcelImport
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
+
+    public virtual WeeklyOffMaster WeeklyOffMaster { get; set; } = null!;
 }

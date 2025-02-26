@@ -21,6 +21,8 @@ public partial class OrganizationType
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public virtual ICollection<AssignLeaveType> AssignLeaveTypes { get; set; } = new List<AssignLeaveType>();
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<StaffCreation> StaffCreations { get; set; } = new List<StaffCreation>();

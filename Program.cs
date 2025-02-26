@@ -13,6 +13,7 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 
+var configuration = ConfigureWebApiAppSettings();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -41,24 +42,13 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<AttendanceManagementSystemContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null)
-                                .CommandTimeout(180)));
-
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
 builder.Services.AddDbContext<AtrakContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ATRAK"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null)
-                                .CommandTimeout(180)));
-
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ATRAK")));
 builder.Services.AddDbContext<SmaxV2BioVleadNewContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SmaxV2BioVleadNew"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null)
-                                .CommandTimeout(180)));
-
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SmaxV2BioVleadNew")));
 builder.Services.AddDbContext<StoredProcedureDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null)
-                                .CommandTimeout(180)));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
 
 builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<BranchMasterService>();
@@ -95,6 +85,8 @@ builder.Services.AddScoped<EducationalQualificationService>();
 builder.Services.AddScoped<FamilyDetailsService>();
 builder.Services.AddScoped<LoggingService>();
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -123,3 +115,13 @@ app.UseCors("AllowSpecificOrigin");
 app.MapControllers();
 
 app.Run();
+
+
+static IConfigurationRoot ConfigureWebApiAppSettings()
+{
+    var configurationBuilder = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+    return configurationBuilder.Build();
+}

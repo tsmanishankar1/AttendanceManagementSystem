@@ -4,6 +4,7 @@ using AttendanceManagement.Services;
 using AttendanceManagement.DTOs;
 using AttendanceManagement.Input_Models;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -12,12 +13,12 @@ namespace AttendanceManagement.Controllers;
 public class HolidayController : ControllerBase
 {
     private readonly HolidayService _service;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public HolidayController(HolidayService service, AttendanceManagementSystemContext context)
+    public HolidayController(HolidayService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllHolidayMasters")]
@@ -100,41 +101,12 @@ public class HolidayController : ControllerBase
                 Success = true,
                 Message = createdHoliday
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Holiday",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Holiday/CreateHoliday",
-                SuccessMessage = createdHoliday,
-                Payload = System.Text.Json.JsonSerializer.Serialize(holiday),
-                StaffId = holiday.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Holiday", "POST", "/Holiday/CreateHoliday", createdHoliday, holiday.CreatedBy, JsonSerializer.Serialize(holiday));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Holiday/CreateHoliday",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = holiday.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(holiday),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday", "POST", "/Holiday/CreateHoliday", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holiday.CreatedBy, JsonSerializer.Serialize(holiday));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -150,63 +122,17 @@ public class HolidayController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Holiday",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Holiday/UpdateHoliday",
-                SuccessMessage = updated,
-                Payload = System.Text.Json.JsonSerializer.Serialize(updatedHoliday),
-                StaffId = updatedHoliday.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Holiday", "POST", "/Holiday/UpdateHoliday", updated, updatedHoliday.UpdatedBy, JsonSerializer.Serialize(updatedHoliday));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Holiday/UpdateHoliday",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedHoliday.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedHoliday),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday", "POST", "/Holiday/UpdateHoliday", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedHoliday.UpdatedBy, JsonSerializer.Serialize(updatedHoliday));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Holiday/UpdateHoliday",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedHoliday.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedHoliday),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday", "POST", "/Holiday/UpdateHoliday", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedHoliday.UpdatedBy, JsonSerializer.Serialize(updatedHoliday));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -222,41 +148,12 @@ public class HolidayController : ControllerBase
                 Success = true,
                 Message = addHoliday
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Holiday Calendar",
-                HttpMethod = "POST",
-                ApiEndpoint = "/HolidayCalendar/CreateHolidayCalendar",
-                SuccessMessage = addHoliday,
-                Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                StaffId = request.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Holiday Calendar", "POST", "/HolidayCalendar/CreateHolidayCalendar", addHoliday, request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday Calendar",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/HolidayCalendar/CreateHolidayCalendar",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = request.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday Calendar", "POST", "/HolidayCalendar/CreateHolidayCalendar", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -295,63 +192,17 @@ public class HolidayController : ControllerBase
                 Success = true,
                 Message = update
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Holiday Calendar Group",
-                HttpMethod = "POST",
-                ApiEndpoint = "/HolidayGroup/UpdateHolidayGroupCalendar",
-                SuccessMessage = update,
-                Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                StaffId = request.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Holiday Calendar Group", "POST", "/HolidayGroup/UpdateHolidayGroupCalendar", update, request.UpdatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday Calendar Group",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/HolidayGroup/UpdateHolidayGroupCalendar",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = request.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday Calendar Group", "POST", "/HolidayGroup/UpdateHolidayGroupCalendar", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday Calendar Group",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/HolidayGroup/UpdateHolidayGroupCalendar",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = request.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(request),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                    
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday Calendar Group", "POST", "/HolidayGroup/UpdateHolidayGroupCalendar", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -413,41 +264,12 @@ public class HolidayController : ControllerBase
                 Success = true,
                 Message = createdZone
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Holiday Zone",
-                HttpMethod = "POST",
-                ApiEndpoint = "/HolidayZone/CreateHolidayZone",
-                SuccessMessage = createdZone,
-                Payload = System.Text.Json.JsonSerializer.Serialize(holidayZone),
-                StaffId = holidayZone.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Holiday Zone", "POST", "/HolidayZone/CreateHolidayZone", createdZone, holidayZone.CreatedBy, JsonSerializer.Serialize(holidayZone));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday Zone",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/HolidayZone/CreateHolidayZone",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = holidayZone.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(holidayZone),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday Zone", "POST", "/HolidayZone/CreateHolidayZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holidayZone.CreatedBy, JsonSerializer.Serialize(holidayZone));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -463,63 +285,17 @@ public class HolidayController : ControllerBase
                 Success = true,
                 Message = updatedZone
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Holiday Zone",
-                HttpMethod = "POST",
-                ApiEndpoint = "/HolidayZone/UpdateHolidayZone",
-                SuccessMessage = updatedZone,
-                Payload = System.Text.Json.JsonSerializer.Serialize(holidayZone),
-                StaffId = holidayZone.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Holiday Zone", "POST", "/HolidayZone/UpdateHolidayZone", updatedZone, holidayZone.UpdatedBy, JsonSerializer.Serialize(holidayZone));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday Zone",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/HolidayZone/UpdateHolidayZone",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = holidayZone.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(holidayZone),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.ErrorLogs.Add(log);
-                await _context.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday Zone", "POST", "/HolidayZone/UpdateHolidayZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holidayZone.UpdatedBy, JsonSerializer.Serialize(holidayZone));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Holiday Zone",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/HolidayZone/UpdateHolidayZone",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = holidayZone.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(holidayZone),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Holiday Zone", "POST", "/HolidayZone/UpdateHolidayZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holidayZone.UpdatedBy, JsonSerializer.Serialize(holidayZone));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

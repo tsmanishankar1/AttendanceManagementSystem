@@ -1,9 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -12,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class LeaveGroupController : ControllerBase
 {
     private readonly LeaveGroupService _service;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public LeaveGroupController(LeaveGroupService service, AttendanceManagementSystemContext context)
+    public LeaveGroupController(LeaveGroupService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllLeaveGroups")]
@@ -77,41 +75,12 @@ public class LeaveGroupController : ControllerBase
                 Success = true,
                 Message = addLeave
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Leave Group",
-                HttpMethod = "POST",
-                ApiEndpoint = "/LeaveGroup/CreateLeaveGroup",
-                SuccessMessage = addLeave,
-                Payload = System.Text.Json.JsonSerializer.Serialize(addLeaveGroupDto),
-                StaffId = addLeaveGroupDto.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Leave Group", "POST", "/LeaveGroup/CreateLeaveGroup", addLeave, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Leave Group",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LeaveGroup/CreateLeaveGroup",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = addLeaveGroupDto.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(addLeaveGroupDto),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Leave Group", "POST", "/LeaveGroup/CreateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -127,63 +96,17 @@ public class LeaveGroupController : ControllerBase
                 Success = true,
                 Message = updatedLeaveGroup
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Leave Group",
-                HttpMethod = "POST",
-                ApiEndpoint = "/LeaveGroup/UpdateLeaveGroup",
-                SuccessMessage = updatedLeaveGroup,
-                Payload = System.Text.Json.JsonSerializer.Serialize(leaveGroup),
-                StaffId = leaveGroup.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Leave Group", "POST", "/LeaveGroup/UpdateLeaveGroup", updatedLeaveGroup, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Leave Group",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LeaveGroup/UpdateLeaveGroup",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = leaveGroup.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(leaveGroup),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Leave Group", "POST", "/LeaveGroup/UpdateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Leave Group",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/LeaveGroup/UpdateLeaveGroup",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = leaveGroup.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(leaveGroup),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Leave Group", "POST", "/LeaveGroup/UpdateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

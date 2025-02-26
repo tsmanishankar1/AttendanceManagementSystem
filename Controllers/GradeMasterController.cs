@@ -1,8 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
 
@@ -11,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class GradeMasterController : ControllerBase
 {
     private readonly GradeMasterService _service;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public GradeMasterController(GradeMasterService service, AttendanceManagementSystemContext context)
+    public GradeMasterController(GradeMasterService service, LoggingService loggingService)
     {
         _service = service;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllGrades")]
@@ -76,41 +75,12 @@ public class GradeMasterController : ControllerBase
                 Success = true,
                 Message = createdGrade
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Grade Master",
-                HttpMethod = "POST",
-                ApiEndpoint = "/GradeMaster/CreateGrade",
-                SuccessMessage = createdGrade,
-                Payload = System.Text.Json.JsonSerializer.Serialize(gradeMaster),
-                StaffId = gradeMaster.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Grade Master", "POST", "/GradeMaster/CreateGrade", createdGrade, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Grade Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/GradeMaster/CreateGrade",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = gradeMaster.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(gradeMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Grade Master", "POST", "/GradeMaster/CreateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -126,63 +96,17 @@ public class GradeMasterController : ControllerBase
                 Success = true,
                 Message = updatedGrade
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Grade Master",
-                HttpMethod = "POST",
-                ApiEndpoint = "/GradeMaster/UpdateGrade",
-                SuccessMessage = updatedGrade,
-                Payload = System.Text.Json.JsonSerializer.Serialize(gradeMaster),
-                StaffId = gradeMaster.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+            await _loggingService.AuditLog("Grade Master", "POST", "/GradeMaster/UpdateGrade", updatedGrade, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Grade Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/GradeMaster/UpdateGrade",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = gradeMaster.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(gradeMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Grade Master", "POST", "/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Grade Master",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/GradeMaster/UpdateGrade",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = gradeMaster.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(gradeMaster),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Grade Master", "POST", "/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

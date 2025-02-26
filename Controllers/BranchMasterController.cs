@@ -1,12 +1,6 @@
-﻿using AttendanceManagement.AtrakModels;
-using AttendanceManagement.Input_Models;
-using AttendanceManagement.Models;
+﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
-using Swashbuckle.AspNetCore.Annotations;
-using System.Security.Claims;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
@@ -116,50 +110,4 @@ public class BranchMasterController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-
-/*    [HttpGet("GetStaffAttendance")]
-    public async Task<IActionResult> GetStaffAttendance(string staffId)
-    {
-        try
-        {
-            var staffAttendance = await _service.GetStaffAttendance(staffId);
-            var response = new
-            {
-                Success = true,
-                Message = staffAttendance
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
-    [HttpPost("UpdateStaffAttendance")]
-    public async Task<IActionResult> UpdateStaffAttendance(AttendanceDatum attendanceDatum)
-    {
-        try
-        {
-            var updatedAttendance = await _service.UpdateStaffAttendance(attendanceDatum);
-            var response = new
-            {
-                Success = true,
-                Message = updatedAttendance
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-*/}
+}

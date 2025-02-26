@@ -23,14 +23,104 @@ namespace AttendanceManagement.Services
                     StaffId = s.Id,
                     StaffName = $"{s.FirstName} {s.LastName}",
                     DepartmentName = s.Department.FullName
-                    // Assuming Department has a 'Name' property
                 })
                 .ToListAsync();
 
             return staffInfo;
         }
+        public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(int staffId)
+        {
+            var staffInfo = await (
+                from staff in _context.StaffCreations
+                join assignLeaveGroup in _context.AssignLeaveTypes
+                    on staff.OrganizationTypeId equals assignLeaveGroup.OrganizationTypeId into assignLeaveLeftJoin
+                from assignLeave in assignLeaveLeftJoin.DefaultIfEmpty() 
 
+                let latestCredit = (
+                    from credit in _context.IndividualLeaveCreditDebits
+                    where assignLeave != null && credit.LeaveTypeId == assignLeave.LeaveTypeId && credit.StaffCreationId == staff.Id
+                    orderby credit.Id descending
+                    select credit
+                ).FirstOrDefault()
 
+                where staff.Id == staffId
+                select new StaffLeaveDto
+                {
+                    StaffId = staff.Id,
+                    StaffName = $"{staff.FirstName} {staff.LastName}",
+                    DepartmentName = staff.Department.FullName,
+                    LeaveTypeId = assignLeave != null ? assignLeave.LeaveTypeId : 0,
+                    AvailableBalance = latestCredit != null ? latestCredit.AvailableBalance.GetValueOrDefault() : 0
+                }
+            ).ToListAsync();
+
+            return staffInfo;
+        }
+
+        public async Task<List<AssignLeaveTypeDTO>> GetAllAssignLeaveTypes()
+        {
+            return await _context.AssignLeaveTypes
+                .Select(a => new AssignLeaveTypeDTO
+                {
+                    Id = a.Id,
+                    LeaveTypeId = a.LeaveTypeId,
+                    OrganizationTypeId = a.OrganizationTypeId
+                })
+                .ToListAsync();
+        }
+
+        public async Task<AssignLeaveTypeDTO> GetAssignLeaveTypeById(int id)
+        {
+            var assignLeaveType = await _context.AssignLeaveTypes
+                .Where(a => a.Id == id)
+                .Select(a => new AssignLeaveTypeDTO
+                {
+                    Id = a.Id,
+                    LeaveTypeId = a.LeaveTypeId,
+                    OrganizationTypeId = a.OrganizationTypeId
+                })
+                .FirstOrDefaultAsync();
+
+            if (assignLeaveType == null)
+                throw new MessageNotFoundException("AssignLeaveType not found.");
+
+            return assignLeaveType;
+        }
+
+        public async Task<string> CreateAssignLeaveType(CreateAssignLeaveTypeDTO dto)
+        {
+            var newAssignLeaveType = new AssignLeaveType
+            {
+                LeaveTypeId = dto.LeaveTypeId,
+                OrganizationTypeId = dto.OrganizationTypeId,
+                IsActive = true,
+                CreatedBy = dto.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+
+            _context.AssignLeaveTypes.Add(newAssignLeaveType);
+            await _context.SaveChangesAsync();
+
+            return "Assign LeaveType Created Successfully";
+        }
+
+        public async Task<string> UpdateAssignLeaveType(UpdateAssignLeaveTypeDTO dto)
+        {
+            var assignLeaveType = await _context.AssignLeaveTypes.FindAsync(dto.Id);
+            if (assignLeaveType == null)
+                throw new MessageNotFoundException("AssignLeaveType not found.");
+
+            assignLeaveType.LeaveTypeId = dto.LeaveTypeId;
+            assignLeaveType.OrganizationTypeId = dto.OrganizationTypeId;
+            assignLeaveType.IsActive = true;
+            assignLeaveType.UpdatedBy = dto.UpdatedBy;
+            assignLeaveType.UpdatedUtc = DateTime.UtcNow;
+
+            _context.AssignLeaveTypes.Update(assignLeaveType);
+            await _context.SaveChangesAsync();
+
+            return "Assign LeaveType Updated Successfully";
+        }
         public async Task<string> AddLeaveCreditDebitForMultipleStaffAsync(LeaveCreditDebitRequest leaveCreditDebitRequest)
         {
             var message = "";
@@ -58,7 +148,7 @@ namespace AttendanceManagement.Services
 
                 if (staff == null || !leaveTypeExists)
                 {
-                    continue; // Skip processing if staff or leave type doesn't exist
+                    continue; 
                 }
 
                 if (leaveCreditDebitRequest.TransactionFlag)

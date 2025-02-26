@@ -10,12 +10,12 @@ namespace AttendanceManagement.Controllers;
 public class ShiftController : ControllerBase
 {
     private readonly ShiftService _shiftService;
-    private readonly AttendanceManagementSystemContext _context;
+    private readonly LoggingService _loggingService;
 
-    public ShiftController(ShiftService shiftService, AttendanceManagementSystemContext context)
+    public ShiftController(ShiftService shiftService, LoggingService loggingService)
     {
         _shiftService = shiftService;
-        _context = context;
+        _loggingService = loggingService;
     }
 
     [HttpGet("GetAllShifts")]
@@ -75,64 +75,17 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = createdShift
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Shifts",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Shifts/CreatShifts",
-                SuccessMessage = createdShift,
-                Payload = System.Text.Json.JsonSerializer.Serialize(newShift),
-                StaffId = newShift.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Shifts", "POST", "/Shifts/CreatShifts", createdShift, newShift.CreatedBy, newShift);
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Shift",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Shifts/CreateShift",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = newShift.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(newShift),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Shift",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Shifts/CreateShift",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = newShift.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(newShift),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -148,64 +101,17 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Shift",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Shift/UpdateShift",
-                SuccessMessage = updated,
-                Payload = System.Text.Json.JsonSerializer.Serialize(updatedShift),
-                StaffId = updatedShift.UpdatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Shift", "POST", "/Shift/UpdateShift", updated, updatedShift.UpdatedBy, updatedShift);
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Shift",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Shift/UpdateShift",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedShift.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedShift),
-                    CreatedUtc = DateTime.UtcNow
-                };
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
-
+            await _loggingService.LogError("Shift", "POST", "/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Shift",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Shift/UpdateShift",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = updatedShift.UpdatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(updatedShift),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Shift", "POST", "/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -221,42 +127,12 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = createdShift
             };
-            var auditLogs = regularShift.StaffIds.Select(staffId => new AuditLog
-            {
-                Module = "Shifts",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Shifts/CreateRegularShifts",
-                SuccessMessage = createdShift,
-                Payload = System.Text.Json.JsonSerializer.Serialize(regularShift),
-                StaffId = staffId, 
-                CreatedUtc = DateTime.UtcNow
-            }).ToList();
-
-            _context.AuditLogs.AddRange(auditLogs);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Shifts", "POST", "/Shifts/CreateRegularShifts", createdShift, regularShift.CreatedBy, regularShift);
             return Ok(response);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                var errorLogs = regularShift.StaffIds.Select(staffId => new ErrorLog
-                {
-                    Module = "Shift",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Shifts/CreateRegularShift",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = staffId,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(regularShift),
-                    CreatedUtc = DateTime.UtcNow
-                }).ToList();
-
-                logContext.ErrorLogs.AddRange(errorLogs);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateRegularShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, regularShift.CreatedBy, regularShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -272,64 +148,17 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = createdShift
             };
-            AuditLog log = new AuditLog
-            {
-                Module = "Shifts",
-                HttpMethod = "POST",
-                ApiEndpoint = "/Shifts/CreatAssignedShifts",
-                SuccessMessage = createdShift,
-                Payload = System.Text.Json.JsonSerializer.Serialize(assignShift),
-                StaffId = assignShift.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
-
+            await _loggingService.AuditLog("Shifts", "POST", "/Shifts/CreatAssignedShifts", createdShift, assignShift.CreatedBy, assignShift);
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Shift",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Shifts/CreateAssignedShift",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = assignShift.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(assignShift),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateAssignedShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            using (var logContext = new AttendanceManagementSystemContext())
-            {
-                ErrorLog log = new ErrorLog
-                {
-                    Module = "Shift",
-                    HttpMethod = "POST",
-                    ApiEndpoint = "/Shifts/CreateAssignedShift",
-                    ErrorMessage = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    InnerException = ex.InnerException?.ToString(),
-                    StaffId = assignShift.CreatedBy,
-                    Payload = System.Text.Json.JsonSerializer.Serialize(assignShift),
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                logContext.ErrorLogs.Add(log);
-                await logContext.SaveChangesAsync();
-            }
+            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateAssignedShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
