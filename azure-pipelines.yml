@@ -92,7 +92,7 @@ stages:
                 Write-Host "Deploying WebApp to Windows VM"
                 
                 # Define paths
-                $zipFilePath = "$(Pipeline.Workspace)\drop\AttendanceSystemAPI.zip"
+                $zipFilePath = "$(Pipeline.Workspace)\drop\s.zip"
                 $extractPath = "E:\Vlead_Projects\Attendance\API"
 
                 # Ensure the ZIP file exists
