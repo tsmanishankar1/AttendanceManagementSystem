@@ -21,5 +21,7 @@ public partial class AccessLevel
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
+    public virtual ICollection<RoleMenuMapping> RoleMenuMappings { get; set; } = new List<RoleMenuMapping>();
+
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

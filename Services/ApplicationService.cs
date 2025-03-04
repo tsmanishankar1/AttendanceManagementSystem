@@ -21,11 +21,94 @@ public class ApplicationService
         _context = context;
         _storedProcedureDbContext = storedProcedureDbContext;
     }
+    public async Task<bool> CancelAppliedLeave(int applicationTypeId, int id)
+    {
+        object entity = null;
+
+        try
+        {
+            switch (applicationTypeId)
+            {
+                case 1:
+                    entity = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == id);
+                    break;
+                case 2:
+                    entity = await _context.CommonPermissions.FirstOrDefaultAsync(p => p.Id == id);
+                    break;
+                case 3:
+                    entity = await _context.ManualPunchRequistions.FirstOrDefaultAsync(m => m.Id == id);
+                    break;
+                case 4:
+                    entity = await _context.OnDutyRequisitions.FirstOrDefaultAsync(o => o.Id == id);
+                    break;
+                case 5:
+                    entity = await _context.BusinessTravels.FirstOrDefaultAsync(b => b.Id == id);
+                    break;
+                case 6:
+                    entity = await _context.WorkFromHomes.FirstOrDefaultAsync(w => w.Id == id);
+                    break;
+                case 7:
+                    entity = await _context.ShiftChanges.FirstOrDefaultAsync(s => s.Id == id);
+                    break;
+                case 8:
+                    entity = await _context.ShiftExtensions.FirstOrDefaultAsync(se => se.Id == id);
+                    break;
+                case 9:
+                    entity = await _context.WeeklyOffHolidayWorkings.FirstOrDefaultAsync(wh => wh.Id == id);
+                    break;
+                case 10:
+                    entity = await _context.CompOffAvails.FirstOrDefaultAsync(ca => ca.Id == id);
+                    break;
+                case 11:
+                    entity = await _context.CompOffCredits.FirstOrDefaultAsync(cc => cc.Id == id);
+                    break;
+                default:
+                    return false;
+            }
+
+            if (entity == null)
+            {
+                Console.WriteLine($"Entity not found for ApplicationTypeId: {applicationTypeId}, Id: {id}");
+                return false;
+            }
+
+            var entityType = entity.GetType();
+            var isCancelledProperty = entityType.GetProperty("IsCancelled");
+            var updatedUtcProperty = entityType.GetProperty("UpdatedUtc");
+
+            if (isCancelledProperty == null)
+            {
+                Console.WriteLine($"IsCancelled property not found in entity type: {entityType.Name}");
+                return false;
+            }
+
+            bool isAlreadyCancelled = (bool)(isCancelledProperty.GetValue(entity) ?? false);
+            if (isAlreadyCancelled)
+            {
+                Console.WriteLine($"Application already cancelled for Id: {id}");
+                return false;
+            }
+
+            isCancelledProperty.SetValue(entity, true);
+            updatedUtcProperty?.SetValue(entity, DateTime.UtcNow);
+
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in CancelApplication: {ex.Message}");
+            return false;
+        }
+    }
     public async Task<IEnumerable<object>> GetApplicationDetails(int staffId, int applicationTypeId)
     {
         var application = applicationTypeId switch
         {
             1 => await _context.LeaveRequisitions
+                        .Where(lr => lr.IsCancelled == null)
          .Join(_context.ApplicationTypes, lr => lr.ApplicationTypeId, at => at.Id,
                (lr, at) => new { lr, at })
          .Join(_context.LeaveTypes, temp => temp.lr.LeaveTypeId, lt => lt.Id,
@@ -45,6 +128,7 @@ public class ApplicationService
          .ToListAsync(),
 
             2 => await _context.CommonPermissions
+                        .Where(lr => lr.IsCancelled == null)
              .Join(_context.ApplicationTypes, cp => cp.ApplicationTypeId, at => at.Id,
                    (cp, at) => new PermissionDto
                    {
@@ -61,6 +145,7 @@ public class ApplicationService
              .ToListAsync(),
 
             3 => await _context.ManualPunchRequistions
+                   .Where(lr => lr.IsCancelled == null)
             .Select(mp => new ManualPunch
             {
                 ApplicationTypeId = mp.ApplicationTypeId,
@@ -74,6 +159,7 @@ public class ApplicationService
             .ToListAsync(),
 
             4 => await _context.OnDutyRequisitions
+                    .Where(lr => lr.IsCancelled == null)
              .Select(od => new OnDutyRequest
              {
                  ApplicationTypeId = od.ApplicationTypeId,
@@ -90,6 +176,7 @@ public class ApplicationService
              .ToListAsync(),
 
             5 => await _context.BusinessTravels
+                       .Where(lr => lr.IsCancelled == null)
                 .Select(bt => new Business
                 {
                     ApplicationTypeId = bt.ApplicationTypeId,
@@ -104,101 +191,102 @@ public class ApplicationService
                     Reason = bt.Reason
                 })
                 .ToListAsync(),
-
-
             6 => await _context.WorkFromHomes
-         .Select(wfh => new WorkFrom
-         {
-             ApplicationTypeId = wfh.ApplicationTypeId,
-             ApplicationTypeName = wfh.ApplicationType.ApplicationTypeName,
-             Status = wfh.Status1.HasValue ? (wfh.Status1.Value ? "Approved" : "Rejected") : "Pending",
-             StartDuration = wfh.StartDuration,
-             EndDuration = wfh.EndDuration,
-             FromTime = wfh.FromTime,
-             ToTime = wfh.ToTime,
-             FromDate = wfh.FromDate,
-             ToDate = wfh.ToDate,
-             Reason = wfh.Reason
-         })
-     .ToListAsync(),
+                       .Where(lr => lr.IsCancelled == null)
+                 .Select(wfh => new WorkFrom
+                 {
+                     ApplicationTypeId = wfh.ApplicationTypeId,
+                     ApplicationTypeName = wfh.ApplicationType.ApplicationTypeName,
+                     Status = wfh.Status1.HasValue ? (wfh.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                     StartDuration = wfh.StartDuration,
+                     EndDuration = wfh.EndDuration,
+                     FromTime = wfh.FromTime,
+                     ToTime = wfh.ToTime,
+                     FromDate = wfh.FromDate,
+                     ToDate = wfh.ToDate,
+                     Reason = wfh.Reason
+                 })
+             .ToListAsync(),
 
             7 => await _context.ShiftChanges
-      .Join(_context.ApplicationTypes, sc => sc.ApplicationTypeId, at => at.Id,
-            (sc, at) => new { sc, at })
-      .Join(_context.Shifts, temp => temp.sc.ShiftId, s => s.Id,
-            (temp, s) => new ShiftChan
-            {
-                ApplicationTypeId = temp.sc.ApplicationTypeId,
-                ApplicationTypeName = temp.at.ApplicationTypeName,
-                Status = temp.sc.Status1.HasValue ? (temp.sc.Status1.Value ? "Approved" : "Rejected") : "Pending",
-                ShiftName = s.ShiftName,
-                FromDate = temp.sc.FromDate,
-                ToDate = temp.sc.ToDate,
-                Reason = temp.sc.Reason
-            })
-      .ToListAsync(),
+                      .Where(lr => lr.IsCancelled == null)
+              .Join(_context.ApplicationTypes, sc => sc.ApplicationTypeId, at => at.Id,
+                    (sc, at) => new { sc, at })
+              .Join(_context.Shifts, temp => temp.sc.ShiftId, s => s.Id,
+                    (temp, s) => new ShiftChan
+                    {
+                        ApplicationTypeId = temp.sc.ApplicationTypeId,
+                        ApplicationTypeName = temp.at.ApplicationTypeName,
+                        Status = temp.sc.Status1.HasValue ? (temp.sc.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                        ShiftName = s.ShiftName,
+                        FromDate = temp.sc.FromDate,
+                        ToDate = temp.sc.ToDate,
+                        Reason = temp.sc.Reason
+                    })
+              .ToListAsync(),
 
             8 => await _context.ShiftExtensions
-          .Select(se => new ShiftExte
-          {
-              ApplicationTypeId = se.ApplicationTypeId,
-              ApplicationTypeName = se.ApplicationType.ApplicationTypeName,
-              Status = se.Status1.HasValue ? (se.Status1.Value ? "Approved" : "Rejected") : "Pending",
-              TransactionDate = se.TransactionDate,
-              DurationHours = se.DurationHours,
-              BeforeShiftHours = se.BeforeShiftHours,
-              AfterShiftHours = se.AfterShiftHours,
-              Remarks = se.Remarks
-          })
-          .ToListAsync(),
-
+                .Where(lr => lr.IsCancelled == null)
+              .Select(se => new ShiftExte
+              {
+                  ApplicationTypeId = se.ApplicationTypeId,
+                  ApplicationTypeName = se.ApplicationType.ApplicationTypeName,
+                  Status = se.Status1.HasValue ? (se.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                  TransactionDate = se.TransactionDate,
+                  DurationHours = se.DurationHours,
+                  BeforeShiftHours = se.BeforeShiftHours,
+                  AfterShiftHours = se.AfterShiftHours,
+                  Remarks = se.Remarks
+              })
+              .ToListAsync(),
 
             9 => await _context.WeeklyOffHolidayWorkings
-      .Join(_context.ApplicationTypes,
-            wh => wh.ApplicationTypeId, at => at.Id, (wh, at) => new { wh, at })
-      .Join(_context.Shifts,
-            temp => temp.wh.ShiftId, s => s.Id, (temp, s) => new WeeklyOffHoliday
-            {
-                ApplicationTypeId = temp.wh.ApplicationTypeId,
-                ApplicationTypeName = temp.at.ApplicationTypeName,
-                Status = temp.wh.Status1.HasValue ? (temp.wh.Status1.Value ? "Approved" : "Rejected") : "Pending",
-                SelectShiftType = temp.wh.SelectShiftType,
-                TxnDate = temp.wh.TxnDate,
-                ShiftName = s.ShiftName,
-                ShiftInTime = temp.wh.ShiftInTime,
-                ShiftOutTime = temp.wh.ShiftOutTime
-            })
-      .ToListAsync(),
+                   .Where(lr => lr.IsCancelled == null)
+              .Join(_context.ApplicationTypes,
+                    wh => wh.ApplicationTypeId, at => at.Id, (wh, at) => new { wh, at })
+              .Join(_context.Shifts,
+                    temp => temp.wh.ShiftId, s => s.Id, (temp, s) => new WeeklyOffHoliday
+                    {
+                        ApplicationTypeId = temp.wh.ApplicationTypeId,
+                        ApplicationTypeName = temp.at.ApplicationTypeName,
+                        Status = temp.wh.Status1.HasValue ? (temp.wh.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                        SelectShiftType = temp.wh.SelectShiftType,
+                        TxnDate = temp.wh.TxnDate,
+                        ShiftName = s.ShiftName,
+                        ShiftInTime = temp.wh.ShiftInTime,
+                        ShiftOutTime = temp.wh.ShiftOutTime
+                    })
+              .ToListAsync(),
 
             10 => await _context.CompOffAvails
-     .Select(coa => new CompOffAvai
-     {
-         ApplicationTypeId = coa.ApplicationTypeId,
-         ApplicationTypeName = coa.ApplicationType.ApplicationTypeName,
-         Status = coa.Status.HasValue ? (coa.Status.Value ? "Approved" : "Rejected") : "Pending",
-         WorkedDate = coa.WorkedDate,
-         FromDate = coa.FromDate,
-         ToDate = coa.ToDate,
-         FromDuration = coa.FromDuration,
-         ToDuration = coa.ToDuration,
-         Reason = coa.Reason,
-         TotalDays = coa.TotalDays
-     })
-     .ToListAsync(),
+                       .Where(lr => lr.IsCancelled == null)
+                 .Select(coa => new CompOffAvai
+                 {
+                     ApplicationTypeId = coa.ApplicationTypeId,
+                     ApplicationTypeName = coa.ApplicationType.ApplicationTypeName,
+                     Status = coa.Status.HasValue ? (coa.Status.Value ? "Approved" : "Rejected") : "Pending",
+                     WorkedDate = coa.WorkedDate,
+                     FromDate = coa.FromDate,
+                     ToDate = coa.ToDate,
+                     FromDuration = coa.FromDuration,
+                     ToDuration = coa.ToDuration,
+                     Reason = coa.Reason,
+                     TotalDays = coa.TotalDays
+                 })
+                 .ToListAsync(),
 
             11 => await _context.CompOffCredits
-     .Select(coc => new CompOffCred
-     {
-         ApplicationTypeId = coc.ApplicationTypeId,
-         ApplicationTypeName = coc.ApplicationType.ApplicationTypeName,
-         Status = coc.Status.HasValue ? (coc.Status.Value ? "Approved" : "Rejected") : "Pending",
-         WorkedDate = coc.WorkedDate,
-         TotalDays = coc.TotalDays,
-         Reason = coc.Reason
-     })
-     .ToListAsync(),
-
-
+                       .Where(lr => lr.IsCancelled == null)
+                 .Select(coc => new CompOffCred
+                 {
+                     ApplicationTypeId = coc.ApplicationTypeId,
+                     ApplicationTypeName = coc.ApplicationType.ApplicationTypeName,
+                     Status = coc.Status.HasValue ? (coc.Status.Value ? "Approved" : "Rejected") : "Pending",
+                     WorkedDate = coc.WorkedDate,
+                     TotalDays = coc.TotalDays,
+                     Reason = coc.Reason
+                 })
+                 .ToListAsync(),
             _ => Enumerable.Empty<object>()
         };
         return application;
@@ -363,7 +451,12 @@ public class ApplicationService
     }
     public async Task<string> CreateAsync(CompOffCreditDto compOffCreditDto)
     {
-        var message = "CompOff Credit Sucessfully";
+        var message = "CompOff Credit Successfully";
+        var lastBalance = await _context.CompOffCredits
+            .Where(c => c.CreatedBy == compOffCreditDto.CreatedBy)
+            .OrderByDescending(c => c.Id) 
+            .Select(c => c.Balance)
+            .FirstOrDefaultAsync(); 
         var compOffCredit = new CompOffCredit
         {
             WorkedDate = compOffCreditDto.WorkedDate,
@@ -373,10 +466,59 @@ public class ApplicationService
             Reason = compOffCreditDto.Reason,
             IsActive = true,
             CreatedBy = compOffCreditDto.CreatedBy,
-            CreatedUtc = DateTime.UtcNow
+            CreatedUtc = DateTime.UtcNow,
+            Balance = lastBalance 
+        };
+        _context.CompOffCredits.Add(compOffCredit);
+        await _context.SaveChangesAsync();
+        return message;
+    }
+    public async Task<string> CreateAsync(CompOffAvailRequest request)
+    {
+        var message = "CompOff Avail Successfully";
+
+        var isHolidayWorkingExists = await _context.CompOffCredits
+            .AnyAsync(h => h.WorkedDate == request.WorkedDate
+            && h.CreatedBy == request.CreatedBy
+            && h.Status == true);
+
+        if (!isHolidayWorkingExists)
+        {
+            throw new Exception("WorkedDate does not match the date in CompOffCredit or the record is not active.");
+        }
+
+        var lastCompOffCredit = await _context.CompOffCredits
+            .Where(c => c.CreatedBy == request.CreatedBy)
+            .OrderByDescending(c => c.CreatedUtc) 
+            .FirstOrDefaultAsync();
+
+        if (lastCompOffCredit == null)
+        {
+            throw new Exception("No previous Comp-Off Credit record found for this user.");
+        }
+
+        if (lastCompOffCredit.Balance == 0)
+        {
+            throw new Exception("Insufficient balance. Cannot create Comp-Off Avail.");
+        }
+
+        var compOff = new CompOffAvail
+        {
+            WorkedDate = request.WorkedDate,
+            StaffId = request.StaffId,
+            ApplicationTypeId = request.ApplicationTypeId,
+            FromDate = request.FromDate,
+            ToDate = request.ToDate,
+            FromDuration = request.FromDuration,
+            ToDuration = request.ToDuration,
+            Reason = request.Reason,
+            TotalDays = request.TotalDays,
+            CreatedBy = request.CreatedBy,
+            CreatedUtc = DateTime.UtcNow,
+            IsActive = true,
         };
 
-        _context.CompOffCredits.Add(compOffCredit);
+        _context.CompOffAvails.Add(compOff);
         await _context.SaveChangesAsync();
 
         return message;
@@ -402,38 +544,7 @@ public class ApplicationService
         {
             throw new MessageNotFoundException("No CompOff records found");
         }
-
         return compOffs;
-    }
-    public async Task<string> CreateAsync(CompOffAvailRequest request)
-    {
-        var message = "CompOff Avail Successfully";
-        var isHolidayWorkingExists = await _context.WeeklyOffHolidayWorkings
-            .AnyAsync(h => h.TxnDate == request.WorkedDate && h.CreatedBy == request.CreatedBy);
-
-        if (!isHolidayWorkingExists)
-        {
-            throw new Exception("WorkedDate does not match the date in HolidayWorking.");
-        }
-        var compOff = new CompOffAvail
-        {
-            WorkedDate = request.WorkedDate,
-            StaffId = request.StaffId,
-            ApplicationTypeId = request.ApplicationTypeId,
-            FromDate = request.FromDate,
-            ToDate = request.ToDate,
-            FromDuration = request.FromDuration,
-            ToDuration = request.ToDuration,
-            Reason = request.Reason,
-            TotalDays = request.TotalDays,
-            CreatedBy = request.CreatedBy,
-            CreatedUtc = DateTime.UtcNow,
-            IsActive = true,
-        };
-        _context.CompOffAvails.Add(compOff);
-        await _context.SaveChangesAsync();
-
-        return message;
     }
     public async Task<IEnumerable<ApplicationTypeDto>> GetAllApplicationTypesAsync()
     {
@@ -1218,7 +1329,23 @@ public class ApplicationService
                     compOffAvail.UpdatedBy = approveLeaveRequest.ApprovedBy;
                     compOffAvail.UpdatedUtc = DateTime.UtcNow;
 
+                    if (approveLeaveRequest.IsApproved)
+                    {
+                        var lastCompOffCredit = await _context.CompOffCredits
+                            .Where(c => c.CreatedBy == compOffAvail.CreatedBy)
+                            .OrderByDescending(c => c.CreatedUtc) 
+                            .FirstOrDefaultAsync();
+
+                        if (lastCompOffCredit != null && lastCompOffCredit.Balance > 0)
+                        {
+                            lastCompOffCredit.Balance -= 1; 
+                            lastCompOffCredit.UpdatedBy = approveLeaveRequest.ApprovedBy;
+                            lastCompOffCredit.UpdatedUtc = DateTime.UtcNow;
+                        }
+                    }
+
                     await _context.SaveChangesAsync();
+
                     message = approveLeaveRequest.IsApproved
                         ? "Comp-Off Avail request approved successfully"
                         : "Comp-Off Avail request rejected successfully";
@@ -1244,6 +1371,7 @@ public class ApplicationService
                     await _context.SaveChangesAsync();
                 }
             }
+
             else if (approveLeaveRequest.ApplicationTypeId == 11)
             {
                 var compOffCredit = await _context.CompOffCredits
@@ -1256,6 +1384,10 @@ public class ApplicationService
                     compOffCredit.UpdatedBy = approveLeaveRequest.ApprovedBy;
                     compOffCredit.UpdatedUtc = DateTime.UtcNow;
 
+                    if (approveLeaveRequest.IsApproved)
+                    {
+                        compOffCredit.Balance = (compOffCredit.Balance) + 1;
+                    }
                     await _context.SaveChangesAsync();
                     message = approveLeaveRequest.IsApproved
                         ? "Comp-Off Credit approved successfully"
@@ -1274,10 +1406,8 @@ public class ApplicationService
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     compOffCredit.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
                 }
@@ -1371,9 +1501,9 @@ public class ApplicationService
             var duration = commonPermissionRequest.EndTime - commonPermissionRequest.StartTime;
             if (duration.TotalMinutes <= 0)
                 throw new InvalidOperationException("End time must be greater than start time.");
-            if (duration.TotalMinutes > 60)
+            if (duration.TotalMinutes > 120)
             {
-                throw new InvalidOperationException("Permission duration cannot exceed 1 hours.");
+                throw new InvalidOperationException("Permission duration cannot exceed 2 hours.");
             }
             var totalMinutesThisMonth = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
             if (totalMinutesThisMonth + duration.TotalMinutes > 120)

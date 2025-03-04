@@ -18,4 +18,12 @@
         public string DepartmentName { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
+
+    public class MenuResponse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public int? ParentMenuId { get; set; }
+        public int CreatedBy { get; set; }
+    }
 }

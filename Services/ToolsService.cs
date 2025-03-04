@@ -28,35 +28,37 @@ namespace AttendanceManagement.Services
 
             return staffInfo;
         }
-        public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(int staffId)
+        public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(List<int> staffIds)
         {
             var staffInfo = await (
                 from staff in _context.StaffCreations
                 join assignLeaveGroup in _context.AssignLeaveTypes
                     on staff.OrganizationTypeId equals assignLeaveGroup.OrganizationTypeId into assignLeaveLeftJoin
-                from assignLeave in assignLeaveLeftJoin.DefaultIfEmpty() 
-
+                from assignLeave in assignLeaveLeftJoin.DefaultIfEmpty()
+                join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
+                where staffIds.Contains(staff.Id)
                 let latestCredit = (
                     from credit in _context.IndividualLeaveCreditDebits
-                    where assignLeave != null && credit.LeaveTypeId == assignLeave.LeaveTypeId && credit.StaffCreationId == staff.Id
+                    where assignLeave != null
+                        && credit.LeaveTypeId == assignLeave.LeaveTypeId
+                        && credit.StaffCreationId == staff.Id
                     orderby credit.Id descending
-                    select credit
+                    select credit.AvailableBalance
                 ).FirstOrDefault()
 
-                where staff.Id == staffId
                 select new StaffLeaveDto
                 {
                     StaffId = staff.Id,
+                    StaffCreationId = $"{org.ShortName}{staff.Id}",
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     DepartmentName = staff.Department.FullName,
-                    LeaveTypeId = assignLeave != null ? assignLeave.LeaveTypeId : 0,
-                    AvailableBalance = latestCredit != null ? latestCredit.AvailableBalance.GetValueOrDefault() : 0
+                    LeaveTypeId = assignLeave != null ? assignLeave.LeaveTypeId : 0, 
+                    AvailableBalance = latestCredit ?? 0
                 }
             ).ToListAsync();
 
             return staffInfo;
         }
-
         public async Task<List<AssignLeaveTypeDTO>> GetAllAssignLeaveTypes()
         {
             return await _context.AssignLeaveTypes

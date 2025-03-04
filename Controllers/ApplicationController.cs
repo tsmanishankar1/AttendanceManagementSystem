@@ -55,37 +55,28 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-
-            await _loggingService.AuditLog("CompOff Availability", "GET", "/CompOffAvail/GetAll", "Fetched all CompOff records successfully", 0, JsonSerializer.Serialize(result));
-
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("CompOff Availability", "GET", "/CompOffAvail/GetAll", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, 0, string.Empty);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("CompOff Availability", "GET", "/CompOffAvail/GetAll", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, 0, string.Empty);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-
-
     [HttpPost("CreateCompOffAvail")]
     public async Task<IActionResult> Create(CompOffAvailRequest request)
     {
         try
         {
-
             var result = await _service.CreateAsync(request);
             var response = new
             {
                 Success = true,
                 Message = result
             };
-
             await _loggingService.AuditLog(
                   "CompOff Availability",
                   "POST",
@@ -121,6 +112,48 @@ public class ApplicationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+    [HttpPost("CancelAppliedLeave")]
+    public async Task<IActionResult> CancelAppliedLeave(CancelAppliedLeave cancel)
+    {
+        try
+        {
+            var result = await _service.CancelAppliedLeave(cancel.ApplicationTypeId, cancel.Id);
+            if (!result)
+            {
+                return NotFound(new { Success = false, Message = "Application request not found or already cancelled" });
+            }
+            var response = new
+            {
+                Success = true,
+                Message = "Application request successfully cancelled"
+            };
+
+            await _loggingService.AuditLog(
+                "Application Cancellation",
+                "POST",
+                "/CancelAppliedLeave",
+                "Application request cancelled successfully",
+                cancel.Id,
+                JsonSerializer.Serialize(new { cancel.ApplicationTypeId, cancel.Id })
+            );
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError(
+                "Application Cancellation",
+                "POST",
+                "/CancelAppliedLeave",
+                ex.Message,
+                ex.StackTrace ?? string.Empty,
+                ex.InnerException?.ToString() ?? string.Empty,
+                cancel.Id, 
+                JsonSerializer.Serialize(new { cancel.ApplicationTypeId, cancel.Id })
+            );
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpGet("GetCompOffCredit")]
     public async Task<IActionResult> GetCompOffCreditAll()
     {
@@ -132,44 +165,14 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-
-            await _loggingService.AuditLog(
-                "CompOff Credit",
-                "GET",
-                "/CompOffCredit/GetCompOffCredit",
-                "Fetched all CompOffCredit records successfully",
-                0,
-                JsonSerializer.Serialize(result)
-            );
-
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError(
-                "CompOff Credit",
-                "GET",
-                "/CompOffCredit/GetCompOffCredit",
-                ex.Message,
-                ex.StackTrace ?? string.Empty,
-                ex.InnerException?.ToString() ?? string.Empty,
-                0,
-                string.Empty
-            );
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError(
-                "CompOff Credit",
-                "GET",
-                "/CompOffCredit/GetCompOffCredit",
-                ex.Message,
-                ex.StackTrace ?? string.Empty,
-                ex.InnerException?.ToString() ?? string.Empty,
-                0,
-                string.Empty
-            );
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

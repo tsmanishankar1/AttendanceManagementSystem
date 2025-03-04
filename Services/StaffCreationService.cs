@@ -22,32 +22,40 @@ namespace AttendanceManagement.Services
             _configuration = configuration;
             _storedProcedureDbContext = storedProcedureDbContext;
         }
-        public async Task<string> UpdateApproversAsync(int staffId, int? approverId1, int? approverId2, int updatedBy)
+        public async Task<string> UpdateApproversAsync(List<int> staffIds, int? approverId1, int? approverId2, int updatedBy)
         {
-            var message = "Approver chnaged sucessfully";
-            var staff = await _context.StaffCreations.FindAsync(staffId);
-            if (staff == null)
+            var message = "Approvers updated successfully";
+
+            var staffList = await _context.StaffCreations.Where(s => staffIds.Contains(s.Id)).ToListAsync();
+            if (staffList == null || !staffList.Any())
             {
-                return "Staff not found";
+                return "No valid staff members found.";
             }
+
             if (approverId1.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId1.Value))
             {
                 return $"ApproverId1 ({approverId1}) does not exist.";
             }
+
             if (approverId2.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId2.Value))
             {
                 return $"ApproverId2 ({approverId2}) does not exist.";
             }
-            staff.ApprovalLevel1 = approverId1 ?? staff.ApprovalLevel1;
-            staff.ApprovalLevel2 = approverId2 ?? staff.ApprovalLevel2;
-            staff.UpdatedBy = updatedBy;
-            staff.UpdatedUtc = DateTime.UtcNow;
+
+            foreach (var staff in staffList)
+            {
+                staff.ApprovalLevel1 = approverId1 ?? staff.ApprovalLevel1;
+                staff.ApprovalLevel2 = approverId2 ?? staff.ApprovalLevel2;
+                staff.UpdatedBy = updatedBy;
+                staff.UpdatedUtc = DateTime.UtcNow;
+            }
 
             await _context.SaveChangesAsync();
             return message;
         }
         public async Task<StaffCreationResponse> GetByUserManagementIdAsync(int staffId)
         {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             var getUser = await (from s in _context.StaffCreations
                                  join branch in _context.BranchMasters on s.BranchId equals branch.Id
                                  join department in _context.DepartmentMasters on s.DepartmentId equals department.Id
@@ -169,9 +177,12 @@ namespace AttendanceManagement.Services
                                      EmergencyContactNo2 = s.EmergencyContactNo2,
                                      OrganizationTypeId = s.OrganizationTypeId,
                                      OrganizationTypeName = org.Name,
+                                     ResignationDate = s.ResignationDate,
+                                     RelievingDate = s.RelievingDate,
                                      CreatedBy = s.CreatedBy
                                  })
                                 .FirstOrDefaultAsync();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (getUser == null)
             {
                 throw new MessageNotFoundException("Staff not found");
@@ -516,6 +527,8 @@ namespace AttendanceManagement.Services
             existingStaff.EmergencyContactNo2 = updatedStaff.EmergencyContactNo2;
             existingStaff.OrganizationTypeId = updatedStaff.OrganizationTypeId;
             existingStaff.WorkingStatus = updatedStaff.WorkingStatus;
+            existingStaff.ResignationDate = updatedStaff.ResignationDate;
+            existingStaff.RelievingDate = updatedStaff.RelievingDate;
             existingStaff.UpdatedBy = updatedStaff.UpdatedBy;
             existingStaff.UpdatedUtc = DateTime.UtcNow;
 
@@ -531,6 +544,7 @@ namespace AttendanceManagement.Services
 
             if (staff == null)
                 throw new MessageNotFoundException("Approver not found");
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             var records = await (from s in _context.StaffCreations
                                  join branch in _context.BranchMasters
                                  on s.BranchId equals branch.Id
@@ -666,9 +680,12 @@ namespace AttendanceManagement.Services
                                      EmergencyContactNo2 = s.EmergencyContactNo2,
                                      OrganizationTypeId = s.OrganizationTypeId,
                                      OrganizationTypeName = org.Name,
+                                     ResignationDate = s.ResignationDate,
+                                     RelievingDate = s.RelievingDate,
                                      CreatedBy = s.CreatedBy
                                  })
                                  .ToListAsync();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (records.Count == 0)
             {
                 throw new MessageNotFoundException("No staffs found");
@@ -678,6 +695,7 @@ namespace AttendanceManagement.Services
 
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             var records = await (from s in _context.StaffCreations
                                  join branch in _context.BranchMasters
                                  on s.BranchId equals branch.Id
@@ -813,9 +831,12 @@ namespace AttendanceManagement.Services
                                      EmergencyContactNo2 = s.EmergencyContactNo2,
                                      OrganizationTypeId = s.OrganizationTypeId,
                                      OrganizationTypeName = org.Name,
+                                     ResignationDate = s.ResignationDate,
+                                     RelievingDate = s.RelievingDate,
                                      CreatedBy = s.CreatedBy
                                  })
                      .ToListAsync();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (records.Count == 0)
             {
                 throw new MessageNotFoundException("No staffs found");
@@ -922,7 +943,9 @@ namespace AttendanceManagement.Services
                 {1002, new WorkingStatus() },
                 {1003, new ApprovalOwner() },
                 {1004, new LeaveCreditDebitReason() },
-                {1005, new ExcelImport() }
+                {1005, new ExcelImport() },
+                {1006, new StaffLeaveOption() },
+                {1007, new PermissionType() }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
@@ -961,7 +984,9 @@ namespace AttendanceManagement.Services
                 { 1002, _context.WorkingStatuses.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1003, _context.ApprovalOwners.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1004, _context.LeaveCreditDebitReasons.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1005, _context.ExcelImports.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1005, _context.ExcelImports.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1006, _context.StaffLeaveOptions.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1007, _context.PermissionTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
 
             };
 
@@ -999,7 +1024,10 @@ namespace AttendanceManagement.Services
                 { 1002, async () => await _context.WorkingStatuses.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1003, async () => await _context.ApprovalOwners.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1004, async () => await _context.LeaveCreditDebitReasons.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1005, async () => await _context.ExcelImports.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1005, async () => await _context.ExcelImports.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1006, async () => await _context.StaffLeaveOptions.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1007, async () => await _context.PermissionTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

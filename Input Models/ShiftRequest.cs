@@ -50,11 +50,11 @@
     public class RegularShiftRequest
     {
         public string ShiftType { get; set; } = null!;
-        public bool WeeklyOffType { get; set; }
-        public string DayPattern { get; set; } = null!;
+        public bool? WeeklyOffType { get; set; }
+        public string? DayPattern { get; set; } = null!;
         public DateOnly ChangeEffectFrom { get; set; }
         public string Reason { get; set; } = null!;
-        public int ShiftId { get; set; }
+        public int? ShiftId { get; set; }
         public string? ShiftPattern { get; set; }
         public List<int> StaffIds { get; set; } = new List<int>();  
         public int CreatedBy { get; set; }

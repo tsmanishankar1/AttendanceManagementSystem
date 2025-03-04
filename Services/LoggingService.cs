@@ -1,5 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System.Text.Json;
 
@@ -7,17 +9,15 @@ namespace AttendanceManagement.Services
 {
     public class LoggingService
     {
-        public LoggingService()
+        private readonly IConfiguration _configuration;
+        public LoggingService(IConfiguration configuration)
         {
+            _configuration = configuration;
         }
 
         public async Task LogError(string module, string httpMethod, string apiEndpoint, string errorMessage, string stackTrace, string innerException, int staffId, object? payload)
         {
-            var configuration = new ConfigurationBuilder()
-               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-               .Build();
-
-            using (var logContext = new AttendanceManagementSystemContext(configuration))
+            using (var logContext = CreateDbContext())
             {
                 var errorLog = new ErrorLog
                 {
@@ -38,11 +38,7 @@ namespace AttendanceManagement.Services
 
         public async Task AuditLog(string module, string httpMethod, string apiEndpoint, string successMessage, int staffId, object? payload)
         {
-            var configuration = new ConfigurationBuilder()
-               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-               .Build();
-
-            using (var logContext = new AttendanceManagementSystemContext(configuration))
+            using (var logContext = CreateDbContext())
             {
                 var auditLog = new AuditLog
                 {
@@ -57,6 +53,14 @@ namespace AttendanceManagement.Services
                 logContext.AuditLogs.Add(auditLog);
                 await logContext.SaveChangesAsync();
             }
+        }
+
+        private AttendanceManagementSystemContext CreateDbContext()
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<AttendanceManagementSystemContext>();
+            optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DBConnection"));
+
+            return new AttendanceManagementSystemContext(optionsBuilder.Options);
         }
     }
 }

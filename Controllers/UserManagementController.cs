@@ -181,4 +181,27 @@ public class UserManagementController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
+    [HttpGet("GetMenusByRoleId")]
+    public async Task<IActionResult> GetMenusByRoleId(int roleId)
+    {
+        try
+        {
+            var menus = await _userService.GetMenusByRoleIdAsync(roleId);
+            var response = new
+            {
+                Success = true,
+                Menus = menus
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
 }

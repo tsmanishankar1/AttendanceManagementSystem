@@ -64,6 +64,7 @@
     public class StaffLeaveDto
     {
         public int StaffId { get; set; }
+        public string StaffCreationId { get; set; }
         public string StaffName { get; set; }
         public string DepartmentName { get; set; }
         public int LeaveTypeId { get; set; }

@@ -78,6 +78,7 @@ namespace AttendanceManagement.Input_Models
         public string Location { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string BirthDate { get; set; } = null!;
+        public string? ProfilePhoto { get; set; }
     }
 
     public class StaffAnniversaryDto
@@ -88,6 +89,7 @@ namespace AttendanceManagement.Input_Models
         public string Location { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string MarriageDate { get; set; } = null!;
+        public string? ProfilePhoto { get; set; }
     }
 
     public class EventTypeResponse

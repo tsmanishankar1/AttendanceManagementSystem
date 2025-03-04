@@ -137,13 +137,6 @@ namespace AttendanceManagement.Input_Models
         public int OrganizationTypeId { get; set; }
         public string WorkingStatus { get; set; } = null!;
     }
-    public class ApproverUpdateRequest
-    {
-        public int StaffId { get; set; }
-        public int? ApproverId1 { get; set; }
-        public int? ApproverId2 { get; set; }
-        public int UpdatedBy { get; set; }
-    }
     public class StaffCreationResponse
     {
         public int StaffId { get; set; }
@@ -287,6 +280,8 @@ namespace AttendanceManagement.Input_Models
         public string OrganizationTypeName { get; set; } = null!;
         public int WorkingStatusId { get; set; }
         public string WorkingStatus { get; set; } = null!;
+        public DateOnly? ResignationDate { get; set; }
+        public DateOnly? RelievingDate { get; set; }
     }
 
     public class StaffCreationClass
@@ -302,6 +297,7 @@ namespace AttendanceManagement.Input_Models
         public string Location { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string JoiningDate { get; set; } = null!;
+        public string? ProfilePhoto { get; set; }
     }
 
     public class JoiningAnniversary
@@ -313,6 +309,7 @@ namespace AttendanceManagement.Input_Models
         public string Designation { get; set; } = null!;
         public string JoiningDate { get; set; } = null!;
         public string JoiningAnniversaryYear { get; set; } = null!;
+        public string? ProfilePhoto { get; set; }
     }
 
     public class ThreeYearsOfService
@@ -322,6 +319,7 @@ namespace AttendanceManagement.Input_Models
         public string StaffName { get; set; } = null!;
         public string Location { get; set; } = null!;
         public string Designation { get; set; } = null!;
+        public string? ProfilePhoto { get; set; }
     }
 
     public class GetStaff
@@ -479,6 +477,8 @@ namespace AttendanceManagement.Input_Models
         public int UpdatedBy { get; set; }
         public int OrganizationTypeId { get; set; }
         public string WorkingStatus { get; set; } = null!;
+        public DateOnly? ResignationDate { get; set; }
+        public DateOnly? RelievingDate { get; set; }
     }
 
     public class OrganizationTypeResponse
@@ -528,6 +528,13 @@ namespace AttendanceManagement.Input_Models
         public int DropDownMasterId { get; set; }
         public int DropDownDetailId { get; set; }
         public string Name { get; set; } = null!;
+        public int UpdatedBy { get; set; }
+    }
+    public class ApproverUpdateRequest
+    {
+        public List<int> StaffIds { get; set; } = new(); 
+        public int? ApproverId1 { get; set; }
+        public int? ApproverId2 { get; set; }
         public int UpdatedBy { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 

@@ -135,7 +135,7 @@ public partial class StaffCreation
 
     public string FatherName { get; set; } = null!;
 
-    public string EmergencyContactPerson1 { get; set; } = null!;
+    public string? EmergencyContactPerson1 { get; set; }
 
     public string? EmergencyContactPerson2 { get; set; }
 
@@ -160,6 +160,10 @@ public partial class StaffCreation
     public string ApprovalLevel { get; set; } = null!;
 
     public string? OfficialEmail { get; set; }
+
+    public DateOnly? ResignationDate { get; set; }
+
+    public DateOnly? RelievingDate { get; set; }
 
     public virtual ICollection<AccessLevel> AccessLevelCreatedByNavigations { get; set; } = new List<AccessLevel>();
 
@@ -457,6 +461,10 @@ public partial class StaffCreation
 
     public virtual ICollection<MaritalStatus> MaritalStatusUpdatedByNavigations { get; set; } = new List<MaritalStatus>();
 
+    public virtual ICollection<Menu> MenuCreatedByNavigations { get; set; } = new List<Menu>();
+
+    public virtual ICollection<Menu> MenuUpdatedByNavigations { get; set; } = new List<Menu>();
+
     public virtual ICollection<MyApplication> MyApplicationCreatedByNavigations { get; set; } = new List<MyApplication>();
 
     public virtual ICollection<MyApplication> MyApplicationUpdatedByNavigations { get; set; } = new List<MyApplication>();
@@ -466,6 +474,12 @@ public partial class StaffCreation
     public virtual ICollection<OnBehalfApplicationApproval> OnBehalfApplicationApprovalStaffCreations { get; set; } = new List<OnBehalfApplicationApproval>();
 
     public virtual ICollection<OnBehalfApplicationApproval> OnBehalfApplicationApprovalUpdatedByNavigations { get; set; } = new List<OnBehalfApplicationApproval>();
+
+    public virtual ICollection<OnDutyOvertime> OnDutyOvertimeCreatedByNavigations { get; set; } = new List<OnDutyOvertime>();
+
+    public virtual ICollection<OnDutyOvertime> OnDutyOvertimeStaffs { get; set; } = new List<OnDutyOvertime>();
+
+    public virtual ICollection<OnDutyOvertime> OnDutyOvertimeUpdatedByNavigations { get; set; } = new List<OnDutyOvertime>();
 
     public virtual ICollection<OnDutyRequisition> OnDutyRequisitionCreatedByNavigations { get; set; } = new List<OnDutyRequisition>();
 
@@ -486,6 +500,10 @@ public partial class StaffCreation
     public virtual ICollection<PermissionRequistion> PermissionRequistionCreatedByNavigations { get; set; } = new List<PermissionRequistion>();
 
     public virtual ICollection<PermissionRequistion> PermissionRequistionUpdatedByNavigations { get; set; } = new List<PermissionRequistion>();
+
+    public virtual ICollection<PermissionType> PermissionTypeCreatedByNavigations { get; set; } = new List<PermissionType>();
+
+    public virtual ICollection<PermissionType> PermissionTypeUpdatedByNavigations { get; set; } = new List<PermissionType>();
 
     public virtual ICollection<PolicyGroup> PolicyGroupCreatedByNavigations { get; set; } = new List<PolicyGroup>();
 
@@ -525,6 +543,10 @@ public partial class StaffCreation
 
     public virtual ICollection<RegularShift> RegularShiftUpdatedByNavigations { get; set; } = new List<RegularShift>();
 
+    public virtual ICollection<RoleMenuMapping> RoleMenuMappingCreatedByNavigations { get; set; } = new List<RoleMenuMapping>();
+
+    public virtual ICollection<RoleMenuMapping> RoleMenuMappingUpdatedByNavigations { get; set; } = new List<RoleMenuMapping>();
+
     public virtual ICollection<SalaryComponent> SalaryComponentCreatedByNavigations { get; set; } = new List<SalaryComponent>();
 
     public virtual ICollection<SalaryComponent> SalaryComponentUpdatedByNavigations { get; set; } = new List<SalaryComponent>();
@@ -551,6 +573,10 @@ public partial class StaffCreation
 
     public virtual ICollection<SkillInventory> SkillInventoryUpdatedByNavigations { get; set; } = new List<SkillInventory>();
 
+    public virtual ICollection<StaffLeaveOption> StaffLeaveOptionCreatedByNavigations { get; set; } = new List<StaffLeaveOption>();
+
+    public virtual ICollection<StaffLeaveOption> StaffLeaveOptionUpdatedByNavigations { get; set; } = new List<StaffLeaveOption>();
+
     public virtual ICollection<StaffSalaryBreakdown> StaffSalaryBreakdownCreatedByNavigations { get; set; } = new List<StaffSalaryBreakdown>();
 
     public virtual ICollection<StaffSalaryBreakdown> StaffSalaryBreakdownUpdatedByNavigations { get; set; } = new List<StaffSalaryBreakdown>();
@@ -560,6 +586,12 @@ public partial class StaffCreation
     public virtual ICollection<StaffSalary> StaffSalaryStaffs { get; set; } = new List<StaffSalary>();
 
     public virtual ICollection<StaffSalary> StaffSalaryUpdatedByNavigations { get; set; } = new List<StaffSalary>();
+
+    public virtual ICollection<StaffVaccination> StaffVaccinationCreatedByNavigations { get; set; } = new List<StaffVaccination>();
+
+    public virtual ICollection<StaffVaccination> StaffVaccinationStaffs { get; set; } = new List<StaffVaccination>();
+
+    public virtual ICollection<StaffVaccination> StaffVaccinationUpdatedByNavigations { get; set; } = new List<StaffVaccination>();
 
     public virtual Status Status { get; set; } = null!;
 

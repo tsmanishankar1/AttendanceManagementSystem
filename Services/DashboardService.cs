@@ -65,7 +65,8 @@ namespace AttendanceManagement.Services
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
-                    BirthDate = staff.Dob.ToString("MMMM dd")
+                    BirthDate = staff.Dob.ToString("MMMM dd"),
+                    ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
                 if(birthday.Count == 0)
                 {
@@ -82,7 +83,8 @@ namespace AttendanceManagement.Services
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
-                    MarriageDate = staff.MarriageDate?.ToString("MMMM dd") ?? string.Empty
+                    MarriageDate = staff.MarriageDate?.ToString("MMMM dd") ?? string.Empty,
+                    ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
                 if(weddingAnniversary.Count == 0)
                 {
@@ -99,7 +101,8 @@ namespace AttendanceManagement.Services
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
-                    JoiningDate = staff.JoiningDate.ToString("MMMM dd")
+                    JoiningDate = staff.JoiningDate.ToString("MMMM dd"),
+                    ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
                 if(newJoinees.Count == 0)
                 {
@@ -119,7 +122,8 @@ namespace AttendanceManagement.Services
                         Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                         Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
                         JoiningDate = staff.JoiningDate.ToString("MMMM dd"),
-                        JoiningAnniversaryYear = $"{(today.Year - staff.JoiningDate.Year + 1)}{GetOrdinalSuffix(today.Year - staff.JoiningDate.Year + 1)} Year"
+                        JoiningAnniversaryYear = $"{(today.Year - staff.JoiningDate.Year + 1)}{GetOrdinalSuffix(today.Year - staff.JoiningDate.Year + 1)} Year",
+                        ProfilePhoto = staff.ProfilePhoto
                     }).ToList<object>();
 
                 if (joiningAnniversaries.Count == 0)
@@ -137,7 +141,8 @@ namespace AttendanceManagement.Services
                     StaffCreationId = $"{_context.OrganizationTypes.FirstOrDefault(org => org.Id == staff.OrganizationTypeId)?.ShortName}{staff.Id}",
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId && loc.IsActive)?.FullName ?? string.Empty,
-                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId && des.IsActive)?.FullName ?? string.Empty
+                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId && des.IsActive)?.FullName ?? string.Empty,
+                    ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
                 if(threeYearStaff.Count == 0)
                 {

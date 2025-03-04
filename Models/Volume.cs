@@ -19,6 +19,8 @@ public partial class Volume
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public string ShortName { get; set; } = null!;
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }

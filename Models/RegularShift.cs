@@ -9,9 +9,9 @@ public partial class RegularShift
 
     public string ShiftType { get; set; } = null!;
 
-    public bool WeeklyOffType { get; set; }
+    public bool? WeeklyOffType { get; set; }
 
-    public string DayPattern { get; set; } = null!;
+    public string? DayPattern { get; set; }
 
     public DateOnly ChangeEffectFrom { get; set; }
 
@@ -27,7 +27,7 @@ public partial class RegularShift
 
     public DateTime? UpdatedUtc { get; set; }
 
-    public int ShiftId { get; set; }
+    public int? ShiftId { get; set; }
 
     public int StaffCreationId { get; set; }
 
@@ -35,7 +35,7 @@ public partial class RegularShift
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
-    public virtual Shift Shift { get; set; } = null!;
+    public virtual Shift? Shift { get; set; }
 
     public virtual StaffCreation StaffCreation { get; set; } = null!;
 

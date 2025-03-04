@@ -18,6 +18,24 @@ public class ExcelImportController : ControllerBase
         _loggingService = loggingService;
     }
 
+    [HttpGet("DownloadExcelTemplates")]
+    public async Task<IActionResult> DownloadExcelTemplates(int excelImportId)
+    {
+        try
+        {
+            var template = await _excelImportService.DownloadExcelTemplates(excelImportId);
+            return File(template.file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", template.ExcelName);
+        }
+        catch(MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("ImportExcel")]
     public async Task<IActionResult> ImportExcel(ExcelImportDto excelImportDto)
     {

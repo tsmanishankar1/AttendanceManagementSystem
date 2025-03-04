@@ -63,16 +63,16 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-    [HttpGet("GetStaffInfo")]
-    public async Task<IActionResult> GetStaffInfoByStaffId(int staffId)
+    [HttpPost("GetStaffInfo")]
+    public async Task<IActionResult> GetStaffInfoByStaffId([FromBody] List<int> staffIds)
     {
         try
         {
-            var staffInfo = await _service.GetStaffInfoByStaffId(staffId);
-            if (staffInfo == null || staffInfo.Count == 0)
+            if (staffIds == null || !staffIds.Any())
             {
-                return NotFound("No staff found for the given staff");
+                return BadRequest("Staff ID list cannot be empty.");
             }
+            var staffInfo = await _service.GetStaffInfoByStaffId(staffIds);
             return Ok(staffInfo);
         }
         catch (MessageNotFoundException ex)
@@ -84,6 +84,7 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpGet("GetAllAssignLeaveTypes")]
     public async Task<IActionResult> GetAll()
     {

@@ -148,19 +148,20 @@ public class StaffCreationController : ControllerBase
     [HttpPost("UpdateApprovers")]
     public async Task<IActionResult> UpdateApprovers(ApproverUpdateRequest request)
     {
-        if (request == null || request.StaffId <= 0 || request.UpdatedBy <= 0)
+        if (request == null || request.StaffIds == null || !request.StaffIds.Any() || request.UpdatedBy <= 0)
         {
             return BadRequest(new { Success = false, Message = "Invalid input parameters" });
         }
 
         try
         {
-            var result = await _service.UpdateApproversAsync(request.StaffId, request.ApproverId1, request.ApproverId2, request.UpdatedBy);
+            var result = await _service.UpdateApproversAsync(request.StaffIds, request.ApproverId1, request.ApproverId2, request.UpdatedBy);
 
-            if (result != "Success")
+            if (result != "Approvers updated successfully")
             {
                 return BadRequest(new { Success = false, Message = result });
             }
+
             await _loggingService.AuditLog("Staff", "POST", "/api/Staff/update-approvers", result, request.UpdatedBy, JsonSerializer.Serialize(request));
             return Ok(new { Success = true, Message = "Approvers updated successfully" });
         }

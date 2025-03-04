@@ -95,6 +95,16 @@
 			<response code="404">If no application types are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CancelAppliedLeave(AttendanceManagement.Input_Models.CancelAppliedLeave)">
+			<summary>
+				Cancels an applied leave request.
+			</summary>
+			<param name="cancel">The applied leave cancellation request.</param>
+			<returns>Returns the status of the cancellation request.</returns>
+			<response code="200">If the application request is successfully cancelled.</response>
+			<response code="404">If the application request is not found or already cancelled.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationRequisition(AttendanceManagement.Input_Models.GetLeaveRequest)">
 			<summary>
 				Retrieves application requisitions based on the provided criteria.
@@ -895,6 +905,16 @@
 			<returns>The result of the import operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ExcelImportController.DownloadExcelTemplates(System.Int32)">
+			<summary>
+				Downloads an Excel template based on the specified Excel import ID.
+			</summary>
+			<param name="excelImportId">The ID of the Excel import template to download.</param>
+			<returns>The requested Excel template as a file.</returns>
+			<response code="200">Returns the Excel file successfully.</response>
+			<response code="404">If the specified template is not found.</response>
+			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.FamilyDetailsController">
 			<summary>
@@ -1898,15 +1918,15 @@
 			<response code="404">If no application types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.GetStaffInfoByStaffId(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.GetStaffInfoByStaffId(System.Collections.Generic.List{System.Int32})">
 			<summary>
-				Retrieves staff leave information by Staff ID.
+				Retrieves staff leave information based on Staff IDs.
 			</summary>
-			<param name="staffId">The ID of the staff member.</param>
+			<param name="staffIds">A list of Staff IDs.</param>
 			<returns>Staff leave details.</returns>
-			<response code="200">Returns staff leave information</response>
-			<response code="404">If no staff is found</response>
-			<response code="500">If there is an internal server error</response>
+			<response code="200">Returns staff leave information.</response>
+			<response code="404">If no staff is found.</response>
+			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.GetAll">
 			<summary>
@@ -2172,6 +2192,16 @@
 			<response code="200">Returns the staff details</response>
 			<response code="404">If the staff is not found</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:UserManagementController.GetMenusByRoleId(System.Int32)">
+			<summary>
+				Retrieves the list of menus assigned to a specific role.
+			</summary>
+			<param name="roleId">The ID of the role for which menus are retrieved.</param>
+			<returns>The list of menus assigned to the specified role.</returns>
+			<response code="200">Returns the menus associated with the given role.</response>
+			<response code="404">If no menus are found for the specified role.</response>
+			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:UserManagementController.ResetPassword(AttendanceManagement.Input_Models.ResetPasswordModel)">
 			<summary>

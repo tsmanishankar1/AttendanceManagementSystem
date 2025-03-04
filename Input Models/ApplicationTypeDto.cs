@@ -10,7 +10,11 @@
     {
         public string ApplicationTypeName { get; set; } = null!;
     }
-
+    public class CancelAppliedLeave
+    {
+        public int ApplicationTypeId { get; set; }
+        public int Id { get; set; }
+    }
     public class ApplicationDetails
     {
         public int StaffId { get; set; }
@@ -22,7 +26,6 @@
         public int Month { get; set; }
         public int Year { get; set; }
     }
-
     public class GetLeaveRequest
     {
         public int ApproverId { get; set; }

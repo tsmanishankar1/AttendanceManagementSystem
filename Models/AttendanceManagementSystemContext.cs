@@ -6,20 +6,9 @@ namespace AttendanceManagement.Models;
 
 public partial class AttendanceManagementSystemContext : DbContext
 {
-    private readonly IConfiguration _configuration;
-
-    public AttendanceManagementSystemContext()
-    {
-    }
-
-    public AttendanceManagementSystemContext(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-    public AttendanceManagementSystemContext(DbContextOptions<AttendanceManagementSystemContext> options, IConfiguration configuration)
+    public AttendanceManagementSystemContext(DbContextOptions<AttendanceManagementSystemContext> options)
         : base(options)
     {
-        _configuration = configuration;
     }
 
     public virtual DbSet<AccessLevel> AccessLevels { get; set; }
@@ -144,9 +133,13 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<MaritalStatus> MaritalStatuses { get; set; }
 
+    public virtual DbSet<Menu> Menus { get; set; }
+
     public virtual DbSet<MyApplication> MyApplications { get; set; }
 
     public virtual DbSet<OnBehalfApplicationApproval> OnBehalfApplicationApprovals { get; set; }
+
+    public virtual DbSet<OnDutyOvertime> OnDutyOvertimes { get; set; }
 
     public virtual DbSet<OnDutyRequisition> OnDutyRequisitions { get; set; }
 
@@ -157,6 +150,8 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<PaymentDetail> PaymentDetails { get; set; }
 
     public virtual DbSet<PermissionRequistion> PermissionRequistions { get; set; }
+
+    public virtual DbSet<PermissionType> PermissionTypes { get; set; }
 
     public virtual DbSet<PolicyGroup> PolicyGroups { get; set; }
 
@@ -176,6 +171,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<RegularShift> RegularShifts { get; set; }
 
+    public virtual DbSet<RoleMenuMapping> RoleMenuMappings { get; set; }
+
     public virtual DbSet<SalaryComponent> SalaryComponents { get; set; }
 
     public virtual DbSet<SalaryComponentType> SalaryComponentTypes { get; set; }
@@ -190,9 +187,13 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<StaffCreation> StaffCreations { get; set; }
 
+    public virtual DbSet<StaffLeaveOption> StaffLeaveOptions { get; set; }
+
     public virtual DbSet<StaffSalary> StaffSalaries { get; set; }
 
     public virtual DbSet<StaffSalaryBreakdown> StaffSalaryBreakdowns { get; set; }
+
+    public virtual DbSet<StaffVaccination> StaffVaccinations { get; set; }
 
     public virtual DbSet<Status> Statuses { get; set; }
 
@@ -230,9 +231,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<ZoneMaster> ZoneMasters { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //=> optionsBuilder.UseSqlServer("Server=172.16.10.233;Initial Catalog=AttendanceManagementSystem;Persist Security info=False;User ID=vis2;Password=password@1;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;");
-           => optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DBConnection"), option => option.CommandTimeout(300));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccessLevel>(entity =>
@@ -415,7 +413,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<AssignLeaveType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AssignLe__3214EC07C9F79283");
+            entity.HasKey(e => e.Id).HasName("PK__AssignLe__3214EC072C760947");
 
             entity.ToTable("AssignLeaveType");
 
@@ -2226,6 +2224,30 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_UPMSId");
         });
 
+        modelBuilder.Entity<Menu>(entity =>
+        {
+            entity.ToTable("Menu");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.MenuCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRMenuId");
+
+            entity.HasOne(d => d.ParentMenu).WithMany(p => p.InverseParentMenu)
+                .HasForeignKey(d => d.ParentMenuId)
+                .HasConstraintName("FK_MenuId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.MenuUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPMenuId");
+        });
+
         modelBuilder.Entity<MyApplication>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__MyApplic__3214EC07445E925C");
@@ -2301,6 +2323,38 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.OnBehalfApplicationApprovalUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_ONBUP");
+        });
+
+        modelBuilder.Entity<OnDutyOvertime>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__OnDutyOv__3214EC073F142040");
+
+            entity.ToTable("OnDutyOvertime");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Otdate).HasColumnName("OTDate");
+            entity.Property(e => e.Ottype)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("OTType");
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.OnDutyOvertimeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_OnDutyOvertime_CreatedBy");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.OnDutyOvertimeStaffs)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_OnDutyOvertime_Staff");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.OnDutyOvertimeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_OnDutyOvertime_UpdatedBy");
         });
 
         modelBuilder.Entity<OnDutyRequisition>(entity =>
@@ -2470,6 +2524,28 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PermissionRequistionUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UpdatedBy_StaffCreation");
+        });
+
+        modelBuilder.Entity<PermissionType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PermissTyp__869767EADE6795EB");
+
+            entity.ToTable("PermissionType");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PermissionTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRPTId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PermissionTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPPTId");
         });
 
         modelBuilder.Entity<PolicyGroup>(entity =>
@@ -2717,7 +2793,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Reason)
                 .HasMaxLength(255)
                 .IsUnicode(false);
-            entity.Property(e => e.ShiftPattern).HasMaxLength(255);
+            entity.Property(e => e.ShiftPattern)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.ShiftType)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -2732,7 +2810,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Shift).WithMany(p => p.RegularShifts)
                 .HasForeignKey(d => d.ShiftId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RegularShifts_Shifts");
 
             entity.HasOne(d => d.StaffCreation).WithMany(p => p.RegularShiftStaffCreations)
@@ -2742,6 +2819,31 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.RegularShiftUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPREGU");
+        });
+
+        modelBuilder.Entity<RoleMenuMapping>(entity =>
+        {
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.RoleMenuMappingCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRRoleMenuId");
+
+            entity.HasOne(d => d.Menu).WithMany(p => p.RoleMenuMappings)
+                .HasForeignKey(d => d.MenuId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RoleMenuId");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.RoleMenuMappings)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RoleId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.RoleMenuMappingUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPRoleMenuId");
         });
 
         modelBuilder.Entity<SalaryComponent>(entity =>
@@ -2974,10 +3076,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.EmergencyContactPerson1)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.EmergencyContactPerson2)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.EsiNumber)
                 .HasMaxLength(50)
@@ -3145,6 +3247,28 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK__StaffCrea__WorkS__59FA5E80");
         });
 
+        modelBuilder.Entity<StaffLeaveOption>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__StaffLea__869767EADE6795EB");
+
+            entity.ToTable("StaffLeaveOption");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StaffLeaveOptionCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRSLId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.StaffLeaveOptionUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPSLId");
+        });
+
         modelBuilder.Entity<StaffSalary>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__StaffSal__3214EC078C89BC14");
@@ -3208,6 +3332,36 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.StaffSalaryBreakdownUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK__StaffSala__Updat__7814D14C");
+        });
+
+        modelBuilder.Entity<StaffVaccination>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__StaffVac__3214EC07559EDD81");
+
+            entity.ToTable("StaffVaccination");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Comments).HasMaxLength(255);
+            entity.Property(e => e.CreatedUtc)
+                .HasColumnType("datetime")
+                .HasColumnName("CreatedUTC");
+            entity.Property(e => e.UpdatedUtc)
+                .HasColumnType("datetime")
+                .HasColumnName("UpdatedUTC");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StaffVaccinationCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_StaffVaccination_CreatedBy");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.StaffVaccinationStaffs)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_StaffVaccination_Staff");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.StaffVaccinationUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_StaffVaccination_UpdatedBy");
         });
 
         modelBuilder.Entity<Status>(entity =>
@@ -3456,6 +3610,9 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.ShortName)
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");

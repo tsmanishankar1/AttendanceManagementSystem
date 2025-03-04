@@ -14,10 +14,12 @@ using System.Text;
 public class LoginService
 {
     private readonly AttendanceManagementSystemContext _context;
+    private readonly IConfiguration _configuration;
 
-    public LoginService(AttendanceManagementSystemContext context)
+    public LoginService(AttendanceManagementSystemContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
     public async Task<string> ValidateUserAsync(Login login)
     {
@@ -73,13 +75,17 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Staff not found");
             }
+            var roleId = _context.AccessLevels.FirstOrDefault(e => e.Name == staff.AccessLevel && e.IsActive == true);
+            if(roleId == null)
+            {
+                throw new MessageNotFoundException("Role not found");
+            }
             var designation = _context.DesignationMasters.FirstOrDefault(e => e.Id == designationId && e.IsActive == true);
             if (designation == null)
             {
                 throw new MessageNotFoundException("Designation not found");
             }
             var tokenHandler = new JwtSecurityTokenHandler();
-
             var key = new byte[32];
             RandomNumberGenerator.Fill(key);
             var signingKey = new SymmetricSecurityKey(key);
@@ -93,6 +99,8 @@ public class LoginService
                     new Claim("StaffId", staff.Id.ToString()),
                     new Claim("DesignationId", designation.Id.ToString()),
                     new Claim("DesignationName", designation.FullName),
+                    new Claim("RoleId", roleId.Id.ToString()),
+                    new Claim("Role", roleId.Name.ToString()),
                     new Claim("ProfilePhoto", profilePhoto)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),

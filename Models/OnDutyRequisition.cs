@@ -45,6 +45,8 @@ public partial class OnDutyRequisition
 
     public int? StaffId { get; set; }
 
+    public bool? IsCancelled { get; set; }
+
     public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }

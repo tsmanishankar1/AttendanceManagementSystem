@@ -170,4 +170,22 @@ public class UserManagementService
         await _context.SaveChangesAsync();
         return message;
     }
+
+    public async Task<List<MenuResponse>> GetMenusByRoleIdAsync(int roleId)
+    {
+        var menus = await _context.RoleMenuMappings
+            .Where(rm => rm.RoleId == roleId && rm.IsActive)
+            .Select(rm => rm.Menu)
+            .Where(m => m.IsActive)
+            .OrderBy(m => m.Id)
+            .ToListAsync();
+
+        return menus.Select(m => new MenuResponse
+        {
+            Id = m.Id,
+            Name = m.Name,
+            ParentMenuId = m.ParentMenuId,
+            CreatedBy = m.CreatedBy
+        }).ToList();
+    }
 }

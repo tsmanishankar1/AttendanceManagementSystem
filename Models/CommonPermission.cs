@@ -37,6 +37,8 @@ public partial class CommonPermission
 
     public int? StaffId { get; set; }
 
+    public bool? IsCancelled { get; set; }
+
     public virtual ApplicationType? ApplicationType { get; set; }
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
