@@ -76,17 +76,17 @@ public class WeeklyOffController : ControllerBase
                 Success = true,
                 Message = createdWeeklyOff
             };
-            await _loggingService.AuditLog("CreateWeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", createdWeeklyOff, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
+            await _loggingService.AuditLog("Create WeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", createdWeeklyOff, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("CreateWeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
+            await _loggingService.LogError("Create WeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("CreateWeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
+            await _loggingService.LogError("Create WeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -102,17 +102,17 @@ public class WeeklyOffController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            await _loggingService.AuditLog("UpdateWeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", updated, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
+            await _loggingService.AuditLog("Update WeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", updated, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("UpdateWeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
+            await _loggingService.LogError("Update WeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("UpdateWeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
+            await _loggingService.LogError("Update WeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

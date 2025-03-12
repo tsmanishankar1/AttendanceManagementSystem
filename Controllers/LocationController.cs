@@ -74,12 +74,12 @@ public class LocationMasterController : ControllerBase
                 Success = true,
                 Message = createdLocation
             };
-            await _loggingService.AuditLog("Location Master", "POST", "/LocationMaster/CreateLocation", createdLocation, location.CreatedBy, JsonSerializer.Serialize(location));
+            await _loggingService.AuditLog("Location Master", "POST", "/api/Location/CreateLocation", createdLocation, location.CreatedBy, JsonSerializer.Serialize(location));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Location Master", "POST", "/LocationMaster/CreateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.CreatedBy, JsonSerializer.Serialize(location));
+            await _loggingService.LogError("Location Master", "POST", "/api/Location/CreateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.CreatedBy, JsonSerializer.Serialize(location));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -95,17 +95,17 @@ public class LocationMasterController : ControllerBase
                 Success = true,
                 Message = updatedLocation
             };
-            await _loggingService.AuditLog("Location Master", "POST", "/LocationMaster/UpdateLocation", updatedLocation, location.UpdatedBy, JsonSerializer.Serialize(location));
+            await _loggingService.AuditLog("Location Master", "POST", "/api/Location/UpdateLocation", updatedLocation, location.UpdatedBy, JsonSerializer.Serialize(location));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Location Master", "POST", "/LocationMaster/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
+            await _loggingService.LogError("Location Master", "POST", "/api/Location/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Location Master", "POST", "/LocationMaster/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
+            await _loggingService.LogError("Location Master", "POST", "/api/Location/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

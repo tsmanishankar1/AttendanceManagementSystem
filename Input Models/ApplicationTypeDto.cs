@@ -14,6 +14,7 @@
     {
         public int ApplicationTypeId { get; set; }
         public int Id { get; set; }
+        public int UpdatedBy { get;set; }
     }
     public class ApplicationDetails
     {

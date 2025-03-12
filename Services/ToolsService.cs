@@ -17,7 +17,7 @@ namespace AttendanceManagement.Services
         {
             var staffInfo = await _context.StaffCreations
                 .Where(s => s.OrganizationTypeId == organizationTypeId)
-                .Include(s => s.Department) 
+                .Include(s => s.Department)
                 .Select(s => new StaffInfoDto
                 {
                     StaffId = s.Id,
@@ -30,11 +30,25 @@ namespace AttendanceManagement.Services
         }
         public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(List<int> staffIds)
         {
+            var organizationTypeIds = await _context.StaffCreations
+                .Where(staff => staffIds.Contains(staff.Id))
+                .Select(staff => staff.OrganizationTypeId)
+                .Distinct()
+                .ToListAsync();
+
+            if (organizationTypeIds.Count > 1)
+            {
+                throw new Exception("The given employees belong to different organizations.");
+            }
+
             var staffInfo = await (
                 from staff in _context.StaffCreations
                 join assignLeaveGroup in _context.AssignLeaveTypes
                     on staff.OrganizationTypeId equals assignLeaveGroup.OrganizationTypeId into assignLeaveLeftJoin
                 from assignLeave in assignLeaveLeftJoin.DefaultIfEmpty()
+                join leaveType in _context.LeaveTypes
+                    on assignLeave.LeaveTypeId equals leaveType.Id into leaveTypeLeftJoin
+                from leave in leaveTypeLeftJoin.DefaultIfEmpty()
                 join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
                 where staffIds.Contains(staff.Id)
                 let latestCredit = (
@@ -43,34 +57,58 @@ namespace AttendanceManagement.Services
                         && credit.LeaveTypeId == assignLeave.LeaveTypeId
                         && credit.StaffCreationId == staff.Id
                     orderby credit.Id descending
-                    select credit.AvailableBalance
+                    select (decimal?)credit.AvailableBalance
                 ).FirstOrDefault()
-
-                select new StaffLeaveDto
+                select new
                 {
                     StaffId = staff.Id,
-                    StaffCreationId = $"{org.ShortName}{staff.Id}",
                     StaffName = $"{staff.FirstName} {staff.LastName}",
-                    DepartmentName = staff.Department.FullName,
-                    LeaveTypeId = assignLeave != null ? assignLeave.LeaveTypeId : 0, 
+                    OrganizationTypeId = staff.OrganizationTypeId,
+                    LeaveTypeId = leave != null ? leave.Id : (int?)null,
+                    LeaveTypeName = leave != null ? leave.Name : null,
                     AvailableBalance = latestCredit ?? 0
                 }
             ).ToListAsync();
+            if (staffInfo.Count == 0)
+                throw new MessageNotFoundException("Staff Information not found.");
 
-            return staffInfo;
+#pragma warning disable CS8629 // Nullable value type may be null.
+            var result = staffInfo
+                .GroupBy(s => new { s.StaffId, s.StaffName, s.OrganizationTypeId })
+                .Select(g => new StaffLeaveDto
+                {
+                    StaffId = g.Key.StaffId,
+                    StaffName = g.Key.StaffName,
+                    OrganizationTypeId = g.Key.OrganizationTypeId,
+                    LeaveDetails = g
+                        .Where(l => l.LeaveTypeId.HasValue)
+                        .Select(l => new LeaveDetailDto
+                        {
+                            LeaveTypeId = l.LeaveTypeId.Value,
+                            LeaveTypeName = l.LeaveTypeName,
+                            AvailableBalance = l.AvailableBalance
+                        })
+                        .ToList()
+                })
+                .ToList();
+#pragma warning restore CS8629 // Nullable value type may be null.
+            return result;
         }
         public async Task<List<AssignLeaveTypeDTO>> GetAllAssignLeaveTypes()
         {
             return await _context.AssignLeaveTypes
-                .Select(a => new AssignLeaveTypeDTO
-                {
-                    Id = a.Id,
-                    LeaveTypeId = a.LeaveTypeId,
-                    OrganizationTypeId = a.OrganizationTypeId
-                })
+                .Join(_context.LeaveTypes,
+                    assign => assign.LeaveTypeId,
+                    leave => leave.Id,
+                    (assign, leave) => new AssignLeaveTypeDTO
+                    {
+                        Id = assign.Id,
+                        LeaveTypeId = assign.LeaveTypeId,
+                        LeaveTypeName = leave.Name,
+                        OrganizationTypeId = assign.OrganizationTypeId
+                    })
                 .ToListAsync();
         }
-
         public async Task<AssignLeaveTypeDTO> GetAssignLeaveTypeById(int id)
         {
             var assignLeaveType = await _context.AssignLeaveTypes
@@ -142,7 +180,7 @@ namespace AttendanceManagement.Services
                 decimal lastAvailableBalance = lastRecord?.AvailableBalance ?? 0;
 
                 var staff = await _context.StaffCreations
-                    .Where(s => s.Id == item.StaffId && s.IsActive==true)
+                    .Where(s => s.Id == item.StaffId && s.IsActive == true)
                     .FirstOrDefaultAsync();
 
                 var leaveTypeExists = await _context.LeaveTypes
@@ -150,7 +188,7 @@ namespace AttendanceManagement.Services
 
                 if (staff == null || !leaveTypeExists)
                 {
-                    continue; 
+                    continue;
                 }
 
                 if (leaveCreditDebitRequest.TransactionFlag)
@@ -275,7 +313,7 @@ namespace AttendanceManagement.Services
                                              ApplicationTypeName = application.ApplicationTypeName
                                          })
                                         .ToListAsync();
-            if(applicationType.Count == 0)
+            if (applicationType.Count == 0)
             {
                 throw new MessageNotFoundException("No application types found");
             }
@@ -292,7 +330,7 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return message;
         }
-       
+
 
     }
 }

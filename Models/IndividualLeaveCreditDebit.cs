@@ -21,9 +21,9 @@ public partial class IndividualLeaveCreditDebit
 
     public string? Remarks { get; set; }
 
-    public decimal? ActualBalance { get; set; }
+    public decimal ActualBalance { get; set; }
 
-    public decimal? AvailableBalance { get; set; }
+    public decimal AvailableBalance { get; set; }
 
     public bool IsActive { get; set; }
 

@@ -77,12 +77,12 @@ public class DesignationMasterController : ControllerBase
                 Success = true,
                 Message = createdDesignation
             };
-            await _loggingService.AuditLog("Designation Master", "POST", "/DesignationMaster/CreateDesignation", createdDesignation, designation.CreatedBy, JsonSerializer.Serialize(designation));
+            await _loggingService.AuditLog("Designation Master", "POST", "/api/DesignationMaster/CreateDesignation", createdDesignation, designation.CreatedBy, JsonSerializer.Serialize(designation));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Designation Master", "POST", "/DesignationMaster/CreateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.CreatedBy, JsonSerializer.Serialize(designation));
+            await _loggingService.LogError("Designation Master", "POST", "/api/DesignationMaster/CreateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.CreatedBy, JsonSerializer.Serialize(designation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class DesignationMasterController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Designation Master", "POST", "/DesignationMaster/UpdateDesignation", success, designation.UpdatedBy, JsonSerializer.Serialize(designation));
+            await _loggingService.AuditLog("Designation Master", "POST", "/api/DesignationMaster/UpdateDesignation", success, designation.UpdatedBy, JsonSerializer.Serialize(designation));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Designation Master", "POST", "/DesignationMaster/UpdateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.UpdatedBy, JsonSerializer.Serialize(designation));
+            await _loggingService.LogError("Designation Master", "POST", "/api/DesignationMaster/UpdateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.UpdatedBy, JsonSerializer.Serialize(designation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Designation Master", "POST", "/DesignationMaster/UpdateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.UpdatedBy, JsonSerializer.Serialize(designation));
+            await _loggingService.LogError("Designation Master", "POST", "/api/DesignationMaster/UpdateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.UpdatedBy, JsonSerializer.Serialize(designation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

@@ -75,17 +75,17 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = createdShift
             };
-            await _loggingService.AuditLog("Shifts", "POST", "/Shifts/CreatShifts", createdShift, newShift.CreatedBy, newShift);
+            await _loggingService.AuditLog("Shift", "POST", "/api/Shift/CreatShift", createdShift, newShift.CreatedBy, newShift);
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -101,17 +101,17 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            await _loggingService.AuditLog("Shift", "POST", "/Shift/UpdateShift", updated, updatedShift.UpdatedBy, updatedShift);
+            await _loggingService.AuditLog("Shift", "POST", "/api/Shift/UpdateShift", updated, updatedShift.UpdatedBy, updatedShift);
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Shift", "POST", "/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Shift", "POST", "/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -127,12 +127,12 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = createdShift
             };
-            await _loggingService.AuditLog("Shifts", "POST", "/Shifts/CreateRegularShifts", createdShift, regularShift.CreatedBy, regularShift);
+            await _loggingService.AuditLog("Shift", "POST", "/api/Shift/AddRegularShift", createdShift, regularShift.CreatedBy, regularShift);
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateRegularShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, regularShift.CreatedBy, regularShift);
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/AddRegularShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, regularShift.CreatedBy, regularShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -148,17 +148,17 @@ public class ShiftController : ControllerBase
                 Success = true,
                 Message = createdShift
             };
-            await _loggingService.AuditLog("Shifts", "POST", "/Shifts/CreatAssignedShifts", createdShift, assignShift.CreatedBy, assignShift);
+            await _loggingService.AuditLog("Shift", "POST", "/api/Shift/AssignShiftToStaff", createdShift, assignShift.CreatedBy, assignShift);
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateAssignedShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/AssignShiftToStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Shift", "POST", "/Shifts/CreateAssignedShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/AssignShiftToStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

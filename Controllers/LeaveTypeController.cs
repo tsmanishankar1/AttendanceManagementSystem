@@ -75,12 +75,12 @@ public class LeaveTypeController : ControllerBase
                 Success = true,
                 Message = createdLeaveType
             };
-            await _loggingService.AuditLog("Leave Type", "POST", "/LeaveType/CreateLeaveType", createdLeaveType, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
+            await _loggingService.AuditLog("Leave Type", "POST", "/api/LeaveType/CreateLeaveType", createdLeaveType, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Leave Type", "POST", "/LeaveType/CreateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
+            await _loggingService.LogError("Leave Type", "POST", "/api/LeaveType/CreateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -96,17 +96,17 @@ public class LeaveTypeController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            await _loggingService.AuditLog("Leave Type", "POST", "/LeaveType/UpdateLeaveType", updated, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
+            await _loggingService.AuditLog("Leave Type", "POST", "/api/LeaveType/UpdateLeaveType", updated, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Leave Type", "POST", "/LeaveType/UpdateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
+            await _loggingService.LogError("Leave Type", "POST", "/api/LeaveType/UpdateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Leave Type", "POST", "/LeaveType/UpdateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
+            await _loggingService.LogError("Leave Type", "POST", "/api/LeaveType/UpdateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

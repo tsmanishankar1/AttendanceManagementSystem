@@ -15,7 +15,7 @@ public partial class LeaveRequisition
 
     public DateOnly FromDate { get; set; }
 
-    public DateOnly? ToDate { get; set; }
+    public DateOnly ToDate { get; set; }
 
     public decimal TotalDays { get; set; }
 

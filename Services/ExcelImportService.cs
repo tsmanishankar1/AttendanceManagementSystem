@@ -8,19 +8,28 @@ using Microsoft.EntityFrameworkCore;
 using AttendanceManagement.Input_Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
+using Org.BouncyCastle.Asn1.Ocsp;
 public class ExcelImportService
 {
     private readonly AttendanceManagementSystemContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ExcelImportService(AttendanceManagementSystemContext context, IConfiguration configuration)
+    public ExcelImportService(AttendanceManagementSystemContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
 
     }
-    public async Task<(byte[] file, string ExcelName)> DownloadExcelTemplates(int excelImportId)
+    public async Task<string> GenerateExcelTemplateUrl(int excelImportId)
     {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null)
+        {
+            throw new Exception("HttpContext is null.");
+        }
+
         var excelTemplate = await _context.ExcelImports
             .FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
 
@@ -37,15 +46,17 @@ public class ExcelImportService
             throw new Exception("Workspace path is not configured.");
         }
 
-        string filePath = System.IO.Path.Combine(workspacePath, fileName);
+        string filePath = Path.Combine(workspacePath, fileName);
 
         if (!System.IO.File.Exists(filePath))
         {
             throw new MessageNotFoundException("Excel template not found in workspace");
         }
 
-        byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-        return (fileBytes, fileName);
+        string baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
+        string fileUrl = $"{baseUrl}/ExcelTemplates/{fileName}";
+
+        return fileUrl;
     }
 
     public async Task<string> ImportExcelAsync(int excelImportId, int createdBy, IFormFile file)
@@ -81,61 +92,59 @@ public class ExcelImportService
                     }
                     else if (excelImportId == 2)
                     {
-                        requiredHeaders = new List<string> {
-                            "LeaveTypeName", "StaffCreationId", "TransactionFlag", "Month", "Year", "Remarks", "LeaveCount", "LeaveReason"};
+                        requiredHeaders = new List<string> {"LeaveTypeName", "StaffCreationId", "TransactionFlag", "Month", "Year", "Remarks", "LeaveCount", "LeaveReason"};
                     }
                     else if (excelImportId == 3)
                     {
-                        requiredHeaders = new List<string> { "FullName", "ShortName", "Phone", "Fax", "Email" };
+                        requiredHeaders = new List<string> {"FullName", "ShortName", "Phone", "Fax", "Email" };
                     }
                     else if (excelImportId == 4 || excelImportId == 5 || excelImportId == 6)
                     {
-                        requiredHeaders = new List<string> { "FullName", "ShortName" };
+                        requiredHeaders = new List<string> {"FullName", "ShortName" };
                     }
                     else if (excelImportId == 7)
                     {
-                        requiredHeaders = new List<string> { "Name", "ShortName" };
+                        requiredHeaders = new List<string> {"Name", "ShortName" };
                     }
                     else if (excelImportId == 8)
                     {
-                        requiredHeaders = new List<string> { "StaffId", "SelectPunch", "InPunch", "OutPunch", "Remarks", "ApplicationTypeName" };
+                        requiredHeaders = new List<string> {"StaffId", "SelectPunch", "InPunch", "OutPunch", "Remarks", "ApplicationTypeName" };
                     }
                     else if (excelImportId == 9)
                     {
-                        requiredHeaders = new List<string> {
-                            "StartTime", "EndTime", "StaffId", "Remarks", "PermissionDate", "PermissionType", "ApplicationTypeName" };
+                        requiredHeaders = new List<string> {"StartTime", "EndTime", "StaffId", "Remarks", "PermissionDate", "PermissionType", "ApplicationTypeName" };
                     }
                     else if (excelImportId == 10)
                     {
-                        requiredHeaders = new List<string> { "StaffId", "ResignationDate", "RelievingDate", "Status" };
+                        requiredHeaders = new List<string> {"StaffId", "ResignationDate", "RelievingDate", "Status" };
                     }
                     else if (excelImportId == 11)
                     {
-                        requiredHeaders = new List<string> { "ShiftName", "StartTime", "EndTime", "ShortName" };
+                        requiredHeaders = new List<string> {"ShiftName", "StartTime", "EndTime", "ShortName" };
                     }
                     else if (excelImportId == 12)
                     {
-                        requiredHeaders = new List<string> { "ApplicationTypeName", "FromDate", "ToDate", "Reason", "StaffId", "StartDuration", "EndDuration", "LeaveTypeName" };
+                        requiredHeaders = new List<string> {"ApplicationTypeName", "FromDate", "ToDate", "Reason", "StaffId", "StartDuration", "EndDuration", "LeaveTypeName" };
                     }
                     else if (excelImportId == 13)
                     {
-                        requiredHeaders = new List<string> { "ApplicationTypeName", "StartTime", "EndTime", "StartDate", "EndDate", "Reason", "StaffId", "StartDuration", "EndDuration" };
+                        requiredHeaders = new List<string> {"ApplicationTypeName", "StartTime", "EndTime", "StartDate", "EndDate", "Reason", "StaffId", "StartDuration", "EndDuration" };
                     }
                     else if (excelImportId == 14)
                     {
-                        requiredHeaders = new List<string> { "ApplicationTypeName", "FromTime", "ToTime", "FromDate", "ToDate", "Reason", "StartDuration", "EndDuration", "StaffId" };
+                        requiredHeaders = new List<string> {"ApplicationTypeName", "FromTime", "ToTime", "FromDate", "ToDate", "Reason", "StartDuration", "EndDuration", "StaffId" };
                     }
                     else if (excelImportId == 15)
                     {
-                        requiredHeaders = new List<string> { "ApplicationTypeName", "StaffId", "OTDate", "StartTime", "EndTime", "OTType" };
+                        requiredHeaders = new List<string> {"ApplicationTypeName", "StaffId", "OTDate", "StartTime", "EndTime", "OTType" };
                     }
                     else if (excelImportId == 16)
                     {
-                        requiredHeaders = new List<string> { "ApplicationTypeName", "StaffId", "TransactionDate", "BeforeShiftHours", "AfterShiftHours", "Remarks", "DurationHours" };
+                        requiredHeaders = new List<string> {"ApplicationTypeName", "StaffId", "TransactionDate", "BeforeShiftHours", "AfterShiftHours", "Remarks", "DurationHours" };
                     }
                     else if (excelImportId == 17)
                     {
-                        requiredHeaders = new List<string> { "StaffId", "VaccinatedDate", "VaccinationNumber", "IsExempted", "Comments" };
+                        requiredHeaders = new List<string> {"StaffId", "VaccinatedDate", "VaccinationNumber", "IsExempted", "Comments" };
                     }
                     else
                     {
@@ -239,11 +248,8 @@ public class ExcelImportService
                                 .Where(d => d.Name.ToLower() == statusName.ToLower())
                                 .Select(d => d.Id)
                                 .FirstOrDefault();
-
                             if (statusId == 0)
                                 throw new Exception($"Status '{statusName}' not found in the database.");
-
-
                             var divisionName = worksheet.Cells[row, columnIndexes["DivisionName"]]?.Text.Trim();
                             if (string.IsNullOrEmpty(divisionName))
                             {
@@ -514,12 +520,12 @@ public class ExcelImportService
                             var actualBalance = _context.IndividualLeaveCreditDebits
                                 .Where(l => l.StaffCreationId == staffCreationId && l.LeaveTypeId == leaveTypeId)
                                 .OrderByDescending(l => l.CreatedUtc)
-                                .Select(l => l.ActualBalance ?? 0)
+                                .Select(l => (decimal?)l.ActualBalance ?? 0)
                                 .FirstOrDefault();
                             var availableBalance = _context.IndividualLeaveCreditDebits
                                 .Where(l => l.StaffCreationId == staffCreationId && l.LeaveTypeId == leaveTypeId)
                                 .OrderByDescending(l => l.CreatedUtc)
-                                .Select(l => l.AvailableBalance ?? 0)
+                                .Select(l => (decimal?)l.AvailableBalance ?? 0)
                                 .FirstOrDefault();
                             if (transactionFlag)
                             {
@@ -847,51 +853,79 @@ public class ExcelImportService
                         await _context.CommonPermissions.AddRangeAsync(commonPermissions);
                         await _context.SaveChangesAsync();
                     }
-
                     else if (excelImportId == 10)
                     {
                         var staffCreations = new List<StaffCreation>();
-                        var validDepartmentIds = _context.DepartmentMasters.Select(d => d.Id).ToHashSet();
+
                         for (int row = 2; row <= rowCount; row++)
                         {
-                            var staff = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                            if (string.IsNullOrEmpty(staff))
+                            var staffText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+
+                            if (string.IsNullOrEmpty(staffText))
                             {
                                 Console.WriteLine($"Invalid or missing StaffId at row {row}. Skipping...");
                                 continue;
                             }
-                            int staffId = int.Parse(Regex.Match(staff, @"\d+").Value);
 
-                            var statusName = worksheet.Cells[row, columnIndexes["StatusName"]]?.Text.Trim();
+                            if (string.IsNullOrEmpty(staffText) || !int.TryParse(Regex.Match(staffText, @"\d+").Value, out int staffId))
+                            {
+                                Console.WriteLine($"Invalid or missing StaffId at row {row}. Skipping...");
+                                continue;
+                            }
+
+                            var existingStaff = _context.StaffCreations
+                                .FirstOrDefault(s => s.Id == staffId && s.IsActive == true);
+
+                            if (existingStaff == null)
+                            {
+                                Console.WriteLine($"Staff with ID {staffText} not found or inactive at row {row}. Skipping...");
+                                continue;
+                            }
+
+                            var statusName = worksheet.Cells[row, columnIndexes["Status"]]?.Text.Trim();
+
                             if (string.IsNullOrEmpty(statusName))
                             {
                                 Console.WriteLine($"Invalid Status name at row {row}. Skipping...");
                                 continue;
                             }
+
                             var statusId = _context.Statuses
-                                .Where(d => d.Name.ToLower() == statusName.ToLower())
+                                .Where(d => d.Name.Trim().ToLower() == statusName.Trim().ToLower() && d.IsActive)
                                 .Select(d => d.Id)
                                 .FirstOrDefault();
 
                             if (statusId == 0)
-                                throw new Exception($"Status '{statusName}' not found in the database.");
-
-                            var staffCreation = new StaffCreation
                             {
-                                Id = staffId,
-                                ResignationDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ResignationDate"]].Text, out var resignationDate) ? resignationDate : (DateOnly?)null,
-                                RelievingDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["RelievingDate"]].Text, out var relievingDate) ? relievingDate : (DateOnly?)null,
-                                StatusId = statusId,
-                                UpdatedBy = createdBy,
-                                IsActive = false,
-                                UpdatedUtc = DateTime.UtcNow
-                            };
+                                Console.WriteLine($"Status '{statusName}' not found in the database at row {row}. Skipping...");
+                                continue;
+                            }
 
-                            staffCreations.Add(staffCreation);
+                            var resignationDateText = worksheet.Cells[row, columnIndexes["ResignationDate"]]?.Text;
+                            var relievingDateText = worksheet.Cells[row, columnIndexes["RelievingDate"]]?.Text;
+
+                            DateOnly? resignationDate = DateOnly.TryParse(resignationDateText, out var parsedResignationDate) ? parsedResignationDate : (DateOnly?)null;
+                            DateOnly? relievingDate = DateOnly.TryParse(relievingDateText, out var parsedRelievingDate) ? parsedRelievingDate : (DateOnly?)null;
+
+                            existingStaff.ResignationDate = resignationDate;
+                            existingStaff.RelievingDate = relievingDate;
+                            existingStaff.StatusId = statusId;
+                            existingStaff.UpdatedBy = createdBy;
+                            existingStaff.IsActive = false;
+                            existingStaff.UpdatedUtc = DateTime.UtcNow;
+
+                            staffCreations.Add(existingStaff);
                         }
 
-                        await _context.StaffCreations.AddRangeAsync(staffCreations);
-                        await _context.SaveChangesAsync();
+                        if (staffCreations.Any())
+                        {
+                            _context.StaffCreations.UpdateRange(staffCreations);
+                            await _context.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            Console.WriteLine("No valid staff records found for update.");
+                        }
                     }
                     else if (excelImportId == 11)
                     {

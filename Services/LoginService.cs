@@ -1,5 +1,4 @@
 ﻿using AttendanceManagement;
-using AttendanceManagement.AtrakModels;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.AspNetCore.Identity.Data;

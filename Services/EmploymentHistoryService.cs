@@ -12,8 +12,6 @@ namespace AttendanceManagement.Services
         {
             _context = context;
         }
-
-        // Get All Employment Histories
         public async Task<List<EmploymentHistoryResponseModel>> GetAllAsync()
         {
             var employmentHistory = await _context.EmploymentHistories
@@ -35,8 +33,6 @@ namespace AttendanceManagement.Services
             if(employmentHistory.Count == 0) throw new MessageNotFoundException("No employment history found.");
             return employmentHistory;
         }
-
-        // Get By Id
         public async Task<EmploymentHistoryResponseModel> GetByIdAsync(int employementHistoryId)
         {
             var employmentHistory = await _context.EmploymentHistories
@@ -59,8 +55,6 @@ namespace AttendanceManagement.Services
             if(employmentHistory == null) throw new MessageNotFoundException("Employment history not found.");
             return employmentHistory;
         }
-
-        // Create Employment History
         public async Task<string> CreateAsync(EmploymentHistoryRequestModel model)
         {
             var message = "Employment history created successfully.";
@@ -86,8 +80,6 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return message;
         }
-
-        // Update Employment History
         public async Task<string> UpdateAsync(EmploymentHistoryUpdateModel model)
         {
             var message = "Employment history updated successfully.";

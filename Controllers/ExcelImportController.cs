@@ -23,10 +23,15 @@ public class ExcelImportController : ControllerBase
     {
         try
         {
-            var template = await _excelImportService.DownloadExcelTemplates(excelImportId);
-            return File(template.file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", template.ExcelName);
+            var templateUrl = await _excelImportService.GenerateExcelTemplateUrl(excelImportId);
+            var response = new
+            {
+                Success = true,
+                Message = templateUrl
+            };
+            return Ok(response);
         }
-        catch(MessageNotFoundException ex)
+        catch (MessageNotFoundException ex)
         {
             return ErrorClass.NotFoundResponse(ex.Message);
         }
@@ -47,12 +52,12 @@ public class ExcelImportController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Excel Import", "POST", "/ExcelImport/ImportExcelFiles", result, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
+            await _loggingService.AuditLog("Excel Import", "POST", "/api/ExcelImport/ImportExcel", result, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Excel Import", "POST", "/ExcelImport/ImportExcelFiles", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
+            await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

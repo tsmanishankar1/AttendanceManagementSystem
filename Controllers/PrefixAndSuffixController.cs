@@ -159,12 +159,12 @@ public class PrefixAndSuffixController : ControllerBase
                 Success = true,
                 Message = createdPrefixAndSuffix
             };
-            await _loggingService.AuditLog("Prefix And Suffix", "POST", "/PrefixAndSuffix/AddPrefixAndSuffix", createdPrefixAndSuffix, prefixAndSuffix.CreatedBy, JsonSerializer.Serialize(prefixAndSuffix));
+            await _loggingService.AuditLog("Prefix And Suffix", "POST", "/api/PrefixAndSuffix/AddPrefixAndSuffix", createdPrefixAndSuffix, prefixAndSuffix.CreatedBy, JsonSerializer.Serialize(prefixAndSuffix));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Prefix And Suffix", "POST", "/PrefixAndSuffix/AddPrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, prefixAndSuffix.CreatedBy, JsonSerializer.Serialize(prefixAndSuffix));
+            await _loggingService.LogError("Prefix And Suffix", "POST", "/api/PrefixAndSuffix/AddPrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, prefixAndSuffix.CreatedBy, JsonSerializer.Serialize(prefixAndSuffix));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -180,17 +180,17 @@ public class PrefixAndSuffixController : ControllerBase
                 Success = true,
                 Message = updatedRecord
             };
-            await _loggingService.AuditLog("Prefix And Suffix", "POST", "/PrefixAndSuffix/UpdatePrefixAndSuffix", updatedRecord, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
+            await _loggingService.AuditLog("Prefix And Suffix", "POST", "/api/PrefixAndSuffix/UpdatePrefixAndSuffix", updatedRecord, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Prefix And Suffix", "POST", "/PrefixAndSuffix/UpdatePrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
+            await _loggingService.LogError("Prefix And Suffix", "POST", "/api/PrefixAndSuffix/UpdatePrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Prefix And Suffix", "POST", "/PrefixAndSuffix/UpdatePrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
+            await _loggingService.LogError("Prefix And Suffix", "POST", "/api/PrefixAndSuffix/UpdatePrefixAndSuffix", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedPrefixAndSuffix.UpdatedBy, JsonSerializer.Serialize(updatedPrefixAndSuffix));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

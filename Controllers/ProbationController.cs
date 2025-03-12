@@ -74,12 +74,12 @@ public class ProbationController : ControllerBase
                 Success = true,
                 Message = createdProbation
             };
-            await _loggingService.AuditLog("Probation", "POST", "/Probation/AddProbation", createdProbation, probation.CreatedBy, JsonSerializer.Serialize(probation));
+            await _loggingService.AuditLog("Probation", "POST", "/api/Probation/AddProbation", createdProbation, probation.CreatedBy, JsonSerializer.Serialize(probation));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Probation", "POST", "/Probation/AddProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.CreatedBy, JsonSerializer.Serialize(probation));
+            await _loggingService.LogError("Probation", "POST", "/api/Probation/AddProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.CreatedBy, JsonSerializer.Serialize(probation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -95,17 +95,17 @@ public class ProbationController : ControllerBase
                 Success = true,
                 Message = updated
             };
-            await _loggingService.AuditLog("Probation", "POST", "/Probation/UpdateProbation", updated, probation.UpdatedBy, JsonSerializer.Serialize(probation));
+            await _loggingService.AuditLog("Probation", "POST", "/api/Probation/UpdateProbation", updated, probation.UpdatedBy, JsonSerializer.Serialize(probation));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Probation", "POST", "/Probation/UpdateProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.UpdatedBy, JsonSerializer.Serialize(probation));
+            await _loggingService.LogError("Probation", "POST", "/api/Probation/UpdateProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.UpdatedBy, JsonSerializer.Serialize(probation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Probation", "POST", "/Probation/UpdateProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.UpdatedBy, JsonSerializer.Serialize(probation));
+            await _loggingService.LogError("Probation", "POST", "/api/Probation/UpdateProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.UpdatedBy, JsonSerializer.Serialize(probation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -132,7 +132,28 @@ public class ProbationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-
+    [HttpGet("GetFeedbackByApproverLevel1")]
+    public async Task<IActionResult> GetFeedbackByApproverLevel1(int approverLevel1Id)
+    {
+        try
+        {
+            var result = await _probationService.GetFeedbackDetailsByApproverLevel1(approverLevel1Id);
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
     [HttpPost("HrApprovalWithLetterGeneration")]
     public async Task<IActionResult> ProcessApprovalAsync(ApprovalRequest approval)
     {
@@ -144,12 +165,12 @@ public class ProbationController : ControllerBase
                 Success = true,
                 Message = pdfBase64
             };
-            await _loggingService.AuditLog("LetterGeneration", "POST", "/LetterGeneration/AddHrApprovalWithLetterGeneration", pdfBase64, approval.CreatedBy, JsonSerializer.Serialize(approval));
+            await _loggingService.AuditLog("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", pdfBase64, approval.CreatedBy, JsonSerializer.Serialize(approval));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("LetterGeneration", "POST", "/LetterGeneration/AddHrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approval.CreatedBy, JsonSerializer.Serialize(approval));
+            await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approval.CreatedBy, JsonSerializer.Serialize(approval));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -165,17 +186,17 @@ public class ProbationController : ControllerBase
                 Success = true,
                 Message = createdFeedback
             };
-            await _loggingService.AuditLog("Feedback Manager", "POST", "/FeedbackbyManager/AddFeedbackbyManager", createdFeedback, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
+            await _loggingService.AuditLog("Feedback Manager", "POST", "/api/Probation/AddFeedbackbyManager", createdFeedback, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Feedback Manager", "POST", "/FeedbackbyManager/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
+            await _loggingService.LogError("Feedback Manager", "POST", "/api/Probation/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Feedback Manager", "POST", "/FeedbackbyManager/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
+            await _loggingService.LogError("Feedback Manager", "POST", "//api/Probation/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -237,17 +258,17 @@ public class ProbationController : ControllerBase
                 Success = true,
                 Message = feedback
             };
-            await _loggingService.AuditLog("Feedback Manager", "POST", "/FeedbackbyManager/UpdateFeedbackbyManager", feedback, updatedFeedback.UpdatedBy, JsonSerializer.Serialize(updatedFeedback));
+            await _loggingService.AuditLog("Feedback Manager", "POST", "/api/Probation/UpdateFeedback", feedback, updatedFeedback.UpdatedBy, JsonSerializer.Serialize(updatedFeedback));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Feedback Manager", "POST", "/FeedbackbyManager/UpdateFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedFeedback.UpdatedBy, JsonSerializer.Serialize(updatedFeedback));
+            await _loggingService.LogError("Feedback Manager", "POST", "/api/Probation/UpdateFeedback", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedFeedback.UpdatedBy, JsonSerializer.Serialize(updatedFeedback));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Feedback Manager", "POST", "/FeedbackbyManager/UpdateFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedFeedback.UpdatedBy, JsonSerializer.Serialize(updatedFeedback));
+            await _loggingService.LogError("Feedback Manager", "POST", "/api/Probation/UpdateFeedback", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedFeedback.UpdatedBy, JsonSerializer.Serialize(updatedFeedback));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

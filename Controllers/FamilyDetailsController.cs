@@ -79,12 +79,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = createdDetail
                 };
-                await _loggingService.AuditLog("Family Details", "POST", "/FamilyDetails/CreateFamilyDetails", createdDetail, familyDetailsDTO.CreatedBy, JsonSerializer.Serialize(familyDetailsDTO));
+                await _loggingService.AuditLog("Family Details", "POST", "/api/FamilyDetails/AddFamilyDetails", createdDetail, familyDetailsDTO.CreatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Family Details", "POST", "/FamilyDetails/CreateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.CreatedBy, JsonSerializer.Serialize(familyDetailsDTO));
+                await _loggingService.LogError("Family Details", "POST", "/api/FamilyDetails/AddFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.CreatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -100,17 +100,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updated
                 };
-                await _loggingService.AuditLog("Family Details", "POST", "/FamilyDetails/UpdateFamilyDetails", updated, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
+                await _loggingService.AuditLog("Family Details", "POST", "/api/FamilyDetails/UpdateFamilyDetails", updated, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Family Details", "POST", "/FamilyDetails/UpdateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
+                await _loggingService.LogError("Family Details", "POST", "/api/FamilyDetails/UpdateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Family Details", "POST", "/FamilyDetails/UpdateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
+                await _loggingService.LogError("Family Details", "POST", "/api/FamilyDetails/UpdateFamilyDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, familyDetailsDTO.UpdatedBy, JsonSerializer.Serialize(familyDetailsDTO));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

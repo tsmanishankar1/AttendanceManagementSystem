@@ -25,7 +25,7 @@ public partial class BranchMaster
 
     public string? Fax { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; }
 
     public bool IsHeadOffice { get; set; }
 
@@ -46,8 +46,6 @@ public partial class BranchMaster
     public virtual CompanyMaster CompanyMaster { get; set; } = null!;
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
-
-    public virtual ICollection<DailyReport> DailyReports { get; set; } = new List<DailyReport>();
 
     public virtual ICollection<ManualAttendanceProcessing> ManualAttendanceProcessings { get; set; } = new List<ManualAttendanceProcessing>();
 

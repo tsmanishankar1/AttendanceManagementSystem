@@ -75,12 +75,12 @@ public class LeaveGroupController : ControllerBase
                 Success = true,
                 Message = addLeave
             };
-            await _loggingService.AuditLog("Leave Group", "POST", "/LeaveGroup/CreateLeaveGroup", addLeave, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
+            await _loggingService.AuditLog("Leave Group", "POST", "/api/LeaveGroup/AddLeaveGroup", addLeave, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Leave Group", "POST", "/LeaveGroup/CreateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
+            await _loggingService.LogError("Leave Group", "POST", "/api/LeaveGroup/AddLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -96,17 +96,17 @@ public class LeaveGroupController : ControllerBase
                 Success = true,
                 Message = updatedLeaveGroup
             };
-            await _loggingService.AuditLog("Leave Group", "POST", "/LeaveGroup/UpdateLeaveGroup", updatedLeaveGroup, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
+            await _loggingService.AuditLog("Leave Group", "POST", "/api/LeaveGroup/UpdateLeaveGroup", updatedLeaveGroup, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Leave Group", "POST", "/LeaveGroup/UpdateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
+            await _loggingService.LogError("Leave Group", "POST", "/api/LeaveGroup/UpdateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Leave Group", "POST", "/LeaveGroup/UpdateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
+            await _loggingService.LogError("Leave Group", "POST", "/api/LeaveGroup/UpdateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

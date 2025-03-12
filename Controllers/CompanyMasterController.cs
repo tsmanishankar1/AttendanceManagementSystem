@@ -77,12 +77,12 @@ public class CompanyMasterController : ControllerBase
                 Success = true,
                 Message = createdCompany
             };
-            await _loggingService.AuditLog("Company Master", "POST", "/CompanyMaster/CreateCompany", createdCompany, companyMaster.CreatedBy, JsonSerializer.Serialize(companyMaster));
+            await _loggingService.AuditLog("Company Master", "POST", "/api/CompanyMaster/CreateCompany", createdCompany, companyMaster.CreatedBy, JsonSerializer.Serialize(companyMaster));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Company Master", "POST", "/CompanyMaster/CreateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.CreatedBy, JsonSerializer.Serialize(companyMaster));
+            await _loggingService.LogError("Company Master", "POST", "/api/CompanyMaster/CreateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.CreatedBy, JsonSerializer.Serialize(companyMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class CompanyMasterController : ControllerBase
                 Success = true,
                 Message = updatedCompany
             };
-            await _loggingService.AuditLog("Company Master", "POST", "/CompanyMaster/UpdateCompany", updatedCompany ?? string.Empty, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
+            await _loggingService.AuditLog("Company Master", "POST", "/api/CompanyMaster/UpdateCompany", updatedCompany ?? string.Empty, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Company Master", "POST", "/CompanyMaster/UpdateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
+            await _loggingService.LogError("Company Master", "POST", "/api/CompanyMaster/UpdateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Company Master", "POST", "/CompanyMaster/UpdateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty,  companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
+            await _loggingService.LogError("Company Master", "POST", "/api/CompanyMaster/UpdateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty,  companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

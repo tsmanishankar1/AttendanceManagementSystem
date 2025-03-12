@@ -76,12 +76,12 @@ public class BranchMasterController : ControllerBase
                 Success = true,
                 Message = createdBranch
             };
-            await _loggingService.AuditLog("Branch Master", "POST", "/BranchMaster/CreateBranch", createdBranch, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
+            await _loggingService.AuditLog("Branch Master", "POST", "/api/BranchMaster/CreateBranch", createdBranch, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Branch Master", "POST", "/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
+            await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -97,17 +97,17 @@ public class BranchMasterController : ControllerBase
                 Success = true,
                 Message = updatedBranch
             };
-            await _loggingService.AuditLog("Branch Master", "POST", "/BranchMaster/UpdateBranch", updatedBranch, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
+            await _loggingService.AuditLog("Branch Master", "POST", "/api/BranchMaster/UpdateBranch", updatedBranch, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Branch Master", "POST", "/BranchMaster/UpdateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
+            await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/UpdateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Branch Master", "POST", "/BranchMaster/UpdateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
+            await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/UpdateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

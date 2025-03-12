@@ -55,134 +55,115 @@ namespace AttendanceManagement.Services
         }
         public async Task<StaffCreationResponse> GetByUserManagementIdAsync(int staffId)
         {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            var getUser = await (from s in _context.StaffCreations
-                                 join branch in _context.BranchMasters on s.BranchId equals branch.Id
-                                 join department in _context.DepartmentMasters on s.DepartmentId equals department.Id
-                                 join division in _context.DivisionMasters on s.DivisionId equals division.Id
-                                 join designation in _context.DesignationMasters on s.DesignationId equals designation.Id
-                                 join grade in _context.GradeMasters on s.GradeId equals grade.Id
-                                 join category in _context.CategoryMasters on s.CategoryId equals category.Id
-                                 join cost in _context.CostCentreMasters on s.CostCenterId equals cost.Id
-                                 join work in _context.WorkstationMasters on s.WorkStationId equals work.Id
-                                 join status in _context.Statuses on s.StatusId equals status.Id
-                                 join org in _context.OrganizationTypes on s.OrganizationTypeId equals org.Id
-                                 join leaveGroup in _context.LeaveGroups on s.LeaveGroupId equals leaveGroup.Id
-                                 join company in _context.CompanyMasters on s.CompanyMasterId equals company.Id
-                                 join holiday in _context.HolidayCalendarConfigurations on s.HolidayCalendarId equals holiday.Id
-                                 join location in _context.LocationMasters on s.LocationMasterId equals location.Id
-                                 join geoStatus in _context.GeoStatuses on s.GeoStatus equals geoStatus.Name
-                                 join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
-                                 join accessLevel in _context.AccessLevels on s.AccessLevel equals accessLevel.Name
-                                 join policyGroup in _context.PolicyGroups on s.PolicyGroup equals policyGroup.Name
-                                 join workingDayPattern in _context.WorkingDayPatterns on s.WorkingDayPattern equals workingDayPattern.Name
-                                 join volume in _context.Volumes on s.Volume equals volume.Name
-                                 join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
-                                 where s.Id == staffId && s.IsActive == true
-                                 select new StaffCreationResponse
-                                 {
-                                     StaffId = s.Id,
-                                     StaffCreationId = $"{org.ShortName}{s.Id}",
-                                     CardCode = s.CardCode,
-                                     Title = s.Title,
-                                     FirstName = s.FirstName,
-                                     LastName = s.LastName,
-                                     ShortName = s.ShortName,
-                                     StatusId = status.Id,
-                                     Status = status.Name,
-                                     Gender = s.Gender,
-                                     BloodGroup = s.BloodGroup,
-                                     ProfilePhoto = s.ProfilePhoto,
-                                     Dob = s.Dob,
-                                     MarriageDate = s.MarriageDate,
-                                     PersonalPhone = s.PersonalPhone,
-                                     OfficialPhone = s.OfficialPhone,
-                                     JoiningDate = s.JoiningDate,
-                                     Confirmed = s.Confirmed,
-                                     ConfirmationDate = s.ConfirmationDate,
-                                     PersonalEmail = s.PersonalEmail,
-                                     OfficialEmail = s.OfficialEmail,
-                                     City = s.City,
-                                     AccessLevelId = accessLevel.Id,
-                                     AccessLevel = accessLevel.Name,
-                                     MiddleName = s.MiddleName,
-                                     PersonalLocation = s.PersonalLocation,
-                                     PolicyGroupId = policyGroup.Id,
-                                     PolicyGroup = policyGroup.Name,
-                                     WorkingDayPatternId = workingDayPattern.Id,
-                                     WorkingDayPattern = workingDayPattern.Name,
-                                     WorkingStatusId = workingStatus.Id,
-                                     WorkingStatus = workingStatus.Name,
-                                     GeoStatusId = geoStatus.Id,
-                                     GeoStatus = geoStatus.Name,
-                                     Tenure = s.Tenure,
-                                     ApprovalLevel = s.ApprovalLevel,
-                                     ApprovalLevelId1 = s.ApprovalLevel1,
-                                     ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
-                                     ApprovalLevelId2 = s.ApprovalLevel2,
-                                     ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
-                                     UanNumber = s.UanNumber,
-                                     EsiNumber = s.EsiNumber,
-                                     IsMobileAppEligible = s.IsMobileAppEligible,
-                                     District = s.District,
-                                     State = s.State,
-                                     Country = s.Country,
-                                     PostalCode = s.PostalCode,
-                                     OtEligible = s.OtEligible,
-                                     BranchId = s.BranchId,
-                                     Branch = branch.FullName,
-                                     DepartmentId = s.DepartmentId,
-                                     Department = department.FullName,
-                                     DivisionId = s.DivisionId,
-                                     Division = division.FullName,
-                                     MaritalStatusId = maritalStatus.Id,
-                                     MaritalStatus = maritalStatus.Name,
-                                     VolumeId = volume.Id,
-                                     Volume = volume.Name,
-                                     DesignationId = s.DesignationId,
-                                     Designation = designation.FullName,
-                                     GradeId = s.GradeId,
-                                     Grade = grade.FullName,
-                                     CategoryId = s.CategoryId,
-                                     Category = category.FullName,
-                                     CostCenterId = s.CostCenterId,
-                                     CostCenter = cost.FullName,
-                                     WorkStationId = s.WorkStationId,
-                                     WorkStation = work.FullName,
-                                     LeaveGroupId = s.LeaveGroupId,
-                                     LeaveGroup = leaveGroup.LeaveGroupName,
-                                     CompanyMasterId = s.CompanyMasterId,
-                                     Company = company.FullName,
-                                     HolidayCalendarId = s.HolidayCalendarId,
-                                     HolidayCalendar = holiday.GroupName,
-                                     LocationMasterId = s.LocationMasterId,
-                                     Location = location.FullName,
-                                     AadharNo = s.AadharNo,
-                                     PanNo = s.PanNo,
-                                     PassportNo = s.PassportNo,
-                                     DrivingLicense = s.DrivingLicense,
-                                     BankName = s.BankName,
-                                     BankAccountNo = s.BankAccountNo,
-                                     BankIfscCode = s.BankIfscCode,
-                                     BankBranch = s.BankBranch,
-                                     Qualification = s.Qualification,
-                                     HomeAddress = s.HomeAddress,
-                                     FatherName = s.FatherName,
-                                     MotherName = s.MotherName,
-                                     FatherAadharNo = s.FatherAadharNo,
-                                     MotherAadharNo = s.MotherAadharNo,
-                                     EmergencyContactPerson1 = s.EmergencyContactPerson1,
-                                     EmergencyContactPerson2 = s.EmergencyContactPerson2,
-                                     EmergencyContactNo1 = s.EmergencyContactNo1,
-                                     EmergencyContactNo2 = s.EmergencyContactNo2,
-                                     OrganizationTypeId = s.OrganizationTypeId,
-                                     OrganizationTypeName = org.Name,
-                                     ResignationDate = s.ResignationDate,
-                                     RelievingDate = s.RelievingDate,
-                                     CreatedBy = s.CreatedBy
-                                 })
-                                .FirstOrDefaultAsync();
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+            var getUser = await _context.StaffCreations
+                .Where(s => s.Id == staffId && s.IsActive == true)
+                .Select(s => new StaffCreationResponse
+                {
+                    StaffId = s.Id,
+                    StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                    CardCode = s.CardCode,
+                    Title = s.Title,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    ShortName = s.ShortName,
+                    StatusId = s.StatusId,
+                    Status = _context.Statuses.Where(st => st.Id == s.StatusId && st.IsActive).Select(st => st.Name).FirstOrDefault() ?? string.Empty,
+                    Gender = s.Gender,
+                    BloodGroup = s.BloodGroup,
+                    ProfilePhoto = s.ProfilePhoto,
+                    AadharFilePath = s.AadharCardFilePath,
+                    PanCardFilePath = s.PanCardFilePath,
+                    DrivingLicenseFilePath = s.DrivingLicenseFilePath,
+                    Dob = s.Dob,
+                    MarriageDate = s.MarriageDate,
+                    PersonalPhone = s.PersonalPhone,
+                    OfficialPhone = s.OfficialPhone,
+                    JoiningDate = s.JoiningDate,
+                    Confirmed = s.Confirmed,
+                    ConfirmationDate = s.ConfirmationDate,
+                    PersonalEmail = s.PersonalEmail,
+                    OfficialEmail = s.OfficialEmail,
+                    City = s.City,
+                    AccessLevelId = _context.AccessLevels.Where(a => a.Name == s.AccessLevel).Select(a => a.Id).FirstOrDefault(),
+                    AccessLevel = s.AccessLevel,
+                    MiddleName = s.MiddleName,
+                    PersonalLocation = s.PersonalLocation,
+                    PolicyGroupId = _context.PolicyGroups.Where(p => p.Name == s.PolicyGroup).Select(p => p.Id).FirstOrDefault(),
+                    PolicyGroup = s.PolicyGroup,
+                    WorkingDayPatternId = _context.WorkingDayPatterns.Where(wp => wp.Name == s.WorkingDayPattern).Select(wp => wp.Id).FirstOrDefault(),
+                    WorkingDayPattern = s.WorkingDayPattern,
+                    WorkingStatusId = _context.WorkingStatuses.Where(w => w.Name == s.WorkingStatus).Select(w => w.Id).FirstOrDefault(),
+                    WorkingStatus = s.WorkingStatus,
+                    GeoStatusId = _context.GeoStatuses.Where(g => g.Name == s.GeoStatus).Select(g => g.Id).FirstOrDefault(),
+                    GeoStatus = s.GeoStatus,
+                    Tenure = s.Tenure,
+                    ApprovalLevel = s.ApprovalLevel,
+                    ApprovalLevelId1 = s.ApprovalLevel1,
+                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}" : null,
+                    ApprovalLevelId2 = s.ApprovalLevel2,
+                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                    UanNumber = s.UanNumber,
+                    EsiNumber = s.EsiNumber,
+                    IsMobileAppEligible = s.IsMobileAppEligible,
+                    District = s.District,
+                    State = s.State,
+                    Country = s.Country,
+                    PostalCode = s.PostalCode,
+                    OtEligible = s.OtEligible,
+                    BranchId = s.BranchId,
+                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.FullName).FirstOrDefault() ?? string.Empty,
+                    DepartmentId = s.DepartmentId,
+                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    DivisionId = s.DivisionId,
+                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    MaritalStatusId = _context.MaritalStatuses.Where(m => m.Name == s.MaritalStatus).Select(m => m.Id).FirstOrDefault(),
+                    MaritalStatus = s.MaritalStatus,
+                    VolumeId = _context.Volumes.Where(v => v.Name == s.Volume).Select(v => v.Id).FirstOrDefault(),
+                    Volume = s.Volume,
+                    DesignationId = s.DesignationId,
+                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    GradeId = s.GradeId,
+                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.FullName).FirstOrDefault() ?? string.Empty,
+                    CategoryId = s.CategoryId,
+                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    CostCenterId = s.CostCenterId,
+                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    WorkStationId = s.WorkStationId,
+                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
+                    LeaveGroupId = s.LeaveGroupId,
+                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
+                    CompanyMasterId = s.CompanyMasterId,
+                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    HolidayCalendarId = s.HolidayCalendarId,
+                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
+                    LocationMasterId = s.LocationMasterId,
+                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.FullName).FirstOrDefault() ?? string.Empty,
+                    AadharNo = s.AadharNo,
+                    PanNo = s.PanNo,
+                    PassportNo = s.PassportNo,
+                    DrivingLicense = s.DrivingLicense,
+                    BankName = s.BankName,
+                    BankAccountNo = s.BankAccountNo,
+                    BankIfscCode = s.BankIfscCode,
+                    BankBranch = s.BankBranch,
+                    Qualification = s.Qualification,
+                    HomeAddress = s.HomeAddress,
+                    FatherName = s.FatherName,
+                    MotherName = s.MotherName,
+                    FatherAadharNo = s.FatherAadharNo,
+                    MotherAadharNo = s.MotherAadharNo,
+                    EmergencyContactPerson1 = s.EmergencyContactPerson1 ?? string.Empty,
+                    EmergencyContactPerson2 = s.EmergencyContactPerson2,
+                    EmergencyContactNo1 = s.EmergencyContactNo1,
+                    EmergencyContactNo2 = s.EmergencyContactNo2,
+                    OrganizationTypeId = s.OrganizationTypeId,
+                    OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
+                    ResignationDate = s.ResignationDate,
+                    RelievingDate = s.RelievingDate,
+                    CreatedBy = s.CreatedBy
+                })
+                .FirstOrDefaultAsync();
+
             if (getUser == null)
             {
                 throw new MessageNotFoundException("Staff not found");
@@ -190,6 +171,7 @@ namespace AttendanceManagement.Services
 
             return getUser;
         }
+
         public async Task<List<StaffDto>> GetStaffAsync(GetStaff getStaff)
         {
             var parameters = new[]
@@ -213,41 +195,199 @@ namespace AttendanceManagement.Services
             var staffList = await _storedProcedureDbContext.StaffDto
                 .FromSqlRaw("EXEC GetStaffByFilters @ApproverId, @ShiftName, @OrganizationTypeName, @CompanyName, @CategoryName, @CostCentreName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName, @Status, @LoginUserName", parameters)
                 .ToListAsync();
-            if(staffList.Count == 0)
+            if (staffList.Count == 0)
             {
                 throw new MessageNotFoundException("No staffs found");
             }
             return staffList;
         }
 
+        public async Task<string> UpdateMyProfile(IndividualStaffUpdate individualStaffUpdate)
+        {
+            var message = "Profile updated successfully";
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == individualStaffUpdate.UpdatedBy && s.IsActive == true);
+            if (staff == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            if (individualStaffUpdate.ProfilePhoto != null)
+            {
+                staff.ProfilePhoto = await SaveFileAsync(individualStaffUpdate.ProfilePhoto, "ProfilePhotos");
+            }
+            if (individualStaffUpdate.AadharFilePath != null)
+            {
+                staff.AadharCardFilePath = await SaveFileAsync(individualStaffUpdate.AadharFilePath, "AadharCards");
+            }
+            if (individualStaffUpdate.PanCardFilePath != null)
+            {
+                staff.PanCardFilePath = await SaveFileAsync(individualStaffUpdate.PanCardFilePath, "PanCards");
+            }
+            if (individualStaffUpdate.DrivingLicenseFilePath != null)
+            {
+                staff.DrivingLicenseFilePath = await SaveFileAsync(individualStaffUpdate.DrivingLicenseFilePath, "DrivingLicenses");
+            }
+            staff.Title = individualStaffUpdate.Title;
+            staff.FirstName = individualStaffUpdate.FirstName;
+            staff.LastName = individualStaffUpdate.LastName;
+            staff.Gender = individualStaffUpdate.Gender;
+            staff.MaritalStatus = individualStaffUpdate.MaritalStatus;
+            staff.PersonalPhone = individualStaffUpdate.PersonalPhone;
+            staff.OfficialPhone = individualStaffUpdate.OfficialPhone;
+            staff.City = individualStaffUpdate.City;
+            staff.District = individualStaffUpdate.District;
+            staff.State = individualStaffUpdate.State;
+            staff.Country = individualStaffUpdate.Country;
+            staff.PostalCode = individualStaffUpdate.PostalCode;
+            staff.MiddleName = individualStaffUpdate.MiddleName;
+            staff.ShortName = individualStaffUpdate.ShortName;
+            staff.PersonalLocation = individualStaffUpdate.PersonalLocation;
+            staff.PersonalEmail = individualStaffUpdate.PersonalEmail;
+            staff.OfficialEmail = individualStaffUpdate.OfficialEmail;
+            staff.BankName = individualStaffUpdate.BankName;
+            staff.BankAccountNo = individualStaffUpdate.BankAccountNo;
+            staff.BankIfscCode = individualStaffUpdate.BankIfscCode;
+            staff.BankBranch = individualStaffUpdate.BankBranch;
+            staff.Qualification = individualStaffUpdate.Qualification;
+            staff.HomeAddress = individualStaffUpdate.HomeAddress;
+            staff.FatherName = individualStaffUpdate.FatherName;
+            staff.MotherName = individualStaffUpdate.MotherName;
+            staff.EmergencyContactPerson1 = individualStaffUpdate.EmergencyContactPerson1;
+            staff.EmergencyContactPerson2 = individualStaffUpdate.EmergencyContactPerson2;
+            staff.EmergencyContactNo1 = individualStaffUpdate.EmergencyContactNo1;
+            staff.EmergencyContactNo2 = individualStaffUpdate.EmergencyContactNo2;
+            staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
+            _context.StaffCreations.Update(staff);
+            await _context.SaveChangesAsync();
+
+            return message;
+        }
+
+        public async Task<IndividualStaffResponse> GetMyProfile(int staffId)
+        {
+            var staff = await _context.StaffCreations
+                .FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if (staff == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            var getUser = await (from s in _context.StaffCreations
+                                 join department in _context.DepartmentMasters on s.DepartmentId equals department.Id
+                                 join division in _context.DivisionMasters on s.DivisionId equals division.Id
+                                 join designation in _context.DesignationMasters on s.DesignationId equals designation.Id
+                                 join grade in _context.GradeMasters on s.GradeId equals grade.Id
+                                 join org in _context.OrganizationTypes on s.OrganizationTypeId equals org.Id
+                                 join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
+                                 join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
+                                 where s.Id == staffId && s.IsActive == true
+                                 select new IndividualStaffResponse
+                                 {
+                                     StaffCreationId = $"{org.ShortName}{s.Id}",
+                                     Title = s.Title,
+                                     FirstName = s.FirstName,
+                                     LastName = s.LastName,
+                                     ShortName = s.ShortName,
+                                     Gender = s.Gender,
+                                     BloodGroup = s.BloodGroup,
+                                     ProfilePhoto = s.ProfilePhoto,
+                                     AadharFilePath = s.AadharCardFilePath,
+                                     PanCardFilePath = s.PanCardFilePath,
+                                     DrivingLicenseFilePath = s.DrivingLicenseFilePath,
+                                     Dob = s.Dob,
+                                     MarriageDate = s.MarriageDate,
+                                     PersonalPhone = s.PersonalPhone,
+                                     OfficialPhone = s.OfficialPhone,
+                                     JoiningDate = s.JoiningDate,
+                                     Confirmed = s.Confirmed,
+                                     ConfirmationDate = s.ConfirmationDate,
+                                     PersonalEmail = s.PersonalEmail,
+                                     OfficialEmail = s.OfficialEmail,
+                                     City = s.City,
+                                     MiddleName = s.MiddleName,
+                                     PersonalLocation = s.PersonalLocation,
+                                     Tenure = s.Tenure,
+                                     ApprovalLevelId1 = s.ApprovalLevel1,
+                                     ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
+                                     ApprovalLevelId2 = s.ApprovalLevel2,
+                                     ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                                     UanNumber = s.UanNumber,
+                                     EsiNumber = s.EsiNumber,
+                                     District = s.District,
+                                     State = s.State,
+                                     Country = s.Country,
+                                     PostalCode = s.PostalCode,
+                                     DepartmentId = s.DepartmentId,
+                                     Department = department.FullName,
+                                     DivisionId = s.DivisionId,
+                                     Division = division.FullName,
+                                     MaritalStatusId = maritalStatus.Id,
+                                     MaritalStatus = maritalStatus.Name,
+                                     DesignationId = s.DesignationId,
+                                     Designation = designation.FullName,
+                                     GradeId = s.GradeId,
+                                     Grade = grade.FullName,
+                                     AadharNo = s.AadharNo,
+                                     PanNo = s.PanNo,
+                                     PassportNo = s.PassportNo,
+                                     DrivingLicense = s.DrivingLicense,
+                                     BankName = s.BankName,
+                                     BankAccountNo = s.BankAccountNo,
+                                     BankIfscCode = s.BankIfscCode,
+                                     BankBranch = s.BankBranch,
+                                     Qualification = s.Qualification,
+                                     HomeAddress = s.HomeAddress,
+                                     FatherName = s.FatherName,
+                                     MotherName = s.MotherName,
+                                     FatherAadharNo = s.FatherAadharNo,
+                                     MotherAadharNo = s.MotherAadharNo,
+                                     EmergencyContactPerson1 = s.EmergencyContactPerson1 ?? string.Empty,
+                                     EmergencyContactPerson2 = s.EmergencyContactPerson2,
+                                     EmergencyContactNo1 = s.EmergencyContactNo1,
+                                     EmergencyContactNo2 = s.EmergencyContactNo2,
+                                     OrganizationTypeId = s.OrganizationTypeId,
+                                     OrganizationTypeName = org.Name,
+                                     WorkingStatusId = workingStatus.Id,
+                                     WorkingStatus = workingStatus.Name,
+                                     CreatedBy = s.CreatedBy
+                                 })
+                                .FirstOrDefaultAsync();
+            return getUser;
+        }
+
         public async Task<string> AddStaff(StaffCreationInputModel staffInput)
         {
             var message = "Staff added, mail sent successfully.";
-            string profilePhotoPath = string.Empty;
-            string profilePhotoBase64 = string.Empty;
 
-            if (staffInput.ProfilePhoto != null)
+            string profilePhotoPath = string.Empty;
+            string aadharCardPath = string.Empty;
+            string panCardPath = string.Empty;
+            string drivingLicensePath = string.Empty;
+
+            string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            async Task<string> SaveFile(IFormFile file, string folderName)
             {
-                string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "ProfilePhotos");
+                if (file == null) return null;
+
+                string directoryPath = Path.Combine(baseDirectory, folderName);
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
                 }
-                string fileName = $"{Guid.NewGuid()}_{staffInput.ProfilePhoto.FileName}";
+
+                string fileName = $"{Guid.NewGuid()}_{file.FileName}";
                 string filePath = Path.Combine(directoryPath, fileName);
+
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    await staffInput.ProfilePhoto.CopyToAsync(fileStream);
+                    await file.CopyToAsync(fileStream);
                 }
-                using (var memoryStream = new MemoryStream())
-                {
-                    await staffInput.ProfilePhoto.CopyToAsync(memoryStream);
-                    byte[] fileBytes = memoryStream.ToArray();
-                    profilePhotoBase64 = Convert.ToBase64String(fileBytes);
-                }
-                profilePhotoPath = $"/ProfilePhotos/{fileName}";
-            }
 
+                return $"/{folderName}/{fileName}";
+            }
+            profilePhotoPath = await SaveFile(staffInput.ProfilePhoto, "ProfilePhotos");
+            aadharCardPath = await SaveFile(staffInput.AadharCardFilePath, "AadharCards");
+            panCardPath = await SaveFile(staffInput.PanCardFilePath, "PanCards");
+            drivingLicensePath = await SaveFile(staffInput.DrivingLicenseFilePath, "DrivingLicenses");
             var staff = new StaffCreation
             {
                 CardCode = staffInput.CardCode,
@@ -258,7 +398,7 @@ namespace AttendanceManagement.Services
                 Gender = staffInput.Gender,
                 Hide = staffInput.Hide,
                 BloodGroup = staffInput.BloodGroup,
-                ProfilePhoto = profilePhotoPath, 
+                ProfilePhoto = profilePhotoPath,
                 MaritalStatus = staffInput.MaritalStatus,
                 Dob = staffInput.Dob,
                 MarriageDate = staffInput.MarriageDate,
@@ -323,7 +463,10 @@ namespace AttendanceManagement.Services
                 EmergencyContactNo1 = staffInput.EmergencyContactNo1,
                 EmergencyContactNo2 = staffInput.EmergencyContactNo2,
                 OrganizationTypeId = staffInput.OrganizationTypeId,
-                WorkingStatus = staffInput.WorkingStatus
+                WorkingStatus = staffInput.WorkingStatus,
+                AadharCardFilePath = aadharCardPath,
+                PanCardFilePath = panCardPath,
+                DrivingLicenseFilePath = drivingLicensePath,
             };
 
             _context.StaffCreations.Add(staff);
@@ -381,7 +524,7 @@ namespace AttendanceManagement.Services
                 message.Subject = "Staff Approval Request";
                 message.Body = emailBody;
                 message.IsBodyHtml = true;
-                if(from != null)
+                if (from != null)
                 {
                     message.From = new MailAddress(from, "Test Mail");
                     message.To.Add(new MailAddress(managerEmail));
@@ -412,7 +555,7 @@ namespace AttendanceManagement.Services
             }
             catch (Exception ex)
             {
-                if(from != null)
+                if (from != null)
                 {
                     var log = new EmailLog
                     {
@@ -441,21 +584,21 @@ namespace AttendanceManagement.Services
                 throw new MessageNotFoundException("Staff not found");
             if (updatedStaff.ProfilePhoto != null)
             {
-                string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "ProfilePhotos");
-                if (!Directory.Exists(directoryPath))
-                {
-                    Directory.CreateDirectory(directoryPath);
-                }
-                string fileName = $"{Guid.NewGuid()}_{updatedStaff.ProfilePhoto.FileName}";
-                string filePath = Path.Combine(directoryPath, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await updatedStaff.ProfilePhoto.CopyToAsync(fileStream);
-                }
-
-                existingStaff.ProfilePhoto = $"/ProfilePhotos/{fileName}"; 
+                existingStaff.ProfilePhoto = await SaveFileAsync(updatedStaff.ProfilePhoto, "ProfilePhotos");
             }
+            if (updatedStaff.AadharCardFilePath != null)
+            {
+                existingStaff.AadharCardFilePath = await SaveFileAsync(updatedStaff.AadharCardFilePath, "AadharCards");
+            }
+            if (updatedStaff.PanCardFilePath != null)
+            {
+                existingStaff.PanCardFilePath = await SaveFileAsync(updatedStaff.PanCardFilePath, "PanCards");
+            }
+            if (updatedStaff.DrivingLicenseFilePath != null)
+            {
+                existingStaff.DrivingLicenseFilePath = await SaveFileAsync(updatedStaff.DrivingLicenseFilePath, "DrivingLicenses");
+            }
+
             existingStaff.CardCode = updatedStaff.CardCode;
             existingStaff.Title = updatedStaff.Title;
             existingStaff.FirstName = updatedStaff.FirstName;
@@ -537,6 +680,24 @@ namespace AttendanceManagement.Services
 
             return message;
         }
+        private async Task<string> SaveFileAsync(IFormFile file, string folderName)
+        {
+            string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", folderName);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            string fileName = $"{Guid.NewGuid()}_{file.FileName}";
+            string filePath = Path.Combine(directoryPath, fileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+
+            return $"/{folderName}/{fileName}";
+        }
         public async Task<IEnumerable<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1)
         {
             var staff = await _context.StaffCreations
@@ -544,147 +705,114 @@ namespace AttendanceManagement.Services
 
             if (staff == null)
                 throw new MessageNotFoundException("Approver not found");
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            var records = await (from s in _context.StaffCreations
-                                 join branch in _context.BranchMasters
-                                 on s.BranchId equals branch.Id
-                                 join department in _context.DepartmentMasters
-                                 on s.DepartmentId equals department.Id
-                                 join division in _context.DivisionMasters
-                                 on s.DivisionId equals division.Id
-                                 join designation in _context.DesignationMasters
-                                 on s.DesignationId equals designation.Id
-                                 join grade in _context.GradeMasters
-                                 on s.GradeId equals grade.Id
-                                 join category in _context.CategoryMasters
-                                 on s.CategoryId equals category.Id
-                                 join cost in _context.CostCentreMasters
-                                 on s.CostCenterId equals cost.Id
-                                 join work in _context.WorkstationMasters
-                                 on s.WorkStationId equals work.Id
-                                 join status in _context.Statuses
-                                 on s.StatusId equals status.Id
-                                 join org in _context.OrganizationTypes
-                                 on s.OrganizationTypeId equals org.Id
-                                 join leaveGroup in _context.LeaveGroups
-                                 on s.LeaveGroupId equals leaveGroup.Id
-                                 join company in _context.CompanyMasters
-                                 on s.CompanyMasterId equals company.Id
-                                 join holiday in _context.HolidayCalendarConfigurations
-                                 on s.HolidayCalendarId equals holiday.Id
-                                 join location in _context.LocationMasters
-                                 on s.LocationMasterId equals location.Id
-                                 join geoStatus in _context.GeoStatuses on s.GeoStatus equals geoStatus.Name
-                                 join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
-                                 join accessLevel in _context.AccessLevels on s.AccessLevel equals accessLevel.Name
-                                 join policyGroup in _context.PolicyGroups on s.PolicyGroup equals policyGroup.Name
-                                 join workingDayPattern in _context.WorkingDayPatterns on s.WorkingDayPattern equals workingDayPattern.Name
-                                 join volume in _context.Volumes on s.Volume equals volume.Name
-                                 join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
-                                 where s.ApprovalLevel1 == staff.Id && s.IsActive == true
-                                 select new StaffCreationResponse
-                                 {
-                                     StaffId = s.Id,
-                                     StaffCreationId = $"{org.ShortName}{s.Id}",
-                                     CardCode = s.CardCode,
-                                     Title = s.Title,
-                                     FirstName = s.FirstName,
-                                     LastName = s.LastName,
-                                     ShortName = s.ShortName,
-                                     StatusId = status.Id,
-                                     Status = status.Name,
-                                     Gender = s.Gender,
-                                     BloodGroup = s.BloodGroup,
-                                     ProfilePhoto = s.ProfilePhoto,
-                                     Dob = s.Dob,
-                                     MarriageDate = s.MarriageDate,
-                                     PersonalPhone = s.PersonalPhone,
-                                     OfficialPhone = s.OfficialPhone,
-                                     JoiningDate = s.JoiningDate,
-                                     Confirmed = s.Confirmed,
-                                     ConfirmationDate = s.ConfirmationDate,
-                                     PersonalEmail = s.PersonalEmail,
-                                     OfficialEmail = s.OfficialEmail,
-                                     City = s.City,
-                                     AccessLevelId = accessLevel.Id,
-                                     AccessLevel = accessLevel.Name,
-                                     MiddleName = s.MiddleName,
-                                     PersonalLocation = s.PersonalLocation,
-                                     PolicyGroupId = policyGroup.Id,
-                                     PolicyGroup = policyGroup.Name,
-                                     WorkingDayPatternId = workingDayPattern.Id,
-                                     WorkingDayPattern = workingDayPattern.Name,
-                                     WorkingStatusId = workingStatus.Id,
-                                     WorkingStatus = workingStatus.Name,
-                                     GeoStatusId = geoStatus.Id,
-                                     GeoStatus = geoStatus.Name,
-                                     Tenure = s.Tenure,
-                                     ApprovalLevel = s.ApprovalLevel,
-                                     ApprovalLevelId1 = s.ApprovalLevel1,
-                                     ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
-                                     ApprovalLevelId2 = s.ApprovalLevel2,
-                                     ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
-                                     UanNumber = s.UanNumber,
-                                     EsiNumber = s.EsiNumber,
-                                     IsMobileAppEligible = s.IsMobileAppEligible,
-                                     District = s.District,
-                                     State = s.State,
-                                     Country = s.Country,
-                                     PostalCode = s.PostalCode,
-                                     OtEligible = s.OtEligible,
-                                     BranchId = s.BranchId,
-                                     Branch = branch.FullName,
-                                     DepartmentId = s.DepartmentId,
-                                     Department = department.FullName,
-                                     DivisionId = s.DivisionId,
-                                     Division = division.FullName,
-                                     MaritalStatusId = maritalStatus.Id,
-                                     MaritalStatus = maritalStatus.Name,
-                                     VolumeId = volume.Id,
-                                     Volume = volume.Name,
-                                     DesignationId = s.DesignationId,
-                                     Designation = designation.FullName,
-                                     GradeId = s.GradeId,
-                                     Grade = grade.FullName,
-                                     CategoryId = s.CategoryId,
-                                     Category = category.FullName,
-                                     CostCenterId = s.CostCenterId,
-                                     CostCenter = cost.FullName,
-                                     WorkStationId = s.WorkStationId,
-                                     WorkStation = work.FullName,
-                                     LeaveGroupId = s.LeaveGroupId,
-                                     LeaveGroup = leaveGroup.LeaveGroupName,
-                                     CompanyMasterId = s.CompanyMasterId,
-                                     Company = company.FullName,
-                                     HolidayCalendarId = s.HolidayCalendarId,
-                                     HolidayCalendar = holiday.GroupName,
-                                     LocationMasterId = s.LocationMasterId,
-                                     Location = location.FullName,
-                                     AadharNo = s.AadharNo,
-                                     PanNo = s.PanNo,
-                                     PassportNo = s.PassportNo,
-                                     DrivingLicense = s.DrivingLicense,
-                                     BankName = s.BankName,
-                                     BankAccountNo = s.BankAccountNo,
-                                     BankIfscCode = s.BankIfscCode,
-                                     BankBranch = s.BankBranch,
-                                     Qualification = s.Qualification,
-                                     HomeAddress = s.HomeAddress,
-                                     FatherName = s.FatherName,
-                                     MotherName = s.MotherName,
-                                     FatherAadharNo = s.FatherAadharNo,
-                                     MotherAadharNo = s.MotherAadharNo,
-                                     EmergencyContactPerson1 = s.EmergencyContactPerson1,
-                                     EmergencyContactPerson2 = s.EmergencyContactPerson2,
-                                     EmergencyContactNo1 = s.EmergencyContactNo1,
-                                     EmergencyContactNo2 = s.EmergencyContactNo2,
-                                     OrganizationTypeId = s.OrganizationTypeId,
-                                     OrganizationTypeName = org.Name,
-                                     ResignationDate = s.ResignationDate,
-                                     RelievingDate = s.RelievingDate,
-                                     CreatedBy = s.CreatedBy
-                                 })
-                                 .ToListAsync();
+            var records = await _context.StaffCreations
+                .Where(s => s.ApprovalLevel1 == currentApprovar1 && s.IsActive == true)
+                .Select(s => new StaffCreationResponse
+                {
+                    StaffId = s.Id,
+                    StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                    CardCode = s.CardCode,
+                    Title = s.Title,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    ShortName = s.ShortName,
+                    StatusId = s.StatusId,
+                    Status = _context.Statuses.Where(st => st.Id == s.StatusId && st.IsActive).Select(st => st.Name).FirstOrDefault() ?? string.Empty,
+                    Gender = s.Gender,
+                    BloodGroup = s.BloodGroup,
+                    ProfilePhoto = s.ProfilePhoto,
+                    AadharFilePath = s.AadharCardFilePath,
+                    PanCardFilePath = s.PanCardFilePath,
+                    DrivingLicenseFilePath = s.DrivingLicenseFilePath,
+                    Dob = s.Dob,
+                    MarriageDate = s.MarriageDate,
+                    PersonalPhone = s.PersonalPhone,
+                    OfficialPhone = s.OfficialPhone,
+                    JoiningDate = s.JoiningDate,
+                    Confirmed = s.Confirmed,
+                    ConfirmationDate = s.ConfirmationDate,
+                    PersonalEmail = s.PersonalEmail,
+                    OfficialEmail = s.OfficialEmail,
+                    City = s.City,
+                    AccessLevelId = _context.AccessLevels.Where(a => a.Name == s.AccessLevel).Select(a => a.Id).FirstOrDefault(),
+                    AccessLevel = s.AccessLevel,
+                    MiddleName = s.MiddleName,
+                    PersonalLocation = s.PersonalLocation,
+                    PolicyGroupId = _context.PolicyGroups.Where(p => p.Name == s.PolicyGroup).Select(p => p.Id).FirstOrDefault(),
+                    PolicyGroup = s.PolicyGroup,
+                    WorkingDayPatternId = _context.WorkingDayPatterns.Where(wp => wp.Name == s.WorkingDayPattern).Select(wp => wp.Id).FirstOrDefault(),
+                    WorkingDayPattern = s.WorkingDayPattern,
+                    WorkingStatusId = _context.WorkingStatuses.Where(w => w.Name == s.WorkingStatus).Select(w => w.Id).FirstOrDefault(),
+                    WorkingStatus = s.WorkingStatus,
+                    GeoStatusId = _context.GeoStatuses.Where(g => g.Name == s.GeoStatus).Select(g => g.Id).FirstOrDefault(),
+                    GeoStatus = s.GeoStatus,
+                    Tenure = s.Tenure,
+                    ApprovalLevel = s.ApprovalLevel,
+                    ApprovalLevelId1 = s.ApprovalLevel1,
+                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}" : null,
+                    ApprovalLevelId2 = s.ApprovalLevel2,
+                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                    UanNumber = s.UanNumber,
+                    EsiNumber = s.EsiNumber,
+                    IsMobileAppEligible = s.IsMobileAppEligible,
+                    District = s.District,
+                    State = s.State,
+                    Country = s.Country,
+                    PostalCode = s.PostalCode,
+                    OtEligible = s.OtEligible,
+                    BranchId = s.BranchId,
+                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.FullName).FirstOrDefault() ?? string.Empty,
+                    DepartmentId = s.DepartmentId,
+                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    DivisionId = s.DivisionId,
+                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    MaritalStatusId = _context.MaritalStatuses.Where(m => m.Name == s.MaritalStatus).Select(m => m.Id).FirstOrDefault(),
+                    MaritalStatus = s.MaritalStatus,
+                    VolumeId = _context.Volumes.Where(v => v.Name == s.Volume).Select(v => v.Id).FirstOrDefault(),
+                    Volume = s.Volume,
+                    DesignationId = s.DesignationId,
+                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    GradeId = s.GradeId,
+                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.FullName).FirstOrDefault() ?? string.Empty,
+                    CategoryId = s.CategoryId,
+                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    CostCenterId = s.CostCenterId,
+                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    WorkStationId = s.WorkStationId,
+                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
+                    LeaveGroupId = s.LeaveGroupId,
+                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
+                    CompanyMasterId = s.CompanyMasterId,
+                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    HolidayCalendarId = s.HolidayCalendarId,
+                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
+                    LocationMasterId = s.LocationMasterId,
+                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.FullName).FirstOrDefault() ?? string.Empty,
+                    AadharNo = s.AadharNo,
+                    PanNo = s.PanNo,
+                    PassportNo = s.PassportNo,
+                    DrivingLicense = s.DrivingLicense,
+                    BankName = s.BankName,
+                    BankAccountNo = s.BankAccountNo,
+                    BankIfscCode = s.BankIfscCode,
+                    BankBranch = s.BankBranch,
+                    Qualification = s.Qualification,
+                    HomeAddress = s.HomeAddress,
+                    FatherName = s.FatherName,
+                    MotherName = s.MotherName,
+                    FatherAadharNo = s.FatherAadharNo,
+                    MotherAadharNo = s.MotherAadharNo,
+                    EmergencyContactPerson1 = s.EmergencyContactPerson1 ?? string.Empty,
+                    EmergencyContactPerson2 = s.EmergencyContactPerson2,
+                    EmergencyContactNo1 = s.EmergencyContactNo1,
+                    EmergencyContactNo2 = s.EmergencyContactNo2,
+                    OrganizationTypeId = s.OrganizationTypeId,
+                    OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
+                    ResignationDate = s.ResignationDate,
+                    RelievingDate = s.RelievingDate,
+                    CreatedBy = s.CreatedBy
+                })
+                .ToListAsync();
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (records.Count == 0)
             {
@@ -695,147 +823,114 @@ namespace AttendanceManagement.Services
 
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            var records = await (from s in _context.StaffCreations
-                                 join branch in _context.BranchMasters
-                                 on s.BranchId equals branch.Id
-                                 join department in _context.DepartmentMasters
-                                 on s.DepartmentId equals department.Id
-                                 join division in _context.DivisionMasters
-                                 on s.DivisionId equals division.Id
-                                 join designation in _context.DesignationMasters
-                                 on s.DesignationId equals designation.Id
-                                 join grade in _context.GradeMasters
-                                 on s.GradeId equals grade.Id
-                                 join category in _context.CategoryMasters
-                                 on s.CategoryId equals category.Id
-                                 join cost in _context.CostCentreMasters
-                                 on s.CostCenterId equals cost.Id
-                                 join work in _context.WorkstationMasters
-                                 on s.WorkStationId equals work.Id
-                                 join status in _context.Statuses
-                                 on s.StatusId equals status.Id
-                                 join leaveGroup in _context.LeaveGroups
-                                 on s.LeaveGroupId equals leaveGroup.Id
-                                 join org in _context.OrganizationTypes
-                                 on s.OrganizationTypeId equals org.Id
-                                 join company in _context.CompanyMasters
-                                 on s.CompanyMasterId equals company.Id
-                                 join holiday in _context.HolidayCalendarConfigurations
-                                 on s.HolidayCalendarId equals holiday.Id
-                                 join location in _context.LocationMasters
-                                 on s.LocationMasterId equals location.Id
-                                 join geoStatus in _context.GeoStatuses on s.GeoStatus equals geoStatus.Name
-                                 join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
-                                 join accessLevel in _context.AccessLevels on s.AccessLevel equals accessLevel.Name
-                                 join policyGroup in _context.PolicyGroups on s.PolicyGroup equals policyGroup.Name
-                                 join workingDayPattern in _context.WorkingDayPatterns on s.WorkingDayPattern equals workingDayPattern.Name
-                                 join volume in _context.Volumes on s.Volume equals volume.Name
-                                 join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
-                                 where s.ApprovalLevel1 == approverId && s.IsActive == null
-                                 select new StaffCreationResponse
-                                 {
-                                     StaffId = s.Id,
-                                     StaffCreationId = $"{org.ShortName}{s.Id}",
-                                     CardCode = s.CardCode,
-                                     Title = s.Title,
-                                     FirstName = s.FirstName,
-                                     LastName = s.LastName,
-                                     ShortName = s.ShortName,
-                                     StatusId = status.Id,
-                                     Status = status.Name,
-                                     Gender = s.Gender,
-                                     BloodGroup = s.BloodGroup,
-                                     ProfilePhoto = s.ProfilePhoto,
-                                     Dob = s.Dob,
-                                     MarriageDate = s.MarriageDate,
-                                     PersonalPhone = s.PersonalPhone,
-                                     OfficialPhone = s.OfficialPhone,
-                                     JoiningDate = s.JoiningDate,
-                                     Confirmed = s.Confirmed,
-                                     ConfirmationDate = s.ConfirmationDate,
-                                     PersonalEmail = s.PersonalEmail,
-                                     OfficialEmail = s.OfficialEmail,
-                                     City = s.City,
-                                     ApprovalLevel = s.ApprovalLevel,
-                                     ApprovalLevelId1 = s.ApprovalLevel1,
-                                     ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
-                                     ApprovalLevelId2 = s.ApprovalLevel2,
-                                     ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
-                                     PersonalLocation = s.PersonalLocation,
-                                     AccessLevelId = accessLevel.Id,
-                                     AccessLevel = accessLevel.Name,
-                                     MiddleName = s.MiddleName,
-                                     PolicyGroupId = policyGroup.Id,
-                                     PolicyGroup = policyGroup.Name,
-                                     WorkingDayPatternId = workingDayPattern.Id,
-                                     WorkingDayPattern = workingDayPattern.Name,
-                                     WorkingStatusId = workingStatus.Id,
-                                     WorkingStatus = workingStatus.Name,
-                                     GeoStatusId = geoStatus.Id,
-                                     GeoStatus = geoStatus.Name,
-                                     Tenure = s.Tenure,
-                                     UanNumber = s.UanNumber,
-                                     EsiNumber = s.EsiNumber,
-                                     IsMobileAppEligible = s.IsMobileAppEligible,
-                                     District = s.District,
-                                     State = s.State,
-                                     Country = s.Country,
-                                     PostalCode = s.PostalCode,
-                                     OtEligible = s.OtEligible,
-                                     BranchId = s.BranchId,
-                                     Branch = branch.FullName,
-                                     DepartmentId = s.DepartmentId,
-                                     Department = department.FullName,
-                                     DivisionId = s.DivisionId,
-                                     Division = division.FullName,
-                                     MaritalStatusId = maritalStatus.Id,
-                                     MaritalStatus = maritalStatus.Name,
-                                     VolumeId = volume.Id,
-                                     Volume = volume.Name,
-                                     DesignationId = s.DesignationId,
-                                     Designation = designation.FullName,
-                                     GradeId = s.GradeId,
-                                     Grade = grade.FullName,
-                                     CategoryId = s.CategoryId,
-                                     Category = category.FullName,
-                                     CostCenterId = s.CostCenterId,
-                                     CostCenter = cost.FullName,
-                                     WorkStationId = s.WorkStationId,
-                                     WorkStation = work.FullName,
-                                     LeaveGroupId = s.LeaveGroupId,
-                                     LeaveGroup = leaveGroup.LeaveGroupName,
-                                     CompanyMasterId = s.CompanyMasterId,
-                                     Company = company.FullName,
-                                     HolidayCalendarId = s.HolidayCalendarId,
-                                     HolidayCalendar = holiday.GroupName,
-                                     LocationMasterId = s.LocationMasterId,
-                                     Location = location.FullName,
-                                     AadharNo = s.AadharNo,
-                                     PanNo = s.PanNo,
-                                     PassportNo = s.PassportNo,
-                                     DrivingLicense = s.DrivingLicense,
-                                     BankName = s.BankName,
-                                     BankAccountNo = s.BankAccountNo,
-                                     BankIfscCode = s.BankIfscCode,
-                                     BankBranch = s.BankBranch,
-                                     Qualification = s.Qualification,
-                                     HomeAddress = s.HomeAddress,
-                                     FatherName = s.FatherName,
-                                     MotherName = s.MotherName,
-                                     FatherAadharNo = s.FatherAadharNo,
-                                     MotherAadharNo = s.MotherAadharNo,
-                                     EmergencyContactPerson1 = s.EmergencyContactPerson1,
-                                     EmergencyContactPerson2 = s.EmergencyContactPerson2,
-                                     EmergencyContactNo1 = s.EmergencyContactNo1,
-                                     EmergencyContactNo2 = s.EmergencyContactNo2,
-                                     OrganizationTypeId = s.OrganizationTypeId,
-                                     OrganizationTypeName = org.Name,
-                                     ResignationDate = s.ResignationDate,
-                                     RelievingDate = s.RelievingDate,
-                                     CreatedBy = s.CreatedBy
-                                 })
-                     .ToListAsync();
+            var records = await _context.StaffCreations
+                .Where(s => s.ApprovalLevel1 == approverId && s.IsActive == null)
+                .Select(s => new StaffCreationResponse
+                {
+                    StaffId = s.Id,
+                    StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                    CardCode = s.CardCode,
+                    Title = s.Title,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    ShortName = s.ShortName,
+                    StatusId = s.StatusId,
+                    Status = _context.Statuses.Where(st => st.Id == s.StatusId && st.IsActive).Select(st => st.Name).FirstOrDefault() ?? string.Empty,
+                    Gender = s.Gender,
+                    BloodGroup = s.BloodGroup,
+                    ProfilePhoto = s.ProfilePhoto,
+                    AadharFilePath = s.AadharCardFilePath,
+                    PanCardFilePath = s.PanCardFilePath,
+                    DrivingLicenseFilePath = s.DrivingLicenseFilePath,
+                    Dob = s.Dob,
+                    MarriageDate = s.MarriageDate,
+                    PersonalPhone = s.PersonalPhone,
+                    OfficialPhone = s.OfficialPhone,
+                    JoiningDate = s.JoiningDate,
+                    Confirmed = s.Confirmed,
+                    ConfirmationDate = s.ConfirmationDate,
+                    PersonalEmail = s.PersonalEmail,
+                    OfficialEmail = s.OfficialEmail,
+                    City = s.City,
+                    AccessLevelId = _context.AccessLevels.Where(a => a.Name == s.AccessLevel).Select(a => a.Id).FirstOrDefault(),
+                    AccessLevel = s.AccessLevel,
+                    MiddleName = s.MiddleName,
+                    PersonalLocation = s.PersonalLocation,
+                    PolicyGroupId = _context.PolicyGroups.Where(p => p.Name == s.PolicyGroup).Select(p => p.Id).FirstOrDefault(),
+                    PolicyGroup = s.PolicyGroup,
+                    WorkingDayPatternId = _context.WorkingDayPatterns.Where(wp => wp.Name == s.WorkingDayPattern).Select(wp => wp.Id).FirstOrDefault(),
+                    WorkingDayPattern = s.WorkingDayPattern,
+                    WorkingStatusId = _context.WorkingStatuses.Where(w => w.Name == s.WorkingStatus).Select(w => w.Id).FirstOrDefault(),
+                    WorkingStatus = s.WorkingStatus,
+                    GeoStatusId = _context.GeoStatuses.Where(g => g.Name == s.GeoStatus).Select(g => g.Id).FirstOrDefault(),
+                    GeoStatus = s.GeoStatus,
+                    Tenure = s.Tenure,
+                    ApprovalLevel = s.ApprovalLevel,
+                    ApprovalLevelId1 = s.ApprovalLevel1,
+                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}" : null,
+                    ApprovalLevelId2 = s.ApprovalLevel2,
+                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                    UanNumber = s.UanNumber,
+                    EsiNumber = s.EsiNumber,
+                    IsMobileAppEligible = s.IsMobileAppEligible,
+                    District = s.District,
+                    State = s.State,
+                    Country = s.Country,
+                    PostalCode = s.PostalCode,
+                    OtEligible = s.OtEligible,
+                    BranchId = s.BranchId,
+                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.FullName).FirstOrDefault() ?? string.Empty,
+                    DepartmentId = s.DepartmentId,
+                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    DivisionId = s.DivisionId,
+                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    MaritalStatusId = _context.MaritalStatuses.Where(m => m.Name == s.MaritalStatus).Select(m => m.Id).FirstOrDefault(),
+                    MaritalStatus = s.MaritalStatus,
+                    VolumeId = _context.Volumes.Where(v => v.Name == s.Volume).Select(v => v.Id).FirstOrDefault(),
+                    Volume = s.Volume,
+                    DesignationId = s.DesignationId,
+                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    GradeId = s.GradeId,
+                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.FullName).FirstOrDefault() ?? string.Empty,
+                    CategoryId = s.CategoryId,
+                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    CostCenterId = s.CostCenterId,
+                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    WorkStationId = s.WorkStationId,
+                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
+                    LeaveGroupId = s.LeaveGroupId,
+                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
+                    CompanyMasterId = s.CompanyMasterId,
+                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    HolidayCalendarId = s.HolidayCalendarId,
+                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
+                    LocationMasterId = s.LocationMasterId,
+                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.FullName).FirstOrDefault() ?? string.Empty,
+                    AadharNo = s.AadharNo,
+                    PanNo = s.PanNo,
+                    PassportNo = s.PassportNo,
+                    DrivingLicense = s.DrivingLicense,
+                    BankName = s.BankName,
+                    BankAccountNo = s.BankAccountNo,
+                    BankIfscCode = s.BankIfscCode,
+                    BankBranch = s.BankBranch,
+                    Qualification = s.Qualification,
+                    HomeAddress = s.HomeAddress,
+                    FatherName = s.FatherName,
+                    MotherName = s.MotherName,
+                    FatherAadharNo = s.FatherAadharNo,
+                    MotherAadharNo = s.MotherAadharNo,
+                    EmergencyContactPerson1 = s.EmergencyContactPerson1 ?? string.Empty,
+                    EmergencyContactPerson2 = s.EmergencyContactPerson2,
+                    EmergencyContactNo1 = s.EmergencyContactNo1,
+                    EmergencyContactNo2 = s.EmergencyContactNo2,
+                    OrganizationTypeId = s.OrganizationTypeId,
+                    OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
+                    ResignationDate = s.ResignationDate,
+                    RelievingDate = s.RelievingDate,
+                    CreatedBy = s.CreatedBy
+                })
+                .ToListAsync();
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (records.Count == 0)
             {
@@ -895,14 +990,14 @@ namespace AttendanceManagement.Services
 
         public async Task<List<DropDownResponse>> GetDropDownMaster()
         {
-           var dropDown = await (from d in _context.DropDownMasters
-                                 where d.IsActive
-                                 select new DropDownResponse
-                                 {
-                                     Id = d.Id,
-                                     Name = d.Name,
-                                     CreatedBy = d.CreatedBy
-                                 }).ToListAsync();
+            var dropDown = await (from d in _context.DropDownMasters
+                                  where d.IsActive
+                                  select new DropDownResponse
+                                  {
+                                      Id = d.Id,
+                                      Name = d.Name,
+                                      CreatedBy = d.CreatedBy
+                                  }).ToListAsync();
             if (dropDown.Count == 0)
             {
                 throw new MessageNotFoundException("Dropdown master not found");
@@ -945,7 +1040,13 @@ namespace AttendanceManagement.Services
                 {1004, new LeaveCreditDebitReason() },
                 {1005, new ExcelImport() },
                 {1006, new StaffLeaveOption() },
-                {1007, new PermissionType() }
+                {1007, new PermissionType() },
+                {1008, new ShiftPattern() },
+                {1009, new ShiftType() },
+                {1010, new WeeklyOffType() },
+                {1011, new WeeklyOff() },
+                {1012, new DailyReport() },
+                {1013, new MonthRange() }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
@@ -986,8 +1087,13 @@ namespace AttendanceManagement.Services
                 { 1004, _context.LeaveCreditDebitReasons.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1005, _context.ExcelImports.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1006, _context.StaffLeaveOptions.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1007, _context.PermissionTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
-
+                { 1007, _context.PermissionTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1008, _context.ShiftPatterns.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1009, _context.ShiftTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1010, _context.WeeklyOffTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1011, _context.WeeklyOffs.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1012, _context.DailyReports.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1013, _context.MonthRanges.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -1026,7 +1132,13 @@ namespace AttendanceManagement.Services
                 { 1004, async () => await _context.LeaveCreditDebitReasons.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1005, async () => await _context.ExcelImports.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1006, async () => await _context.StaffLeaveOptions.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1007, async () => await _context.PermissionTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1007, async () => await _context.PermissionTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1008, async () => await _context.ShiftPatterns.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1009, async () => await _context.ShiftTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1010, async () => await _context.WeeklyOffTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1011, async () => await _context.WeeklyOffs.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1012, async () => await _context.DailyReports.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1013, async () => await _context.MonthRanges.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
 
             };
 

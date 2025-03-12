@@ -80,12 +80,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = createdContact
                 };
-                await _loggingService.AuditLog("Emergency Contact", "POST", "/EmergencyContact/CreateEmergencyContact", createdContact, model.CreatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.AuditLog("Emergency Contact", "POST", "/api/EmergencyContact/CreateEmergencyContact", createdContact, model.CreatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Emergency Contact", "POST", "/EmergencyContact/CreateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Emergency Contact", "POST", "/api/EmergencyContact/CreateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -101,17 +101,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updatedContact
                 };
-                await _loggingService.AuditLog("Emergency Contact", "POST", "/EmergencyContact/UpdateEmergencyContact", updatedContact, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.AuditLog("Emergency Contact", "POST", "/api/EmergencyContact/UpdateEmergencyContact", updatedContact, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Emergency Contact", "POST", "/EmergencyContact/UpdateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Emergency Contact", "POST", "/api/EmergencyContact/UpdateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Emergency Contact", "POST", "/EmergencyContact/UpdateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Emergency Contact", "POST", "/api/EmergencyContact/UpdateEmergencyContact", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

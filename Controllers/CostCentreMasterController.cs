@@ -77,12 +77,12 @@ public class CostCentreMasterController : ControllerBase
                 Success = true,
                 Message = createdCostCentre
             };
-            await _loggingService.AuditLog("Cost Centre Master", "POST", "/CostCentreMaster/CreateCostCentre", createdCostCentre, costCentreMaster.CreatedBy, JsonSerializer.Serialize(costCentreMaster));
+            await _loggingService.AuditLog("Cost Centre Master", "POST", "/api/CostCentreMaster/CreateCostCentre", createdCostCentre, costCentreMaster.CreatedBy, JsonSerializer.Serialize(costCentreMaster));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Cost Centre Master", "POST", "/CostCentreMaster/CreateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.CreatedBy, JsonSerializer.Serialize(costCentreMaster));
+            await _loggingService.LogError("Cost Centre Master", "POST", "/api/CostCentreMaster/CreateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.CreatedBy, JsonSerializer.Serialize(costCentreMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class CostCentreMasterController : ControllerBase
                 Success = true,
                 Message = updatedCostCentre
             };
-            await _loggingService.AuditLog("Cost Centre Master", "POST", "/CostCentreMaster/UpdateCostCentre", updatedCostCentre ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
+            await _loggingService.AuditLog("Cost Centre Master", "POST", "/api/CostCentreMaster/UpdateCostCentre", updatedCostCentre ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Cost Centre Master", "POST", "/CostCentreMaster/UpdateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
+            await _loggingService.LogError("Cost Centre Master", "POST", "/api/CostCentreMaster/UpdateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Cost Centre Master", "POST", "/CostCentreMaster/UpdateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
+            await _loggingService.LogError("Cost Centre Master", "POST", "/api/CostCentreMaster/UpdateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

@@ -24,7 +24,11 @@ public class ZoneMasterController : ControllerBase
         try
         {
             var zones = await _service.GetAllZonesAsync();
-            var response = new { Success = true, Message = zones };
+            var response = new 
+            { 
+                Success = true, 
+                Message = zones 
+            };
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -43,7 +47,11 @@ public class ZoneMasterController : ControllerBase
         try
         {
             var zone = await _service.GetZoneByIdAsync(zoneMasterId);
-            var response = new { Success = true, Message = zone };
+            var response = new 
+            { 
+                Success = true, 
+                Message = zone 
+            };
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -62,13 +70,17 @@ public class ZoneMasterController : ControllerBase
         try
         {
             var createdZone = await _service.CreateZoneAsync(zoneMaster);
-            var response = new { Success = true, Message = createdZone };
-            await _loggingService.AuditLog("Zone Master", "POST", "/ZoneMaster/CreateZone", createdZone, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
+            var response = new 
+            { 
+                Success = true, 
+                Message = createdZone 
+            };
+            await _loggingService.AuditLog("Zone Master", "POST", "/api/ZoneMaster/CreateZone", createdZone, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Zone Master", "POST", "/ZoneMaster/CreateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
+            await _loggingService.LogError("Zone Master", "POST", "/api/ZoneMaster/CreateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -80,17 +92,17 @@ public class ZoneMasterController : ControllerBase
         {
             var updatedZone = await _service.UpdateZoneAsync(zoneMaster);
             var response = new { Success = true, Message = updatedZone };
-            await _loggingService.AuditLog("Zone Master", "POST", "/ZoneMaster/UpdateZone", updatedZone, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
+            await _loggingService.AuditLog("Zone Master", "POST", "/api/ZoneMaster/UpdateZone", updatedZone, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Zone Master", "POST", "/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
+            await _loggingService.LogError("Zone Master", "POST", "/api/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Zone Master", "POST", "/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
+            await _loggingService.LogError("Zone Master", "POST", "/api/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

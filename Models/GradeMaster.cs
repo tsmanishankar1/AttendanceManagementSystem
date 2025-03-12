@@ -9,7 +9,7 @@ public partial class GradeMaster
 
     public string FullName { get; set; } = null!;
 
-    public string ScreenOption { get; set; } = null!;
+    public string? ScreenOption { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -22,8 +22,6 @@ public partial class GradeMaster
     public DateTime? UpdatedUtc { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
-
-    public virtual ICollection<DailyReport> DailyReports { get; set; } = new List<DailyReport>();
 
     public virtual ICollection<ManualAttendanceProcessing> ManualAttendanceProcessings { get; set; } = new List<ManualAttendanceProcessing>();
 

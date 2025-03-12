@@ -77,12 +77,12 @@ public class DivisionMasterController : ControllerBase
                 Success = true,
                 Message = addDivision
             };
-            await _loggingService.AuditLog("Division Master", "POST", "/DivisionMaster/CreateDivision", addDivision, division.CreatedBy, JsonSerializer.Serialize(division));
+            await _loggingService.AuditLog("Division Master", "POST", "/api/DivisionMaster/CreateDivision", addDivision, division.CreatedBy, JsonSerializer.Serialize(division));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Division Master", "POST", "/DivisionMaster/CreateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.CreatedBy, JsonSerializer.Serialize(division));
+            await _loggingService.LogError("Division Master", "POST", "/api/DivisionMaster/CreateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.CreatedBy, JsonSerializer.Serialize(division));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class DivisionMasterController : ControllerBase
                 Success = true,
                 Message = update
             };
-            await _loggingService.AuditLog("Division Master", "POST", "/DivisionMaster/UpdateDivision", update, division.UpdatedBy, JsonSerializer.Serialize(division));
+            await _loggingService.AuditLog("Division Master", "POST", "/api/DivisionMaster/UpdateDivision", update, division.UpdatedBy, JsonSerializer.Serialize(division));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Division Master", "POST", "/DivisionMaster/UpdateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.UpdatedBy, JsonSerializer.Serialize(division));
+            await _loggingService.LogError("Division Master", "POST", "/api/DivisionMaster/UpdateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.UpdatedBy, JsonSerializer.Serialize(division));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Division Master", "POST", "/DivisionMaster/UpdateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.UpdatedBy, JsonSerializer.Serialize(division));
+            await _loggingService.LogError("Division Master", "POST", "/api/DivisionMaster/UpdateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.UpdatedBy, JsonSerializer.Serialize(division));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

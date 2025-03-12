@@ -77,12 +77,12 @@ public class DepartmentMasterController : ControllerBase
                 Success = true,
                 Message = createdDepartment
             };
-            await _loggingService.AuditLog("Department Master", "POST", "/DepartmentMaster/CreateDepartment", createdDepartment, department.CreatedBy, JsonSerializer.Serialize(department));
+            await _loggingService.AuditLog("Department Master", "POST", "/api/DepartmentMaster/CreateDepartment", createdDepartment, department.CreatedBy, JsonSerializer.Serialize(department));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Department Master", "POST", "/DepartmentMaster/CreateDepartment", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, department.CreatedBy, JsonSerializer.Serialize(department));
+            await _loggingService.LogError("Department Master", "POST", "/api/DepartmentMaster/CreateDepartment", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, department.CreatedBy, JsonSerializer.Serialize(department));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class DepartmentMasterController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Department Master", "POST", "/DepartmentMaster/UpdateDepartment", success ?? string.Empty, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
+            await _loggingService.AuditLog("Department Master", "POST", "/api/DepartmentMaster/UpdateDepartment", success ?? string.Empty, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Department Master", "POST", "/DepartmentMaster/UpdateDepartment", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
+            await _loggingService.LogError("Department Master", "POST", "/api/DepartmentMaster/UpdateDepartment", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Department Master", "POST", "/DepartmentMaster/UpdateDepartment", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
+            await _loggingService.LogError("Department Master", "POST", "/api/DepartmentMaster/UpdateDepartment", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

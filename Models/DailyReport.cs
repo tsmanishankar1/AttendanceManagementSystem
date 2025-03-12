@@ -7,29 +7,7 @@ public partial class DailyReport
 {
     public int Id { get; set; }
 
-    public DateOnly FromDate { get; set; }
-
-    public DateOnly ToDate { get; set; }
-
-    public int? CompanyMasterId { get; set; }
-
-    public int? CategoryMasterId { get; set; }
-
-    public int? SubVolumeId { get; set; }
-
-    public int? CostCentreMasterId { get; set; }
-
-    public int? BranchMasterId { get; set; }
-
-    public int? DesignationMasterId { get; set; }
-
-    public int? LocationMasterId { get; set; }
-
-    public int? MainVolumeId { get; set; }
-
-    public int? GradeMasterId { get; set; }
-
-    public int? UserManagementId { get; set; }
+    public string Name { get; set; } = null!;
 
     public bool IsActive { get; set; }
 
@@ -41,23 +19,7 @@ public partial class DailyReport
 
     public DateTime? UpdatedUtc { get; set; }
 
-    public virtual BranchMaster? BranchMaster { get; set; }
-
-    public virtual CategoryMaster? CategoryMaster { get; set; }
-
-    public virtual CompanyMaster? CompanyMaster { get; set; }
-
-    public virtual CostCentreMaster? CostCentreMaster { get; set; }
-
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
-    public virtual DesignationMaster? DesignationMaster { get; set; }
-
-    public virtual GradeMaster? GradeMaster { get; set; }
-
-    public virtual LocationMaster? LocationMaster { get; set; }
-
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
-
-    public virtual UserManagement? UserManagement { get; set; }
 }

@@ -18,6 +18,7 @@ namespace AttendanceManagement.Input_Models
 
         public DbSet<CommonPermissionResponse> CommonPermissionResponses { get; set; } = null!;
         public DbSet<StaffDto> StaffDto { get; set; } = null!;
+        public DbSet<DailyReportResponse> DailyReportResponses { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

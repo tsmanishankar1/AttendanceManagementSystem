@@ -165,6 +165,12 @@ public partial class StaffCreation
 
     public DateOnly? RelievingDate { get; set; }
 
+    public string? AadharCardFilePath { get; set; }
+
+    public string? PanCardFilePath { get; set; }
+
+    public string? DrivingLicenseFilePath { get; set; }
+
     public virtual ICollection<AccessLevel> AccessLevelCreatedByNavigations { get; set; } = new List<AccessLevel>();
 
     public virtual ICollection<AccessLevel> AccessLevelUpdatedByNavigations { get; set; } = new List<AccessLevel>();
@@ -465,6 +471,10 @@ public partial class StaffCreation
 
     public virtual ICollection<Menu> MenuUpdatedByNavigations { get; set; } = new List<Menu>();
 
+    public virtual ICollection<MonthRange> MonthRangeCreatedByNavigations { get; set; } = new List<MonthRange>();
+
+    public virtual ICollection<MonthRange> MonthRangeUpdatedByNavigations { get; set; } = new List<MonthRange>();
+
     public virtual ICollection<MyApplication> MyApplicationCreatedByNavigations { get; set; } = new List<MyApplication>();
 
     public virtual ICollection<MyApplication> MyApplicationUpdatedByNavigations { get; set; } = new List<MyApplication>();
@@ -565,6 +575,14 @@ public partial class StaffCreation
 
     public virtual ICollection<ShiftExtension> ShiftExtensionUpdatedByNavigations { get; set; } = new List<ShiftExtension>();
 
+    public virtual ICollection<ShiftPattern> ShiftPatternCreatedByNavigations { get; set; } = new List<ShiftPattern>();
+
+    public virtual ICollection<ShiftPattern> ShiftPatternUpdatedByNavigations { get; set; } = new List<ShiftPattern>();
+
+    public virtual ICollection<ShiftType> ShiftTypeCreatedByNavigations { get; set; } = new List<ShiftType>();
+
+    public virtual ICollection<ShiftType> ShiftTypeUpdatedByNavigations { get; set; } = new List<ShiftType>();
+
     public virtual ICollection<Shift> ShiftUpdatedByNavigations { get; set; } = new List<Shift>();
 
     public virtual ICollection<SkillInventory> SkillInventoryCreatedByNavigations { get; set; } = new List<SkillInventory>();
@@ -631,6 +649,8 @@ public partial class StaffCreation
 
     public virtual ICollection<Volume> VolumeUpdatedByNavigations { get; set; } = new List<Volume>();
 
+    public virtual ICollection<WeeklyOff> WeeklyOffCreatedByNavigations { get; set; } = new List<WeeklyOff>();
+
     public virtual ICollection<WeeklyOffDetail> WeeklyOffDetailCreatedByNavigations { get; set; } = new List<WeeklyOffDetail>();
 
     public virtual ICollection<WeeklyOffDetail> WeeklyOffDetailUpdatedByNavigations { get; set; } = new List<WeeklyOffDetail>();
@@ -644,6 +664,12 @@ public partial class StaffCreation
     public virtual ICollection<WeeklyOffMaster> WeeklyOffMasterCreatedByNavigations { get; set; } = new List<WeeklyOffMaster>();
 
     public virtual ICollection<WeeklyOffMaster> WeeklyOffMasterUpdatedByNavigations { get; set; } = new List<WeeklyOffMaster>();
+
+    public virtual ICollection<WeeklyOffType> WeeklyOffTypeCreatedByNavigations { get; set; } = new List<WeeklyOffType>();
+
+    public virtual ICollection<WeeklyOffType> WeeklyOffTypeUpdatedByNavigations { get; set; } = new List<WeeklyOffType>();
+
+    public virtual ICollection<WeeklyOff> WeeklyOffUpdatedByNavigations { get; set; } = new List<WeeklyOff>();
 
     public virtual ICollection<WorkFromHome> WorkFromHomeCreatedByNavigations { get; set; } = new List<WorkFromHome>();
 

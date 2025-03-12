@@ -11,6 +11,8 @@ public partial class CompOffCredit
 
     public DateOnly WorkedDate { get; set; }
 
+    public int? Balance { get; set; }
+
     public int TotalDays { get; set; }
 
     public string Reason { get; set; } = null!;
@@ -30,8 +32,6 @@ public partial class CompOffCredit
     public int? ApprovalNotificationId { get; set; }
 
     public int? StaffId { get; set; }
-
-    public int Balance { get; set; }
 
     public bool? IsCancelled { get; set; }
 

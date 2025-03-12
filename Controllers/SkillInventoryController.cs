@@ -76,22 +76,22 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = skill
                 };
-                await _loggingService.AuditLog("Skill Inventory", "POST", "/Skills/CreateSkill", skill, model.CreatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.AuditLog("Skill Inventory", "POST", "/api/SkillInventory/CreateSkill", skill, model.CreatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Skill Inventory", "POST", "/Skills/CreateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Skill Inventory", "POST", "/api/SkillInventory/CreateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Skill Inventory", "POST", "/Skills/CreateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Skill Inventory", "POST", "/api/SkillInventory/CreateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
 
-        [HttpPost("Update")]
+        [HttpPost("UpdateSkill")]
         public async Task<IActionResult> UpdateAsync(SkillInventoryUpdateModel model)
         {
             try
@@ -102,17 +102,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updatedSkill
                 };
-                await _loggingService.AuditLog("Skill Inventory", "POST", "/Skills/UpdateSkill", updatedSkill, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.AuditLog("Skill Inventory", "POST", "/api/SkillInventory/UpdateSkill", updatedSkill, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Skill Inventory", "POST", "/Skills/UpdateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Skill Inventory", "POST", "/api/SkillInventory/UpdateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Skill Inventory", "POST", "/Skills/UpdateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Skill Inventory", "POST", "/api/SkillInventory/UpdateSkill", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

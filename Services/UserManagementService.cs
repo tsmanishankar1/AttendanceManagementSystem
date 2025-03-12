@@ -49,7 +49,7 @@ public class UserManagementService
     {
         var message = "Password changed successfully.";
         var user = await _context.UserManagements
-            .FirstOrDefaultAsync(u => u.Id == model.UserId && u.IsActive);
+            .FirstOrDefaultAsync(u => u.StaffCreationId == model.UserId && u.IsActive);
         if (user == null)
         {
             throw new MessageNotFoundException("User not found.");

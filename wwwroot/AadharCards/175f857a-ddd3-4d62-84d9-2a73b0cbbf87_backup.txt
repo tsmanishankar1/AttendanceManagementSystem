@@ -1,0 +1,129 @@
+public async Task<string> ManageDocumentVersion(string userId, string fileId, string siteId)
+{
+    // Get the user's information
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+    if (user == null)
+    {
+        return "User not found.";
+    }
+    var drives = await _graphServiceClient.Sites[siteId].Drives.GetAsync();
+    var defaultDrive = drives?.Value?.FirstOrDefault();  // Assuming you want the first drive
+    var driveId = defaultDrive?.Id;
+
+    try
+    {
+        // Get the file's version history
+        var fileVersions = await _graphServiceClient.Drives[driveId].Items[fileId].Versions.GetAsync();
+
+        if (fileVersions?.Value == null || !fileVersions.Value.Any())
+        {
+            return "No versions found for the specified file.";
+        }
+
+        // Check how many versions exist
+        if (fileVersions.Value.Count <= 5)
+        {
+            return "The file has 5 or fewer versions. No action needed.";
+        }
+
+        // Sort versions by LastModifiedDateTime and keep only the latest 5
+        var versionsToDelete = fileVersions.Value
+            .OrderBy(v => v.LastModifiedDateTime)
+            .Take(fileVersions.Value.Count - 5);
+
+        foreach (var version in versionsToDelete)
+        {
+            // Delete the older version
+            await _graphServiceClient.Drives[driveId].Items[fileId].Versions[version.Id].DeleteAsync();
+        }
+
+        return "Old versions deleted, keeping the latest 5.";
+    }
+    catch (Microsoft.Graph.Models.ODataErrors.ODataError ex)
+    {
+        // Handle the specific error of resource not found
+        return $"Error accessing the file or versions: {ex.Message}";
+    }
+    catch (Exception ex)
+    {
+        // General error handling
+        return $"An unexpected error occurred: {ex.Message}";
+    }
+}
+public async Task<bool> BackupOldVersionsAsync(string siteId, string fileId, string userId)
+{
+    var drives = await _graphServiceClient.Sites[siteId].Drives.GetAsync();
+    var defaultDrive = drives?.Value?.FirstOrDefault();  // Assuming you want the first drive
+    var driveId = defaultDrive?.Id;
+    try
+    {
+        // Retrieve the document versions from SharePoint using fileId and siteId
+        var fileVersions = await _graphServiceClient.Drives[driveId].Items[fileId].Versions.GetAsync();
+
+        // Sort versions by date and exclude the latest 5
+        var versionsToBackup = fileVersions.Value
+            .OrderByDescending(v => v.LastModifiedDateTime)
+            .Skip(5)
+            .ToList();
+
+        if (versionsToBackup.Count() == 0)
+        {
+            return true; // No older versions to backup
+        }
+
+        foreach (var version in versionsToBackup)
+        {
+            // Download the file content from SharePoint
+            var contentStream = await _graphServiceClient.Drives[driveId].Items[fileId].Versions[version.Id].Content.GetAsync();
+
+            // Backup the file to Azure Blob Storage, include userId in the blob name for tracking
+            await BackupToAzureBlobStorage(version, contentStream, userId);
+        }
+
+        return true;
+    }
+    catch (Exception ex)
+    {
+        // Handle exceptions and log errors
+        Console.WriteLine($"Error during backup: {ex.Message}");
+        return false;
+    }
+}
+
+private async Task BackupToAzureBlobStorage(DriveItemVersion version, Stream contentStream, string userId)
+{
+    var containerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+
+    // Construct a unique file name for backup, include userId for tracking purposes
+    string blobFileName = $"{userId}_{version.Id}_{version.LastModifiedDateTime:yyyyMMddHHmmss}.bak";
+
+    // Create a BlobClient for the file
+    var blobClient = containerClient.GetBlobClient(blobFileName);
+
+    // Upload the content to Azure Blob
+    await blobClient.UploadAsync(contentStream, true);
+}
+
+
+ [HttpGet("manage-version")]
+ public async Task<IActionResult> ManageVersion(string userId, string fileId, string siteId)
+ {
+     if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(fileId))
+     {
+         return BadRequest("User ID and File ID must be provided.");
+     }
+
+     var result = await _service.ManageDocumentVersion(userId, fileId, siteId);
+     return Ok(result);
+ }
+ [HttpGet("{siteId}/{fileId}/{userId}/backup")]
+ public async Task<IActionResult> BackupDocumentVersions(string siteId, string fileId, string userId)
+ {
+     var isBackupSuccessful = await _service.BackupOldVersionsAsync(siteId, fileId, userId);
+
+     if (isBackupSuccessful)
+     {
+         return Ok("Backup of older versions completed successfully.");
+     }
+     return BadRequest("Backup failed.");
+ }

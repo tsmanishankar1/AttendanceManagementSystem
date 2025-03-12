@@ -81,12 +81,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = newEmploymentHistory
                 };
-                await _loggingService.AuditLog("Employment History", "POST", "/EmploymentHistory/CreateEmploymentHistory", newEmploymentHistory, model.CreatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.AuditLog("Employment History", "POST", "/api/EmploymentHistory/CreateEmploymentHistory", newEmploymentHistory, model.CreatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Employment History", "POST", "/EmploymentHistory/CreateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Employment History", "POST", "/api/EmploymentHistory/CreateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -102,17 +102,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updatedEmploymentHistory
                 };
-                await _loggingService.AuditLog("Employment History", "POST", "/EmploymentHistory/UpdateEmploymentHistory", updatedEmploymentHistory, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.AuditLog("Employment History", "POST", "/api/EmploymentHistory/UpdateEmploymentHistory", updatedEmploymentHistory, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Employment History", "POST", "/EmploymentHistory/UpdateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Employment History", "POST", "/api/EmploymentHistory/UpdateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Employment History", "POST", "/EmploymentHistory/UpdateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
+                await _loggingService.LogError("Employment History", "POST", "/api/EmploymentHistory/UpdateEmploymentHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UpdatedBy, JsonSerializer.Serialize(model));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

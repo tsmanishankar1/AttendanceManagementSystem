@@ -27,17 +27,17 @@ public class UserManagementController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Register User", "POST", "/api/User/RegisterUser", result, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
+            await _loggingService.AuditLog("Register User", "POST", "/api/UserManagement/RegisterUser", result, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Register User", "POST", "/api/User/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
+            await _loggingService.LogError("Register User", "POST", "/api/UserManagement/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Register User", "POST", "/api/User/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
+            await _loggingService.LogError("Register User", "POST", "/api/UserManagement/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

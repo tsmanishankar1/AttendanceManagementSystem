@@ -9,13 +9,13 @@ public partial class DepartmentMaster
 
     public string FullName { get; set; } = null!;
 
-    public string ShortName { get; set; } = null!;
+    public string? ShortName { get; set; }
 
     public long Phone { get; set; }
 
     public string? Fax { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; }
 
     public bool IsActive { get; set; }
 

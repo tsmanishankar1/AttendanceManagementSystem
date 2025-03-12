@@ -1,5 +1,4 @@
-﻿using AttendanceManagement.AtrakModels;
-using AttendanceManagement.Input_Models;
+﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +8,9 @@ namespace AttendanceManagement.Services;
 public class BranchMasterService
 {
     private readonly AttendanceManagementSystemContext _context;
-    private readonly AtrakContext _atrakContext;
-
-    public BranchMasterService(AttendanceManagementSystemContext context, AtrakContext atrakContext)
+    public BranchMasterService(AttendanceManagementSystemContext context)
     {
         _context = context;
-        _atrakContext = atrakContext;
     }
 
     public async Task<IEnumerable<BranchMasterResponse>> GetAllBranches()

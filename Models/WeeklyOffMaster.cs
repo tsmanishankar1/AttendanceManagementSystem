@@ -9,8 +9,6 @@ public partial class WeeklyOffMaster
 
     public string WeeklyOffName { get; set; } = null!;
 
-    public int MarkWeeklyOff { get; set; }
-
     public bool IsActive { get; set; }
 
     public int CreatedBy { get; set; }
@@ -20,6 +18,8 @@ public partial class WeeklyOffMaster
     public int? UpdatedBy { get; set; }
 
     public DateTime? UpdatedUtc { get; set; }
+
+    public int MarkWeeklyOff { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

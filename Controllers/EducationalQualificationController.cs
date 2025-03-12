@@ -78,12 +78,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = createdDetail
                 };
-                await _loggingService.AuditLog("Educational Qualification", "POST", "/EducationalQualification/AddEducationalQualification", createdDetail, qualificationDto.CreatedBy, JsonSerializer.Serialize(qualificationDto));
+                await _loggingService.AuditLog("Educational Qualification", "POST", "/api/EducationalQualification/AddEducationalQualification", createdDetail, qualificationDto.CreatedBy, JsonSerializer.Serialize(qualificationDto));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Educational Qualification", "POST", "/EducationalQualification/AddEducationalQualification", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, qualificationDto.CreatedBy, JsonSerializer.Serialize(qualificationDto));
+                await _loggingService.LogError("Educational Qualification", "POST", "/api/EducationalQualification/AddEducationalQualification", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, qualificationDto.CreatedBy, JsonSerializer.Serialize(qualificationDto));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -99,17 +99,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updated
                 };
-                await _loggingService.AuditLog("Educational Qualification", "POST", "/EducationalQualification/UpdateEducationalQualification", updated, qualificationDto.UpdatedBy, JsonSerializer.Serialize(qualificationDto));
+                await _loggingService.AuditLog("Educational Qualification", "POST", "/api/EducationalQualification/UpdateEducationalQualification", updated, qualificationDto.UpdatedBy, JsonSerializer.Serialize(qualificationDto));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Educational Qualification", "POST", "/EducationalQualification/UpdateEducationalQualification", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, qualificationDto.UpdatedBy, JsonSerializer.Serialize(qualificationDto));
+                await _loggingService.LogError("Educational Qualification", "POST", "/api/EducationalQualification/UpdateEducationalQualification", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, qualificationDto.UpdatedBy, JsonSerializer.Serialize(qualificationDto));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Educational Qualification", "POST", "/EducationalQualification/UpdateEducationalQualification", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, qualificationDto.UpdatedBy, JsonSerializer.Serialize(qualificationDto));
+                await _loggingService.LogError("Educational Qualification", "POST", "/api/EducationalQualification/UpdateEducationalQualification", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, qualificationDto.UpdatedBy, JsonSerializer.Serialize(qualificationDto));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

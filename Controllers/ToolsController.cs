@@ -48,11 +48,12 @@ public class ToolsController : ControllerBase
         try
         {
             var staffInfo = await _service.GetStaffInfoByOrganizationTypeAsync(organizationTypeId);
-            if (staffInfo == null || staffInfo.Count == 0)
+            var response = new
             {
-                return NotFound("No staff found for the given organization type.");
-            }
-            return Ok(staffInfo);
+                Success = true,
+                Message = staffInfo
+            };
+            return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
@@ -68,12 +69,13 @@ public class ToolsController : ControllerBase
     {
         try
         {
-            if (staffIds == null || !staffIds.Any())
-            {
-                return BadRequest("Staff ID list cannot be empty.");
-            }
             var staffInfo = await _service.GetStaffInfoByStaffId(staffIds);
-            return Ok(staffInfo);
+            var response = new
+            {
+                Success = true,
+                Message = staffInfo
+            };
+            return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
@@ -142,12 +144,12 @@ public class ToolsController : ControllerBase
                 Success = true,
                 Message = createdAssignLeaveType
             };
-            await _loggingService.AuditLog("Assign Leave Type", "POST", "/AssignLeaveType/CreateAssignLeaveType", "Assign LeaveType Created Successfully", assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
+            await _loggingService.AuditLog("Assign Leave Type", "POST", "/api/Tools/CreateAssignLeaveType", "Assign LeaveType Created Successfully", assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Assign Leave Type", "POST", "/AssignLeaveType/CreateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
+            await _loggingService.LogError("Assign Leave Type", "POST", "/api/Tools/CreateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -163,17 +165,17 @@ public class ToolsController : ControllerBase
                 Success = true,
                 Message = updatedAssignLeaveType
             };
-            await _loggingService.AuditLog("Assign Leave Type", "POST", "/AssignLeaveType/UpdateAssignLeaveType", "AssignLeaveType Updated Successfully", assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
+            await _loggingService.AuditLog("Assign Leave Type", "POST", "/api/Tools/UpdateAssignLeaveType", "AssignLeaveType Updated Successfully", assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Assign Leave Type", "POST", "/AssignLeaveType/UpdateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
+            await _loggingService.LogError("Assign Leave Type", "POST", "/api/Tools/UpdateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Assign Leave Type", "POST", "/AssignLeaveType/UpdateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
+            await _loggingService.LogError("Assign Leave Type", "POST", "/api/Tools/UpdateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -188,12 +190,12 @@ public class ToolsController : ControllerBase
                 Success = true,
                 Message = message
             };
-            await _loggingService.AuditLog("Leave Credit Debit", "POST", "/LeaveCreditDebit/CreateLeaveCreditDebitForMultipleStaff", message, leaveCreditDebit.CreatedBy, JsonSerializer.Serialize(leaveCreditDebit));
+            await _loggingService.AuditLog("Leave Credit Debit", "POST", "/api/Tools/AddMultipleLeaveCreditDebit", message, leaveCreditDebit.CreatedBy, JsonSerializer.Serialize(leaveCreditDebit));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Leave Credit Debit", "POST", "/LeaveCreditDebit/CreateLeaveCreditDebitForMultipleStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveCreditDebit.CreatedBy, JsonSerializer.Serialize(leaveCreditDebit));
+            await _loggingService.LogError("Leave Credit Debit", "POST", "/api/Tools/AddMultipleLeaveCreditDebit", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveCreditDebit.CreatedBy, JsonSerializer.Serialize(leaveCreditDebit));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

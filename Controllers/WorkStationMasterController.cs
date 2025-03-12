@@ -75,17 +75,17 @@ public class WorkstationMasterController : ControllerBase
                 Success = true,
                 Message = createdWorkstation
             };
-            await _loggingService.AuditLog("Workstation Master", "POST", "/WorkstationMaster/CreateWorkstation", createdWorkstation, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
+            await _loggingService.AuditLog("Workstation Master", "POST", "/api/WorkstationMaster/CreateWorkstation", createdWorkstation, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
+            await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
+            await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -101,17 +101,17 @@ public class WorkstationMasterController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Workstation Master", "POST", "/WorkstationMaster/UpdateWorkstation", success, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
+            await _loggingService.AuditLog("Workstation Master", "POST", "/api/WorkstationMaster/UpdateWorkstation", success, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
+            await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Workstation Master", "POST", "/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
+            await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

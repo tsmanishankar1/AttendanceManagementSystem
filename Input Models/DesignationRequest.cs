@@ -4,7 +4,7 @@
     {
         public string FullName { get; set; } = null!;
 
-        public string ShortName { get; set; } = null!;
+        public string? ShortName { get; set; }
 
         public int CreatedBy { get; set; }
         public bool IsActive { get; set; }
@@ -16,7 +16,7 @@
 
         public string FullName { get; set; } = null!;
 
-        public string ShortName { get; set; } = null!;
+        public string? ShortName { get; set; }
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
     }
@@ -27,7 +27,7 @@
 
         public string FullName { get; set; } = null!;
 
-        public string ShortName { get; set; } = null!;  
+        public string? ShortName { get; set; }
 
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }

@@ -23,8 +23,6 @@ public partial class CategoryMaster
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
-    public virtual ICollection<DailyReport> DailyReports { get; set; } = new List<DailyReport>();
-
     public virtual ICollection<HeadCount> HeadCounts { get; set; } = new List<HeadCount>();
 
     public virtual ICollection<ManualAttendanceProcessing> ManualAttendanceProcessings { get; set; } = new List<ManualAttendanceProcessing>();

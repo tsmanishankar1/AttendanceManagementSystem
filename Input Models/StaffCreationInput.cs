@@ -20,7 +20,9 @@ namespace AttendanceManagement.Input_Models
         public string BloodGroup { get; set; } = null!;
 
         public IFormFile? ProfilePhoto { get; set; }
-
+        public IFormFile? AadharCardFilePath { get; set; }
+        public IFormFile? PanCardFilePath { get; set; }
+        public IFormFile? DrivingLicenseFilePath { get; set; }
         public string MaritalStatus { get; set; } = null!;
 
         public DateOnly Dob { get; set; }
@@ -159,6 +161,10 @@ namespace AttendanceManagement.Input_Models
         public string BloodGroup { get; set; } = null!;
 
         public string? ProfilePhoto { get; set; }
+        public string? AadharFilePath { get; set; }
+        public string? PanCardFilePath { get; set; }
+        public string? DrivingLicenseFilePath { get; set; }
+
         public int MaritalStatusId { get; set; }
         public string MaritalStatus { get; set; } = null!;
 
@@ -284,6 +290,177 @@ namespace AttendanceManagement.Input_Models
         public DateOnly? RelievingDate { get; set; }
     }
 
+    public class IndividualStaffUpdate
+    {
+        public string Title { get; set; } = null!;
+
+        public string FirstName { get; set; } = null!;
+
+        public string? LastName { get; set; }
+
+        public string? ShortName { get; set; }
+
+        public string Gender { get; set; } = null!;
+
+        public IFormFile? ProfilePhoto { get; set; }
+        public IFormFile? AadharFilePath { get; set; }
+        public IFormFile? PanCardFilePath { get; set; }
+        public IFormFile? DrivingLicenseFilePath { get; set; }
+        public string MaritalStatus { get; set; } = null!;
+
+        public long PersonalPhone { get; set; }
+        public long? OfficialPhone { get; set; }
+
+        public string City { get; set; } = null!;
+
+        public string District { get; set; } = null!;
+
+        public string State { get; set; } = null!;
+
+        public string Country { get; set; } = null!;
+        public int PostalCode { get; set; }
+        public string? MiddleName { get; set; }
+
+        public string PersonalLocation { get; set; } = null!;
+
+        public string? OfficialEmail { get; set; }
+        public string PersonalEmail { get; set; } = null!;
+        public string? BankName { get; set; }
+
+        public long? BankAccountNo { get; set; }
+
+        public string? BankIfscCode { get; set; }
+
+        public string? BankBranch { get; set; }
+
+        public string Qualification { get; set; } = null!;
+
+        public string HomeAddress { get; set; } = null!;
+
+        public string FatherName { get; set; } = null!;
+
+        public string EmergencyContactPerson1 { get; set; } = null!;
+
+        public string? EmergencyContactPerson2 { get; set; }
+
+        public long EmergencyContactNo1 { get; set; }
+
+        public long? EmergencyContactNo2 { get; set; }
+
+        public string MotherName { get; set; } = null!;
+
+        public int UpdatedBy { get; set; }
+    }
+
+    public class IndividualStaffResponse
+    {
+        public string StaffCreationId { get; set; } = null!;
+
+        public string Title { get; set; } = null!;
+
+        public string FirstName { get; set; } = null!;
+
+        public string? LastName { get; set; }
+
+        public string? ShortName { get; set; }
+
+        public string Gender { get; set; } = null!;
+
+        public string BloodGroup { get; set; } = null!;
+
+        public string? ProfilePhoto { get; set; }
+        public string? AadharFilePath { get; set; }
+        public string? PanCardFilePath { get; set; }
+        public string? DrivingLicenseFilePath { get; set; }
+        public int MaritalStatusId { get; set; }
+        public string MaritalStatus { get; set; } = null!;
+
+        public DateOnly Dob { get; set; }
+
+        public DateOnly? MarriageDate { get; set; }
+
+        public long PersonalPhone { get; set; }
+        public long? OfficialPhone { get; set; }
+
+        public DateOnly JoiningDate { get; set; }
+
+        public bool Confirmed { get; set; }
+        public DateOnly? ConfirmationDate { get; set; }
+        public int DepartmentId { get; set; }
+        public string Department { get; set; } = null!;
+        public int DivisionId { get; set; }
+        public string Division { get; set; } = null!;
+        public int DesignationId { get; set; }
+        public string Designation { get; set; } = null!;
+        public int GradeId { get; set; }
+        public string Grade { get; set; } = null!;
+        public string City { get; set; } = null!;
+
+        public string District { get; set; } = null!;
+
+        public string State { get; set; } = null!;
+
+        public string Country { get; set; } = null!;
+        public int PostalCode { get; set; }
+        public int? ApprovalLevelId1 { get; set; }
+        public string ApprovalLevel1 { get; set; } = null!;
+        public int? ApprovalLevelId2 { get; set; }
+        public string? ApprovalLevel2 { get; set; }
+
+        public decimal Tenure { get; set; }
+
+        public string? UanNumber { get; set; }
+
+        public string? EsiNumber { get; set; }
+
+        public string? MiddleName { get; set; }
+
+        public string PersonalLocation { get; set; } = null!;
+
+        public string? OfficialEmail { get; set; }
+        public string PersonalEmail { get; set; } = null!;
+        public long? AadharNo { get; set; }
+
+        public string? PanNo { get; set; }
+
+        public string? PassportNo { get; set; }
+
+        public string? DrivingLicense { get; set; }
+
+        public string? BankName { get; set; }
+
+        public long? BankAccountNo { get; set; }
+
+        public string? BankIfscCode { get; set; }
+
+        public string? BankBranch { get; set; }
+
+        public string Qualification { get; set; } = null!;
+
+        public string HomeAddress { get; set; } = null!;
+
+        public string FatherName { get; set; } = null!;
+
+        public string? EmergencyContactPerson1 { get; set; }
+
+        public string? EmergencyContactPerson2 { get; set; }
+
+        public long EmergencyContactNo1 { get; set; }
+
+        public long? EmergencyContactNo2 { get; set; }
+
+        public string MotherName { get; set; } = null!;
+
+        public long? FatherAadharNo { get; set; }
+
+        public long? MotherAadharNo { get; set; }
+        public int CreatedBy { get; set; }
+        public int OrganizationTypeId { get; set; }
+        public string OrganizationTypeName { get; set; } = null!;
+        public int WorkingStatusId { get; set; }
+        public string WorkingStatus { get; set; } = null!;
+
+    }
     public class StaffCreationClass
     {
         public int StaffCreationId { get; set; }
@@ -479,6 +656,9 @@ namespace AttendanceManagement.Input_Models
         public string WorkingStatus { get; set; } = null!;
         public DateOnly? ResignationDate { get; set; }
         public DateOnly? RelievingDate { get; set; }
+        public IFormFile? AadharCardFilePath { get; set; }
+        public IFormFile? PanCardFilePath { get; set; }
+        public IFormFile? DrivingLicenseFilePath { get; set; }
     }
 
     public class OrganizationTypeResponse
@@ -532,7 +712,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class ApproverUpdateRequest
     {
-        public List<int> StaffIds { get; set; } = new(); 
+        public List<int> StaffIds { get; set; } = new();
         public int? ApproverId1 { get; set; }
         public int? ApproverId2 { get; set; }
         public int UpdatedBy { get; set; }

@@ -10,23 +10,23 @@
 
         public string LegalName { get; set; } = null!;
 
-        public string Address { get; set; } = null!;
+        public string? Address { get; set; } 
 
-        public string Website { get; set; } = null!;
+        public string? Website { get; set; }
 
-        public string RegisterNumber { get; set; } = null!;
+        public string? RegisterNumber { get; set; } 
 
-        public string Tngsnumber { get; set; } = null!;
+        public string? Tngsnumber { get; set; }
 
-        public string Cstnumber { get; set; } = null!;
+        public string? Cstnumber { get; set; }
 
-        public string Tinnumber { get; set; } = null!;
+        public string? Tinnumber { get; set; }
 
-        public string ServiceTaxNo { get; set; } = null!;
+        public string? ServiceTaxNo { get; set; }
 
-        public string Pannumber { get; set; } = null!;
+        public string? Pannumber { get; set; }
 
-        public string Pfnumber { get; set; } = null!;
+        public string? Pfnumber { get; set; }
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }
     }
@@ -41,23 +41,23 @@
 
         public string LegalName { get; set; } = null!;
 
-        public string Address { get; set; } = null!;
+        public string? Address { get; set; }
 
-        public string Website { get; set; } = null!;
+        public string? Website { get; set; }
 
-        public string RegisterNumber { get; set; } = null!;
+        public string? RegisterNumber { get; set; } 
 
-        public string Tngsnumber { get; set; } = null!;
+        public string? Tngsnumber { get; set; }
 
-        public string Cstnumber { get; set; } = null!;
+        public string? Cstnumber { get; set; }
 
-        public string Tinnumber { get; set; } = null!;
+        public string? Tinnumber { get; set; }
 
-        public string ServiceTaxNo { get; set; } = null!;
+        public string? ServiceTaxNo { get; set; }
 
-        public string Pannumber { get; set; } = null!;
+        public string? Pannumber { get; set; }
 
-        public string Pfnumber { get; set; } = null!;
+        public string? Pfnumber { get; set; }
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
     }
@@ -71,23 +71,23 @@
 
         public string LegalName { get; set; } = null!;
 
-        public string Address { get; set; } = null!;
+        public string? Address { get; set; } 
 
-        public string Website { get; set; } = null!;
+        public string? Website { get; set; } 
 
-        public string RegisterNumber { get; set; } = null!;
+        public string? RegisterNumber { get; set; }
 
-        public string Tngsnumber { get; set; } = null!;
+        public string? Tngsnumber { get; set; }
 
-        public string Cstnumber { get; set; } = null!;
+        public string? Cstnumber { get; set; }
 
-        public string Tinnumber { get; set; } = null!;
+        public string? Tinnumber { get; set; }
 
-        public string ServiceTaxNo { get; set; } = null!;
+        public string? ServiceTaxNo { get; set; }
 
-        public string Pannumber { get; set; } = null!;
+        public string? Pannumber { get; set; }
 
-        public string Pfnumber { get; set; } = null!;   
+        public string? Pfnumber { get; set; }  
 
         public int CreatedBy { get; set; }
         public bool IsActive { get; set; }

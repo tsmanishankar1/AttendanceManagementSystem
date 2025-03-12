@@ -23,13 +23,13 @@ namespace AttendanceManagement.Input_Models
     {
         public string StartDuration { get; set; } = null!;
 
-        public string EndDuration { get; set; } = null!;
+        public string? EndDuration { get; set; } = null!;
         public int? StaffId { get; set; }
         public int LeaveTypeId { get; set; }
 
         public DateOnly FromDate { get; set; }
 
-        public DateOnly? ToDate { get; set; }
+        public DateOnly ToDate { get; set; }
 
         public string Reason { get; set; } = null!;
 

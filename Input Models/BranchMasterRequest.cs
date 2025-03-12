@@ -23,7 +23,7 @@
 
         public string? Fax { get; set; }
 
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; }
 
         public bool IsHeadOffice { get; set; }
 
@@ -44,7 +44,7 @@
         public int PostalCode { get; set; }
         public long PhoneNumber { get; set; }
         public string? Fax { get; set; }
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; }
         public int CompanyMasterId { get; set; }
         public string CompanyMasterName { get; set; } = null!;
         public bool IsHeadOffice { get; set; }
@@ -77,7 +77,7 @@
 
         public string? Fax { get; set; }
 
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; } 
 
         public bool IsHeadOffice { get; set; }
 

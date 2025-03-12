@@ -21,61 +21,75 @@ namespace AttendanceManagement.Services
         {
             _context = context;
         }
-
         public async Task<List<ProbationResponse>> GetAllProbationsAsync()
         {
-            var allProbation = await (from probation in _context.Probations
-                                      where probation.IsActive
+            var allProbation = await (from p in _context.Probations
+                                      join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                                      join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
+                                      join o in _context.OrganizationTypes on d.Id equals o.Id
+                                      where p.IsActive
                                       select new ProbationResponse
                                       {
-                                          ProbationId = probation.Id,
-                                          StaffCreationId = probation.StaffCreationId,
-                                          ProbationStartDate = probation.ProbationStartDate,
-                                          ProbationEndDate = probation.ProbationEndDate,
-                                          IsCompleted = probation.IsCompleted,
-                                          CreatedBy = probation.CreatedBy
+                                          ProbationId = p.Id,
+                                          StaffId = p.StaffCreationId,
+                                          StaffCreationId = $"{o.ShortName}{s.Id}",
+                                          StaffName = s.FirstName + " " + s.LastName,
+                                          DepartmentName = d.FullName,
+                                          ProbationStartDate = p.ProbationStartDate,
+                                          ProbationEndDate = p.ProbationEndDate,
+                                          IsCompleted = p.IsCompleted,
+                                          CreatedBy = p.CreatedBy
                                       }).ToListAsync();
-            if (allProbation.Count == 0)
+
+            if (!allProbation.Any())
             {
                 throw new MessageNotFoundException("No Probations found");
             }
+
             return allProbation;
         }
-
         public async Task<ProbationResponse> GetProbationByIdAsync(int probationId)
         {
-            var allProbation = await (from probation in _context.Probations
-                                      where probation.Id == probationId && probation.IsActive
-                                      select new ProbationResponse
-                                      {
-                                          ProbationId = probation.Id,
-                                          StaffCreationId = probation.StaffCreationId,
-                                          ProbationStartDate = probation.ProbationStartDate,
-                                          ProbationEndDate = probation.ProbationEndDate,
-                                          IsCompleted = probation.IsCompleted,
-                                          CreatedBy = probation.CreatedBy
-                                      }).FirstOrDefaultAsync();
-            if (allProbation == null)
+            var probation = await (from p in _context.Probations
+                                   join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                                   join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
+                                   join o in _context.OrganizationTypes on d.Id equals o.Id
+                                   where p.Id == probationId && p.IsActive
+                                   select new ProbationResponse
+                                   {
+                                       ProbationId = p.Id,
+                                       StaffId = p.StaffCreationId,
+                                       StaffCreationId = $"{o.ShortName}{s.Id}",
+                                       StaffName = s.FirstName + " " + s.LastName,
+                                       DepartmentName = d.FullName,
+                                       ProbationStartDate = p.ProbationStartDate,
+                                       ProbationEndDate = p.ProbationEndDate,
+                                       IsCompleted = p.IsCompleted,
+                                       CreatedBy = p.CreatedBy
+                                   }).FirstOrDefaultAsync();
+
+            if (probation == null)
             {
                 throw new MessageNotFoundException("Probation not found");
             }
-            return allProbation;
+
+            return probation;
         }
 
         public async Task<string> CreateProbationAsync(ProbationRequest probationRequest)
         {
             var message = "Probation created successfully.";
-            var pro = await _context.Probations.FirstOrDefaultAsync(p => p.StaffCreationId == probationRequest.StaffCreationId && p.IsActive);
+            var pro = await _context.Probations.FirstOrDefaultAsync(p => p.StaffCreationId == probationRequest.StaffId && p.IsActive);
             if (pro != null)
             {
                 throw new Exception("Probation Details ALready Exists");
             }
             var probation = new Probation
             {
-                StaffCreationId = probationRequest.StaffCreationId,
+                StaffCreationId = probationRequest.StaffId,
                 ProbationStartDate = probationRequest.ProbationStartDate,
                 ProbationEndDate = probationRequest.ProbationEndDate,
-                IsCompleted = probationRequest.IsCompleted,
+                IsCompleted = false,
                 IsActive = true,
                 CreatedBy = probationRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
@@ -94,40 +108,72 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("Probation not found");
             }
-            existingProbation.StaffCreationId = probation.StaffCreationId;
+            existingProbation.StaffCreationId = probation.StaffId;
             existingProbation.ProbationStartDate = probation.ProbationStartDate;
             existingProbation.ProbationEndDate = probation.ProbationEndDate;
-            existingProbation.IsCompleted = probation.IsCompleted;
             existingProbation.UpdatedBy = probation.UpdatedBy;
             existingProbation.UpdatedUtc = DateTime.UtcNow;
             _context.Entry(existingProbation).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return message;
         }
-
         public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel1(int approverLevel1Id)
         {
             var matchingProbations = await (from p in _context.Probations
-                                      join s in _context.StaffCreations
-                                      on p.StaffCreationId equals s.Id
-                                      where s.ApprovalLevel1 == approverLevel1Id &&
-                                            p.IsCompleted == true && p.StaffCreationId == s.Id &&
-                                            p.IsActive
-                                      select new ProbationResponse
-                                      {
-                                          ProbationId = p.Id,
-                                          StaffCreationId = p.StaffCreationId,
-                                          ProbationStartDate = p.ProbationStartDate,
-                                          ProbationEndDate = p.ProbationEndDate,
-                                          IsCompleted = p.IsCompleted,
-                                          CreatedBy = p.CreatedBy
-                                      }).ToListAsync();
-            if (matchingProbations.Count == 0)
+                                            join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                                            join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
+                                            join o in _context.OrganizationTypes on d.Id equals o.Id
+                                            where s.ApprovalLevel1 == approverLevel1Id &&
+                                                  p.StaffCreationId == s.Id &&
+                                                  p.IsActive
+                                            select new ProbationResponse
+                                            {
+                                                ProbationId = p.Id,
+                                                StaffId = p.StaffCreationId,
+                                                StaffCreationId = $"{o.ShortName}{s.Id}",
+                                                StaffName = s.FirstName + " " + s.LastName,
+                                                DepartmentName = d.FullName,
+                                                ProbationStartDate = p.ProbationStartDate,
+                                                ProbationEndDate = p.ProbationEndDate,
+                                                IsCompleted = p.IsCompleted,
+                                                CreatedBy = p.CreatedBy
+                                            }).ToListAsync();
+
+            if (!matchingProbations.Any())
             {
                 throw new MessageNotFoundException("No Probations found");
             }
+
             return matchingProbations;
         }
+        public async Task<List<FeedbackResponse>> GetFeedbackDetailsByApproverLevel1(int approverLevel1Id)
+        {
+            var feedbackWithJoins = await (
+                from f in _context.Feedbacks
+                join p in _context.Probations on f.ProbationId equals p.Id
+                join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                join o in _context.OrganizationTypes on s.OrganizationTypeId equals o.Id
+                where s.ApprovalLevel1 == approverLevel1Id && f.IsActive
+                select new FeedbackResponse
+                {
+                    FeedbackId = f.Id,
+                    ProbationId = p.Id,
+                    FeedbackText = f.FeedbackText,
+                    StaffId = p.StaffCreationId,
+                    StaffCreationId = $"{o.ShortName}{s.Id}",
+                    StaffCreationName = s.FirstName + " " + s.LastName,
+                    IsCompleted = p.IsCompleted,
+                    CreatedBy = f.CreatedBy
+                }).ToListAsync();
+
+            if (!feedbackWithJoins.Any())
+            {
+                throw new MessageNotFoundException("Feedback not found");
+            }
+
+            return feedbackWithJoins;
+        }
+
         public async Task<string> AddFeedbackAsync(FeedbackRequest feedbackRequest)
         {
             var message = "Feedback added successfully.";
@@ -144,21 +190,23 @@ namespace AttendanceManagement.Services
             return message;
         }
 
-        // Get Feedback by ID with Joins
         public async Task<FeedbackResponse> GetFeedbackByIdAsync(int feedbackId)
         {
             var feedbackWithJoins = await (
                 from f in _context.Feedbacks
                 join p in _context.Probations on f.Id equals p.Id
                 join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                join o in _context.OrganizationTypes on s.OrganizationTypeId equals o.Id
                 where f.Id == feedbackId && f.IsActive
                 select new FeedbackResponse
                 {
                     FeedbackId = f.Id,
                     ProbationId = f.Id,
                     FeedbackText = f.FeedbackText,
-                    StaffCreationId = p.StaffCreationId,
+                    StaffId = p.StaffCreationId,
+                    StaffCreationId = $"{o.ShortName}{s.Id}",
                     StaffCreationName = s.FirstName + " " + s.LastName,
+                    IsCompleted = p.IsCompleted,
                     CreatedBy = f.CreatedBy
                 }).FirstOrDefaultAsync();
             if (feedbackWithJoins == null)
@@ -168,21 +216,23 @@ namespace AttendanceManagement.Services
             return feedbackWithJoins;
         }
 
-        // Get All Feedbacks with Joins
         public async Task<IEnumerable<FeedbackResponse>> GetAllFeedbacksAsync()
         {
             var feedbackList = await (
                 from f in _context.Feedbacks
                 join p in _context.Probations on f.Id equals p.Id
                 join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                join o in _context.OrganizationTypes on s.OrganizationTypeId equals o.Id
                 where f.IsActive
                 select new FeedbackResponse
                 {
                     FeedbackId = f.Id,
                     ProbationId = f.Id,
                     FeedbackText = f.FeedbackText,
-                    StaffCreationId = p.StaffCreationId,
+                    StaffId = p.StaffCreationId,
+                    StaffCreationId = $"{o.ShortName}{s.Id}",
                     StaffCreationName = s.FirstName + " " + s.LastName,
+                    IsCompleted = p.IsCompleted,
                     CreatedBy = f.CreatedBy
                 }).ToListAsync();
 
@@ -192,7 +242,6 @@ namespace AttendanceManagement.Services
             }
             return feedbackList;
         }
-        // Update Feedback
         public async Task<string> UpdateFeedbackAsync(UpdateFeedback updatedFeedback)
         {
             var message = "Feedback updated successfully.";
@@ -211,7 +260,6 @@ namespace AttendanceManagement.Services
 
         public async Task<string> ProcessApprovalAsync(ApprovalRequest approvalRequest)
         {
-            // Validate the Approval input
             if (approvalRequest.IsApproved != true)
             {
                 throw new Exception("Approval is not marked as approved.");
@@ -226,46 +274,54 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow,
                 IsActive = true
             };
-            // Add the Approval entry to the database
+
             _context.Approvals.Add(approval);
             await _context.SaveChangesAsync();
 
-            // Get related Feedback and Probation details
             var feedback = await (from feedBack in _context.Feedbacks
-                                  join probation in _context.Probations
-                                  on feedBack.Id equals probation.Id
+                                  join probations in _context.Probations
+                                  on feedBack.ProbationId equals probations.Id
+                                  join s in _context.StaffCreations
+                                  on probations.StaffCreationId equals s.Id
+                                  join o in _context.OrganizationTypes
+                                  on s.OrganizationTypeId equals o.Id
                                   where feedBack.Id == approval.FeedbackId && feedBack.IsActive
                                   select new FeedbackResponse
                                   {
                                       FeedbackId = feedBack.Id,
-                                      ProbationId = feedBack.Id,
+                                      ProbationId = probations.Id,
                                       FeedbackText = feedBack.FeedbackText,
-                                      StaffCreationId = probation.StaffCreationId
+                                      StaffId = probations.StaffCreationId,
+                                      StaffCreationId = $"{o.ShortName}{s.Id}",
                                   })
-                .FirstOrDefaultAsync();
+                       .FirstOrDefaultAsync();
+
             if (feedback == null)
             {
-                throw new Exception("Feedback not found.");
+                throw new MessageNotFoundException("Feedback not found");
             }
-            var pro = await _context.Probations.FirstOrDefaultAsync(f => f.Id == feedback.ProbationId && f.IsActive);
-            if (pro == null)
+
+            var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == feedback.ProbationId && p.IsActive);
+            if (probation == null)
             {
                 throw new Exception("Probation not found.");
             }
-            var staffCreationId = feedback.StaffCreationId;
 
-            // Generate the PDF and get its path
+            probation.IsCompleted = true;
+            _context.Probations.Update(probation);
+            await _context.SaveChangesAsync();
+
+            var staffCreationId = feedback.StaffId;
+
             var pdfPath = GeneratePdf(staffCreationId);
 
-            // Convert the PDF file to base64
             byte[] pdfBytes = System.IO.File.ReadAllBytes(pdfPath);
             string base64Pdf = Convert.ToBase64String(pdfBytes);
 
-            // Save the LetterGeneration record
             var letterGeneration = new LetterGeneration
             {
                 LetterPath = pdfPath,
-                LetterContent = Convert.FromBase64String(base64Pdf), // Store the base64 content as byte array
+                LetterContent = Convert.FromBase64String(base64Pdf),
                 StaffCreationId = staffCreationId,
                 CreatedBy = approval.CreatedBy,
                 UpdatedBy = approval.UpdatedBy,
@@ -276,9 +332,8 @@ namespace AttendanceManagement.Services
             _context.LetterGenerations.Add(letterGeneration);
             await _context.SaveChangesAsync();
 
-            return pdfPath; // Return the path or base64 string if needed
+            return pdfPath;
         }
-
         private string GeneratePdf(int staffCreationId)
         {
             var staff = _context.StaffCreations.Find(staffCreationId);
@@ -349,8 +404,8 @@ namespace AttendanceManagement.Services
                 throw new Exception("Generated PDF file not found.");
             }
 
-            using (var pdfReader = new iText.Kernel.Pdf.PdfReader(filePath)) // Fully qualify PdfReader
-            using (var pdfDoc = new iText.Kernel.Pdf.PdfDocument(pdfReader)) // Fully qualify PdfDocument
+            using (var pdfReader = new iText.Kernel.Pdf.PdfReader(filePath))
+            using (var pdfDoc = new iText.Kernel.Pdf.PdfDocument(pdfReader))
             {
                 var textContent = new StringWriter();
                 for (int page = 1; page <= pdfDoc.GetNumberOfPages(); page++)
@@ -359,7 +414,7 @@ namespace AttendanceManagement.Services
                     textContent.WriteLine(pageContent);
                 }
 
-                return textContent.ToString(); // Return plain text
+                return textContent.ToString();
             }
         }
 

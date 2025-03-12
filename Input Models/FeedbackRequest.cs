@@ -14,9 +14,9 @@
         public int FeedbackId { get; set; }
 
         public int ProbationId { get; set; }
-        public int StaffCreationId { get; set; }
+        public int StaffId { get; set; }
+        public string StaffCreationId { get; set; }
         public string StaffCreationName { get; set; } = null!;
-
         public string? FeedbackText { get; set; }
         public DateOnly ProbationStartDate { get; set; }
         public DateOnly ProbationEndDate { get; set; }

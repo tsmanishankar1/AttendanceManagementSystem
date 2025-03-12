@@ -75,12 +75,12 @@ public class GradeMasterController : ControllerBase
                 Success = true,
                 Message = createdGrade
             };
-            await _loggingService.AuditLog("Grade Master", "POST", "/GradeMaster/CreateGrade", createdGrade, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
+            await _loggingService.AuditLog("Grade Master", "POST", "/api/GradeMaster/CreateGrade", createdGrade, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Grade Master", "POST", "/GradeMaster/CreateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
+            await _loggingService.LogError("Grade Master", "POST", "/api/GradeMaster/CreateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -96,17 +96,17 @@ public class GradeMasterController : ControllerBase
                 Success = true,
                 Message = updatedGrade
             };
-            await _loggingService.AuditLog("Grade Master", "POST", "/GradeMaster/UpdateGrade", updatedGrade, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
+            await _loggingService.AuditLog("Grade Master", "POST", "/api/GradeMaster/UpdateGrade", updatedGrade, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Grade Master", "POST", "/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
+            await _loggingService.LogError("Grade Master", "POST", "/api/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Grade Master", "POST", "/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
+            await _loggingService.LogError("Grade Master", "POST", "/api/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

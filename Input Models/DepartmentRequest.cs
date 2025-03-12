@@ -10,7 +10,7 @@
 
         public string? Fax { get; set; }
 
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; }
 
         public int CreatedBy { get; set; }
         public bool IsActive { get; set; }
@@ -28,7 +28,7 @@
 
         public string? Fax { get; set; }
 
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; }
 
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
@@ -46,7 +46,7 @@
 
         public string? Fax { get; set; }
 
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; }
 
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }

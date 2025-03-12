@@ -77,12 +77,12 @@ public class LeaveGroupConfigurationController : ControllerBase
                 Success = true,
                 Message = createdConfiguration
             };
-            await _loggingService.AuditLog("Leave Group Configuration", "POST", "/LeaveGroupConfiguration/CreateLeaveGroupConfiguration", createdConfiguration, configuration.CreatedBy, JsonSerializer.Serialize(configuration));
+            await _loggingService.AuditLog("Leave Group Configuration", "POST", "/api/LeaveGroupConfiguration/AddLeaveGroupConfiguration", createdConfiguration, configuration.CreatedBy, JsonSerializer.Serialize(configuration));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Leave Group Configuration", "POST", "/LeaveGroupConfiguration/CreateLeaveGroupConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, configuration.CreatedBy, JsonSerializer.Serialize(configuration));
+            await _loggingService.LogError("Leave Group Configuration", "POST", "/api/LeaveGroupConfiguration/AddLeaveGroupConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, configuration.CreatedBy, JsonSerializer.Serialize(configuration));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class LeaveGroupConfigurationController : ControllerBase
                 Success = true,
                 Message = updatedConfiguration
             };
-            await _loggingService.AuditLog("Leave Group Configuration", "POST", "/LeaveGroupConfiguration/UpdateLeaveGroupConfiguration", updatedConfiguration, transaction.UpdatedBy, JsonSerializer.Serialize(transaction));
+            await _loggingService.AuditLog("Leave Group Configuration", "POST", "/api/LeaveGroupConfiguration/UpdateLeaveGroupConfiguration", updatedConfiguration, transaction.UpdatedBy, JsonSerializer.Serialize(transaction));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Leave Group Configuration", "POST", "/LeaveGroupConfiguration/UpdateLeaveGroupConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, transaction.UpdatedBy, JsonSerializer.Serialize(transaction));
+            await _loggingService.LogError("Leave Group Configuration", "POST", "/api/LeaveGroupConfiguration/UpdateLeaveGroupConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, transaction.UpdatedBy, JsonSerializer.Serialize(transaction));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Leave Group Configuration", "POST", "/LeaveGroupConfiguration/UpdateLeaveGroupConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, transaction.UpdatedBy, JsonSerializer.Serialize(transaction));
+            await _loggingService.LogError("Leave Group Configuration", "POST", "/api/LeaveGroupConfiguration/UpdateLeaveGroupConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, transaction.UpdatedBy, JsonSerializer.Serialize(transaction));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

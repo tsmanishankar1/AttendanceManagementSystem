@@ -77,12 +77,12 @@ public class CategoryMasterController : ControllerBase
                 Success = true,
                 Message = createdCategory
             };
-            await _loggingService.AuditLog("Category Master", "POST", "/CategoryMaster/CreateCategory", createdCategory, category.CreatedBy, JsonSerializer.Serialize(category));
+            await _loggingService.AuditLog("Category Master", "POST", "/api/CategoryMaster/CreateCategory", createdCategory, category.CreatedBy, JsonSerializer.Serialize(category));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Category Master", "POST", "/CategoryMaster/CreateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, category.CreatedBy, JsonSerializer.Serialize(category));
+            await _loggingService.LogError("Category Master", "POST", "/api/CategoryMaster/CreateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, category.CreatedBy, JsonSerializer.Serialize(category));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class CategoryMasterController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Category Master", "POST", "/CategoryMaster/UpdateCategory", success ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
+            await _loggingService.AuditLog("Category Master", "POST", "/api/CategoryMaster/UpdateCategory", success ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Category Master", "POST", "/CategoryMaster/UpdateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
+            await _loggingService.LogError("Category Master", "POST", "/api/CategoryMaster/UpdateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Category Master", "POST", "/CategoryMaster/UpdateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
+            await _loggingService.LogError("Category Master", "POST", "/api/CategoryMaster/UpdateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

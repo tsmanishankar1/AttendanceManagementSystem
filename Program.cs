@@ -1,15 +1,13 @@
 ﻿using AttendanceManagement;
-using AttendanceManagement.AtrakModels;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using AttendanceManagement.Services;
-using AttendanceManagement.SmaxModels;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
 using System.Reflection;
 using System.Text;
 
@@ -40,15 +38,12 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
-
 builder.Services.AddDbContext<AttendanceManagementSystemContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
-builder.Services.AddDbContext<AtrakContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ATRAK")));
-builder.Services.AddDbContext<SmaxV2BioVleadNewContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SmaxV2BioVleadNew")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"), sqlOptions =>
+        sqlOptions.CommandTimeout(300)));
 builder.Services.AddDbContext<StoredProcedureDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"), sqlOptions =>
+        sqlOptions.CommandTimeout(300)));
 
 builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<BranchMasterService>();
@@ -84,6 +79,7 @@ builder.Services.AddScoped<CertificateTrackingService>();
 builder.Services.AddScoped<EducationalQualificationService>();
 builder.Services.AddScoped<FamilyDetailsService>();
 builder.Services.AddScoped<LoggingService>();
+builder.Services.AddScoped<DailyReportsService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -112,6 +108,14 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors("AllowSpecificOrigin");
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "ExcelTemplates")),
+    RequestPath = "/ExcelTemplates"
+});
+
 app.MapControllers();
 
 app.Run();

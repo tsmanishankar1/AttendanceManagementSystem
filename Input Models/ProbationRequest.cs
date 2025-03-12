@@ -2,13 +2,11 @@
 {
     public class ProbationRequest
     {
-        public int StaffCreationId { get; set; }
+        public int StaffId { get; set; }
 
         public DateOnly ProbationStartDate { get; set; }
 
         public DateOnly ProbationEndDate { get; set; }
-
-        public bool? IsCompleted { get; set; }
 
         public int CreatedBy { get; set; }
     }
@@ -16,9 +14,10 @@
     public class ProbationResponse
     {
         public int ProbationId { get; set; }
-
-        public int StaffCreationId { get; set; }
-
+        public int StaffId { get; set; }
+        public string StaffCreationId { get; set; } = null!;
+        public string StaffName { get; set; } = null!;
+        public string DepartmentName { get; set; } = null!;
         public DateOnly ProbationStartDate { get; set; }
 
         public DateOnly ProbationEndDate { get; set; }
@@ -31,7 +30,7 @@
     {
         public int ProbationId { get; set; }
 
-        public int StaffCreationId { get; set; }
+        public int StaffId { get; set; }
 
         public DateOnly ProbationStartDate { get; set; }
 

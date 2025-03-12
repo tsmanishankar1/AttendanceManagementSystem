@@ -77,12 +77,12 @@ public class CertificateTrackingController : ControllerBase
                 Success = true,
                 Message = createdCertificate
             };
-            await _loggingService.AuditLog("Certificate Tracking", "POST", "/CertificateTracking/CreateCertificate", createdCertificate, certificate.CreatedBy, JsonSerializer.Serialize(certificate));
+            await _loggingService.AuditLog("Certificate Tracking", "POST", "/api/CertificateTracking/CreateCertificate", createdCertificate, certificate.CreatedBy, JsonSerializer.Serialize(certificate));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Certificate Tracking", "POST", "/CertificateTracking/CreateCertificate", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, certificate.CreatedBy, JsonSerializer.Serialize(certificate));
+            await _loggingService.LogError("Certificate Tracking", "POST", "/api/CertificateTracking/CreateCertificate", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, certificate.CreatedBy, JsonSerializer.Serialize(certificate));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -98,17 +98,17 @@ public class CertificateTrackingController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Certificate Tracking", "POST", "/CertificateTracking/UpdateCertificate", success ?? string.Empty, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
+            await _loggingService.AuditLog("Certificate Tracking", "POST", "/api/CertificateTracking/UpdateCertificate", success ?? string.Empty, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Certificate Tracking", "POST", "/CertificateTracking/UpdateCertificate", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
+            await _loggingService.LogError("Certificate Tracking", "POST", "/api/CertificateTracking/UpdateCertificate", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Certificate Tracking", "POST", "/CertificateTracking/UpdateCertificate", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
+            await _loggingService.LogError("Certificate Tracking", "POST", "/api/CertificateTracking/UpdateCertificate", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

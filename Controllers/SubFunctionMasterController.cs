@@ -74,12 +74,12 @@ public class SubFunctionMasterController : ControllerBase
                 Success = true,
                 Message = createdSubFunction
             };
-            await _loggingService.AuditLog("SubFunction Master", "POST", "/SubFunction/CreateSubFunction", createdSubFunction, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
+            await _loggingService.AuditLog("SubFunction Master", "POST", "/api/SubFunctionMaster/CreateSubFunction", createdSubFunction, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("SubFunction Master", "POST", "/SubFunction/CreateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
+            await _loggingService.LogError("SubFunction Master", "POST", "/api/SubFunctionMaster/CreateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -95,17 +95,17 @@ public class SubFunctionMasterController : ControllerBase
                 Success = true,
                 Message = updatedSubFunction
             };
-            await _loggingService.AuditLog("SubFunction Master", "POST", "/SubFunction/CreateSubFunction", updatedSubFunction, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
+            await _loggingService.AuditLog("SubFunction Master", "POST", "/api/SubFunctionMaster/UpdateSubFunction", updatedSubFunction, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("SubFunction Master", "POST", "/SubFunction/UpdateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
+            await _loggingService.LogError("SubFunction Master", "POST", "/api/SubFunctionMaster/UpdateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("SubFunction Master", "POST", "/SubFunction/UpdateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
+            await _loggingService.LogError("SubFunction Master", "POST", "/api/SubFunctionMaster/UpdateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

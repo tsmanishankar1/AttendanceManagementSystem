@@ -23,8 +23,6 @@ public partial class CostCentreMaster
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
-    public virtual ICollection<DailyReport> DailyReports { get; set; } = new List<DailyReport>();
-
     public virtual ICollection<ManualAttendanceProcessing> ManualAttendanceProcessings { get; set; } = new List<ManualAttendanceProcessing>();
 
     public virtual ICollection<StaffCreation> StaffCreations { get; set; } = new List<StaffCreation>();
