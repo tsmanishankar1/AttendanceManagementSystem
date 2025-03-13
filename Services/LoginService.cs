@@ -79,6 +79,7 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Role not found");
             }
+            var staffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == staff.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{staff.Id}";
             var designation = _context.DesignationMasters.FirstOrDefault(e => e.Id == designationId && e.IsActive == true);
             if (designation == null)
             {
@@ -93,9 +94,10 @@ public class LoginService
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                     new Claim("UserName", user.Username),
+                    new Claim("UserName", user.Username),
                     new Claim("UserManagementId", user.Id.ToString()),
                     new Claim("StaffId", staff.Id.ToString()),
+                    new Claim("StaffCreationId", staffCreationId),
                     new Claim("DesignationId", designation.Id.ToString()),
                     new Claim("DesignationName", designation.FullName),
                     new Claim("RoleId", roleId.Id.ToString()),
