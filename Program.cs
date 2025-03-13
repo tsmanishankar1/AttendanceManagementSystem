@@ -33,7 +33,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000", "*", "http://servicedesk.vleadservices.com:84")
+            policy.WithOrigins("http://localhost:3000","*", "http://servicedesk.vleadservices.com:84")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
