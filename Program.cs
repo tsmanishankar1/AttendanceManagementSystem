@@ -109,12 +109,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors("AllowSpecificOrigin");
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
+/*app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "ExcelTemplates")),
     RequestPath = "/ExcelTemplates"
-});
+});*/
 
 app.MapControllers();
 
