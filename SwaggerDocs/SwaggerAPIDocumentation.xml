@@ -1363,6 +1363,76 @@
 			<response code="404">If the user is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
+		<member name="T:AttendanceManagement.Controllers.PayrollController">
+			<summary>
+				Controller for handling payroll-related operations, including uploading payslips and salary structures.
+			</summary>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.#ctor(AttendanceManagement.Services.PayrollService,AttendanceManagement.Services.LoggingService)">
+			<summary>
+				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.PayrollController"/> class.
+			</summary>
+			<param name="payrollService">The payroll service handling payroll operations.</param>
+			<param name="loggingService">The logging service for capturing logs.</param>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.UploadPaySlip(Microsoft.AspNetCore.Http.IFormFile,System.Int32)">
+			<summary>
+				Uploads a payslip file to the system.
+			</summary>
+			<param name="file">The payslip file to be uploaded.</param>
+			<param name="createdBy">The ID of the user performing the upload.</param>
+			<returns>Success message upon successful upload.</returns>
+			<response code="200">Returns success message if upload is successful</response>
+			<response code="404">If required data is not found</response>
+			<response code="500">If an internal server error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.UploadSalaryStructure(Microsoft.AspNetCore.Http.IFormFile,System.Int32)">
+			<summary>
+				Uploads a salary structure file to the system.
+			</summary>
+			<param name="file">The salary structure file to be uploaded.</param>
+			<param name="createdBy">The ID of the user performing the upload.</param>
+			<returns>Success message upon successful upload.</returns>
+			<response code="200">Returns success message if upload is successful</response>
+			<response code="404">If required data is not found</response>
+			<response code="500">If an internal server error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GetPaySlip(System.Int32)">
+			<summary>
+				Retrieves a payslip for a specific staff member.
+			</summary>
+			<param name="staffId">The ID of the staff member.</param>
+			<returns>Returns the payslip details.</returns>
+			<response code="200">Returns the payslip data</response>
+			<response code="404">If no payslip is found for the given staff ID</response>
+			<response code="500">If an internal server error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GetAllPaySlip">
+			<summary>
+				Retrieves all payslips.
+			</summary>
+			<returns>Returns a list of all payslips.</returns>
+			<response code="200">Returns the list of payslips</response>
+			<response code="500">If an internal server error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GetSalaryStructure(System.Int32)">
+			<summary>
+				Retrieves the salary structure for a specific staff member.
+			</summary>
+			<param name="staffId">The ID of the staff member.</param>
+			<returns>Returns the salary structure details.</returns>
+			<response code="200">Returns the salary structure data</response>
+			<response code="404">If no salary structure is found for the given staff ID</response>
+			<response code="500">If an internal server error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GetAllSalaryStructure">
+			<summary>
+				Retrieves all salary structures.
+			</summary>
+			<returns>Returns a list of all salary structures.</returns>
+			<response code="200">Returns the list of salary structures</response>
+			<response code="500">If an internal server error occurs</response>
+		</member>
 		<member name="T:AttendanceManagement.Controllers.PrefixAndSuffixController">
 			<summary>
 				Controller for handling prefix and suffix-related operations.
@@ -1383,7 +1453,6 @@
 			<response code="200">Returns the list of suffix leave types</response>
 			<response code="404">If no suffix leave types are found</response>
 			<response code="500">If there is an internal server error</response>
-
 		</member>
 		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Create(AttendanceManagement.Input_Models.SuffixLeaveRequest)">
 			<summary>

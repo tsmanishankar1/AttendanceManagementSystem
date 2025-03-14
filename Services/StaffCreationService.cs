@@ -802,7 +802,7 @@ namespace AttendanceManagement.Services
                     MotherName = s.MotherName,
                     FatherAadharNo = s.FatherAadharNo,
                     MotherAadharNo = s.MotherAadharNo,
-                    EmergencyContactPerson1 = s.EmergencyContactPerson1 ?? string.Empty,
+                    EmergencyContactPerson1 = s.EmergencyContactPerson1,
                     EmergencyContactPerson2 = s.EmergencyContactPerson2,
                     EmergencyContactNo1 = s.EmergencyContactNo1,
                     EmergencyContactNo2 = s.EmergencyContactNo2,
@@ -813,7 +813,6 @@ namespace AttendanceManagement.Services
                     CreatedBy = s.CreatedBy
                 })
                 .ToListAsync();
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (records.Count == 0)
             {
                 throw new MessageNotFoundException("No staffs found");

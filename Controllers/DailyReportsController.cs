@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 [Route("api/[controller]")]
@@ -11,40 +12,38 @@ using System.Threading.Tasks;
 public class DailyReportsController : ControllerBase
 {
     private readonly DailyReportsService _dailyReportsService;
-    private readonly ILogger<DailyReportsController> _logger;
+    private readonly LoggingService _loggingService;
 
-    public DailyReportsController(DailyReportsService dailyReportsService, ILogger<DailyReportsController> logger)
+    public DailyReportsController(DailyReportsService dailyReportsService, LoggingService loggingService)
     {
         _dailyReportsService = dailyReportsService;
-        _logger = logger;
+        _loggingService = loggingService;
+
     }
 
     [HttpPost("GetDailyReport")]
-    public async Task<IActionResult> GetDailyReport([FromBody] DailyReportRequest request)
+    public async Task<IActionResult> GetDailyReport(DailyReportRequest request)
     {
         try
         {
-            _logger.LogInformation("Fetching daily reports: {@Request}", request);
-
             var result = await _dailyReportsService.GetDailyReports(request);
-
-            if (result == null || result.Count == 0)
+            var response = new
             {
-                _logger.LogWarning("No records found for the given criteria.");
-                return NotFound(new { Message = "No records found." });
-            }
-
-            return Ok(result);
+                Success = true,
+                Message = result
+            };
+            await _loggingService.AuditLog("Daily Report", "POST", "/api/DailyReports/GetDailyReport", "Report retrieved successfully", request.CreatedBy, JsonSerializer.Serialize(request));
+            return Ok(response);
         }
-        catch (ArgumentException ex)
+        catch (MessageNotFoundException ex)
         {
-            _logger.LogError(ex, "Invalid request parameters.");
-            return BadRequest(new { Message = ex.Message });
+            await _loggingService.LogError("Daily Report", "POST", "/api/DailyReports/GetDailyReport", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error while fetching daily reports.");
-            return StatusCode(500, new { Message = "An error occurred while fetching data.", Error = ex.Message });
+            await _loggingService.LogError("Daily Report", "POST", "/api/DailyReports/GetDailyReport", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ErrorResponse(ex.Message);
         }
     }
 

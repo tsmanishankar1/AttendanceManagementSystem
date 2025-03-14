@@ -503,9 +503,17 @@ public partial class StaffCreation
 
     public virtual ICollection<OrganizationType> OrganizationTypeUpdatedByNavigations { get; set; } = new List<OrganizationType>();
 
-    public virtual ICollection<PaymentDetail> PaymentDetailCreatedByNavigations { get; set; } = new List<PaymentDetail>();
+    public virtual ICollection<PaySlipComponent> PaySlipComponentCreatedByNavigations { get; set; } = new List<PaySlipComponent>();
 
-    public virtual ICollection<PaymentDetail> PaymentDetailUpdatedByNavigations { get; set; } = new List<PaymentDetail>();
+    public virtual ICollection<PaySlipComponent> PaySlipComponentStaffs { get; set; } = new List<PaySlipComponent>();
+
+    public virtual ICollection<PaySlipComponent> PaySlipComponentUpdatedByNavigations { get; set; } = new List<PaySlipComponent>();
+
+    public virtual ICollection<PaySlip> PaySlipCreatedByNavigations { get; set; } = new List<PaySlip>();
+
+    public virtual ICollection<PaySlip> PaySlipStaffs { get; set; } = new List<PaySlip>();
+
+    public virtual ICollection<PaySlip> PaySlipUpdatedByNavigations { get; set; } = new List<PaySlip>();
 
     public virtual ICollection<PermissionRequistion> PermissionRequistionCreatedByNavigations { get; set; } = new List<PermissionRequistion>();
 
@@ -535,10 +543,6 @@ public partial class StaffCreation
 
     public virtual ICollection<ProfessionalCertification> ProfessionalCertificationUpdatedByNavigations { get; set; } = new List<ProfessionalCertification>();
 
-    public virtual ICollection<ProfessionalTaxSlab> ProfessionalTaxSlabCreatedByNavigations { get; set; } = new List<ProfessionalTaxSlab>();
-
-    public virtual ICollection<ProfessionalTaxSlab> ProfessionalTaxSlabUpdatedByNavigations { get; set; } = new List<ProfessionalTaxSlab>();
-
     public virtual ICollection<PunchRegularizationApproval> PunchRegularizationApprovalCreatedByNavigations { get; set; } = new List<PunchRegularizationApproval>();
 
     public virtual ICollection<PunchRegularizationApproval> PunchRegularizationApprovalUpdatedByNavigations { get; set; } = new List<PunchRegularizationApproval>();
@@ -559,7 +563,15 @@ public partial class StaffCreation
 
     public virtual ICollection<SalaryComponent> SalaryComponentCreatedByNavigations { get; set; } = new List<SalaryComponent>();
 
+    public virtual ICollection<SalaryComponent> SalaryComponentStaffs { get; set; } = new List<SalaryComponent>();
+
     public virtual ICollection<SalaryComponent> SalaryComponentUpdatedByNavigations { get; set; } = new List<SalaryComponent>();
+
+    public virtual ICollection<SalaryStructure> SalaryStructureCreatedByNavigations { get; set; } = new List<SalaryStructure>();
+
+    public virtual ICollection<SalaryStructure> SalaryStructureStaffs { get; set; } = new List<SalaryStructure>();
+
+    public virtual ICollection<SalaryStructure> SalaryStructureUpdatedByNavigations { get; set; } = new List<SalaryStructure>();
 
     public virtual ICollection<ShiftChange> ShiftChangeCreatedByNavigations { get; set; } = new List<ShiftChange>();
 
@@ -595,16 +607,6 @@ public partial class StaffCreation
 
     public virtual ICollection<StaffLeaveOption> StaffLeaveOptionUpdatedByNavigations { get; set; } = new List<StaffLeaveOption>();
 
-    public virtual ICollection<StaffSalaryBreakdown> StaffSalaryBreakdownCreatedByNavigations { get; set; } = new List<StaffSalaryBreakdown>();
-
-    public virtual ICollection<StaffSalaryBreakdown> StaffSalaryBreakdownUpdatedByNavigations { get; set; } = new List<StaffSalaryBreakdown>();
-
-    public virtual ICollection<StaffSalary> StaffSalaryCreatedByNavigations { get; set; } = new List<StaffSalary>();
-
-    public virtual ICollection<StaffSalary> StaffSalaryStaffs { get; set; } = new List<StaffSalary>();
-
-    public virtual ICollection<StaffSalary> StaffSalaryUpdatedByNavigations { get; set; } = new List<StaffSalary>();
-
     public virtual ICollection<StaffVaccination> StaffVaccinationCreatedByNavigations { get; set; } = new List<StaffVaccination>();
 
     public virtual ICollection<StaffVaccination> StaffVaccinationStaffs { get; set; } = new List<StaffVaccination>();
@@ -624,10 +626,6 @@ public partial class StaffCreation
     public virtual ICollection<SubFunctionMaster> SubFunctionMasterCreatedByNavigations { get; set; } = new List<SubFunctionMaster>();
 
     public virtual ICollection<SubFunctionMaster> SubFunctionMasterUpdatedByNavigations { get; set; } = new List<SubFunctionMaster>();
-
-    public virtual ICollection<TaxSlab> TaxSlabCreatedByNavigations { get; set; } = new List<TaxSlab>();
-
-    public virtual ICollection<TaxSlab> TaxSlabUpdatedByNavigations { get; set; } = new List<TaxSlab>();
 
     public virtual ICollection<TeamApplication> TeamApplicationCreatedByNavigations { get; set; } = new List<TeamApplication>();
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AttendanceManagement.Models;
 
-public partial class SalaryComponent
+public partial class PaySlipComponent
 {
     public int Id { get; set; }
 
@@ -11,13 +11,13 @@ public partial class SalaryComponent
 
     public string? ComponentName { get; set; }
 
-    public int? SalaryStructureId { get; set; }
+    public int? PaySlipId { get; set; }
 
     public int? StaffId { get; set; }
 
     public string? Amount { get; set; }
 
-    public bool? IsTaxable { get; set; }
+    public bool IsTaxable { get; set; }
 
     public string? Remarks { get; set; }
 
@@ -33,7 +33,7 @@ public partial class SalaryComponent
 
     public virtual StaffCreation? CreatedByNavigation { get; set; }
 
-    public virtual SalaryStructure? SalaryStructure { get; set; }
+    public virtual PaySlip? PaySlip { get; set; }
 
     public virtual StaffCreation? Staff { get; set; }
 

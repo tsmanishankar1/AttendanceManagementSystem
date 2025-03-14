@@ -74,12 +74,12 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Staff not found");
             }
+            var staffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == staff.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{staff.Id}";
             var roleId = _context.AccessLevels.FirstOrDefault(e => e.Name == staff.AccessLevel && e.IsActive == true);
             if(roleId == null)
             {
                 throw new MessageNotFoundException("Role not found");
             }
-            var staffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == staff.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{staff.Id}";
             var designation = _context.DesignationMasters.FirstOrDefault(e => e.Id == designationId && e.IsActive == true);
             if (designation == null)
             {

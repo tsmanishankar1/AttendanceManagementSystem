@@ -268,7 +268,7 @@ namespace AttendanceManagement.Input_Models
 
         public string FatherName { get; set; } = null!;
 
-        public string EmergencyContactPerson1 { get; set; } = null!;
+        public string? EmergencyContactPerson1 { get; set; }
 
         public string? EmergencyContactPerson2 { get; set; }
 

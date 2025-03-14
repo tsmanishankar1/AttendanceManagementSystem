@@ -17,6 +17,7 @@ namespace AttendanceManagement.Input_Models
         public bool? IncludeTerminated { get; set; }
         public DateOnly? TerminatedFromDate {  get; set; }
         public DateOnly? TerminatedToDate {  get; set; }
+        public int CreatedBy { get; set; }
     }
 
     public class DailyReportResponse

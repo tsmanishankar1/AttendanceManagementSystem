@@ -7,17 +7,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+namespace AttendanceManagement.Services;
 public class DailyReportsService
 {
     private readonly AttendanceManagementSystemContext _context;
-    private readonly ILogger<DailyReportsService> _logger;
     private readonly StoredProcedureDbContext _storedProcedureDbContext;
 
-    public DailyReportsService(AttendanceManagementSystemContext context, ILogger<DailyReportsService> logger, StoredProcedureDbContext storedProcedureDbContext)
+    public DailyReportsService(AttendanceManagementSystemContext context, StoredProcedureDbContext storedProcedureDbContext)
     {
         _context = context;
-        _logger = logger;
         _storedProcedureDbContext = storedProcedureDbContext;
     }
 
@@ -122,8 +120,7 @@ public class DailyReportsService
                     EndDate = report.ToDate,
                     TotalDays = report.TotalDays,
                     Reason = report.Reason,
-                    ApproverStatus = approverStatus, // Updated Approver Status
-                  
+                    ApproverStatus = approverStatus, // Updated Approver Status                 
                     AppliedOn = report.CreatedUtc,
                     ApprovedOn = approvedOn, // Updated Approved On
                     ApprovedBy = approvedByName, // Updated Approved By

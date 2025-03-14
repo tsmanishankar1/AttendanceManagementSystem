@@ -33,7 +33,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000","*", "http://servicedesk.vleadservices.com:84")
+            policy.WithOrigins("http://localhost:3000", "http://servicedesk.vleadservices.com:84")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -80,6 +80,7 @@ builder.Services.AddScoped<EducationalQualificationService>();
 builder.Services.AddScoped<FamilyDetailsService>();
 builder.Services.AddScoped<LoggingService>();
 builder.Services.AddScoped<DailyReportsService>();
+builder.Services.AddScoped<PayrollService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -109,12 +110,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors("AllowSpecificOrigin");
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), "ExcelTemplates")),
-    RequestPath = "/ExcelTemplates"
-});
 
 app.MapControllers();
 
