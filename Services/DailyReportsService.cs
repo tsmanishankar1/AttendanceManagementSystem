@@ -49,7 +49,7 @@ public class DailyReportsService
             };
 
         var reportList = await _storedProcedureDbContext.DailyReportResponses
-            .FromSqlRaw("EXEC GetLeaveRequisitions @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
+            .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
             .ToListAsync();
 
         if (!reportList.Any())
