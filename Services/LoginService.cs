@@ -68,7 +68,12 @@ public class LoginService
             {
                 throw new MessageNotFoundException("User not found");
             }
-
+            var userName1 = _context.StaffCreations.FirstOrDefault(e => e.Id == user.StaffCreationId && e.IsActive == true);
+            if (userName1 == null)
+            {
+                throw new MessageNotFoundException("User not found");
+            }
+            var userName2 = userName1.FirstName + " " + userName1.LastName;
             var staff = _context.StaffCreations.FirstOrDefault(e => e.Id == staffId && e.IsActive == true);
             if (staff == null)
             {
@@ -99,7 +104,7 @@ public class LoginService
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("UserName", user.Username),
+                    new Claim("UserName", userName2),
                     new Claim("UserManagementId", user.Id.ToString()),
                     new Claim("StaffId", staff.Id.ToString()),
                     new Claim("StaffCreationId", staffCreationId),
