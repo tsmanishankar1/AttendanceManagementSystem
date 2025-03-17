@@ -991,7 +991,6 @@ public class ApplicationService
 
                         var notification = new ApprovalNotification
                         {
-                            ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                             StaffId = leave.CreatedBy,
                             Message = $"Your leave request has been approved. Approved by - {staff} on {approvedDateTime}",
                             IsActive = true,
@@ -1021,7 +1020,6 @@ public class ApplicationService
 
                         var notification = new ApprovalNotification
                         {
-                            ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                             StaffId = leave.CreatedBy,
                             Message = $"Your leave request has been rejected. Rejected by - {staff} on {approvedDateTime}",
                             IsActive = true,
@@ -1060,7 +1058,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = leaveRequest.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1100,7 +1097,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = manualPunch.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1137,7 +1133,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = onDuty.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1174,7 +1169,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = businessTravel.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1211,7 +1205,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = workFromHome.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1248,7 +1241,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = shiftChange.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1285,7 +1277,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = shiftExtension.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1322,7 +1313,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = weeklyOffHoliday.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1377,7 +1367,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = compOffAvail.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1420,7 +1409,6 @@ public class ApplicationService
 
                     var notification = new ApprovalNotification
                     {
-                        ApplicationTypeId = approveLeaveRequest.ApplicationTypeId,
                         StaffId = compOffCredit.CreatedBy,
                         Message = notificationMessage,
                         IsActive = true,
@@ -1444,7 +1432,6 @@ public class ApplicationService
                                    select new ApprovalNotificationResponse
                                    {
                                        Id = notification.Id,
-                                       ApplicationTypeId = notification.ApplicationTypeId,
                                        StaffId = notification.StaffId,
                                        Message = notification.Message,
                                        CreatedBy = notification.CreatedBy

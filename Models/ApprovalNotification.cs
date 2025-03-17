@@ -7,8 +7,6 @@ public partial class ApprovalNotification
 {
     public int Id { get; set; }
 
-    public int ApplicationTypeId { get; set; }
-
     public int StaffId { get; set; }
 
     public string Message { get; set; } = null!;
@@ -22,8 +20,6 @@ public partial class ApprovalNotification
     public int? UpdatedBy { get; set; }
 
     public DateTime? UpdatedUtc { get; set; }
-
-    public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual ICollection<BusinessTravel> BusinessTravels { get; set; } = new List<BusinessTravel>();
 
@@ -40,6 +36,8 @@ public partial class ApprovalNotification
     public virtual ICollection<ManualPunchRequistion> ManualPunchRequistions { get; set; } = new List<ManualPunchRequistion>();
 
     public virtual ICollection<OnDutyRequisition> OnDutyRequisitions { get; set; } = new List<OnDutyRequisition>();
+
+    public virtual ICollection<Probation> Probations { get; set; } = new List<Probation>();
 
     public virtual ICollection<ShiftChange> ShiftChanges { get; set; } = new List<ShiftChange>();
 

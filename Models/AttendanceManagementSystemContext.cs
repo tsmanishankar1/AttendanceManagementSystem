@@ -373,11 +373,6 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
-            entity.HasOne(d => d.ApplicationType).WithMany(p => p.ApprovalNotifications)
-                .HasForeignKey(d => d.ApplicationTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ApTypeId");
-
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ApprovalNotificationCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1933,6 +1928,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.ToTable("LeaveRequisition");
 
+            entity.Property(e => e.CancelledOn).HasColumnType("datetime");
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
@@ -2454,7 +2450,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<PaySlip>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PaySlip__3214EC076CB982B5");
+            entity.HasKey(e => e.Id).HasName("PK__PaySlip__3214EC07574B195F");
 
             entity.ToTable("PaySlip");
 
@@ -2514,21 +2510,21 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PaySlipCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PaySlip__Created__4CB63D52");
+                .HasConstraintName("FK__PaySlip__Created__11957784");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.PaySlipStaffs)
                 .HasForeignKey(d => d.StaffId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PaySlip__StaffId__4E9E85C4");
+                .HasConstraintName("FK__PaySlip__StaffId__137DBFF6");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PaySlipUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__PaySlip__Updated__4DAA618B");
+                .HasConstraintName("FK__PaySlip__Updated__12899BBD");
         });
 
         modelBuilder.Entity<PaySlipComponent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PaySlipC__3214EC07FDC7FC90");
+            entity.HasKey(e => e.Id).HasName("PK__PaySlipC__3214EC07885C35A7");
 
             entity.Property(e => e.Amount)
                 .HasMaxLength(255)
@@ -2547,19 +2543,19 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PaySlipComponentCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__PaySlipCo__Creat__517AF26F");
+                .HasConstraintName("FK__PaySlipCo__Creat__165A2CA1");
 
             entity.HasOne(d => d.PaySlip).WithMany(p => p.PaySlipComponents)
                 .HasForeignKey(d => d.PaySlipId)
-                .HasConstraintName("FK__PaySlipCo__PaySl__54575F1A");
+                .HasConstraintName("FK__PaySlipCo__PaySl__1936994C");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.PaySlipComponentStaffs)
                 .HasForeignKey(d => d.StaffId)
-                .HasConstraintName("FK__PaySlipCo__Staff__53633AE1");
+                .HasConstraintName("FK__PaySlipCo__Staff__18427513");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PaySlipComponentUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__PaySlipCo__Updat__526F16A8");
+                .HasConstraintName("FK__PaySlipCo__Updat__174E50DA");
         });
 
         modelBuilder.Entity<PermissionRequistion>(entity =>
@@ -2698,6 +2694,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.IsCompleted).HasDefaultValue(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ApprovalNotification).WithMany(p => p.Probations)
+                .HasForeignKey(d => d.ApprovalNotificationId)
+                .HasConstraintName("FK_Probation_ApprovalNotification");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ProbationCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -2898,7 +2898,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<SalaryComponent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SalaryCo__3214EC072D748E96");
+            entity.HasKey(e => e.Id).HasName("PK__SalaryCo__3214EC074B1D61B8");
 
             entity.Property(e => e.Amount)
                 .HasMaxLength(255)
@@ -2917,24 +2917,24 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SalaryComponentCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__SalaryCom__Creat__46FD63FC");
+                .HasConstraintName("FK__SalaryCom__Creat__0BDC9E2E");
 
             entity.HasOne(d => d.SalaryStructure).WithMany(p => p.SalaryComponents)
                 .HasForeignKey(d => d.SalaryStructureId)
-                .HasConstraintName("FK__SalaryCom__Salar__49D9D0A7");
+                .HasConstraintName("FK__SalaryCom__Salar__0EB90AD9");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.SalaryComponentStaffs)
                 .HasForeignKey(d => d.StaffId)
-                .HasConstraintName("FK__SalaryCom__Staff__48E5AC6E");
+                .HasConstraintName("FK__SalaryCom__Staff__0DC4E6A0");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SalaryComponentUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__SalaryCom__Updat__47F18835");
+                .HasConstraintName("FK__SalaryCom__Updat__0CD0C267");
         });
 
         modelBuilder.Entity<SalaryStructure>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SalarySt__3214EC07A79F60DD");
+            entity.HasKey(e => e.Id).HasName("PK__SalarySt__3214EC07F8482428");
 
             entity.Property(e => e.Basic).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Conveyance).HasColumnType("decimal(18, 2)");
@@ -2986,16 +2986,16 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SalaryStructureCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__SalaryStr__Creat__4238AEDF");
+                .HasConstraintName("FK__SalaryStr__Creat__0717E911");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.SalaryStructureStaffs)
                 .HasForeignKey(d => d.StaffId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__SalaryStr__Staff__4420F751");
+                .HasConstraintName("FK__SalaryStr__Staff__09003183");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SalaryStructureUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__SalaryStr__Updat__432CD318");
+                .HasConstraintName("FK__SalaryStr__Updat__080C0D4A");
         });
 
         modelBuilder.Entity<Shift>(entity =>
@@ -3801,7 +3801,6 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.MarkWeeklyOff).HasDefaultValue(1);
             entity.Property(e => e.UpdatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("UpdatedUTC");

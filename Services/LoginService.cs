@@ -64,11 +64,11 @@ public class LoginService
         try
         {
             var user = _context.UserManagements.FirstOrDefault(e => e.Username == userName && e.IsActive);
-
             if (user == null)
             {
                 throw new MessageNotFoundException("User not found");
             }
+
             var staff = _context.StaffCreations.FirstOrDefault(e => e.Id == staffId && e.IsActive == true);
             if (staff == null)
             {
@@ -76,20 +76,25 @@ public class LoginService
             }
             var staffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == staff.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{staff.Id}";
             var roleId = _context.AccessLevels.FirstOrDefault(e => e.Name == staff.AccessLevel && e.IsActive == true);
-            if(roleId == null)
+            if (roleId == null)
             {
                 throw new MessageNotFoundException("Role not found");
             }
+
             var designation = _context.DesignationMasters.FirstOrDefault(e => e.Id == designationId && e.IsActive == true);
             if (designation == null)
             {
                 throw new MessageNotFoundException("Designation not found");
             }
+
+            var approver = _context.StaffCreations.FirstOrDefault(e => e.Id == staff.ApprovalLevel1&& e.IsActive == true);
+            string approverFullName = approver != null ? $"{approver.FirstName} {approver.LastName}" : "N/A";
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = new byte[32];
             RandomNumberGenerator.Fill(key);
             var signingKey = new SymmetricSecurityKey(key);
             string profilePhoto = staff.ProfilePhoto ?? "";
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -102,7 +107,9 @@ public class LoginService
                     new Claim("DesignationName", designation.FullName),
                     new Claim("RoleId", roleId.Id.ToString()),
                     new Claim("Role", roleId.Name.ToString()),
-                    new Claim("ProfilePhoto", profilePhoto)
+                    new Claim("ProfilePhoto", profilePhoto),
+                    new Claim("ApproverId", staff.ApprovalLevel1.ToString()), 
+                    new Claim("ApproverName", approverFullName)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature)
@@ -116,4 +123,6 @@ public class LoginService
             throw new Exception(ex.Message);
         }
     }
+
+
 }

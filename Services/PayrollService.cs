@@ -52,7 +52,7 @@ namespace AttendanceManagement.Services
                     );
 
                     var staffExists = await _context.StaffCreations
-                        .AnyAsync(s => s.Id == createdBy);
+                        .AnyAsync(s => s.Id == createdBy && s.IsActive == true);
 
                     if (!staffExists)
                     {
@@ -81,7 +81,7 @@ namespace AttendanceManagement.Services
                                 var staffId = int.Parse(match.Groups[2].Value);
 
                                 var organizationId = _context.OrganizationTypes
-                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower())
+                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
 
@@ -89,7 +89,7 @@ namespace AttendanceManagement.Services
                                     throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
 
                                 var staffCreationId = _context.StaffCreations
-                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId)
+                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
 
@@ -144,7 +144,7 @@ namespace AttendanceManagement.Services
                                 var staffId = int.Parse(match.Groups[2].Value);
 
                                 var organizationId = _context.OrganizationTypes
-                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower())
+                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
 
@@ -152,14 +152,14 @@ namespace AttendanceManagement.Services
                                     throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
 
                                 var staffCreationId = _context.StaffCreations
-                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId)
+                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
 
                                 if (staffCreationId == 0)
                                     throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
 
-                                var paySlip = paySlips.FirstOrDefault(ps => ps.StaffId == staffCreationId);
+                                var paySlip = paySlips.FirstOrDefault(ps => ps.StaffId == staffCreationId && ps.IsActive);
                                 if (paySlip == null) continue;
 
                                 var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
@@ -351,7 +351,7 @@ namespace AttendanceManagement.Services
                     );
 
                     var staffExists = await _context.StaffCreations
-                        .AnyAsync(s => s.Id == createdBy);
+                        .AnyAsync(s => s.Id == createdBy && s.IsActive == true);
 
                     if (!staffExists)
                     {
@@ -380,7 +380,7 @@ namespace AttendanceManagement.Services
                                 var staffId = int.Parse(match.Groups[2].Value);
 
                                 var organizationId = _context.OrganizationTypes
-                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower())
+                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
 
@@ -388,7 +388,7 @@ namespace AttendanceManagement.Services
                                     throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
 
                                 var staffCreationId = _context.StaffCreations
-                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId)
+                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
 
@@ -446,7 +446,7 @@ namespace AttendanceManagement.Services
                                 var staffId = int.Parse(match.Groups[2].Value);
 
                                 var organizationId = _context.OrganizationTypes
-                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower())
+                                    .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
 
@@ -454,7 +454,7 @@ namespace AttendanceManagement.Services
                                     throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
 
                                 var staffCreationId = _context.StaffCreations
-                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId)
+                                    .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
 

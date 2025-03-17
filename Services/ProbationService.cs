@@ -260,6 +260,8 @@ namespace AttendanceManagement.Services
 
         public async Task<string> ProcessApprovalAsync(ApprovalRequest approvalRequest)
         {
+            var staff = _context.StaffCreations.Where(s => s.Id == approvalRequest.CreatedBy && s.IsActive == true).Select(s => $"{s.FirstName}{s.LastName}").FirstOrDefault();
+            string approvedDateTime = DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
             if (approvalRequest.IsApproved != true)
             {
                 throw new Exception("Approval is not marked as approved.");
@@ -306,9 +308,24 @@ namespace AttendanceManagement.Services
             {
                 throw new Exception("Probation not found.");
             }
-
             probation.IsCompleted = true;
+            probation.IsActive = false;
             _context.Probations.Update(probation);
+            await _context.SaveChangesAsync();
+
+            var notification = new ApprovalNotification
+            {
+                StaffId = probation.StaffCreationId,
+                Message =  $"Your Probation request has been approved. Approved by - {staff} on {approvedDateTime}",
+                IsActive = true,
+                CreatedBy = approvalRequest.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+
+            _context.ApprovalNotifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            probation.ApprovalNotificationId = notification.Id;
             await _context.SaveChangesAsync();
 
             var staffCreationId = feedback.StaffId;

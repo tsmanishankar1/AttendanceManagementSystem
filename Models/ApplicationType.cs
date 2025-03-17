@@ -9,8 +9,6 @@ public partial class ApplicationType
 
     public string ApplicationTypeName { get; set; } = null!;
 
-    public virtual ICollection<ApprovalNotification> ApprovalNotifications { get; set; } = new List<ApprovalNotification>();
-
     public virtual ICollection<BusinessTravel> BusinessTravels { get; set; } = new List<BusinessTravel>();
 
     public virtual ICollection<CommonPermission> CommonPermissions { get; set; } = new List<CommonPermission>();

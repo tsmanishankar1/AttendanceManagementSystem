@@ -25,6 +25,10 @@ public partial class Probation
 
     public bool IsActive { get; set; }
 
+    public int? ApprovalNotificationId { get; set; }
+
+    public virtual ApprovalNotification? ApprovalNotification { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();

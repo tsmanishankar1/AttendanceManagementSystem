@@ -20,7 +20,6 @@ public class ExcelImportService
         _context = context;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
-
     }
     public async Task<string> GenerateExcelTemplateUrl(int excelImportId)
     {

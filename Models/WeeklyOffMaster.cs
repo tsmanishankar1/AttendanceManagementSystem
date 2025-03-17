@@ -19,8 +19,6 @@ public partial class WeeklyOffMaster
 
     public DateTime? UpdatedUtc { get; set; }
 
-    public int MarkWeeklyOff { get; set; }
-
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
