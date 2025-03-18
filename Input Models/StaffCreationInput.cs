@@ -515,6 +515,7 @@ namespace AttendanceManagement.Input_Models
         public string? ShiftName { get; set; }
         public string? Status { get; set; }
         public string? LoginUserName { get; set; }
+        public bool? IncludeTerminated { get; set; }
     }
     public class UpdateStaff
     {

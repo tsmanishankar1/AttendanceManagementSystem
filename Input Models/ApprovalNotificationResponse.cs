@@ -4,9 +4,8 @@
     {
         public int Id { get; set; }
 
-        public int ApplicationTypeId { get; set; }
-
         public int StaffId { get; set; }
+        public string? ProfilePhoto { get; set; }
 
         public string Message { get; set; } = null!;
 

@@ -1427,12 +1427,14 @@ public class ApplicationService
     }
     public async Task<List<ApprovalNotificationResponse>> GetApprovalNotifications(int staffId)
     {
+        var profile = await _context.StaffCreations.Where(s => s.Id == staffId && s.IsActive == true).Select(s => s.ProfilePhoto).FirstOrDefaultAsync();
         var notifications = await (from notification in _context.ApprovalNotifications
                                    where notification.StaffId == staffId && notification.IsActive
                                    select new ApprovalNotificationResponse
                                    {
                                        Id = notification.Id,
                                        StaffId = notification.StaffId,
+                                       ProfilePhoto = profile,
                                        Message = notification.Message,
                                        CreatedBy = notification.CreatedBy
                                    }).ToListAsync();
