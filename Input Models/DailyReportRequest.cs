@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-
-namespace AttendanceManagement.Input_Models
+﻿namespace AttendanceManagement.Input_Models
 {
     public class DailyReportRequest
     {
@@ -15,11 +13,10 @@ namespace AttendanceManagement.Input_Models
         public DateTime? FromDateTime { get; set; }
         public DateTime? ToDateTime { get; set; }
         public bool? IncludeTerminated { get; set; }
-        public DateOnly? TerminatedFromDate {  get; set; }
-        public DateOnly? TerminatedToDate {  get; set; }
+        public DateOnly? TerminatedFromDate { get; set; }
+        public DateOnly? TerminatedToDate { get; set; }
         public int CreatedBy { get; set; }
     }
-
     public class DailyReportResponse
     {
         public int Id { get; set; }
@@ -31,12 +28,12 @@ namespace AttendanceManagement.Input_Models
         public decimal TotalDays { get; set; }
         public string Reason { get; set; } = null!;
         public bool? Status1 { get; set; }
-        public int CreatedBy {  get; set; }
+        public int CreatedBy { get; set; }
         public int? StaffId { get; set; }
-        public DateTime CreatedUtc {get; set;}
-        public int? UpdatedBy { get; set; }   
+        public DateTime CreatedUtc { get; set; }
+        public int? UpdatedBy { get; set; }
         public DateTime? UpdatedUtc { get; set; }
-     
+
         public bool? IsCancelled { get; set; }
         public DateTime? CancelledOn { get; set; }
     }
@@ -66,11 +63,10 @@ namespace AttendanceManagement.Input_Models
         public string? ApproverStatus { get; set; }
         public string AppliedOn { get; set; } = null!;
         public string ApprovedBy { get; set; } = null!;
-        public string? ApprovedOn { get; set; }     
+        public string? ApprovedOn { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
         public string ReportDate { get; set; } = null!;
     }
-
 }

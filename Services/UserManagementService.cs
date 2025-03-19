@@ -11,10 +11,13 @@ public class UserManagementService
     {
         _context = context;
     }
-
     public async Task<string> RegisterUser(UserManagementRequest userRequest)
     {
-        var message = "User registered successfully.";
+        if (await _context.UserManagements.AnyAsync(u => u.Username == userRequest.Username))
+        {
+            return "User already exists.";
+        }
+
         var user = new UserManagement
         {
             Username = userRequest.Username,
@@ -24,10 +27,11 @@ public class UserManagementService
             CreatedUtc = DateTime.UtcNow,
             StaffCreationId = userRequest.StaffCreationId
         };
+
         _context.UserManagements.Add(user);
         await _context.SaveChangesAsync();
 
-        return message;
+        return "User registered successfully.";
     }
 
     public async Task<object> GetUserByUserId(int StaffId)

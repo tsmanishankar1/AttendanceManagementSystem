@@ -17,19 +17,14 @@ public class ExcelImportController : ControllerBase
         _excelImportService = excelImportService;
         _loggingService = loggingService;
     }
-
     [HttpGet("DownloadExcelTemplates")]
     public async Task<IActionResult> DownloadExcelTemplates(int excelImportId)
     {
         try
         {
-            var templateUrl = await _excelImportService.GenerateExcelTemplateUrl(excelImportId);
-            var response = new
-            {
-                Success = true,
-                Message = templateUrl
-            };
-            return Ok(response);
+            var filePath = await _excelImportService.GetExcelTemplateFilePath(excelImportId);
+            filePath = Path.GetFullPath(filePath).Replace("\\", "/");
+            return Ok(new { Success = true, FilePath = filePath }); 
         }
         catch (MessageNotFoundException ex)
         {

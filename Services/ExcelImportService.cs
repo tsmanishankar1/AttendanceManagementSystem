@@ -14,21 +14,39 @@ public class ExcelImportService
     private readonly AttendanceManagementSystemContext _context;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
+    private readonly string _workspacePath = @"C:\Users\internship041\source\repos\BackendFrontendAttendance\ExcelTemplates";
     public ExcelImportService(AttendanceManagementSystemContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
     }
-    public async Task<string> GenerateExcelTemplateUrl(int excelImportId)
+    public async Task<byte[]> GetExcelTemplateBytes(int excelImportId)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
+        var excelTemplate = await _context.ExcelImports
+            .FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
+
+        if (excelTemplate == null)
         {
-            throw new Exception("HttpContext is null.");
+            Console.WriteLine($"[ERROR] Excel template not found in DB for ID: {excelImportId}");
+            throw new MessageNotFoundException("Excel template not found");
         }
 
+        string fileName = $"{excelTemplate.Name}.xlsx";
+        string filePath = Path.Combine(_workspacePath, fileName);
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            Console.WriteLine($"[ERROR] File not found at: {filePath}");
+            throw new MessageNotFoundException("Excel template not found in workspace");
+        }
+
+        Console.WriteLine($"[SUCCESS] File found at: {filePath}, reading bytes...");
+        return await System.IO.File.ReadAllBytesAsync(filePath);
+    }
+
+    public async Task<string> GetExcelTemplateFilePath(int excelImportId)
+    {
         var excelTemplate = await _context.ExcelImports
             .FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
 
@@ -38,25 +56,9 @@ public class ExcelImportService
         }
 
         string fileName = $"{excelTemplate.Name}.xlsx";
-        var workspacePath = _configuration.GetSection("Excel").GetValue<string>("ExcelTemplatesPath");
-
-        if (string.IsNullOrEmpty(workspacePath))
-        {
-            throw new Exception("Workspace path is not configured.");
-        }
-
-        string filePath = Path.Combine(workspacePath, fileName);
-
-        if (!System.IO.File.Exists(filePath))
-        {
-            throw new MessageNotFoundException("Excel template not found in workspace");
-        }
-
-        string baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
-        string fileUrl = $"{baseUrl}/ExcelTemplates/{fileName}";
-
-        return fileUrl;
+        return Path.Combine(_workspacePath, fileName);
     }
+
 
     public async Task<string> ImportExcelAsync(int excelImportId, int createdBy, IFormFile file)
     {
