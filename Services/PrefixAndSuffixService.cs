@@ -79,7 +79,6 @@ public class PrefixAndSuffixService
                                on prefix.PrefixLeaveTypeId equals prefixLeave.Id
                                join suffixLeave in _context.SuffixLeaveTypes
                                on prefix.SuffixLeaveTypeId equals suffixLeave.Id
-                               where prefix.IsActive
                                select new PrefixAndSuffixDto
                                {
                                    PrefixAndSuffixId = prefix.Id,
@@ -109,7 +108,7 @@ public class PrefixAndSuffixService
                                on prefix.PrefixLeaveTypeId equals prefixLeave.Id
                                join suffixLeave in _context.SuffixLeaveTypes
                                on prefix.SuffixLeaveTypeId equals suffixLeave.Id
-                               where prefix.Id == prefixAndSuffixId && prefix.IsActive
+                               where prefix.Id == prefixAndSuffixId
                                select new PrefixAndSuffixDto
                                {
                                    PrefixAndSuffixId = prefix.Id,
