@@ -17,7 +17,8 @@
         public DateOnly? TerminatedToDate { get; set; }
         public int CreatedBy { get; set; }
     }
-    public class DailyReportResponse
+
+    public class LeaveRequisitionResponse
     {
         public int Id { get; set; }
         public string StartDuration { get; set; } = null!;
@@ -33,9 +34,20 @@
         public DateTime CreatedUtc { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedUtc { get; set; }
-
         public bool? IsCancelled { get; set; }
         public DateTime? CancelledOn { get; set; }
+    }
+
+    public class LeaveTakenResponse
+    {
+        public int Id { get; set; }
+        public string StartDuration { get; set; } = null!;
+        public string? EndDuration { get; set; }
+        public int LeaveTypeId { get; set; }
+        public DateOnly FromDate { get; set; }
+        public DateOnly ToDate { get; set; }
+        public int LeaveTakenBy { get; set; }
+        public decimal TotalDays { get; set; }
     }
 
     public class DailyReportLeaveRequisitionResponse
@@ -68,5 +80,20 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
         public string ReportDate { get; set; } = null!;
+    }
+
+    public class DailyReportLeaveTakenResponse
+    {
+        public int Id { get; set; }
+        public int StaffId { get; set; }
+        public string StaffCreationId { get; set; } = null!;
+        public string StaffName { get; set; } = null!;
+        public int DepartmentId { get; set; }
+        public int DesignationId { get; set; }
+        public decimal CLAvailed { get; set; }
+        public decimal SLAvailed { get; set; }
+        public decimal NCLTaken { get; set; }
+        public decimal PTLTaken { get; set; }
+        public decimal MGLTaken { get; set; }
     }
 }

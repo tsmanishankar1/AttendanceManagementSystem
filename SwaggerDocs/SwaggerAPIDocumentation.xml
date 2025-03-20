@@ -530,6 +530,28 @@
 			<response code="404">If no report data is found matching the criteria.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
+		<member name="T:DailyReportsController">
+			<summary>
+				Controller for managing daily reports.
+			</summary>
+		</member>
+		<member name="M:DailyReportsController.#ctor(DailyReportsService, LoggingService)">
+			<summary>
+				Initializes a new instance of the <see cref="T:DailyReportsController"/> class.
+			</summary>
+			<param name="dailyReportsService">The daily reports service.</param>
+			<param name="loggingService">The logging service.</param>
+		</member>
+		<member name="M:DailyReportsController.GetDailyReport(AttendanceManagement.Input_Models.DailyReportRequest)">
+			<summary>
+				Retrieves a daily report.
+			</summary>
+			<param name="request">The request details for retrieving the daily report.</param>
+			<returns>The result of the daily report retrieval.</returns>
+			<response code="200">Returns the success message and the daily report details</response>
+			<response code="404">If the report is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.DashboardController.#ctor(AttendanceManagement.Services.DashboardService,AttendanceManagement.Services.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.DashboardController"/> class.
@@ -2274,6 +2296,8 @@
 			<param name="userRequest">The user details to register.</param>
 			<returns>The result of the registration.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="400">If the request is invalid</response>
+			<response code="409">If there is a conflict in the request</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:UserManagementController.GetUserByUserId(System.Int32)">

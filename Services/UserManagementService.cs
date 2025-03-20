@@ -13,9 +13,28 @@ public class UserManagementService
     }
     public async Task<string> RegisterUser(UserManagementRequest userRequest)
     {
-        if (await _context.UserManagements.AnyAsync(u => u.Username == userRequest.Username))
+        var userName = await _context.UserManagements.AnyAsync(u => u.Username == userRequest.Username && u.IsActive);
+        if (userName)
         {
-            return "User already exists.";
+            throw new InvalidOperationException("User name already exists");
+        }
+
+        var staffWithOrgType = await (from s in _context.StaffCreations
+                                      join o in _context.OrganizationTypes on s.OrganizationTypeId equals o.Id
+                                      where s.Id == userRequest.StaffCreationId
+                                      select new { s.Id, o.ShortName }).FirstOrDefaultAsync();
+
+        if (staffWithOrgType == null)
+        {
+            throw new MessageNotFoundException("StaffCreationId not found.");
+        }
+
+        var userExists = await _context.UserManagements.AnyAsync(u =>
+            u.StaffCreationId == userRequest.StaffCreationId && u.IsActive);
+
+        if (userExists)
+        {
+            throw new InvalidOperationException("User with the given StaffCreationId already exists.");
         }
 
         var user = new UserManagement
@@ -31,7 +50,7 @@ public class UserManagementService
         _context.UserManagements.Add(user);
         await _context.SaveChangesAsync();
 
-        return "User registered successfully.";
+        return "User registered successfully";
     }
 
     public async Task<object> GetUserByUserId(int StaffId)

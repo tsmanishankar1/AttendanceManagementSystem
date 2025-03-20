@@ -27,12 +27,13 @@ public class DailyReportsService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<object>> GetDailyReports(DailyReportRequest request)
+    public async Task<object> GetDailyReports(DailyReportRequest request)
     {
         var staffIds = request.StaffIds != null && request.StaffIds.Any() ? string.Join(",", request.StaffIds) : (object)DBNull.Value;
-
-        var parameters = new[]
+        if (request.DailyReportsId == 9)
         {
+            var parameters = new[]
+            {
                 new SqlParameter("@DailyReportsId", request.DailyReportsId),
                 new SqlParameter("@StaffIds", staffIds),
                 new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
@@ -48,31 +49,181 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
 
-        var reportList = await _storedProcedureDbContext.DailyReportResponses
-            .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
-            .ToListAsync();
+            var reportList = await _storedProcedureDbContext.LeaveTakenResponses
+                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
+                .ToListAsync();
 
-        if (!reportList.Any())
-        {
-            throw new MessageNotFoundException("No records found");
-        }
-        var reportName = await _context.TypesOfReports.Where(r => r.Id == request.DailyReportsId).Select(r => r.ReportName).FirstOrDefaultAsync();
-        if(reportName == null)
-        {
-            throw new MessageNotFoundException("Report not found");
-        }
-        var user = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == request.CreatedBy && s.IsActive == true);
-        var userName = "";
-        var userCreationId = "";
-        if (user != null)
-        {
-            userName = $"{user.FirstName}{user.LastName}";
-            var org = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.Id == user.OrganizationTypeId && o.IsActive);
-            userCreationId = $"{org.ShortName}{user.Id}";
-        }
+            if (!reportList.Any())
+            {
+                throw new MessageNotFoundException("No records found");
+            }
+            var reportName = await _context.TypesOfReports.Where(r => r.Id == request.DailyReportsId).Select(r => r.ReportName).FirstOrDefaultAsync();
+            if (reportName == null)
+            {
+                throw new MessageNotFoundException("Report not found");
+            }
+            var createdByIds = reportList.Select(r => r.LeaveTakenBy).Distinct().ToList();
 
-        if (request.DailyReportsId == 10)
+            var staffCreationDict = await _context.StaffCreations
+                .Where(sc => createdByIds.Contains(sc.CreatedBy))
+                .ToDictionaryAsync(sc => sc.Id, sc => new { sc.OrganizationTypeId, sc.FirstName, sc.LastName, sc.Id, sc.DepartmentId, sc.DesignationId });
+
+            // Fetch Organization Type Short Names
+            var organizationTypeDict = await _context.OrganizationTypes
+                .ToDictionaryAsync(o => o.Id, o => o.ShortName);
+            var result = new List<DailyReportLeaveTakenResponse>();
+            DateOnly fromDate = default, toDate = default;
+
+            if (request.FromDate.HasValue && request.ToDate.HasValue)
+            {
+                fromDate = request.FromDate.Value;
+                toDate = request.ToDate.Value;
+            }
+            else if (request.CurrentMonth == true)
+            {
+                var now = DateTime.Now;
+                fromDate = new DateOnly(now.Year, now.Month, 1);
+                toDate = new DateOnly(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
+            }
+            else if (request.PreviousMonth == true)
+            {
+                var now = DateTime.Now.AddMonths(-1);
+                fromDate = new DateOnly(now.Year, now.Month, 1);
+                toDate = new DateOnly(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
+            }
+            else if (request.FromDateTime.HasValue && request.ToDateTime.HasValue)
+            {
+                fromDate = DateOnly.FromDateTime(request.FromDateTime.Value);
+                toDate = DateOnly.FromDateTime(request.ToDateTime.Value);
+            }
+
+            var reportName1 = reportName;
+            var fromDate1 = fromDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
+            var toDate1 = toDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
+            foreach (var report in reportList)
+            {
+                var staffCreationId = "";
+                var staffName = "";
+                int department = 0;
+                int designation = 0;
+                int lookupId = report.LeaveTakenBy;
+                if (staffCreationDict.TryGetValue(lookupId, out var staffInfo))
+                {
+                    string orgShortName = organizationTypeDict.GetValueOrDefault(staffInfo.OrganizationTypeId, "");
+
+                    staffCreationId = $"{orgShortName}{staffInfo.Id}";
+                    staffName = $"{staffInfo.FirstName}{staffInfo.LastName}";
+                    department = staffInfo.DepartmentId;
+                    designation = staffInfo.DesignationId;
+                }
+
+                var leaveSummary = reportList
+                    .GroupBy(r => new { r.LeaveTypeId, r.LeaveTakenBy })
+                    .Select(g => new
+                    {
+                        LeaveTypeId = g.Key.LeaveTypeId,
+                        StaffId = g.Key.LeaveTakenBy,
+                        TotalDays = g.Sum(r => r.TotalDays)
+                    })
+                    .ToList();
+
+                // Retrieve correct leave count based on StaffId and LeaveTypeId
+                var clAvailed = leaveSummary.FirstOrDefault(r => r.StaffId == report.LeaveTakenBy && r.LeaveTypeId == 5)?.TotalDays ?? 0;
+                var slAvailed = leaveSummary.FirstOrDefault(r => r.StaffId == report.LeaveTakenBy && r.LeaveTypeId == 6)?.TotalDays ?? 0;
+                var nclTaken = leaveSummary.FirstOrDefault(r => r.StaffId == report.LeaveTakenBy && r.LeaveTypeId == 40)?.TotalDays ?? 0;
+                var ptlTaken = leaveSummary.FirstOrDefault(r => r.StaffId == report.LeaveTakenBy && r.LeaveTypeId == 18)?.TotalDays ?? 0;
+                var mglTaken = leaveSummary.FirstOrDefault(r => r.StaffId == report.LeaveTakenBy && r.LeaveTypeId == 43)?.TotalDays ?? 0;
+                
+                var responseItem = new DailyReportLeaveTakenResponse
+                {
+                    Id = report.Id,
+                    StaffId = report.LeaveTakenBy,
+                    StaffCreationId = staffCreationId,
+                    StaffName = staffName,
+                    DepartmentId = department,
+                    DesignationId = designation,
+                    CLAvailed = clAvailed,
+                    SLAvailed = slAvailed,
+                    NCLTaken = nclTaken,
+                    PTLTaken = ptlTaken,
+                    MGLTaken = mglTaken
+                };
+                result.Add(responseItem);
+            }
+
+            var res = result.Cast<object>().ToList();
+            if (res.Count == 0)
+            {
+                return new List<object>
+                {
+                    new DailyReportLeaveTakenResponse
+                    {
+                        Id = 0,
+                        StaffId = 0,
+                        StaffCreationId = "",
+                        StaffName = "",
+                        DepartmentId = 0,
+                        DesignationId = 0,
+                        CLAvailed = 0,
+                        SLAvailed = 0,
+                        NCLTaken = 0,
+                        PTLTaken = 0,
+                        MGLTaken = 0
+                    }
+                };
+            }
+            var finalResponse = new
+            {
+                ReportName = reportName1,
+                FromDate = fromDate1,
+                ToDate = toDate1,
+                LeaveRecords = result
+            };
+
+            return finalResponse;
+        }
+        else if (request.DailyReportsId == 10)
         {
+            var parameters = new[]
+            {
+                new SqlParameter("@DailyReportsId", request.DailyReportsId),
+                new SqlParameter("@StaffIds", staffIds),
+                new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
+                new SqlParameter("@ToDate", request.ToDate ?? (object)DBNull.Value),
+                new SqlParameter("@CurrentMonth", request.CurrentMonth ?? (object)DBNull.Value),
+                new SqlParameter("@PreviousMonth", request.PreviousMonth ?? (object)DBNull.Value),
+                new SqlParameter("@FromMonth", request.FromMonth ?? (object)DBNull.Value),
+                new SqlParameter("@ToMonth", request.ToMonth ?? (object)DBNull.Value),
+                new SqlParameter("@FromDateTime", request.FromDateTime ?? (object)DBNull.Value),
+                new SqlParameter("@ToDateTime", request.ToDateTime ?? (object)DBNull.Value),
+                new SqlParameter("@IncludeTerminated", request.IncludeTerminated ?? (object)DBNull.Value),
+                new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
+                new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
+            };
+
+            var reportList = await _storedProcedureDbContext.LeaveRequisitionResponses
+                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
+                .ToListAsync();
+
+            if (!reportList.Any())
+            {
+                throw new MessageNotFoundException("No records found");
+            }
+            var reportName = await _context.TypesOfReports.Where(r => r.Id == request.DailyReportsId).Select(r => r.ReportName).FirstOrDefaultAsync();
+            if (reportName == null)
+            {
+                throw new MessageNotFoundException("Report not found");
+            }
+            var user = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == request.CreatedBy && s.IsActive == true);
+            var userName = "";
+            var userCreationId = "";
+            if (user != null)
+            {
+                userName = $"{user.FirstName}{user.LastName}";
+                var org = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.Id == user.OrganizationTypeId && o.IsActive);
+                userCreationId = $"{org.ShortName}{user.Id}";
+            }
+
             // Extract LeaveTypeIds and CreatedBy Ids
             var leaveTypeIds = reportList.Select(r => r.LeaveTypeId).Distinct().ToList();
             var createdByIds = reportList.Select(r => r.CreatedBy).Distinct().ToList();
@@ -228,6 +379,6 @@ public class DailyReportsService
             }
             return res;
         }
-        throw new MessageNotFoundException("Reports not found");
+        throw new MessageNotFoundException("Report type not found");
     }
 }

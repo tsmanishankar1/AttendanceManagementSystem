@@ -24,5 +24,14 @@ namespace AttendanceManagement.Input_Models
                 Message = message
             });
         }
+
+        public static IActionResult ConflictResponse(string message)
+        {
+            return new ConflictObjectResult(new
+            {
+                Success = false,
+                Message = message
+            });
+        }
     }
 }
