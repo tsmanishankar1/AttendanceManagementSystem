@@ -25,8 +25,8 @@
         public int DesignationId { get; set; }
         public DateOnly WorkedDate { get; set; }
         public DateOnly FromDate { get; set; }
-        public DateOnly ToDate { get; set; }
         public string FromDuration { get; set; }
+        public DateOnly ToDate { get; set; }
         public string ToDuration { get; set; }
         public string AppliedOn { get; set; } = null!;
         public string? ApproverStatus { get; set; }
@@ -36,7 +36,6 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
-
     public class CompOffCreditResponse
     {
         public int StaffId { get; set; }
@@ -130,11 +129,11 @@
         public string StaffCreationId { get; set; } = null!;
         public int DepartmentId { get; set; }
         public int DesignationId { get; set; }
-        public string From { get; set; }
-        public string? To { get; set; }
-        public string FromDuration { get; set; }  
-        public string? ToDuration { get; set; }
         public string Duration { get; set; }
+        public string From { get; set; }
+        public string FromDuration { get; set; }
+        public string? To { get; set; }
+        public string? ToDuration { get; set; }
         public string? TotalHoursDays { get; set; }
         public string Reason { get; set; }
         public string AppliedOn { get; set; } = null!;

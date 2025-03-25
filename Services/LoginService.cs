@@ -127,6 +127,4 @@ public class LoginService
             throw new Exception(ex.Message);
         }
     }
-
-
 }

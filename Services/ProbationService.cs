@@ -82,7 +82,7 @@ namespace AttendanceManagement.Services
             var pro = await _context.Probations.FirstOrDefaultAsync(p => p.StaffCreationId == probationRequest.StaffId && p.IsActive);
             if (pro != null)
             {
-                throw new InvalidOperationException("Probation Details ALready Exists");
+                throw new InvalidOperationException("Probation Details Already Exists");
             }
             var probation = new Probation
             {
