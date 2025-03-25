@@ -72,7 +72,7 @@ public class ApplicationService
 
             var entityType = entity.GetType();
             var isCancelledProperty = entityType.GetProperty("IsCancelled");
-            var updatedUtcProperty = entityType.GetProperty("UpdatedUtc");
+            var cancelledOnProperty = entityType.GetProperty("CancelledOn");
             var updatedByProperty = entityType.GetProperty("UpdatedBy");
             var isActiveProperty = entityType.GetProperty("IsActive");
 
@@ -89,7 +89,7 @@ public class ApplicationService
                 return false;
             }
             isCancelledProperty.SetValue(entity, true);
-            updatedUtcProperty?.SetValue(entity, DateTime.UtcNow);
+            cancelledOnProperty?.SetValue(entity, DateTime.UtcNow);
             updatedByProperty?.SetValue(entity, updatedBy);
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -107,7 +107,9 @@ public class ApplicationService
         var application = applicationTypeId switch
         {
             1 => await _context.LeaveRequisitions
-                        .Where(lr => lr.IsCancelled == null)
+                        .Where(lr => lr.IsCancelled == null &&
+            (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
+
          .Join(_context.ApplicationTypes, lr => lr.ApplicationTypeId, at => at.Id,
                (lr, at) => new { lr, at })
          .Join(_context.LeaveTypes, temp => temp.lr.LeaveTypeId, lt => lt.Id,
@@ -115,7 +117,8 @@ public class ApplicationService
                {
                    ApplicationTypeId = temp.lr.ApplicationTypeId,
                    ApplicationTypeName = temp.at.ApplicationTypeName,
-                   Status = temp.lr.Status1.HasValue ? (temp.lr.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                   Status = temp.lr.IsCancelled == true ? "Cancelled" :
+                                        temp.lr.Status1.HasValue ? (temp.lr.Status1.Value ? "Approved" : "Rejected") : "Pending",
                    StartDuration = temp.lr.StartDuration,
                    EndDuration = temp.lr.EndDuration,
                    LeaveTypeName = lt.Name,
@@ -127,13 +130,15 @@ public class ApplicationService
          .ToListAsync(),
 
             2 => await _context.CommonPermissions
-                        .Where(lr => lr.IsCancelled == null)
+                        .Where(lr => lr.IsCancelled == null &&
+            (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
              .Join(_context.ApplicationTypes, cp => cp.ApplicationTypeId, at => at.Id,
                    (cp, at) => new PermissionDto
                    {
                        ApplicationTypeId = cp.ApplicationTypeId,
                        ApplicationTypeName = at.ApplicationTypeName,
-                       Status = cp.Status.HasValue ? (cp.Status.Value ? "Approved" : "Rejected") : "Pending",
+                       Status = cp.IsCancelled == true ? "Cancelled" :
+                                        cp.Status.HasValue ? (cp.Status.Value ? "Approved" : "Rejected") : "Pending",
                        PermissionDate = cp.PermissionDate,
                        TotalHours = cp.TotalHours,
                        StartTime = cp.StartTime,
@@ -144,12 +149,13 @@ public class ApplicationService
              .ToListAsync(),
 
             3 => await _context.ManualPunchRequistions
-                   .Where(lr => lr.IsCancelled == null)
+                   .Where(lr => lr.IsCancelled == null && (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
             .Select(mp => new ManualPunch
             {
                 ApplicationTypeId = mp.ApplicationTypeId,
                 ApplicationTypeName = mp.ApplicationType.ApplicationTypeName,
-                Status = mp.Status1.HasValue ? (mp.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                Status = mp.IsCancelled == true ? "Cancelled" :
+                                mp.Status1.HasValue ? (mp.Status1.Value ? "Approved" : "Rejected") : "Pending",
                 SelectPunch = mp.SelectPunch,
                 InPunch = mp.InPunch,
                 OutPunch = mp.OutPunch,
@@ -158,12 +164,13 @@ public class ApplicationService
             .ToListAsync(),
 
             4 => await _context.OnDutyRequisitions
-                    .Where(lr => lr.IsCancelled == null)
+                    .Where(lr => lr.IsCancelled == null && (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
              .Select(od => new OnDutyRequest
              {
                  ApplicationTypeId = od.ApplicationTypeId,
                  ApplicationTypeName = od.ApplicationType.ApplicationTypeName,
-                 Status = od.Status1.HasValue ? (od.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                 Status = od.IsCancelled == true ? "Cancelled" :
+                                od.Status1.HasValue ? (od.Status1.Value ? "Approved" : "Rejected") : "Pending",
                  StartDuration = od.StartDuration,
                  EndDuration = od.EndDuration,
                  StartDate = od.StartDate,
@@ -180,7 +187,8 @@ public class ApplicationService
                 {
                     ApplicationTypeId = bt.ApplicationTypeId,
                     ApplicationTypeName = bt.ApplicationType.ApplicationTypeName,
-                    Status = bt.Status1.HasValue ? (bt.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                    Status = bt.IsCancelled == true ? "Cancelled" :
+                                    bt.Status1.HasValue ? (bt.Status1.Value ? "Approved" : "Rejected") : "Pending",
                     StartDuration = bt.StartDuration,
                     EndDuration = bt.EndDuration,
                     FromTime = bt.FromTime,
@@ -191,12 +199,13 @@ public class ApplicationService
                 })
                 .ToListAsync(),
             6 => await _context.WorkFromHomes
-                       .Where(lr => lr.IsCancelled == null)
+                       .Where(lr => lr.IsCancelled == null && (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                  .Select(wfh => new WorkFrom
                  {
                      ApplicationTypeId = wfh.ApplicationTypeId,
                      ApplicationTypeName = wfh.ApplicationType.ApplicationTypeName,
-                     Status = wfh.Status1.HasValue ? (wfh.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                     Status = wfh.IsCancelled == true ? "Cancelled" :
+                                    wfh.Status1.HasValue ? (wfh.Status1.Value ? "Approved" : "Rejected") : "Pending",
                      StartDuration = wfh.StartDuration,
                      EndDuration = wfh.EndDuration,
                      FromTime = wfh.FromTime,
@@ -208,7 +217,8 @@ public class ApplicationService
              .ToListAsync(),
 
             7 => await _context.ShiftChanges
-                      .Where(lr => lr.IsCancelled == null)
+                      .Where(lr => lr.IsCancelled == null &&
+            (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
               .Join(_context.ApplicationTypes, sc => sc.ApplicationTypeId, at => at.Id,
                     (sc, at) => new { sc, at })
               .Join(_context.Shifts, temp => temp.sc.ShiftId, s => s.Id,
@@ -216,7 +226,8 @@ public class ApplicationService
                     {
                         ApplicationTypeId = temp.sc.ApplicationTypeId,
                         ApplicationTypeName = temp.at.ApplicationTypeName,
-                        Status = temp.sc.Status1.HasValue ? (temp.sc.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                        Status = temp.sc.IsCancelled == true ? "Cancelled" :
+                                        temp.sc.Status1.HasValue ? (temp.sc.Status1.Value ? "Approved" : "Rejected") : "Pending",
                         ShiftName = s.ShiftName,
                         FromDate = temp.sc.FromDate,
                         ToDate = temp.sc.ToDate,
@@ -225,12 +236,13 @@ public class ApplicationService
               .ToListAsync(),
 
             8 => await _context.ShiftExtensions
-                .Where(lr => lr.IsCancelled == null)
+                .Where(lr => lr.IsCancelled == null && (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
               .Select(se => new ShiftExte
               {
                   ApplicationTypeId = se.ApplicationTypeId,
                   ApplicationTypeName = se.ApplicationType.ApplicationTypeName,
-                  Status = se.Status1.HasValue ? (se.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                  Status = se.IsCancelled == true ? "Cancelled" :
+                                se.Status1.HasValue ? (se.Status1.Value ? "Approved" : "Rejected") : "Pending",
                   TransactionDate = se.TransactionDate,
                   DurationHours = se.DurationHours,
                   BeforeShiftHours = se.BeforeShiftHours,
@@ -240,7 +252,8 @@ public class ApplicationService
               .ToListAsync(),
 
             9 => await _context.WeeklyOffHolidayWorkings
-                   .Where(lr => lr.IsCancelled == null)
+                   .Where(lr => lr.IsCancelled == null &&
+            (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
               .Join(_context.ApplicationTypes,
                     wh => wh.ApplicationTypeId, at => at.Id, (wh, at) => new { wh, at })
               .Join(_context.Shifts,
@@ -248,7 +261,8 @@ public class ApplicationService
                     {
                         ApplicationTypeId = temp.wh.ApplicationTypeId,
                         ApplicationTypeName = temp.at.ApplicationTypeName,
-                        Status = temp.wh.Status1.HasValue ? (temp.wh.Status1.Value ? "Approved" : "Rejected") : "Pending",
+                        Status = temp.wh.IsCancelled == true ? "Cancelled" :
+                                            temp.wh.Status1.HasValue ? (temp.wh.Status1.Value ? "Approved" : "Rejected") : "Pending",
                         SelectShiftType = temp.wh.SelectShiftType,
                         TxnDate = temp.wh.TxnDate,
                         ShiftName = s.ShiftName,
@@ -258,12 +272,14 @@ public class ApplicationService
               .ToListAsync(),
 
             10 => await _context.CompOffAvails
-                       .Where(lr => lr.IsCancelled == null)
+                       .Where(lr => lr.IsCancelled == null &&
+            (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                  .Select(coa => new CompOffAvai
                  {
                      ApplicationTypeId = coa.ApplicationTypeId,
                      ApplicationTypeName = coa.ApplicationType.ApplicationTypeName,
-                     Status = coa.Status.HasValue ? (coa.Status.Value ? "Approved" : "Rejected") : "Pending",
+                     Status = coa.IsCancelled == true ? "Cancelled" :
+                                    coa.Status.HasValue ? (coa.Status.Value ? "Approved" : "Rejected") : "Pending",
                      WorkedDate = coa.WorkedDate,
                      FromDate = coa.FromDate,
                      ToDate = coa.ToDate,
@@ -275,12 +291,14 @@ public class ApplicationService
                  .ToListAsync(),
 
             11 => await _context.CompOffCredits
-                       .Where(lr => lr.IsCancelled == null)
+                       .Where(lr => lr.IsCancelled == null &&
+            (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                  .Select(coc => new CompOffCred
                  {
                      ApplicationTypeId = coc.ApplicationTypeId,
                      ApplicationTypeName = coc.ApplicationType.ApplicationTypeName,
-                     Status = coc.Status.HasValue ? (coc.Status.Value ? "Approved" : "Rejected") : "Pending",
+                     Status = coc.IsCancelled == true ? "Cancelled" :
+                                    coc.Status.HasValue ? (coc.Status.Value ? "Approved" : "Rejected") : "Pending",
                      WorkedDate = coc.WorkedDate,
                      TotalDays = coc.TotalDays,
                      Reason = coc.Reason
@@ -290,20 +308,15 @@ public class ApplicationService
         };
         return application;
     }
-    public async Task<object> GetMonthlyDetailsAsync(string staffId, int month, int year)
+    public async Task<object> GetMonthlyDetailsAsync(int staffId, int month, int year)
     {
-        if (!int.TryParse(staffId, out int parsedStaffId))
-        {
-            throw new ArgumentException("Invalid StaffId format.");
-        }
         var staff = await (from staffs in _context.StaffCreations
-                           join org in _context.OrganizationTypes on staffs.OrganizationTypeId equals org.Id
-                           where staffs.Id == parsedStaffId
+                           where staffs.Id == staffId
                            select new
                            {
                                staffs.Id,
-                               FullName = $"{staffs.FirstName} {staffs.LastName}",
-                               OrgShortName = org.ShortName
+                               staffs.StaffId,
+                               StaffName = $"{staffs.FirstName} {staffs.LastName}",
                            })
                       .FirstOrDefaultAsync();
 
@@ -312,11 +325,13 @@ public class ApplicationService
             throw new ArgumentException("Staff not found.");
         }
         var leaveRecords = await _context.LeaveRequisitions
-            .Where(lr => lr.Id == parsedStaffId &&
-                         lr.CreatedUtc.Month == month &&
-                         lr.CreatedUtc.Year == year)
+            .Where(lr => (lr.StaffId == staffId || (lr.StaffId == null && lr.CreatedBy == staffId)) &&
+                        ((lr.FromDate.Month == month && lr.FromDate.Year == year) ||
+                      (lr.ToDate.Month == month && lr.ToDate.Year == year)))
             .Select(lr => new
             {
+                lr.ApplicationTypeId,
+                lr.ApplicationType.ApplicationTypeName,
                 lr.FromDate,
                 lr.ToDate,
                 LeaveTypeName = _context.LeaveTypes
@@ -328,16 +343,13 @@ public class ApplicationService
             .ToListAsync();
 
         var workFromHomeRecords = await _context.WorkFromHomes
-            .Where(wfh => wfh.CreatedBy == parsedStaffId &&
-                   wfh.CreatedUtc.Month == month &&
-                   wfh.CreatedUtc.Year == year &&
-                   wfh.ApplicationTypeId != 0)
+            .Where(wfh => (wfh.StaffId == staffId || (wfh.StaffId == null && wfh.CreatedBy == staffId)) &&
+                 ((wfh.FromDate.HasValue && wfh.FromDate.Value.Month == month && wfh.FromDate.Value.Year == year) ||
+           (wfh.ToDate.HasValue && wfh.ToDate.Value.Month == month && wfh.ToDate.Value.Year == year)))
             .Select(wfh => new
             {
-                ApplicationTypeName = _context.ApplicationTypes
-             .Where(lt => lt.Id == wfh.ApplicationTypeId)
-             .Select(lt => lt.ApplicationTypeName)
-             .FirstOrDefault(),
+                wfh.ApplicationTypeId,
+                wfh.ApplicationType.ApplicationTypeName,
                 wfh.FromDate,
                 wfh.ToDate,
                 wfh.Reason
@@ -345,16 +357,13 @@ public class ApplicationService
             .ToListAsync();
 
         var onDutyRecords = await _context.OnDutyRequisitions
-            .Where(od => od.CreatedBy == parsedStaffId &&
-                         od.CreatedUtc.Month == month &&
-                         od.CreatedUtc.Year == year &&
-                         od.ApplicationTypeId != 0)
+            .Where(od => (od.StaffId == staffId || (od.StaffId == null && od.CreatedBy == staffId)) &&
+                 ((od.StartDate.HasValue && od.StartDate.Value.Month == month && od.StartDate.Value.Year == year) ||
+           (od.EndDate.HasValue && od.EndDate.Value.Month == month && od.EndDate.Value.Year == year)))
             .Select(od => new
             {
-                ApplicationTypeName = _context.ApplicationTypes
-                    .Where(lt => lt.Id == od.ApplicationTypeId)
-                    .Select(lt => lt.ApplicationTypeName)
-                    .FirstOrDefault(),
+                od.ApplicationTypeId,
+                od.ApplicationType.ApplicationTypeName,
                 od.StartDate,
                 od.EndDate,
                 od.Reason
@@ -362,16 +371,13 @@ public class ApplicationService
             .ToListAsync();
 
         var businessTravelRecords = await _context.BusinessTravels
-            .Where(bt => bt.CreatedBy == parsedStaffId &&
-                         bt.CreatedUtc.Month == month &&
-                         bt.CreatedUtc.Year == year &&
-                         bt.ApplicationTypeId != 0)
+            .Where(bt => (bt.StaffId == staffId || (bt.StaffId == null && bt.CreatedBy == staffId)) &&
+                 ((bt.FromDate.HasValue && bt.FromDate.Value.Month == month && bt.FromDate.Value.Year == year) ||
+           (bt.ToDate.HasValue && bt.ToDate.Value.Month == month && bt.ToDate.Value.Year == year)))
             .Select(bt => new
             {
-                ApplicationTypeName = _context.ApplicationTypes
-                    .Where(lt => lt.Id == bt.ApplicationTypeId)
-                    .Select(lt => lt.ApplicationTypeName)
-                    .FirstOrDefault(),
+                bt.ApplicationTypeId,
+                bt.ApplicationType.ApplicationTypeName,
                 bt.FromDate,
                 bt.ToDate,
                 bt.Reason
@@ -379,52 +385,53 @@ public class ApplicationService
             .ToListAsync();
 
         var compOffRecords = await _context.CompOffAvails
-            .Where(bt => bt.CreatedBy == parsedStaffId &&
-                         bt.CreatedUtc.Month == month &&
-                         bt.CreatedUtc.Year == year &&
-                         bt.ApplicationTypeId != 0)
+            .Where(bt => (bt.StaffId == staffId || (bt.StaffId == null && bt.CreatedBy == staffId)) &&
+                 ((bt.FromDate.Month == month && bt.FromDate.Year == year) || (bt.ToDate.Month == month && bt.ToDate.Year == year)))
             .Select(bt => new
             {
-                ApplicationTypeName = _context.ApplicationTypes
-                    .Where(lt => lt.Id == bt.ApplicationTypeId)
-                    .Select(lt => lt.ApplicationTypeName)
-                    .FirstOrDefault(),
+                bt.ApplicationTypeId,
+                bt.ApplicationType.ApplicationTypeName,
                 bt.FromDate,
                 bt.ToDate
             })
             .ToListAsync();
 
         var weeklyOffRecords = await _context.WeeklyOffHolidayWorkings
-            .Where(bt => bt.CreatedBy == parsedStaffId &&
-                         bt.CreatedUtc.Month == month &&
-                         bt.CreatedUtc.Year == year &&
-                         bt.ApplicationTypeId != 0)
+            .Where(bt => (bt.StaffId == staffId || (bt.StaffId == null && bt.CreatedBy == staffId)) &&
+                 (bt.TxnDate.Month == month && bt.TxnDate.Year == year))
             .Select(bt => new
             {
-                ApplicationTypeName = _context.ApplicationTypes
-                    .Where(lt => lt.Id == bt.ApplicationTypeId)
-                    .Select(lt => lt.ApplicationTypeName)
-                    .FirstOrDefault(),
+                bt.ApplicationTypeId,
+                bt.ApplicationType.ApplicationTypeName,
                 bt.ShiftInTime,
                 bt.ShiftOutTime
             })
             .ToListAsync();
 
         var holidayRecords = await _context.HolidayMasters
-            .Where(hm => hm.CreatedUtc.Month == month &&
-                         hm.CreatedUtc.Year == year)
-            .Select(hm => new
-            {
-                hm.CreatedUtc,
-                hm.HolidayName
-            })
-            .ToListAsync();
-
+             .Include(hm => hm.HolidayCalendarTransactions)
+             .Where(hm => hm.HolidayCalendarTransactions
+                 .Any(x => ((x.FromDate.Month == month && x.FromDate.Year == year) ||
+                            (x.ToDate.Month == month && x.ToDate.Year == year))))
+             .Select(hm => new
+             {
+                 HolidayName = hm.HolidayName,
+                 Transactions = hm.HolidayCalendarTransactions
+                     .Where(x => (x.FromDate.Month == month && x.FromDate.Year == year) ||
+                                 (x.ToDate.Month == month && x.ToDate.Year == year))
+                     .Select(x => new
+                     {
+                         FromDate = x.FromDate,
+                         ToDate = x.ToDate
+                     })
+                     .ToList()
+             })
+             .ToListAsync();
         return new
         {
             staff.Id,
-            staff.FullName,
-            StaffCreationId = $"{staff.OrgShortName}{staff.Id}",
+            StaffId = staff.StaffId,
+            staff.StaffName,
             Month = new DateTime(year, month, 1).ToString("MMMM"),
             Year = year,
             LeaveRequisition = leaveRecords,
@@ -560,31 +567,53 @@ public class ApplicationService
         }
         return application;
     }
+
     public async Task<List<object>> GetApplicationRequisition(int approverId, List<int>? staffIds, int? applicationTypeId, DateOnly? fromDate, DateOnly? toDate)
     {
         List<object> result = new List<object>();
-
         if (applicationTypeId.HasValue && applicationTypeId == 1)
         {
-            var getLeaves = await (from staff in _context.StaffCreations
-                                   join leave in _context.LeaveRequisitions on staff.Id equals leave.CreatedBy
+            var getLeaves = await (from leave in _context.LeaveRequisitions
                                    join leaveType in _context.LeaveTypes on leave.LeaveTypeId equals leaveType.Id
                                    join application in _context.ApplicationTypes on leave.ApplicationTypeId equals application.Id
-                                   join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
+
+                                   // Join with the staff record for the person taking leave (if specified)
+                                   join leaveStaff in _context.StaffCreations on leave.StaffId equals leaveStaff.Id into leaveStaffJoin
+                                   from leaveStaff in leaveStaffJoin.DefaultIfEmpty()
+
+                                       // Join with the creator's staff record
+                                   join creatorStaff in _context.StaffCreations on leave.CreatedBy equals creatorStaff.Id
+
+                                   join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+
                                    where leave.IsActive == true
-                                   && staff.IsActive == true
+                                   && (leave.StaffId == null || leaveStaff.IsActive == true)
+                                   && creatorStaff.IsActive == true
                                    && leave.IsCancelled == null
-                                   && (fromDate.HasValue ? leave.FromDate >= fromDate : true)
-                                   && (toDate.HasValue ? leave.ToDate <= toDate : true)
-                                   && (approverId < 0 || (staff.ApprovalLevel1 == approverId && leave.Status1 == null))
-                                   && (staffIds != null && staffIds.Any() ? staffIds.Contains(leave.CreatedBy) : true)
+                                   && (!fromDate.HasValue || leave.FromDate >= fromDate)
+                                   && (!toDate.HasValue || leave.ToDate <= toDate)
+                                   && (approverId < 0 ||
+                                       (leave.StaffId.HasValue && leaveStaff.ApprovalLevel1 == approverId && leave.Status1 == null) ||
+                                       (!leave.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId && leave.Status1 == null))
+                                   && (
+                                       staffIds == null || !staffIds.Any() ||
+                                       (
+                                           // Check if the StaffId is in the input list
+                                           (leave.StaffId.HasValue && staffIds.Contains(leave.StaffId.Value)) ||
+                                           // If no StaffId, then check CreatedBy
+                                           (!leave.StaffId.HasValue && staffIds.Contains(leave.CreatedBy))
+                                       )
+                                   )
                                    select new
                                    {
                                        leave.Id,
                                        leave.ApplicationTypeId,
                                        ApplicationType = application.ApplicationTypeName,
-                                       StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                       StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                       StaffId = leave.StaffId,
+                                       CreatedById = leave.CreatedBy,
+                                       StaffName = leave.StaffId.HasValue
+                                           ? leaveStaff.FirstName + " " + (leaveStaff.LastName ?? "")
+                                           : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                        leave.StartDuration,
                                        leave.EndDuration,
                                        LeaveType = leaveType.Name,
@@ -594,31 +623,42 @@ public class ApplicationService
                                        leave.Reason,
                                        leave.CreatedBy
                                    }).ToListAsync();
-
-            if (getLeaves.Count == 0)
+            if (!getLeaves.Any())
             {
                 throw new MessageNotFoundException("No leave requisition found");
             }
             result.AddRange(getLeaves.Cast<object>());
         }
+
+
+
         else if (applicationTypeId.HasValue && applicationTypeId == 2)
         {
             var getCommonPermissions = await (from permission in _context.CommonPermissions
-                                              join staff in _context.StaffCreations on permission.StaffId equals staff.Id
-                                              join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                              where permission.IsActive == true && staff.IsActive == true
-                                               && permission.IsCancelled== null
-                                              && (staffIds != null && staffIds.Any() ? staffIds.Contains(permission.CreatedBy) : true)
-                                              && (approverId < 0 || (staff.ApprovalLevel1 == approverId && permission.Status == null))
-                                              && (fromDate.HasValue ? permission.PermissionDate >= fromDate : true)
-                                              && (toDate.HasValue ? permission.PermissionDate <= toDate : true)
+                                              join staff in _context.StaffCreations on permission.StaffId equals staff.Id into staffJoin
+                                              from staff in staffJoin.DefaultIfEmpty()
+                                              join creatorStaff in _context.StaffCreations on permission.CreatedBy equals creatorStaff.Id
+                                              join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                              where permission.IsActive == true && (permission.StaffId == null || staff.IsActive == true)
+                                              && creatorStaff.IsActive == true
+                                              && permission.IsCancelled == null
+                                              && (approverId < 0 ||
+                                                  (permission.StaffId.HasValue && staff.ApprovalLevel1 == approverId && permission.Status == null) ||
+                                                  (!permission.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId && permission.Status == null))
+                                              && (
+                                                  staffIds == null || !staffIds.Any() ||
+                                                  (permission.StaffId.HasValue && staffIds.Contains(permission.StaffId.Value)) ||
+                                                  (!permission.StaffId.HasValue && staffIds.Contains(permission.CreatedBy))
+                                              )
                                               select new
                                               {
                                                   permission.Id,
                                                   permission.ApplicationTypeId,
                                                   permission.PermissionType,
-                                                  StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                                  StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                                  StaffId = permission.StaffId,
+                                                  StaffName = permission.StaffId.HasValue
+                                                      ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                      : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                                   permission.PermissionDate,
                                                   permission.StartTime,
                                                   permission.EndTime,
@@ -627,27 +667,48 @@ public class ApplicationService
                                                   permission.Status,
                                                   permission.CreatedBy
                                               }).ToListAsync();
-            if (getCommonPermissions.Count == 0)
+            if (!getCommonPermissions.Any())
             {
                 throw new MessageNotFoundException("No common permission found");
             }
             result.AddRange(getCommonPermissions.Cast<object>());
         }
+
+
+
         else if (applicationTypeId.HasValue && applicationTypeId == 3)
         {
             var getManualPunch = await (from punch in _context.ManualPunchRequistions
-                                        join staff in _context.StaffCreations on punch.CreatedBy equals staff.Id
                                         join application in _context.ApplicationTypes on punch.ApplicationTypeId equals application.Id
-                                        join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                        where punch.IsActive == true && staff.IsActive == true
+                                        join staff in _context.StaffCreations on punch.StaffId equals staff.Id into staffJoin
+                                        from staff in staffJoin.DefaultIfEmpty() // Left join for StaffId
+                                        join creatorStaff in _context.StaffCreations on punch.CreatedBy equals creatorStaff.Id
+                                        join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                        where punch.IsActive == true
+                                        && (punch.StaffId == null || staff.IsActive == true) // If StaffId is null, it should still be valid
+                                        && creatorStaff.IsActive == true
                                         && punch.IsCancelled == null
-                                        && (approverId < 0 || (staff.ApprovalLevel1 == approverId && punch.Status1 == null))
-                                        && (staffIds != null && staffIds.Any() ? staffIds.Contains(punch.CreatedBy) : true)
+                                        && (approverId < 0 ||
+                                            (punch.StaffId.HasValue && staff.ApprovalLevel1 == approverId && punch.Status1 == null) ||
+                                            (!punch.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId && punch.Status1 == null))
+                                        && (
+                                            staffIds == null || !staffIds.Any() ||
+                                            (
+                                                // If StaffId exists, check in the list
+                                                (punch.StaffId.HasValue && staffIds.Contains(punch.StaffId.Value)) ||
+                                                // Otherwise, check CreatedBy
+                                                (!punch.StaffId.HasValue && staffIds.Contains(punch.CreatedBy))
+                                            )
+                                        )
                                         select new
                                         {
-                                            punch.ApplicationTypeId,
                                             punch.Id,
-                                            punch = application.ApplicationTypeName,
+                                            punch.ApplicationTypeId,
+                                            ApplicationType = application.ApplicationTypeName,
+                                            StaffId = punch.StaffId ?? punch.CreatedBy,
+                                            StaffName = punch.StaffId.HasValue
+                                                ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                             punch.SelectPunch,
                                             punch.InPunch,
                                             punch.OutPunch,
@@ -657,31 +718,49 @@ public class ApplicationService
                                             punch.IsActive,
                                             punch.CreatedBy
                                         }).ToListAsync();
-            if (getManualPunch.Count == 0)
+
+            if (!getManualPunch.Any())
             {
                 throw new MessageNotFoundException("No manual punch requisition found");
             }
             result.AddRange(getManualPunch.Cast<object>());
         }
+
         else if (applicationTypeId.HasValue && applicationTypeId == 4)
         {
             var getOnDutyRequisitions = await (from duty in _context.OnDutyRequisitions
-                                               join staff in _context.StaffCreations on duty.CreatedBy equals staff.Id
                                                join application in _context.ApplicationTypes on duty.ApplicationTypeId equals application.Id
-                                               join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                               where duty.IsActive == true && staff.IsActive == true
-                                               && duty.IsCancelled== null
-                                               && (staffIds != null && staffIds.Any() ? staffIds.Contains(duty.CreatedBy) : true)
-                                               && (fromDate.HasValue ? duty.StartDate >= fromDate : true)
-                                               && (toDate.HasValue ? duty.EndDate <= toDate : true)
-                                               && (approverId < 0 || (staff.ApprovalLevel1 == approverId && duty.Status1 == null))
+                                               join staff in _context.StaffCreations on duty.StaffId equals staff.Id into dutyStaffJoin
+                                               from staff in dutyStaffJoin.DefaultIfEmpty() // Left join for StaffId
+                                               join creatorStaff in _context.StaffCreations on duty.CreatedBy equals creatorStaff.Id
+                                               join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                               where duty.IsActive == true
+                                               && (duty.StaffId == null || staff.IsActive == true) // If StaffId is null, it should still be valid
+                                               && creatorStaff.IsActive == true
+                                               && duty.IsCancelled == null
+                                               && (!fromDate.HasValue || duty.StartDate >= fromDate)
+                                               && (!toDate.HasValue || duty.EndDate <= toDate)
+                                               && (approverId < 0 ||
+                                                   (duty.StaffId.HasValue && staff.ApprovalLevel1 == approverId && duty.Status1 == null) ||
+                                                   (!duty.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId && duty.Status1 == null))
+                                               && (
+                                                   staffIds == null || !staffIds.Any() ||
+                                                   (
+                                                       // If StaffId exists, check in the list
+                                                       (duty.StaffId.HasValue && staffIds.Contains(duty.StaffId.Value)) ||
+                                                       // Otherwise, check CreatedBy
+                                                       (!duty.StaffId.HasValue && staffIds.Contains(duty.CreatedBy))
+                                                   )
+                                               )
                                                select new
                                                {
                                                    duty.Id,
                                                    duty.ApplicationTypeId,
                                                    ApplicationType = application.ApplicationTypeName,
-                                                   StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                                   StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                                   StaffId = duty.StaffId ?? duty.CreatedBy,
+                                                   StaffName = duty.StaffId.HasValue
+                                                       ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                       : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                                    duty.StartDuration,
                                                    duty.EndDuration,
                                                    duty.StartDate,
@@ -693,31 +772,50 @@ public class ApplicationService
                                                    duty.Status2,
                                                    duty.CreatedBy
                                                }).ToListAsync();
-            if (getOnDutyRequisitions.Count == 0)
+
+            if (!getOnDutyRequisitions.Any())
             {
                 throw new MessageNotFoundException("No on-duty requisition found");
             }
             result.AddRange(getOnDutyRequisitions.Cast<object>());
         }
+
+
         else if (applicationTypeId.HasValue && applicationTypeId == 5)
         {
             var getBusinessTravels = await (from travel in _context.BusinessTravels
-                                            join staff in _context.StaffCreations on travel.CreatedBy equals staff.Id
                                             join application in _context.ApplicationTypes on travel.ApplicationTypeId equals application.Id
-                                            join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                            where travel.IsActive == true && staff.IsActive == true
+                                            join staff in _context.StaffCreations on travel.StaffId equals staff.Id into travelStaffJoin
+                                            from staff in travelStaffJoin.DefaultIfEmpty() // Left join for StaffId
+                                            join creatorStaff in _context.StaffCreations on travel.CreatedBy equals creatorStaff.Id
+                                            join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                            where travel.IsActive == true
+                                            && (travel.StaffId == null || staff.IsActive == true) // If StaffId is null, it should still be valid
+                                            && creatorStaff.IsActive == true
                                             && travel.IsCancelled == null
-                                            && (staffIds != null && staffIds.Any() ? staffIds.Contains(travel.CreatedBy) : true)
-                                            && (approverId < 0 || (staff.ApprovalLevel1 == approverId && travel.Status1 == null))
-                                            && (fromDate.HasValue ? travel.FromDate >= fromDate : true)
-                                            && (toDate.HasValue ? travel.ToDate <= toDate : true)
+                                            && (!fromDate.HasValue || travel.FromDate >= fromDate)
+                                            && (!toDate.HasValue || travel.ToDate <= toDate)
+                                            && (approverId < 0 ||
+                                                (travel.StaffId.HasValue && staff.ApprovalLevel1 == approverId && travel.Status1 == null) ||
+                                                (!travel.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId && travel.Status1 == null))
+                                            && (
+                                                staffIds == null || !staffIds.Any() ||
+                                                (
+                                                    // If StaffId exists, check in the list
+                                                    (travel.StaffId.HasValue && staffIds.Contains(travel.StaffId.Value)) ||
+                                                    // Otherwise, check CreatedBy
+                                                    (!travel.StaffId.HasValue && staffIds.Contains(travel.CreatedBy))
+                                                )
+                                            )
                                             select new
                                             {
                                                 travel.Id,
                                                 travel.ApplicationTypeId,
                                                 ApplicationType = application.ApplicationTypeName,
-                                                StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                                StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                                StaffId = travel.StaffId ?? travel.CreatedBy,
+                                                StaffName = travel.StaffId.HasValue
+                                                    ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                    : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                                 travel.StartDuration,
                                                 travel.EndDuration,
                                                 travel.FromDate,
@@ -729,31 +827,49 @@ public class ApplicationService
                                                 travel.Status2,
                                                 travel.CreatedBy
                                             }).ToListAsync();
-            if (getBusinessTravels.Count == 0)
+
+            if (!getBusinessTravels.Any())
             {
                 throw new MessageNotFoundException("No business travel found");
             }
             result.AddRange(getBusinessTravels.Cast<object>());
         }
+
         else if (applicationTypeId.HasValue && applicationTypeId == 6)
         {
             var getWorkFromHomes = await (from workFromHome in _context.WorkFromHomes
-                                          join staff in _context.StaffCreations on workFromHome.CreatedBy equals staff.Id
                                           join application in _context.ApplicationTypes on workFromHome.ApplicationTypeId equals application.Id
-                                          join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                          where workFromHome.IsActive == true && staff.IsActive == true
+                                          join staff in _context.StaffCreations on workFromHome.StaffId equals staff.Id into workFromHomeStaffJoin
+                                          from staff in workFromHomeStaffJoin.DefaultIfEmpty() // Left join for StaffId
+                                          join creatorStaff in _context.StaffCreations on workFromHome.CreatedBy equals creatorStaff.Id
+                                          join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                          where workFromHome.IsActive == true
+                                          && (workFromHome.StaffId == null || staff.IsActive == true) // If StaffId is null, it should still be valid
+                                          && creatorStaff.IsActive == true
                                           && workFromHome.IsCancelled == null
-                                          && (staffIds != null && staffIds.Any() ? staffIds.Contains(workFromHome.CreatedBy) : true)
-                                          && (approverId < 0 || (staff.ApprovalLevel1 == approverId && workFromHome.Status1 == null))
-                                          && (fromDate.HasValue ? workFromHome.FromDate >= fromDate : true)
-                                          && (toDate.HasValue ? workFromHome.ToDate <= toDate : true)
+                                          && (!fromDate.HasValue || workFromHome.FromDate >= fromDate)
+                                          && (!toDate.HasValue || workFromHome.ToDate <= toDate)
+                                          && (approverId < 0 ||
+                                              (workFromHome.StaffId.HasValue && staff.ApprovalLevel1 == approverId && workFromHome.Status1 == null) ||
+                                              (!workFromHome.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId && workFromHome.Status1 == null))
+                                          && (
+                                              staffIds == null || !staffIds.Any() ||
+                                              (
+                                                  // If StaffId exists, check in the list
+                                                  (workFromHome.StaffId.HasValue && staffIds.Contains(workFromHome.StaffId.Value)) ||
+                                                  // Otherwise, check CreatedBy
+                                                  (!workFromHome.StaffId.HasValue && staffIds.Contains(workFromHome.CreatedBy))
+                                              )
+                                          )
                                           select new
                                           {
                                               workFromHome.Id,
                                               workFromHome.ApplicationTypeId,
                                               ApplicationType = application.ApplicationTypeName,
-                                              StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                              StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                              StaffId = workFromHome.StaffId ?? workFromHome.CreatedBy,
+                                              StaffName = workFromHome.StaffId.HasValue
+                                                  ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                  : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                               workFromHome.StartDuration,
                                               workFromHome.EndDuration,
                                               workFromHome.FromDate,
@@ -765,32 +881,50 @@ public class ApplicationService
                                               workFromHome.Status2,
                                               workFromHome.CreatedBy
                                           }).ToListAsync();
-            if (getWorkFromHomes.Count == 0)
+            if (!getWorkFromHomes.Any())
             {
                 throw new MessageNotFoundException("No work from home found");
             }
             result.AddRange(getWorkFromHomes.Cast<object>());
         }
+
         else if (applicationTypeId.HasValue && applicationTypeId == 7)
         {
             var getShiftChanges = await (from shiftChange in _context.ShiftChanges
-                                         join staff in _context.StaffCreations on shiftChange.CreatedBy equals staff.Id
                                          join application in _context.ApplicationTypes on shiftChange.ApplicationTypeId equals application.Id
-                                         join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
                                          join shift in _context.Shifts on shiftChange.ShiftId equals shift.Id
-                                         where shiftChange.IsActive == true && staff.IsActive == true
+                                         join staff in _context.StaffCreations on shiftChange.StaffId equals staff.Id into staffJoin
+                                         from staff in staffJoin.DefaultIfEmpty()  // Left join for StaffId
+                                         join creatorStaff in _context.StaffCreations on shiftChange.CreatedBy equals creatorStaff.Id
+                                         join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                         where shiftChange.IsActive == true
+                                         && (shiftChange.StaffId == null || staff.IsActive == true) // If StaffId is null, it should still be valid
+                                         && creatorStaff.IsActive == true
                                          && shiftChange.IsCancelled == null
-                                         && (staffIds != null && staffIds.Any() ? staffIds.Contains(shiftChange.CreatedBy) : true)
-                                         && (approverId < 0 || (staff.ApprovalLevel1 == approverId && shiftChange.Status1 == null))
-                                         && (fromDate.HasValue ? shiftChange.FromDate >= fromDate : true)
-                                         && (toDate.HasValue ? shiftChange.ToDate <= toDate : true)
+                                         && (!fromDate.HasValue || shiftChange.FromDate >= fromDate)
+                                         && (!toDate.HasValue || shiftChange.ToDate <= toDate)
+                                         && (approverId < 0 ||
+                                             (shiftChange.StaffId.HasValue && staff.ApprovalLevel1 == approverId && shiftChange.Status1 == null) ||
+                                             (!shiftChange.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId && shiftChange.Status1 == null))
+                                         && (
+                                             staffIds == null || !staffIds.Any() ||
+                                             (
+                                                 // If StaffId exists, check in the list
+                                                 (shiftChange.StaffId.HasValue && staffIds.Contains(shiftChange.StaffId.Value)) ||
+                                                 // Otherwise, check CreatedBy
+                                                 (!shiftChange.StaffId.HasValue && staffIds.Contains(shiftChange.CreatedBy))
+                                             )
+                                         )
                                          select new
                                          {
                                              shiftChange.Id,
                                              shiftChange.ApplicationTypeId,
                                              ApplicationType = application.ApplicationTypeName,
-                                             StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                             StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                             StaffId = shiftChange.StaffId,
+                                             CreatedById = shiftChange.CreatedBy,
+                                             StaffName = shiftChange.StaffId.HasValue
+                                                 ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                 : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                              shiftChange.FromDate,
                                              shiftChange.ToDate,
                                              shiftChange.Reason,
@@ -799,22 +933,32 @@ public class ApplicationService
                                              shiftChange.CreatedBy,
                                              ShiftName = shift.ShiftName
                                          }).ToListAsync();
-            if (getShiftChanges.Count == 0)
+            if (!getShiftChanges.Any())
             {
                 throw new MessageNotFoundException("No shift change found");
             }
             result.AddRange(getShiftChanges.Cast<object>());
         }
+
         else if (applicationTypeId.HasValue && applicationTypeId == 8)
         {
             var getShiftExtensions = await (from shiftExtension in _context.ShiftExtensions
-                                            join staff in _context.StaffCreations on shiftExtension.CreatedBy equals staff.Id
+                                            join staff in _context.StaffCreations on shiftExtension.StaffId equals staff.Id into staffJoin
+                                            from staff in staffJoin.DefaultIfEmpty()
+                                            join creatorStaff in _context.StaffCreations on shiftExtension.CreatedBy equals creatorStaff.Id
                                             join application in _context.ApplicationTypes on shiftExtension.ApplicationTypeId equals application.Id
-                                            join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                            where shiftExtension.IsActive == true && staff.IsActive == true
+                                            join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                            where shiftExtension.IsActive == true
+                                            && (shiftExtension.StaffId == null || staff.IsActive == true)
+                                            && creatorStaff.IsActive == true
                                             && shiftExtension.IsCancelled == null
-                                            && (staffIds != null && staffIds.Any() ? staffIds.Contains(shiftExtension.CreatedBy) : true)
-                                            && (approverId < 0 || (staff.ApprovalLevel1 == approverId && shiftExtension.Status1 == null))
+                                            && (staffIds == null || !staffIds.Any() ||
+                                                (shiftExtension.StaffId.HasValue
+                                                    ? staffIds.Contains(shiftExtension.StaffId.Value)
+                                                    : staffIds.Contains(shiftExtension.CreatedBy)))
+                                            && (approverId < 0 || ((shiftExtension.StaffId.HasValue
+                                                    ? staff.ApprovalLevel1
+                                                    : creatorStaff.ApprovalLevel1) == approverId && shiftExtension.Status1 == null))
                                             && (fromDate.HasValue ? shiftExtension.TransactionDate >= fromDate : true)
                                             && (toDate.HasValue ? shiftExtension.TransactionDate <= toDate : true)
                                             select new
@@ -822,8 +966,10 @@ public class ApplicationService
                                                 shiftExtension.Id,
                                                 shiftExtension.ApplicationTypeId,
                                                 ApplicationType = application.ApplicationTypeName,
-                                                StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                                StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                                StaffId = shiftExtension.StaffId ?? shiftExtension.CreatedBy,
+                                                StaffName = shiftExtension.StaffId.HasValue
+                                                    ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                    : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                                 shiftExtension.TransactionDate,
                                                 shiftExtension.DurationHours,
                                                 shiftExtension.BeforeShiftHours,
@@ -833,22 +979,32 @@ public class ApplicationService
                                                 shiftExtension.Status2,
                                                 shiftExtension.CreatedBy
                                             }).ToListAsync();
-            if (getShiftExtensions.Count == 0)
+            if (!getShiftExtensions.Any())
             {
                 throw new MessageNotFoundException("No shift extension found");
             }
             result.AddRange(getShiftExtensions.Cast<object>());
         }
+
         else if (applicationTypeId.HasValue && applicationTypeId == 9)
         {
             var getWeeklyOffHolidayWorking = await (from holidayWorking in _context.WeeklyOffHolidayWorkings
-                                                    join staff in _context.StaffCreations on holidayWorking.CreatedBy equals staff.Id
+                                                    join staff in _context.StaffCreations on holidayWorking.StaffId equals staff.Id into staffJoin
+                                                    from staff in staffJoin.DefaultIfEmpty()
+                                                    join creatorStaff in _context.StaffCreations on holidayWorking.CreatedBy equals creatorStaff.Id
                                                     join application in _context.ApplicationTypes on holidayWorking.ApplicationTypeId equals application.Id
-                                                    join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                                    where holidayWorking.IsActive == true && staff.IsActive == true
+                                                    join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                                    where holidayWorking.IsActive == true
+                                                    && (holidayWorking.StaffId == null || staff.IsActive == true)
+                                                    && creatorStaff.IsActive == true
                                                     && holidayWorking.IsCancelled == null
-                                                    && (staffIds != null && staffIds.Any() ? staffIds.Contains(holidayWorking.CreatedBy) : true)
-                                                    && (approverId < 0 || (staff.ApprovalLevel1 == approverId && holidayWorking.Status1 == null))
+                                                    && (staffIds == null || !staffIds.Any() ||
+                                                        (holidayWorking.StaffId.HasValue
+                                                            ? staffIds.Contains(holidayWorking.StaffId.Value)
+                                                            : staffIds.Contains(holidayWorking.CreatedBy)))
+                                                    && (approverId < 0 || ((holidayWorking.StaffId.HasValue
+                                                            ? staff.ApprovalLevel1
+                                                            : creatorStaff.ApprovalLevel1) == approverId && holidayWorking.Status1 == null))
                                                     && (fromDate.HasValue ? holidayWorking.TxnDate >= fromDate : true)
                                                     && (toDate.HasValue ? holidayWorking.TxnDate <= toDate : true)
                                                     select new
@@ -856,8 +1012,10 @@ public class ApplicationService
                                                         holidayWorking.Id,
                                                         holidayWorking.ApplicationTypeId,
                                                         ApplicationType = application.ApplicationTypeName,
-                                                        StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                                        StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                                        StaffId = holidayWorking.StaffId ?? holidayWorking.CreatedBy,
+                                                        StaffName = holidayWorking.StaffId.HasValue
+                                                            ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                            : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                                         holidayWorking.TxnDate,
                                                         holidayWorking.SelectShiftType,
                                                         holidayWorking.ShiftId,
@@ -867,22 +1025,32 @@ public class ApplicationService
                                                         holidayWorking.Status2,
                                                         holidayWorking.CreatedBy
                                                     }).ToListAsync();
-            if (getWeeklyOffHolidayWorking.Count == 0)
+            if (!getWeeklyOffHolidayWorking.Any())
             {
                 throw new MessageNotFoundException("No weekly off holiday working found");
             }
             result.AddRange(getWeeklyOffHolidayWorking.Cast<object>());
         }
+
+
         else if (applicationTypeId.HasValue && applicationTypeId == 10)
         {
             var getCompOffAvail = await (from compOff in _context.CompOffAvails
-                                         join staff in _context.StaffCreations on compOff.CreatedBy equals staff.Id
+                                         join staff in _context.StaffCreations on compOff.StaffId equals staff.Id into staffJoin
+                                         from staff in staffJoin.DefaultIfEmpty()
+                                         join creatorStaff in _context.StaffCreations on compOff.CreatedBy equals creatorStaff.Id
                                          join application in _context.ApplicationTypes on compOff.ApplicationTypeId equals application.Id
-                                         join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                         where compOff.IsActive == true && staff.IsActive == true
+                                         join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                         where compOff.IsActive == true
+                                         && (compOff.StaffId == null || staff.IsActive == true)
+                                         && creatorStaff.IsActive == true
                                          && compOff.IsCancelled == null
-                                         && (staffIds != null && staffIds.Any() ? staffIds.Contains(compOff.CreatedBy) : true)
-                                         && (approverId < 0 || (staff.ApprovalLevel1 == approverId && compOff.Status == null))
+                                         && (staffIds == null || !staffIds.Any() ||
+                                             (compOff.StaffId.HasValue && staffIds.Contains(compOff.StaffId.Value)) ||
+                                             (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
+                                         && (approverId < 0 || ((compOff.StaffId.HasValue
+                                             ? staff.ApprovalLevel1
+                                             : creatorStaff.ApprovalLevel1) == approverId && compOff.Status == null))
                                          && (fromDate.HasValue ? compOff.FromDate >= fromDate : true)
                                          && (toDate.HasValue ? compOff.ToDate <= toDate : true)
                                          select new
@@ -890,8 +1058,10 @@ public class ApplicationService
                                              compOff.Id,
                                              compOff.ApplicationTypeId,
                                              ApplicationType = application.ApplicationTypeName,
-                                             StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                             StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                             StaffId = compOff.StaffId ?? compOff.CreatedBy,
+                                             StaffName = compOff.StaffId.HasValue
+                                                 ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                 : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                              compOff.WorkedDate,
                                              compOff.FromDate,
                                              compOff.ToDate,
@@ -903,41 +1073,54 @@ public class ApplicationService
                                              compOff.CreatedBy
                                          })
                                          .ToListAsync();
-            if (getCompOffAvail.Count == 0)
+            if (!getCompOffAvail.Any())
             {
-                throw new MessageNotFoundException("No Comp off Avail found");
+                throw new MessageNotFoundException("No Comp Off Avail found");
             }
             result.AddRange(getCompOffAvail.Cast<object>());
         }
+
         else if (applicationTypeId.HasValue && applicationTypeId == 11)
         {
             var getCompOffCredit = await (from compOff in _context.CompOffCredits
-                                          join staff in _context.StaffCreations on compOff.CreatedBy equals staff.Id
+                                          join staff in _context.StaffCreations on compOff.StaffId equals staff.Id into staffJoin
+                                          from staff in staffJoin.DefaultIfEmpty()
+                                          join creatorStaff in _context.StaffCreations on compOff.CreatedBy equals creatorStaff.Id
                                           join application in _context.ApplicationTypes on compOff.ApplicationTypeId equals application.Id
-                                          join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                                          where compOff.IsActive == true && staff.IsActive == true
+                                          join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                          where compOff.IsActive == true
+                                          && (compOff.StaffId == null || staff.IsActive == true)
+                                          && creatorStaff.IsActive == true
                                           && compOff.IsCancelled == null
-                                          && (staffIds != null && staffIds.Any() ? staffIds.Contains(compOff.CreatedBy) : true)
-                                          && (approverId < 0 || (staff.ApprovalLevel1 == approverId && compOff.Status == null))
+                                          && (staffIds == null || !staffIds.Any() ||
+                                              (compOff.StaffId.HasValue && staffIds.Contains(compOff.StaffId.Value)) ||
+                                              (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
+                                          && (approverId < 0 || ((compOff.StaffId.HasValue
+                                              ? staff.ApprovalLevel1
+                                              : creatorStaff.ApprovalLevel1) == approverId && compOff.Status == null))
                                           select new
                                           {
                                               compOff.Id,
                                               compOff.ApplicationTypeId,
                                               ApplicationType = application.ApplicationTypeName,
-                                              StaffCreationId = $"{org.ShortName}{staff.Id}",
-                                              StaffName = staff.FirstName + " " + (staff.LastName ?? ""),
+                                              StaffId = compOff.StaffId ?? compOff.CreatedBy,
+                                              StaffName = compOff.StaffId.HasValue
+                                                  ? staff.FirstName + " " + (staff.LastName ?? "")
+                                                  : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                               compOff.WorkedDate,
                                               compOff.TotalDays,
                                               compOff.Reason,
                                               compOff.Status,
                                               compOff.CreatedBy
-                                          }).ToListAsync();
-            if (getCompOffCredit.Count == 0)
+                                          })
+                                          .ToListAsync();
+            if (!getCompOffCredit.Any())
             {
-                throw new MessageNotFoundException("No Comp off Credit found");
+                throw new MessageNotFoundException("No Comp Off Credit found");
             }
             result.AddRange(getCompOffCredit.Cast<object>());
         }
+
         return result;
     }
     public async Task<string> ApproveApplicationRequisition(ApproveLeaveRequest approveLeaveRequest)
@@ -964,8 +1147,10 @@ public class ApplicationService
                         {
                             if (leave.ApplicationTypeId == 1)
                             {
+                                var staffOrCreatorId = leave.StaffId ?? leave.CreatedBy;
+
                                 var individualLeave = await _context.IndividualLeaveCreditDebits
-                                    .Where(l => l.StaffCreationId == leave.CreatedBy
+                                    .Where(l => l.StaffCreationId == staffOrCreatorId
                                                 && l.LeaveTypeId == leave.LeaveTypeId
                                                 && l.IsActive == true)
                                     .OrderByDescending(l => l.Id)
@@ -1464,24 +1649,76 @@ public class ApplicationService
 
     public async Task<string> CreateLeaveRequisitionAsync(LeaveRequisitionRequest leaveRequisitionRequest)
     {
-        var message = "Leave requisition added successfully.";
-        LeaveRequisition leaveRequisition = new LeaveRequisition();
-        leaveRequisition.StartDuration = leaveRequisitionRequest.StartDuration;
-        leaveRequisition.StaffId = leaveRequisitionRequest.StaffId;
-        leaveRequisition.EndDuration = leaveRequisitionRequest.EndDuration;
-        leaveRequisition.FromDate = leaveRequisitionRequest.FromDate;
-        leaveRequisition.ToDate = leaveRequisitionRequest.ToDate;
-        leaveRequisition.LeaveTypeId = leaveRequisitionRequest.LeaveTypeId;
-        leaveRequisition.Reason = leaveRequisitionRequest.Reason;
-        leaveRequisition.ApplicationTypeId = leaveRequisitionRequest.ApplicationTypeId;
-        leaveRequisition.TotalDays = leaveRequisitionRequest.TotalDays;
-        leaveRequisition.CreatedBy = leaveRequisitionRequest.CreatedBy;
-        leaveRequisition.CreatedUtc = DateTime.UtcNow;
-        leaveRequisition.IsActive = true;
+        var staffOrCreatorId = leaveRequisitionRequest.StaffId ?? leaveRequisitionRequest.CreatedBy;
+
+        var existingLeaves = await _context.LeaveRequisitions
+        .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                     (lr.FromDate <= leaveRequisitionRequest.ToDate && lr.ToDate >= leaveRequisitionRequest.FromDate) &&
+                     lr.IsActive)
+        .ToListAsync();
+
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool isSameStartDate = existingLeave.FromDate == leaveRequisitionRequest.FromDate;
+            bool isSameEndDate = existingLeave.ToDate == leaveRequisitionRequest.ToDate;
+
+            // Prevent duplicate Full-Day leave
+            if ((existingLeave.StartDuration == "Full Day" || leaveRequisitionRequest.StartDuration == "Full Day") ||
+                (existingLeave.EndDuration == "Full Day" || leaveRequisitionRequest.EndDuration == "Full Day"))
+            {
+                throw new InvalidOperationException("A full-day leave is already applied within the selected date range.");
+            }
+
+            // **Allow Second Half if only First Half exists on the same date**
+            if (isSameStartDate && existingLeave.StartDuration == "First Half" && leaveRequisitionRequest.StartDuration == "Second Half")
+            {
+                continue; // Allow the request
+            }
+
+            // **Allow First Half if only Second Half exists on the same date**
+            if (isSameEndDate && existingLeave.EndDuration == "Second Half" && leaveRequisitionRequest.EndDuration == "First Half")
+            {
+                continue; // Allow the request
+            }
+
+            // Prevent duplicate leave for the same half-day slot
+            if (isSameStartDate && isSameEndDate &&
+                ((existingLeave.StartDuration == leaveRequisitionRequest.StartDuration) ||
+                 (existingLeave.EndDuration == leaveRequisitionRequest.EndDuration)))
+            {
+                throw new InvalidOperationException("A leave requisition already exists within the selected date range.");
+            }
+
+            // Prevent overlapping leave
+            if (existingLeave.FromDate <= leaveRequisitionRequest.ToDate && existingLeave.ToDate >= leaveRequisitionRequest.FromDate)
+            {
+                throw new InvalidOperationException("A leave requisition already exists within the selected date range.");
+            }
+        }
+
+        // Create new leave request
+        LeaveRequisition leaveRequisition = new LeaveRequisition
+        {
+            ApplicationTypeId = leaveRequisitionRequest.ApplicationTypeId,
+            StartDuration = leaveRequisitionRequest.StartDuration,
+            EndDuration = leaveRequisitionRequest.EndDuration,
+            StaffId = leaveRequisitionRequest.StaffId,
+            FromDate = leaveRequisitionRequest.FromDate,
+            ToDate = leaveRequisitionRequest.ToDate,
+            LeaveTypeId = leaveRequisitionRequest.LeaveTypeId,
+            TotalDays = leaveRequisitionRequest.TotalDays,
+            Reason = leaveRequisitionRequest.Reason,
+            IsActive = true,
+            CreatedBy = leaveRequisitionRequest.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+
         _context.LeaveRequisitions.Add(leaveRequisition);
         await _context.SaveChangesAsync();
-        return message;
+
+        return "Leave requisition added successfully.";
     }
+
     public async Task<string> AddCommonPermissionAsync(CommonPermissionRequest commonPermissionRequest)
     {
         try
@@ -1495,21 +1732,39 @@ public class ApplicationService
             {
                 throw new InvalidOperationException("Permission is not allowed on Saturdays.");
             }
+            var hasLeaveOnDate = await _context.LeaveRequisitions
+            .AnyAsync(l =>((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
+                (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
+                (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
+                (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
+                permissionDate >= l.FromDate && permissionDate <= l.ToDate && (l.Status1 == null || l.Status1 == true) &&
+                l.IsActive == true && (l.IsCancelled == false || l.IsCancelled == null));
+            if (hasLeaveOnDate)
+            {
+                throw new InvalidOperationException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
+            }
             var startOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month, 1);
             var endOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month,
                 DateTime.DaysInMonth(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month));
             var monthName = commonPermissionRequest.PermissionDate.ToString("MMMM");
+            var list = _context.CommonPermissions.ToList();
             var existingPermissionOnDate = await _context.CommonPermissions
-                .AnyAsync(p => p.StaffId == commonPermissionRequest.CreatedBy &&
-                               p.PermissionDate == commonPermissionRequest.PermissionDate);
+            .AnyAsync(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
+                (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
+                (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
+                (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
+                l.PermissionDate == commonPermissionRequest.PermissionDate);
             if (existingPermissionOnDate)
             {
                 throw new InvalidOperationException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
             }
             var permissionsThisMonth = await _context.CommonPermissions
-                .Where(p => p.StaffId == commonPermissionRequest.CreatedBy &&
-                            p.PermissionDate >= startOfMonth &&
-                            p.PermissionDate <= endOfMonth)
+                .Where(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
+                    (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
+                    (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
+                    (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
+                                    l.PermissionDate >= startOfMonth &&
+                                    l.PermissionDate <= endOfMonth)
                 .ToListAsync();
             if (permissionsThisMonth.Count >= 2)
             {
@@ -1550,10 +1805,14 @@ public class ApplicationService
         }
     }
 
-    public async Task<List<StaffPermissionResponse>> GetStaffCommonPermission(int staffId)
+    public async Task<List<StaffPermissionResponse>> GetStaffCommonPermission(int? staffId)
     {
         var permission = await (from staffPermission in _context.CommonPermissions
-                                where staffPermission.StaffId == staffId && staffPermission.IsActive == true
+                                join staff in _context.StaffCreations on staffPermission.StaffId equals staff.Id into staffJoin
+                                from staff in staffJoin.DefaultIfEmpty()
+                                join creatorStaff in _context.StaffCreations on staffPermission.CreatedBy equals creatorStaff.Id
+                                where (staffId == null || staffPermission.StaffId == staffId || staffPermission.CreatedBy == staffId)
+                                      && staffPermission.IsActive == true
                                 select new StaffPermissionResponse
                                 {
                                     Id = staffPermission.Id,
@@ -1564,15 +1823,20 @@ public class ApplicationService
                                     PermissionType = staffPermission.PermissionType,
                                     Status = staffPermission.Status,
                                     Remarks = staffPermission.Remarks,
-                                    StaffId = staffPermission.StaffId,
+                                    StaffId = staffPermission.StaffId ?? staffPermission.CreatedBy, // Use StaffId if available, else CreatedBy
+                            
                                     ApplicationTypeId = staffPermission.ApplicationTypeId,
                                     IsActive = staffPermission.IsActive,
                                     CreatedBy = staffPermission.CreatedBy
                                 })
                                 .ToListAsync();
-        if (permission.Count == 0) throw new MessageNotFoundException("No staff permissions found");
+
+        if (!permission.Any())
+            throw new MessageNotFoundException("No staff permissions found");
+
         return permission;
     }
+
     public async Task<List<CommonPermissionResponse>> GetStaffPermissions(GetCommonStaff getStaff)
     {
         var parameters = new[]

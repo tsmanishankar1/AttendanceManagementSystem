@@ -47,6 +47,8 @@ public partial class BusinessTravel
 
     public bool? IsCancelled { get; set; }
 
+    public DateTime? CancelledOn { get; set; }
+
     public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }

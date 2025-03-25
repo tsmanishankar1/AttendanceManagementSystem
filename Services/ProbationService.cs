@@ -32,7 +32,7 @@ namespace AttendanceManagement.Services
                                       {
                                           ProbationId = p.Id,
                                           StaffId = p.StaffCreationId,
-                                          StaffCreationId = $"{o.ShortName}{s.Id}",
+                                          StaffCreationId = s.StaffId,
                                           StaffName = s.FirstName + " " + s.LastName,
                                           DepartmentName = d.FullName,
                                           ProbationStartDate = p.ProbationStartDate,
@@ -59,7 +59,7 @@ namespace AttendanceManagement.Services
                                    {
                                        ProbationId = p.Id,
                                        StaffId = p.StaffCreationId,
-                                       StaffCreationId = $"{o.ShortName}{s.Id}",
+                                       StaffCreationId = s.StaffId,
                                        StaffName = s.FirstName + " " + s.LastName,
                                        DepartmentName = d.FullName,
                                        ProbationStartDate = p.ProbationStartDate,
@@ -82,7 +82,7 @@ namespace AttendanceManagement.Services
             var pro = await _context.Probations.FirstOrDefaultAsync(p => p.StaffCreationId == probationRequest.StaffId && p.IsActive);
             if (pro != null)
             {
-                throw new Exception("Probation Details ALready Exists");
+                throw new InvalidOperationException("Probation Details ALready Exists");
             }
             var probation = new Probation
             {
@@ -130,7 +130,7 @@ namespace AttendanceManagement.Services
                                             {
                                                 ProbationId = p.Id,
                                                 StaffId = p.StaffCreationId,
-                                                StaffCreationId = $"{o.ShortName}{s.Id}",
+                                                StaffCreationId = s.StaffId,
                                                 StaffName = s.FirstName + " " + s.LastName,
                                                 DepartmentName = d.FullName,
                                                 ProbationStartDate = p.ProbationStartDate,
@@ -160,7 +160,7 @@ namespace AttendanceManagement.Services
                     ProbationId = p.Id,
                     FeedbackText = f.FeedbackText,
                     StaffId = p.StaffCreationId,
-                    StaffCreationId = $"{o.ShortName}{s.Id}",
+                    StaffCreationId = s.StaffId,
                     StaffCreationName = s.FirstName + " " + s.LastName,
                     IsCompleted = p.IsCompleted,
                     CreatedBy = f.CreatedBy
@@ -204,7 +204,7 @@ namespace AttendanceManagement.Services
                     ProbationId = f.Id,
                     FeedbackText = f.FeedbackText,
                     StaffId = p.StaffCreationId,
-                    StaffCreationId = $"{o.ShortName}{s.Id}",
+                    StaffCreationId = s.StaffId,
                     StaffCreationName = s.FirstName + " " + s.LastName,
                     IsCompleted = p.IsCompleted,
                     CreatedBy = f.CreatedBy
@@ -230,7 +230,7 @@ namespace AttendanceManagement.Services
                     ProbationId = f.Id,
                     FeedbackText = f.FeedbackText,
                     StaffId = p.StaffCreationId,
-                    StaffCreationId = $"{o.ShortName}{s.Id}",
+                    StaffCreationId = s.StaffId,
                     StaffCreationName = s.FirstName + " " + s.LastName,
                     IsCompleted = p.IsCompleted,
                     CreatedBy = f.CreatedBy
@@ -294,7 +294,7 @@ namespace AttendanceManagement.Services
                                       ProbationId = probations.Id,
                                       FeedbackText = feedBack.FeedbackText,
                                       StaffId = probations.StaffCreationId,
-                                      StaffCreationId = $"{o.ShortName}{s.Id}",
+                                      StaffCreationId = s.StaffId,
                                   })
                        .FirstOrDefaultAsync();
 

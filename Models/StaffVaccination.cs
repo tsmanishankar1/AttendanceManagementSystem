@@ -26,6 +26,7 @@ public partial class StaffVaccination
     public DateTime? UpdatedUtc { get; set; }
 
     public bool IsActive { get; set; }
+    public DateTime? SecondVacinationDate { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

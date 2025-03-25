@@ -79,7 +79,6 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Staff not found");
             }
-            var staffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == staff.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{staff.Id}";
             var roleId = _context.AccessLevels.FirstOrDefault(e => e.Name == staff.AccessLevel && e.IsActive == true);
             if (roleId == null)
             {
@@ -107,7 +106,7 @@ public class LoginService
                     new Claim("UserName", userName2),
                     new Claim("UserManagementId", user.Id.ToString()),
                     new Claim("StaffId", staff.Id.ToString()),
-                    new Claim("StaffCreationId", staffCreationId),
+                    new Claim("StaffCreationId", staff.StaffId),
                     new Claim("DesignationId", designation.Id.ToString()),
                     new Claim("DesignationName", designation.FullName),
                     new Claim("RoleId", roleId.Id.ToString()),

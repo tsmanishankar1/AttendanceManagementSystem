@@ -60,7 +60,7 @@ namespace AttendanceManagement.Services
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,
-                    StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                    StaffCreationId = s.StaffId,
                     CardCode = s.CardCode,
                     Title = s.Title,
                     FirstName = s.FirstName,
@@ -282,7 +282,7 @@ namespace AttendanceManagement.Services
                                  where s.Id == staffId && s.IsActive == true
                                  select new IndividualStaffResponse
                                  {
-                                     StaffCreationId = $"{org.ShortName}{s.Id}",
+                                     StaffCreationId = s.StaffId,
                                      Title = s.Title,
                                      FirstName = s.FirstName,
                                      LastName = s.LastName,
@@ -356,6 +356,11 @@ namespace AttendanceManagement.Services
 
         public async Task<string> AddStaff(StaffCreationInputModel staffInput)
         {
+            bool staffExists = await _context.StaffCreations.AnyAsync(s => s.StaffId == staffInput.StaffId);
+            if (staffExists)
+            {
+                return $"Staff ID {staffInput.StaffId} already exists.";
+            }
             var message = "Staff added, mail sent successfully.";
 
             string profilePhotoPath = string.Empty;
@@ -392,6 +397,7 @@ namespace AttendanceManagement.Services
             var staff = new StaffCreation
             {
                 CardCode = staffInput.CardCode,
+                StaffId = staffInput.StaffId,
                 Title = staffInput.Title,
                 FirstName = staffInput.FirstName,
                 LastName = staffInput.LastName,
@@ -601,6 +607,7 @@ namespace AttendanceManagement.Services
             }
 
             existingStaff.CardCode = updatedStaff.CardCode;
+            existingStaff.StaffId = updatedStaff.StaffId;
             existingStaff.Title = updatedStaff.Title;
             existingStaff.FirstName = updatedStaff.FirstName;
             existingStaff.LastName = updatedStaff.LastName;
@@ -711,7 +718,7 @@ namespace AttendanceManagement.Services
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,
-                    StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                    StaffCreationId = s.StaffId,
                     CardCode = s.CardCode,
                     Title = s.Title,
                     FirstName = s.FirstName,
@@ -828,7 +835,7 @@ namespace AttendanceManagement.Services
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,
-                    StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                    StaffCreationId = s.StaffId,
                     CardCode = s.CardCode,
                     Title = s.Title,
                     FirstName = s.FirstName,

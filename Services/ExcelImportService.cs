@@ -81,7 +81,7 @@ public class ExcelImportService
                     {
                         requiredHeaders = new List<string>
                         {
-                            "CardCode", "Title", "FirstName", "LastName", "ShortName", "Gender", "Hide", "BloodGroup", "MaritalStatus", "Dob", "MarriageDate",
+                            "CardCode", "StaffId", "Title", "FirstName", "LastName", "ShortName", "Gender", "Hide", "BloodGroup", "MaritalStatus", "Dob", "MarriageDate",
                             "PersonalPhone", "JoiningDate", "Confirmed", "Branch", "Department", "Division", "Volume", "Designation", "Grade", "Category",
                             "CostCenter", "WorkStation", "City", "District", "State","Country", "OtEligible", "ApprovalLevel1", "ApprovalLevel2", "AccessLevel",
                             "PolicyGroup", "WorkingDayPattern", "Tenure", "UanNumber", "EsiNumber", "IsMobileAppEligible", "GeoStatus", "MiddleName",
@@ -402,6 +402,7 @@ public class ExcelImportService
                                     var staffCreation = new StaffCreation
                                     {
                                         CardCode = worksheet.Cells[row, columnIndexes["CardCode"]].Text.Trim(),
+                                        StaffId = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim(),
                                         Title = worksheet.Cells[row, columnIndexes["Title"]].Text.Trim(),
                                         FirstName = worksheet.Cells[row, columnIndexes["FirstName"]].Text.Trim(),
                                         LastName = worksheet.Cells[row, columnIndexes["LastName"]].Text.Trim(),
@@ -806,7 +807,7 @@ public class ExcelImportService
                                         .AnyAsync(p => p.StaffId == staffId && p.PermissionDate == permissionDate);
                                     if (existingPermissionOnDate)
                                     {
-                                        throw new Exception($"Permission for the date {permissionDate:yyyy-MM-dd} already exists.");
+                                        throw new InvalidOperationException($"Permission for the date {permissionDate:yyyy-MM-dd} already exists.");
                                     }
 
                                     var permissionsThisMonth = await _context.CommonPermissions

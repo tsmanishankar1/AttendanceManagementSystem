@@ -171,6 +171,8 @@ public partial class StaffCreation
 
     public string? DrivingLicenseFilePath { get; set; }
 
+    public string StaffId { get; set; } = null!;
+
     public virtual ICollection<AccessLevel> AccessLevelCreatedByNavigations { get; set; } = new List<AccessLevel>();
 
     public virtual ICollection<AccessLevel> AccessLevelUpdatedByNavigations { get; set; } = new List<AccessLevel>();

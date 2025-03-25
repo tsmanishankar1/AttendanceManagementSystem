@@ -270,7 +270,7 @@ namespace AttendanceManagement.Services
                                  {
                                      Id = payslip.Id,
                                      StaffId = payslip.StaffId,
-                                     StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                                     StaffCreationId = s.StaffId,
                                      Basic = payslip.Basic,
                                      Hra = payslip.Hra,
                                      Da = payslip.Da,
@@ -520,7 +520,7 @@ namespace AttendanceManagement.Services
                                          {
                                              Id = salary.Id,
                                              StaffId = salary.StaffId,
-                                             StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                                             StaffCreationId = s.StaffId,
                                              Basic = salary.Basic,
                                              Hra = salary.Hra,
                                              Da = salary.Da,
@@ -575,7 +575,7 @@ namespace AttendanceManagement.Services
                                          {
                                              Id = salary.Id,
                                              StaffId = salary.StaffId,
-                                             StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                                             StaffCreationId = s.StaffId,
                                              Basic = salary.Basic,
                                              Hra = salary.Hra,
                                              Da = salary.Da,

@@ -4,7 +4,7 @@ namespace AttendanceManagement.Input_Models
     public class StaffCreationInputModel
     {
         public string CardCode { get; set; } = null!;
-
+        public string StaffId { get; set; } = null!;
         public string Title { get; set; } = null!;
 
         public string FirstName { get; set; } = null!;
@@ -522,7 +522,7 @@ namespace AttendanceManagement.Input_Models
         public int StaffCreationId { get; set; }
 
         public string CardCode { get; set; } = null!;
-
+        public string StaffId { get; set; } = null!;
         public string Title { get; set; } = null!;
 
         public string FirstName { get; set; } = null!;

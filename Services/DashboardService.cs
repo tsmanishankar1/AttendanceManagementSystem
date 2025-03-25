@@ -60,7 +60,7 @@ namespace AttendanceManagement.Services
                 var birthday = staffWithAnniversaries.Select(staff => new StaffBirthDayDto
                 {
                     StaffId = staff.Id,
-                    StaffCreationId = $"{_context.OrganizationTypes.FirstOrDefault(org => org.Id == staff.OrganizationTypeId)?.ShortName}{staff.Id}",
+                    StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
@@ -78,7 +78,7 @@ namespace AttendanceManagement.Services
                 var weddingAnniversary = staffWithAnniversaries.Select(staff => new StaffAnniversaryDto
                 {
                     StaffId = staff.Id,
-                    StaffCreationId = $"{_context.OrganizationTypes.FirstOrDefault(org => org.Id == staff.OrganizationTypeId)?.ShortName}{staff.Id}",
+                    StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
@@ -96,7 +96,7 @@ namespace AttendanceManagement.Services
                 var newJoinees = staffWithAnniversaries.Select(staff => new NewJoinee
                 {
                     StaffId = staff.Id,
-                    StaffCreationId = $"{_context.OrganizationTypes.FirstOrDefault(org => org.Id == staff.OrganizationTypeId)?.ShortName}{staff.Id}",
+                    StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
@@ -116,7 +116,7 @@ namespace AttendanceManagement.Services
                     .Select(staff => new JoiningAnniversary
                     {
                         StaffId = staff.Id,
-                        StaffCreationId = $"{_context.OrganizationTypes.FirstOrDefault(org => org.Id == staff.OrganizationTypeId)?.ShortName}{staff.Id}",
+                        StaffCreationId = staff.StaffId,
                         StaffName = $"{staff.FirstName} {staff.LastName}",
                         Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
                         Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
@@ -137,7 +137,7 @@ namespace AttendanceManagement.Services
                 var threeYearStaff = staffWithAnniversaries.Select(staff => new ThreeYearsOfService
                 {
                     StaffId = staff.Id,
-                    StaffCreationId = $"{_context.OrganizationTypes.FirstOrDefault(org => org.Id == staff.OrganizationTypeId)?.ShortName}{staff.Id}",
+                    StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId && loc.IsActive)?.FullName ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId && des.IsActive)?.FullName ?? string.Empty,
@@ -194,7 +194,7 @@ namespace AttendanceManagement.Services
                                     select new NewJoinee
                                     {
                                         StaffId = staff.Id,
-                                        StaffCreationId = $"{org.ShortName}{staff.Id}",
+                                        StaffCreationId = staff.StaffId,
                                         StaffName = $"{staff.FirstName} {staff.LastName}",
                                         Location = loc.FullName,
                                         Designation = des.FullName,

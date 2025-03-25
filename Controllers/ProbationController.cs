@@ -77,6 +77,11 @@ public class ProbationController : ControllerBase
             await _loggingService.AuditLog("Probation", "POST", "/api/Probation/AddProbation", createdProbation, probation.CreatedBy, JsonSerializer.Serialize(probation));
             return Ok(response);
         }
+        catch(InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Probation", "POST", "/api/Probation/AddProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.CreatedBy, JsonSerializer.Serialize(probation));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Probation", "POST", "/api/Probation/AddProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.CreatedBy, JsonSerializer.Serialize(probation));
@@ -167,6 +172,11 @@ public class ProbationController : ControllerBase
             };
             await _loggingService.AuditLog("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", pdfBase64, approval.CreatedBy, JsonSerializer.Serialize(approval));
             return Ok(response);
+        }
+        catch(MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approval.CreatedBy, JsonSerializer.Serialize(approval));
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {

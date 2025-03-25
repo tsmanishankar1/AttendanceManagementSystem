@@ -39,6 +39,8 @@ public partial class CommonPermission
 
     public bool? IsCancelled { get; set; }
 
+    public DateTime? CancelledOn { get; set; }
+
     public virtual ApplicationType? ApplicationType { get; set; }
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }

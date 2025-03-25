@@ -344,6 +344,11 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch(InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
@@ -369,6 +374,11 @@ public class ApplicationController : ControllerBase
         {
             await _loggingService.LogError("Common Permission", "POST", "/api/Application/AddCommonPermission", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, commonPermission.CreatedBy, JsonSerializer.Serialize(commonPermission));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch(InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Common Permission", "POST", "/api/Application/AddCommonPermission", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, commonPermission.CreatedBy, JsonSerializer.Serialize(commonPermission));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
