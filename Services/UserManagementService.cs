@@ -178,17 +178,17 @@ public class UserManagementService
 
         return user;
     }
-    public async Task<string> DeactivateStaffByUserManagementIdAsync(int StaffCreationId)
+    public async Task<string> DeactivateStaffByUserManagementIdAsync(int staffCreationId, int deletedBy)
     {
         var message = "Staff deactivated successfully";
-        var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == StaffCreationId && s.IsActive==true);
+        var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffCreationId && s.IsActive==true);
         if (staff == null)
         {
             throw new MessageNotFoundException("Staff not found");
         }
         staff.IsActive = false;
         staff.UpdatedUtc = DateTime.UtcNow;
-        staff.UpdatedBy = StaffCreationId;
+        staff.UpdatedBy = deletedBy;
         _context.StaffCreations.Update(staff);
         await _context.SaveChangesAsync();
         return message;

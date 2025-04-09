@@ -17,7 +17,6 @@
 			<param name="service">The application service for managing application-related logic.</param>
 			<param name="loggingService">The logging service for capturing and storing logs.</param>
 		</member>
-
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationDetails(AttendanceManagement.Input_Models.ApplicationDetails)">
 			<summary>
 				Retrieves application details based on staff ID and application type ID.
@@ -66,6 +65,18 @@
 			<response code="404">If no records are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateReimbursement(AttendanceManagement.Input_Models.ReimbursementRequestModel)">
+			<summary>
+				Creates a new reimbursement request.
+			</summary>
+			<param name="request" type="AttendanceManagement.Models.ReimbursementRequestModel">
+				The reimbursement request model containing details such as amount, description, and created by.
+			</param>
+			<returns>Returns a success message if the reimbursement request is submitted successfully.</returns>
+			<response code="200">Successfully created the reimbursement request.</response>
+			<response code="404">The provided request data is invalid.</response>
+			<response code="500">An unexpected error occurred on the server.</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateCompOffCredit(AttendanceManagement.Input_Models.CompOffCreditDto)">
 			<summary>
 				Creates a new CompOff credit request.
@@ -73,7 +84,7 @@
 			<param name="request">The CompOff credit request.</param>
 			<returns>The created CompOff credit record.</returns>
 			<response code="200">Returns the created CompOff credit record.</response>
-			<response code="400">If the request is invalid.</response>
+			<response code="404">If the request is invalid.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CancelAppliedLeave(AttendanceManagement.Input_Models.CancelAppliedLeave)">
@@ -134,6 +145,8 @@
 			<param name="approveLeaveRequest">The Application approval request.</param>
 			<returns>The result of the approval operation.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">If the requested application is not found.</response>
+			<response code="409">If the application request has already been processed or is in conflict.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApprovalNotifications(System.Int32)">
@@ -288,6 +301,86 @@
 			<response code="200">Returns the success message</response>
 			<response code="404">If the CreateWeeklyoffHolidayWorking is not found.</response>
 			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="T:AttendanceController">
+			<summary>
+				Controller for managing attendance-related operations.
+			</summary>
+		</member>
+		<member name="M:AttendanceController.#ctor(AttendanceService, LoggingService)">
+			<summary>
+				Initializes a new instance of the <see cref="T:AttendanceController"/> class.
+			</summary>
+			<param name="smaxTransactionService">The attendance service handling business logic.</param>
+			<param name="loggingService">The logging service for recording logs.</param>
+		</member>
+		<member name="M:AttendanceController.GetFirstCheckin(System.String,System.DateTime)">
+			<summary>
+				Retrieves the attendance record for an employee on a given date.
+			</summary>
+			<param name="trChId">The transaction ID of the employee.</param>
+			<param name="date">The date for which the check-in record is requested.</param>
+			<returns>The first check-in record for the given date.</returns>
+			<response code="200">Returns the success message and the check-in record.</response>
+			<response code="404">If no check-in record is found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceController.AddGraceTimeAndBreakTime(AttendanceManagement.Input_Models.AttendanceGraceTimeCalcRequest)">
+			<summary>
+				Adds grace time and break time for attendance calculations.
+			</summary>
+			<param name="request">The request model containing details for grace and break time calculations.</param>
+			<returns>The result of adding grace and break time.</returns>
+			<response code="200">Returns the success message and details.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceController.GetGraceTimeAndBreakTime">
+			<summary>
+				Retrieves the configured grace time and break time details.
+			</summary>
+			<returns>The grace and break time details.</returns>
+			<response code="200">Returns the success message and details.</response>
+			<response code="404">If no records are found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceController.UpdateGraceTimeAndBreakTime(AttendanceManagement.Input_Models.UpdateAttendanceGraceTimeCalc)">
+			<summary>
+				Updates the existing grace time and break time configurations.
+			</summary>
+			<param name="request">The request model containing updated grace and break time details.</param>
+			<returns>The result of the update operation.</returns>
+			<response code="200">Returns the success message and updated details.</response>
+			<response code="404">If no matching record is found to update.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceController.AttendanceRecords">
+			<summary>
+				Retrieves all attendance records.
+			</summary>
+			<returns>The list of attendance records.</returns>
+			<response code="200">Returns the success message and attendance records.</response>
+			<response code="404">If no attendance records found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceController.GetAttendanceRecords(AttendanceManagement.Input_Models.AttendanceStatusResponse)">
+			<summary>
+				Retrieves attendance records based on staff ID, department ID, division ID, and date range.
+			</summary>
+			<param name="attendanceStatus" type="AttendanceManagement.Input_Models.AttendanceStatusResponse">
+				The attendance status filter model containing staff ID, department ID, division ID, and from/to date range.
+			</param>
+			<returns>
+				Returns a list of attendance records matching the specified filters.
+			</returns>
+			<response code="200">
+				Successfully retrieved the attendance records.
+			</response>
+			<response code="404">
+				Not Found - No attendance records found for the given parameters.
+			</response>
+			<response code="500">
+				Internal Server Error - An unexpected error occurred while processing the request.
+			</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.BranchMasterController">
 			<summary>
@@ -546,6 +639,15 @@
 			<param name="dailyReportsService">The daily report service.</param>
 			<param name="loggingService">The logging service for capturing logs.</param>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.DailyReportsController.GetReportType">
+			<summary>
+				Retrieves the available report types.
+			</summary>
+			<returns>A list of report types.</returns>
+			<response code="200">Returns the available report types.</response>
+			<response code="404">If no report types are found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.DailyReportsController.GetDailyReport(AttendanceManagement.Input_Models.DailyReportRequest)">
 			<summary>
 				Retrieves the daily report based on the provided request data.
@@ -577,6 +679,15 @@
 			<response code="200">Returns the success message and the daily report details</response>
 			<response code="404">If the report is not found</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:DailyReportsController.GetReportType">
+			<summary>
+				Retrieves the available report types.
+			</summary>
+			<returns>A list of report types.</returns>
+			<response code="200">Returns the success message and the list of report types.</response>
+			<response code="404">If the report types are not found.</response>
+			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.DashboardController.#ctor(AttendanceManagement.Services.DashboardService,AttendanceManagement.Services.LoggingService)">
 			<summary>
@@ -641,6 +752,18 @@
 			<returns>The leave details.</returns>
 			<response code="200">Returns the leave details</response>
 			<response code="404">If no leave details are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.DashboardController.GetUpcomingShifts(System.Int32)">
+			<summary>
+				Retrieves the upcoming shifts for a specified staff member.
+			</summary>
+			<param name="staffId">
+				The ID of the staff member whose upcoming shifts are to be retrieved.
+			</param>
+			<returns>A list of upcoming shifts for the specified staff member</returns>
+			<response code="200">Returns the list of upcoming shifts for the staff member</response>
+			<response code="404">If no upcoming shifts are found for the specified staff member</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.DepartmentMasterController">
@@ -1732,6 +1855,16 @@
 			<response code="404">If no shifts are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.ShiftController.GetStaffByDivision(System.Int32)">
+			<summary>
+				Retrieves the list of staff members for the specified division.
+			</summary>
+			<param name="divisionId">The ID of the division to retrieve staff members for.</param>
+			<returns>A list of staff members in the specified division.</returns>
+			<response code="200">Returns the list of staff members for the division</response>
+			<response code="404">If no staff members are found for the specified division</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.ShiftController.GetShiftById(System.Int32)">
 			<summary>
 				Retrieves a shift by its ID.
@@ -1951,7 +2084,6 @@
 			<response code="400">Invalid input data.</response>
 			<response code="500">Internal server error.</response>
 		</member>
-
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetDropDownMaster">
 			<summary>
 				Retrieves all dropdown master entries.
@@ -1961,7 +2093,6 @@
 			<response code="404">No dropdown master records found.</response>
 			<response code="500">Internal server error.</response>
 		</member>
-
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateDropDownMaster(AttendanceManagement.Input_Models.UpdateDropDown)">
 			<summary>
 				Updates an existing dropdown master entry.
@@ -1972,7 +2103,6 @@
 			<response code="404">Dropdown master not found.</response>
 			<response code="500">Internal server error.</response>
 		</member>
-
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetAllDropDowns(System.Int32)">
 			<summary>
 				Retrieves dropdown values based on the given ID.
@@ -1993,7 +2123,6 @@
 			<response code="404">If the specified DropDownMasterId is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateDropDownDetails(AttendanceManagement.Input_Models.DropDownDetailsUpdate)">
 			<summary>
 				Updates an existing dropdown detail entry based on the provided ID.
@@ -2003,6 +2132,154 @@
 			<response code="200">Returns a success message when the dropdown detail is updated.</response>
 			<response code="404">If the specified dropdown detail is not found.</response>
 			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="T:AttendanceManagement.Controllers.StaffTransactionController">
+			<summary>
+				Controller for handling staff transaction-related operations.
+			</summary>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.#ctor(AttendanceManagement.Services.StaffTransactionService,AttendanceManagement.Services.LoggingService)">
+			<summary>
+				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.StaffTransactionController"/> class.
+			</summary>
+			<param name="academicDetailService">The staff transaction service.</param>
+			<param name="loggingService">The logging service.</param>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.GetByStaffId(System.Int32)">
+			<summary>
+				Retrieves academic details by staff ID.
+			</summary>
+			<param name="staffId">The ID of the staff member.</param>
+			<returns>The academic details for the given staff ID.</returns>
+			<response code="200">Returns the academic details</response>
+			<response code="404">If no academic details are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.Input_Models.ListAcademicDetailRequest)">
+			<summary>
+				Creates new academic records for a specific staff member.
+			</summary>
+			<param name="academicDetailRequests">The academic details request containing staff ID, created by, and a list of academic records.</param>
+			<returns>A success message if academic details are added successfully.</returns>
+			<response code="200">Returns a success message.</response>
+			<response code="400">Returned when no academic details are provided.</response>
+			<response code="500">Returned when there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Input_Models.ListAcademicDetailUpdateRequest)">
+		  <summary>
+			Updates existing academic records for a specific staff member.
+		  </summary>
+		  <param name="academicDetailsRequests">
+			The academic details update request, which includes a list of academic records to update and the ID of the user performing the update.
+		  </param>
+		  <returns>A success message if the records are updated successfully.</returns>
+		  <response code="200">Returns a success message.</response>
+		  <response code="400">Returned when no academic details are provided.</response>
+		  <response code="404">Returned when no matching academic records are found.</response>
+		  <response code="500">Returned when there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.DeleteAcademicDetailAsync(System.Int32,System.Int32)">
+			<summary>
+				Deletes an academic detail by ID.
+			</summary>
+			<param name="academicDetailId">The ID of the academic detail to delete.</param>
+			<param name="deletedBy">The ID of the user performing the deletion.</param>
+			<returns>The deletion confirmation.</returns>
+			<response code="200">Returns the success message</response>
+			<response code="404">If the academic detail is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.GetById(System.Int32)">
+			<summary>
+				Retrieves certification details by staff ID.
+			</summary>
+			<param name="staffId">The ID of the staff member.</param>
+			<returns>The certification details for the given staff ID.</returns>
+			<response code="200">Returns the certification details</response>
+			<response code="404">If no certification details are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.Input_Models.ListCertificationCourseRequest)">
+			  <summary>
+				Creates new certification course records for a staff member.
+			  </summary>
+			  <param name="certificationCourseRequests">
+				The request containing staff ID, created by, and a list of certification courses to create.
+			  </param>
+			  <returns>A success message upon successful creation.</returns>
+			  <response code="200">Returns the success message.</response>
+			  <response code="400">If no certification courses are provided.</response>
+			  <response code="500">If there is an internal server error.</response>
+			</member>
+			<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Input_Models.ListCertificationCourseUpdateRequest)">
+			  <summary>
+				Updates existing certification course records.
+			  </summary>
+			  <param name="certificationCourses">
+				The request containing the user performing the update and a list of certification course update records.
+			  </param>
+			  <returns>A success message upon successful update.</returns>
+			  <response code="200">Returns the success message.</response>
+			  <response code="400">If no certification courses are provided.</response>
+			  <response code="404">If the certification records are not found.</response>
+			  <response code="500">If there is an internal server error.</response>
+		  </member>
+		  <member name="M:AttendanceManagement.Controllers.StaffTransactionController.Delete(System.Int32,System.Int32)">
+			<summary>
+				Deletes certification details by ID.
+			</summary>
+			<param name="certificationCourseId">The ID of the certification detail to delete.</param>
+			<param name="deletedBy">The ID of the user performing the deletion.</param>
+			<returns>The deletion confirmation.</returns>
+			<response code="200">Returns the success message</response>
+			<response code="404">If the certification detail is not found</response>
+			<response code="500">If there is an internal server error</response>
+		  </member>
+		  <member name="M:AttendanceManagement.Controllers.StaffTransactionController.GetWorkhistoryByStaffId(System.Int32)">
+			<summary>
+				Retrieves work history details by staff ID.
+			</summary>
+			<param name="staffId">The ID of the staff member.</param>
+			<returns>The work history details for the given staff ID.</returns>
+			<response code="200">Returns the work history details</response>
+			<response code="404">If no work history details are found</response>
+			<response code="500">If there is an internal server error</response>
+		 </member>
+		 <member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.Input_Models.ListPreviousEmploymentRequest)">
+		  <summary>
+			Creates new work history details for a staff member.
+		  </summary>
+		  <param name="requests">
+			The request object containing staff ID, created by, and a list of previous employment records to create.
+		  </param>
+		  <returns>The success message after creation.</returns>
+		  <response code="200">Returns the success message.</response>
+		  <response code="400">If no work history details are provided.</response>
+		  <response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Input_Models.ListPreviousEmploymentUpdateRequest)">
+			  <summary>
+				Updates existing work history records for a staff member.
+			  </summary>
+			  <param name="requests">
+				The request object containing updated by user ID and a list of previous employment records to update.
+			  </param>
+			  <returns>The success message after update.</returns>
+			  <response code="200">Returns the success message.</response>
+			  <response code="400">If no work history details are provided.</response>
+			  <response code="404">If no matching work history records are found.</response>
+			  <response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.DeleteWorkhistory(System.Int32,System.Int32)">
+			<summary>
+				Deletes work history details by ID.
+			</summary>
+			<param name="id">The ID of the work history detail to delete.</param>
+			<param name="deletedBy">The ID of the user performing the deletion.</param>
+			<returns>The deletion confirmation.</returns>
+			<response code="200">Returns the success message</response>
+			<response code="404">If the work history detail is not found</response>
+			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.SubFunctionMasterController">
 			<summary>
@@ -2148,6 +2425,42 @@
 			<param name="applicationType">The application type details to create.</param>
 			<returns>The created application type.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateReader(AttendanceManagement.Input_Models.ReaderConfigurationRequest)">
+			<summary>
+				Creates a new reader configuration.
+			</summary>
+			<param name="readerConfiguration">The reader configuration details to create.</param>
+			<returns>The result of the reader configuration creation.</returns>
+			<response code="200">Returns the result of the reader configuration creation</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.GetReaderConfigurations">
+			<summary>
+				Retrieves all reader configurations.
+			</summary>
+			<returns>A list of all reader configurations.</returns>
+			<response code="200">Returns a list of all reader configurations</response>
+			<response code="404">If no reader configurations are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.UpdateAttendanceStatus(AttendanceManagement.Input_Models.UpdateAttendanceStatusRequest)">
+			<summary>
+				Updates the attendance status for a specific employee.
+			</summary>
+			<param name="request">The attendance status details to update.</param>
+			<returns>The result of the attendance status update.</returns>
+			<response code="200">Returns the result of the attendance status update</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateAttendanceStatusColor(AttendanceManagement.Input_Models.AttendanceStatusColorDto)">
+			<summary>
+				Creates a new attendance status color.
+			</summary>
+			<param name="dto">The attendance status color details to create.</param>
+			<returns>The created attendance status color.</returns>
+			<response code="200">Returns the created attendance status color</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.WeeklyOffController">
@@ -2381,11 +2694,12 @@
 			<response code="404">If the staff is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:UserManagementController.DeactivateStaff(System.Int32)">
+		<member name="M:UserManagementController.DeactivateStaff(System.Int32,System.Int32)">
 			<summary>
 				Deactivates a user by their ID.
 			</summary>
 			<param name="StaffId">The ID of the staff.</param>
+			<param name="deletedBy">The ID of the user performing the deletion.</param>
 			<returns>The result of the deactivation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the user is not found</response>

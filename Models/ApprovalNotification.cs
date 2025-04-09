@@ -39,6 +39,8 @@ public partial class ApprovalNotification
 
     public virtual ICollection<Probation> Probations { get; set; } = new List<Probation>();
 
+    public virtual ICollection<Reimbursement> Reimbursements { get; set; } = new List<Reimbursement>();
+
     public virtual ICollection<ShiftChange> ShiftChanges { get; set; } = new List<ShiftChange>();
 
     public virtual ICollection<ShiftExtension> ShiftExtensions { get; set; } = new List<ShiftExtension>();

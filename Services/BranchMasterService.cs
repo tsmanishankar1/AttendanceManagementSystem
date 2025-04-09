@@ -109,7 +109,7 @@ public class BranchMasterService
         };
 
         _context.BranchMasters.Add(branchMaster);
-       await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
         return message;
     }

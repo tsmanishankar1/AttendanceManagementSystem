@@ -119,7 +119,6 @@ namespace AttendanceManagement.Input_Models
 
         public string? BankBranch { get; set; }
 
-        public string Qualification { get; set; } = null!;
 
         public string HomeAddress { get; set; } = null!;
 
@@ -138,6 +137,7 @@ namespace AttendanceManagement.Input_Models
         public long? EmergencyContactNo2 { get; set; }
         public int OrganizationTypeId { get; set; }
         public string WorkingStatus { get; set; } = null!;
+       
     }
     public class StaffCreationResponse
     {
@@ -262,8 +262,7 @@ namespace AttendanceManagement.Input_Models
 
         public string? BankBranch { get; set; }
 
-        public string Qualification { get; set; } = null!;
-
+     
         public string HomeAddress { get; set; } = null!;
 
         public string FatherName { get; set; } = null!;
@@ -288,8 +287,9 @@ namespace AttendanceManagement.Input_Models
         public string WorkingStatus { get; set; } = null!;
         public DateOnly? ResignationDate { get; set; }
         public DateOnly? RelievingDate { get; set; }
-    }
+       
 
+    }
     public class IndividualStaffUpdate
     {
         public string Title { get; set; } = null!;
@@ -333,7 +333,7 @@ namespace AttendanceManagement.Input_Models
 
         public string? BankBranch { get; set; }
 
-        public string Qualification { get; set; } = null!;
+     
 
         public string HomeAddress { get; set; } = null!;
 
@@ -350,6 +350,7 @@ namespace AttendanceManagement.Input_Models
         public string MotherName { get; set; } = null!;
 
         public int UpdatedBy { get; set; }
+       
     }
 
     public class IndividualStaffResponse
@@ -435,7 +436,6 @@ namespace AttendanceManagement.Input_Models
 
         public string? BankBranch { get; set; }
 
-        public string Qualification { get; set; } = null!;
 
         public string HomeAddress { get; set; } = null!;
 
@@ -459,7 +459,7 @@ namespace AttendanceManagement.Input_Models
         public string OrganizationTypeName { get; set; } = null!;
         public int WorkingStatusId { get; set; }
         public string WorkingStatus { get; set; } = null!;
-
+      
     }
     public class StaffCreationClass
     {
@@ -507,6 +507,7 @@ namespace AttendanceManagement.Input_Models
         public string? CostCentreName { get; set; }
         public string? BranchName { get; set; }
         public string? DepartmentName { get; set; }
+       public string? DivisionName { get; set; }
         public string? DesignationName { get; set; }
         public string? StaffName { get; set; }
         public string? LocationName { get; set; }
@@ -529,7 +530,7 @@ namespace AttendanceManagement.Input_Models
 
         public string? LastName { get; set; }
 
-        public string ShortName { get; set; } = null!;
+        public string? ShortName { get; set; }
 
         public string Gender { get; set; } = null!;
 
@@ -616,7 +617,7 @@ namespace AttendanceManagement.Input_Models
 
         public int StatusId { get; set; }
 
-        public long AadharNo { get; set; }
+        public long? AadharNo { get; set; }
 
         public string? PanNo { get; set; }
 
@@ -632,8 +633,7 @@ namespace AttendanceManagement.Input_Models
 
         public string? BankBranch { get; set; }
 
-        public string Qualification { get; set; } = null!;
-
+     
         public string HomeAddress { get; set; } = null!;
 
         public string FatherName { get; set; } = null!;
@@ -648,9 +648,9 @@ namespace AttendanceManagement.Input_Models
 
         public string MotherName { get; set; } = null!;
 
-        public long FatherAadharNo { get; set; }
+        public long? FatherAadharNo { get; set; }
 
-        public long MotherAadharNo { get; set; }
+        public long? MotherAadharNo { get; set; }
 
         public int UpdatedBy { get; set; }
         public int OrganizationTypeId { get; set; }
@@ -660,6 +660,7 @@ namespace AttendanceManagement.Input_Models
         public IFormFile? AadharCardFilePath { get; set; }
         public IFormFile? PanCardFilePath { get; set; }
         public IFormFile? DrivingLicenseFilePath { get; set; }
+      
     }
 
     public class OrganizationTypeResponse

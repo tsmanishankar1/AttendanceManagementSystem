@@ -163,30 +163,31 @@ public class UserManagementController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-
     [HttpPost("RemoveUser")]
-    public async Task<IActionResult> DeactivateStaff(int StaffId)
+    public async Task<IActionResult> DeactivateStaff(int staffId, int deletedBy)
     {
         try
         {
-            var result = await _userService.DeactivateStaffByUserManagementIdAsync(StaffId);
+            var result = await _userService.DeactivateStaffByUserManagementIdAsync(staffId, deletedBy);
             var response = new
             {
                 Success = true,
                 Message = result
             };
+            await _loggingService.AuditLog("Remove User", "POST", "/api/UserManagement/RemoveUser", result, deletedBy, JsonSerializer.Serialize(new { staffId, deletedBy }));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
+            await _loggingService.LogError("Remove User", "POST", "/api/UserManagement/RemoveUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { staffId, deletedBy }));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Remove User", "POST", "/api/UserManagement/RemoveUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { staffId, deletedBy}));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-
     [HttpGet("GetMenusByRoleId")]
     public async Task<IActionResult> GetMenusByRoleId(int roleId)
     {

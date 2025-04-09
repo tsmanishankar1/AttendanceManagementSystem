@@ -272,6 +272,16 @@ public class ApplicationController : ControllerBase
             await _loggingService.AuditLog("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", approveLeave, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
             return Ok(response);
         }
+        catch(MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch(InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
@@ -637,6 +647,58 @@ public class ApplicationController : ControllerBase
         catch (Exception ex)
         {
             await _loggingService.LogError("Weekly Off/Holiday Working", "POST", "/api/Application/CreateWeeklyOff/HolidayWorking", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createWeeklyoffHolidayWorking.CreatedBy, JsonSerializer.Serialize(createWeeklyoffHolidayWorking));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+    [HttpPost("AddReimbursement")]
+    public async Task<IActionResult> CreateReimbursement(ReimbursementRequestModel request)
+    {
+        try
+        {
+            var result = await _service.AddReimbursement(request);
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+
+            await _loggingService.AuditLog(
+                "Reimbursement",
+                "POST",
+                "/api/Application/AddReimbursement",
+                "Reimbursement request submitted successfully",
+                request.CreatedBy,
+                JsonSerializer.Serialize(request)
+            );
+
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError(
+                "Reimbursement",
+                "POST",
+                "/api/Application/AddReimbursement",
+                ex.Message,
+                ex.StackTrace ?? string.Empty,
+                ex.InnerException?.ToString() ?? string.Empty,
+                request.CreatedBy,
+                JsonSerializer.Serialize(request)
+            );
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError(
+                "Reimbursement",
+                "POST",
+                "/api/Application/AddReimbursement",
+                ex.Message,
+                ex.StackTrace ?? string.Empty,
+                ex.InnerException?.ToString() ?? string.Empty,
+                request.CreatedBy,
+                JsonSerializer.Serialize(request)
+            );
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

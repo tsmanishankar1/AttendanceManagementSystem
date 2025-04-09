@@ -23,8 +23,6 @@ public partial class UserManagement
 
     public int StaffCreationId { get; set; }
 
-    public virtual ICollection<AttendanceStatus> AttendanceStatuses { get; set; } = new List<AttendanceStatus>();
-
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;

@@ -1,0 +1,47 @@
+﻿namespace AttendanceManagement.Input_Models
+{
+    public class AttendanceGraceTimeCalcRequest
+    {
+        public int GraceTimeId { get; set; }
+
+        public int Value { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public int CreatedBy { get; set; }
+    }
+
+    public class AttendanceGraceTimeCalcResponse
+    {
+        public int Id { get; set; }
+
+        public int GraceTimeId { get; set; }
+
+        public int Value { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class UpdateAttendanceGraceTimeCalc
+    {
+        public int Id { get; set; }
+
+        public int GraceTimeId { get; set; }
+
+        public int Value { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public int UpdatedBy { get; set; }
+    }
+
+    public class AttendanceStatusResponse
+    {
+        public int StaffId { get; set; }
+        public int? DepartmentId {  get; set; }
+        public int? DivisionId { get; set; }
+        public DateOnly? FromDate { get; set; }
+        public DateOnly? ToDate { get; set; }
+        public int? FromMonth { get; set; }
+        public int? ToMonth { get; set; }
+    }
+}

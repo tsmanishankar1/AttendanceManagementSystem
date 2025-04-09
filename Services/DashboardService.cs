@@ -55,7 +55,7 @@ namespace AttendanceManagement.Services
                 throw new MessageNotFoundException("No records found for the selected event type.");
             }
 
-            if (eventTypeId == 1) // Birthday
+            if (eventTypeId == 1) 
             {
                 var birthday = staffWithAnniversaries.Select(staff => new StaffBirthDayDto
                 {
@@ -67,13 +67,13 @@ namespace AttendanceManagement.Services
                     BirthDate = staff.Dob.ToString("MMMM dd"),
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
-                if(birthday.Count == 0)
+                if (birthday.Count == 0)
                 {
                     throw new MessageNotFoundException("No birthdays today");
                 }
                 result = birthday;
             }
-            else if (eventTypeId == 2) // Wedding Anniversary
+            else if (eventTypeId == 2) 
             {
                 var weddingAnniversary = staffWithAnniversaries.Select(staff => new StaffAnniversaryDto
                 {
@@ -85,13 +85,13 @@ namespace AttendanceManagement.Services
                     MarriageDate = staff.MarriageDate?.ToString("MMMM dd") ?? string.Empty,
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
-                if(weddingAnniversary.Count == 0)
+                if (weddingAnniversary.Count == 0)
                 {
                     throw new MessageNotFoundException("No wedding anniversaries today");
                 }
                 result = weddingAnniversary;
             }
-            else if (eventTypeId == 3) // New Joinees (last 10 days)
+            else if (eventTypeId == 3) 
             {
                 var newJoinees = staffWithAnniversaries.Select(staff => new NewJoinee
                 {
@@ -103,16 +103,16 @@ namespace AttendanceManagement.Services
                     JoiningDate = staff.JoiningDate.ToString("MMMM dd"),
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
-                if(newJoinees.Count == 0)
+                if (newJoinees.Count == 0)
                 {
                     throw new MessageNotFoundException("No New Joiners recently!");
                 }
                 result = newJoinees;
             }
-            else if (eventTypeId == 4) // Joining Anniversary
+            else if (eventTypeId == 4) 
             {
                 var joiningAnniversaries = staffWithAnniversaries
-                    .Where(staff => (today.Year - staff.JoiningDate.Year) > 0) // Exclude new joinees (0 years)
+                    .Where(staff => (today.Year - staff.JoiningDate.Year) > 0)
                     .Select(staff => new JoiningAnniversary
                     {
                         StaffId = staff.Id,
@@ -132,7 +132,7 @@ namespace AttendanceManagement.Services
 
                 result = joiningAnniversaries;
             }
-            else if (eventTypeId == 5) // 3 Years of Service
+            else if (eventTypeId == 5) 
             {
                 var threeYearStaff = staffWithAnniversaries.Select(staff => new ThreeYearsOfService
                 {
@@ -143,7 +143,7 @@ namespace AttendanceManagement.Services
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId && des.IsActive)?.FullName ?? string.Empty,
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
-                if(threeYearStaff.Count == 0)
+                if (threeYearStaff.Count == 0)
                 {
                     throw new MessageNotFoundException("No staff completed 3 years of service today");
                 }
@@ -218,7 +218,7 @@ namespace AttendanceManagement.Services
                     ToDate = h.ToDate
                 })
                 .ToListAsync<object>();
-            if(holiday == null)
+            if (holiday == null)
             {
                 throw new MessageNotFoundException("No holidays found");
             }
@@ -245,7 +245,7 @@ namespace AttendanceManagement.Services
                 var record = userLeaveRecords.FirstOrDefault(r => r.LeaveTypeId == lt.Id);
                 return new
                 {
-                    LeaveTypeId = lt.Id,
+                    LeaveTypeId = lt.Id, 
                     LeaveTypeName = lt.Name,
                     AvailableBalance = record?.AvailableBalance ?? 0
                 };
@@ -266,6 +266,41 @@ namespace AttendanceManagement.Services
 
             return result.Cast<object>().ToList();
         }
-    }
 
+        public async Task<List<object>> GetUpcomingShiftsForStaffAsync(int staffId)
+        {
+            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow); 
+            var currentShift = await _context.AssignShifts
+                .Where(asg => asg.StaffId == staffId && asg.IsActive &&
+                              asg.FromDate <= today && asg.ToDate >= today)
+                .OrderBy(asg => asg.FromDate)
+                .Select(asg => new { asg.ToDate })
+                .FirstOrDefaultAsync();
+
+            if (currentShift == null)
+            {
+                return new List<object>(); 
+            }
+
+            DateOnly currentShiftEndDate = currentShift.ToDate;
+
+            var upcomingShifts = await _context.AssignShifts
+                .Where(asg => asg.IsActive &&
+                              asg.FromDate > currentShiftEndDate &&  
+                              (asg.StaffId == staffId || asg.CreatedBy == staffId)) 
+                .OrderBy(asg => asg.FromDate)
+                .Select(asg => new
+                {
+                    asg.Shift.Id,
+                    asg.Shift.ShiftName,
+                    asg.Shift.StartTime,
+                    asg.Shift.EndTime,
+                    asg.FromDate,
+                    asg.ToDate
+                })
+                .ToListAsync();
+
+            return upcomingShifts.Cast<object>().ToList();
+        }
+    }
 }

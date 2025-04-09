@@ -19,6 +19,8 @@ public partial class StaffLeaveOption
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public virtual ICollection<AttendanceStatus> AttendanceStatuses { get; set; } = new List<AttendanceStatus>();
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }

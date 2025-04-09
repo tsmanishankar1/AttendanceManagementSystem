@@ -17,7 +17,7 @@ public partial class CommonPermission
 
     public string PermissionType { get; set; } = null!;
 
-    public bool? Status { get; set; }
+    public bool? Status1 { get; set; }
 
     public string? Remarks { get; set; }
 
@@ -41,9 +41,19 @@ public partial class CommonPermission
 
     public DateTime? CancelledOn { get; set; }
 
+    public bool? Status2 { get; set; }
+
+    public bool? IsEmailSent { get; set; }
+
+    public int? ApprovedBy { get; set; }
+
+    public DateTime? ApprovedOn { get; set; }
+
     public virtual ApplicationType? ApplicationType { get; set; }
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
+
+    public virtual StaffCreation? ApprovedByNavigation { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

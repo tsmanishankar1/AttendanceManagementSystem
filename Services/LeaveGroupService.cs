@@ -74,7 +74,6 @@ namespace AttendanceManagement.Services
         public async Task<string> AddLeaveGroupWithTransactionsAsync(AddLeaveGroupDto addLeaveGroupDto)
         {
             var message = "Leave group added successfully";
-            // Create a new LeaveGroup entry
             var leaveGroup = new LeaveGroup
             {
                 LeaveGroupName = addLeaveGroupDto.LeaveGroupName,
@@ -83,16 +82,14 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow
             };
 
-            // Add LeaveGroup to the database
             _context.LeaveGroups.Add(leaveGroup);
-            await _context.SaveChangesAsync(); // Save to get LeaveGroupId
+            await _context.SaveChangesAsync();
 
-            // Add LeaveGroupTransaction entries
             foreach (var leaveTypeId in addLeaveGroupDto.LeaveTypeIds)
             {
                 var leaveGroupTransaction = new LeaveGroupTransaction
                 {
-                    LeaveGroupId = leaveGroup.Id, // Use the new LeaveGroupId
+                    LeaveGroupId = leaveGroup.Id,
                     LeaveTypeId = leaveTypeId,
                     IsActive = addLeaveGroupDto.IsActive,
                     CreatedBy = addLeaveGroupDto.CreatedBy,
@@ -102,7 +99,6 @@ namespace AttendanceManagement.Services
                 _context.LeaveGroupTransactions.Add(leaveGroupTransaction);
             }
 
-            // Save the LeaveGroupTransaction entries
             await _context.SaveChangesAsync();
             return message;
         }
@@ -112,7 +108,6 @@ namespace AttendanceManagement.Services
         {
             var message = "Leave group updated successfully";
 
-            // Fetch the existing LeaveGroup
             var existingLeaveGroup = await _context.LeaveGroups
                 .FirstOrDefaultAsync(lg => lg.Id == leaveGroup.LeaveGroupId);
 
@@ -121,72 +116,36 @@ namespace AttendanceManagement.Services
                 throw new MessageNotFoundException("Leave group not found");
             }
 
-            // Update the LeaveGroup properties
             existingLeaveGroup.LeaveGroupName = leaveGroup.LeaveGroupName ?? existingLeaveGroup.LeaveGroupName;
             existingLeaveGroup.IsActive = leaveGroup.IsActive;
             existingLeaveGroup.UpdatedBy = leaveGroup.UpdatedBy;
             existingLeaveGroup.UpdatedUtc = DateTime.UtcNow;
 
-            // Save the updated LeaveGroup
             await _context.SaveChangesAsync();
 
-            // Validate LeaveType associations
             if (leaveGroup.LeaveTypeIds != null)
             {
-                // Fetch existing LeaveGroupTransaction associations
                 var existingLeaveGroupTransactions = await _context.LeaveGroupTransactions
-                    .Where(lgt => lgt.LeaveGroupId == leaveGroup.LeaveGroupId)
-                    .ToListAsync();
+                    .Where(lgt => lgt.LeaveGroupId == leaveGroup.LeaveGroupId).ToListAsync();
 
-                // Determine which leave types to reactivate, deactivate, and add
-                var leaveTypeIdsToReactivate = existingLeaveGroupTransactions
-                    .Where(lgt => !lgt.IsActive && leaveGroup.LeaveTypeIds.Contains(lgt.LeaveTypeId))
-                    .Select(lgt => lgt.LeaveTypeId)
-                    .ToList();
-
-                var leaveTypeIdsToDeactivate = existingLeaveGroupTransactions
-                    .Where(lgt => lgt.IsActive && !leaveGroup.LeaveTypeIds.Contains(lgt.LeaveTypeId))
-                    .Select(lgt => lgt.LeaveTypeId)
-                    .ToList();
-
-                var leaveTypeIdsToAdd = leaveGroup.LeaveTypeIds
-                    .Where(leaveTypeId => !existingLeaveGroupTransactions.Any(lgt => lgt.LeaveTypeId == leaveTypeId))
-                    .ToList();
-
-                // Reactivate existing associations that need to be reactivated
-                foreach (var transaction in existingLeaveGroupTransactions.Where(lgt => leaveTypeIdsToReactivate.Contains(lgt.LeaveTypeId)))
-                {
-                    transaction.IsActive = true;
-                    transaction.UpdatedBy = leaveGroup.UpdatedBy;
-                    transaction.UpdatedUtc = DateTime.UtcNow;
-                }
-
-                // Deactivate existing associations that are no longer relevant
-                foreach (var transaction in existingLeaveGroupTransactions.Where(lgt => leaveTypeIdsToDeactivate.Contains(lgt.LeaveTypeId)))
+                foreach (var transaction in existingLeaveGroupTransactions)
                 {
                     transaction.IsActive = false;
                     transaction.UpdatedBy = leaveGroup.UpdatedBy;
                     transaction.UpdatedUtc = DateTime.UtcNow;
                 }
+                await _context.SaveChangesAsync(); 
 
-                await _context.SaveChangesAsync(); // Save changes after updating existing associations
-
-                // Add new LeaveGroupTransaction associations
-                foreach (var leaveTypeId in leaveTypeIdsToAdd)
+                var newLeaveGroupTransactions = leaveGroup.LeaveTypeIds.Select(leaveTypeId => new LeaveGroupTransaction
                 {
-                    var newLeaveGroupTransaction = new LeaveGroupTransaction
-                    {
-                        LeaveGroupId = leaveGroup.LeaveGroupId,
-                        LeaveTypeId = leaveTypeId,
-                        IsActive = leaveGroup.IsActive,
-                        CreatedBy = leaveGroup.UpdatedBy, // Use CreatedBy for new transactions
-                        CreatedUtc = DateTime.UtcNow
-                    };
+                    LeaveGroupId = leaveGroup.LeaveGroupId,
+                    LeaveTypeId = leaveTypeId,
+                    IsActive = leaveGroup.IsActive,
+                    CreatedBy = leaveGroup.UpdatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                }).ToList();
 
-                    _context.LeaveGroupTransactions.Add(newLeaveGroupTransaction);
-                }
-
-                // Save the new LeaveGroupTransaction entries
+                await _context.LeaveGroupTransactions.AddRangeAsync(newLeaveGroupTransactions);
                 await _context.SaveChangesAsync();
             }
 

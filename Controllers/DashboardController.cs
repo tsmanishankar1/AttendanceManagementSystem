@@ -155,4 +155,22 @@ public class DashboardController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+    [HttpGet("UpcomingShifts")]
+    public async Task<IActionResult> GetUpcomingShifts(int staffId)
+    {
+        var upcomingShifts = await _dashboardService.GetUpcomingShiftsForStaffAsync(staffId);
+
+        if (upcomingShifts == null || !upcomingShifts.Any())
+            return NotFound(new { Success = false, Message = "No upcoming shifts found for this staff." });
+
+        var response = new
+        {
+            Success = true,
+            Data = upcomingShifts
+        };
+
+        return Ok(response);
+    }
+
+
 }

@@ -129,8 +129,6 @@ public partial class StaffCreation
 
     public string? BankBranch { get; set; }
 
-    public string Qualification { get; set; } = null!;
-
     public string HomeAddress { get; set; } = null!;
 
     public string FatherName { get; set; } = null!;
@@ -172,6 +170,12 @@ public partial class StaffCreation
     public string? DrivingLicenseFilePath { get; set; }
 
     public string StaffId { get; set; } = null!;
+
+    public virtual ICollection<AcademicDetail> AcademicDetailCreatedByNavigations { get; set; } = new List<AcademicDetail>();
+
+    public virtual ICollection<AcademicDetail> AcademicDetailStaffs { get; set; } = new List<AcademicDetail>();
+
+    public virtual ICollection<AcademicDetail> AcademicDetailUpdatedByNavigations { get; set; } = new List<AcademicDetail>();
 
     public virtual ICollection<AccessLevel> AccessLevelCreatedByNavigations { get; set; } = new List<AccessLevel>();
 
@@ -217,7 +221,25 @@ public partial class StaffCreation
 
     public virtual ICollection<Attendance> AttendanceCreatedByNavigations { get; set; } = new List<Attendance>();
 
+    public virtual ICollection<AttendanceGraceTimeCalc> AttendanceGraceTimeCalcCreatedByNavigations { get; set; } = new List<AttendanceGraceTimeCalc>();
+
+    public virtual ICollection<AttendanceGraceTimeCalc> AttendanceGraceTimeCalcUpdatedByNavigations { get; set; } = new List<AttendanceGraceTimeCalc>();
+
+    public virtual ICollection<AttendanceRecord> AttendanceRecordCreatedByNavigations { get; set; } = new List<AttendanceRecord>();
+
+    public virtual ICollection<AttendanceRecord> AttendanceRecordFreezedByNavigations { get; set; } = new List<AttendanceRecord>();
+
+    public virtual ICollection<AttendanceRecord> AttendanceRecordStaffs { get; set; } = new List<AttendanceRecord>();
+
+    public virtual ICollection<AttendanceRecord> AttendanceRecordUpdatedByNavigations { get; set; } = new List<AttendanceRecord>();
+
+    public virtual ICollection<AttendanceStatusColor> AttendanceStatusColorCreatedByNavigations { get; set; } = new List<AttendanceStatusColor>();
+
+    public virtual ICollection<AttendanceStatusColor> AttendanceStatusColorUpdatedByNavigations { get; set; } = new List<AttendanceStatusColor>();
+
     public virtual ICollection<AttendanceStatus> AttendanceStatusCreatedByNavigations { get; set; } = new List<AttendanceStatus>();
+
+    public virtual ICollection<AttendanceStatus> AttendanceStatusStaffs { get; set; } = new List<AttendanceStatus>();
 
     public virtual ICollection<AttendanceStatus> AttendanceStatusUpdatedByNavigations { get; set; } = new List<AttendanceStatus>();
 
@@ -232,6 +254,8 @@ public partial class StaffCreation
     public virtual ICollection<BranchMaster> BranchMasterCreatedByNavigations { get; set; } = new List<BranchMaster>();
 
     public virtual ICollection<BranchMaster> BranchMasterUpdatedByNavigations { get; set; } = new List<BranchMaster>();
+
+    public virtual ICollection<BusinessTravel> BusinessTravelApprovedByNavigations { get; set; } = new List<BusinessTravel>();
 
     public virtual ICollection<BusinessTravel> BusinessTravelCreatedByNavigations { get; set; } = new List<BusinessTravel>();
 
@@ -251,17 +275,29 @@ public partial class StaffCreation
 
     public virtual ICollection<CertificateTracking> CertificateTrackingUpdatedByNavigations { get; set; } = new List<CertificateTracking>();
 
+    public virtual ICollection<CertificationCourse> CertificationCourseCreatedByNavigations { get; set; } = new List<CertificationCourse>();
+
+    public virtual ICollection<CertificationCourse> CertificationCourseStaffs { get; set; } = new List<CertificationCourse>();
+
+    public virtual ICollection<CertificationCourse> CertificationCourseUpdatedByNavigations { get; set; } = new List<CertificationCourse>();
+
+    public virtual ICollection<CommonPermission> CommonPermissionApprovedByNavigations { get; set; } = new List<CommonPermission>();
+
     public virtual ICollection<CommonPermission> CommonPermissionCreatedByNavigations { get; set; } = new List<CommonPermission>();
 
     public virtual ICollection<CommonPermission> CommonPermissionStaffs { get; set; } = new List<CommonPermission>();
 
     public virtual ICollection<CommonPermission> CommonPermissionUpdatedByNavigations { get; set; } = new List<CommonPermission>();
 
+    public virtual ICollection<CompOffAvail> CompOffAvailApprovedByNavigations { get; set; } = new List<CompOffAvail>();
+
     public virtual ICollection<CompOffAvail> CompOffAvailCreatedByNavigations { get; set; } = new List<CompOffAvail>();
 
     public virtual ICollection<CompOffAvail> CompOffAvailStaffs { get; set; } = new List<CompOffAvail>();
 
     public virtual ICollection<CompOffAvail> CompOffAvailUpdatedByNavigations { get; set; } = new List<CompOffAvail>();
+
+    public virtual ICollection<CompOffCredit> CompOffCreditApprovedByNavigations { get; set; } = new List<CompOffCredit>();
 
     public virtual ICollection<CompOffCredit> CompOffCreditCreatedByNavigations { get; set; } = new List<CompOffCredit>();
 
@@ -363,6 +399,10 @@ public partial class StaffCreation
 
     public virtual ICollection<GeoStatus> GeoStatusUpdatedByNavigations { get; set; } = new List<GeoStatus>();
 
+    public virtual ICollection<GraceTimeDropdown> GraceTimeDropdownCreatedByNavigations { get; set; } = new List<GraceTimeDropdown>();
+
+    public virtual ICollection<GraceTimeDropdown> GraceTimeDropdownUpdatedByNavigations { get; set; } = new List<GraceTimeDropdown>();
+
     public virtual GradeMaster Grade { get; set; } = null!;
 
     public virtual ICollection<GradeMaster> GradeMasterCreatedByNavigations { get; set; } = new List<GradeMaster>();
@@ -433,6 +473,8 @@ public partial class StaffCreation
 
     public virtual ICollection<LeaveGroup> LeaveGroupUpdatedByNavigations { get; set; } = new List<LeaveGroup>();
 
+    public virtual ICollection<LeaveRequisition> LeaveRequisitionApprovedByNavigations { get; set; } = new List<LeaveRequisition>();
+
     public virtual ICollection<LeaveRequisition> LeaveRequisitionCreatedByNavigations { get; set; } = new List<LeaveRequisition>();
 
     public virtual ICollection<LeaveRequisition> LeaveRequisitionStaffs { get; set; } = new List<LeaveRequisition>();
@@ -458,6 +500,8 @@ public partial class StaffCreation
     public virtual ICollection<ManualAttendanceProcessing> ManualAttendanceProcessingCreatedByNavigations { get; set; } = new List<ManualAttendanceProcessing>();
 
     public virtual ICollection<ManualAttendanceProcessing> ManualAttendanceProcessingUpdatedByNavigations { get; set; } = new List<ManualAttendanceProcessing>();
+
+    public virtual ICollection<ManualPunchRequistion> ManualPunchRequistionApprovedByNavigations { get; set; } = new List<ManualPunchRequistion>();
 
     public virtual ICollection<ManualPunchRequistion> ManualPunchRequistionCreatedByNavigations { get; set; } = new List<ManualPunchRequistion>();
 
@@ -492,6 +536,8 @@ public partial class StaffCreation
     public virtual ICollection<OnDutyOvertime> OnDutyOvertimeStaffs { get; set; } = new List<OnDutyOvertime>();
 
     public virtual ICollection<OnDutyOvertime> OnDutyOvertimeUpdatedByNavigations { get; set; } = new List<OnDutyOvertime>();
+
+    public virtual ICollection<OnDutyRequisition> OnDutyRequisitionApprovedByNavigations { get; set; } = new List<OnDutyRequisition>();
 
     public virtual ICollection<OnDutyRequisition> OnDutyRequisitionCreatedByNavigations { get; set; } = new List<OnDutyRequisition>();
 
@@ -533,6 +579,12 @@ public partial class StaffCreation
 
     public virtual ICollection<PrefixAndSuffix> PrefixAndSuffixUpdatedByNavigations { get; set; } = new List<PrefixAndSuffix>();
 
+    public virtual ICollection<PreviousEmployment> PreviousEmploymentCreatedByNavigations { get; set; } = new List<PreviousEmployment>();
+
+    public virtual ICollection<PreviousEmployment> PreviousEmploymentStaffs { get; set; } = new List<PreviousEmployment>();
+
+    public virtual ICollection<PreviousEmployment> PreviousEmploymentUpdatedByNavigations { get; set; } = new List<PreviousEmployment>();
+
     public virtual ICollection<Probation> ProbationCreatedByNavigations { get; set; } = new List<Probation>();
 
     public virtual ICollection<Probation> ProbationStaffCreations { get; set; } = new List<Probation>();
@@ -553,11 +605,27 @@ public partial class StaffCreation
 
     public virtual ICollection<ReaderConfiguration> ReaderConfigurationUpdatedByNavigations { get; set; } = new List<ReaderConfiguration>();
 
+    public virtual ICollection<ReaderType> ReaderTypeCreatedByNavigations { get; set; } = new List<ReaderType>();
+
+    public virtual ICollection<ReaderType> ReaderTypeUpdatedByNavigations { get; set; } = new List<ReaderType>();
+
     public virtual ICollection<RegularShift> RegularShiftCreatedByNavigations { get; set; } = new List<RegularShift>();
 
     public virtual ICollection<RegularShift> RegularShiftStaffCreations { get; set; } = new List<RegularShift>();
 
     public virtual ICollection<RegularShift> RegularShiftUpdatedByNavigations { get; set; } = new List<RegularShift>();
+
+    public virtual ICollection<Reimbursement> ReimbursementApprovedByNavigations { get; set; } = new List<Reimbursement>();
+
+    public virtual ICollection<Reimbursement> ReimbursementCreatedByNavigations { get; set; } = new List<Reimbursement>();
+
+    public virtual ICollection<Reimbursement> ReimbursementStaffs { get; set; } = new List<Reimbursement>();
+
+    public virtual ICollection<ReimbursementType> ReimbursementTypeCreatedByNavigations { get; set; } = new List<ReimbursementType>();
+
+    public virtual ICollection<ReimbursementType> ReimbursementTypeUpdatedByNavigations { get; set; } = new List<ReimbursementType>();
+
+    public virtual ICollection<Reimbursement> ReimbursementUpdatedByNavigations { get; set; } = new List<Reimbursement>();
 
     public virtual ICollection<RoleMenuMapping> RoleMenuMappingCreatedByNavigations { get; set; } = new List<RoleMenuMapping>();
 
@@ -575,6 +643,8 @@ public partial class StaffCreation
 
     public virtual ICollection<SalaryStructure> SalaryStructureUpdatedByNavigations { get; set; } = new List<SalaryStructure>();
 
+    public virtual ICollection<ShiftChange> ShiftChangeApprovedByNavigations { get; set; } = new List<ShiftChange>();
+
     public virtual ICollection<ShiftChange> ShiftChangeCreatedByNavigations { get; set; } = new List<ShiftChange>();
 
     public virtual ICollection<ShiftChange> ShiftChangeStaffs { get; set; } = new List<ShiftChange>();
@@ -582,6 +652,8 @@ public partial class StaffCreation
     public virtual ICollection<ShiftChange> ShiftChangeUpdatedByNavigations { get; set; } = new List<ShiftChange>();
 
     public virtual ICollection<Shift> ShiftCreatedByNavigations { get; set; } = new List<Shift>();
+
+    public virtual ICollection<ShiftExtension> ShiftExtensionApprovedByNavigations { get; set; } = new List<ShiftExtension>();
 
     public virtual ICollection<ShiftExtension> ShiftExtensionCreatedByNavigations { get; set; } = new List<ShiftExtension>();
 
@@ -594,6 +666,10 @@ public partial class StaffCreation
     public virtual ICollection<ShiftPattern> ShiftPatternUpdatedByNavigations { get; set; } = new List<ShiftPattern>();
 
     public virtual ICollection<ShiftType> ShiftTypeCreatedByNavigations { get; set; } = new List<ShiftType>();
+
+    public virtual ICollection<ShiftTypeDropDown> ShiftTypeDropDownCreatedByNavigations { get; set; } = new List<ShiftTypeDropDown>();
+
+    public virtual ICollection<ShiftTypeDropDown> ShiftTypeDropDownUpdatedByNavigations { get; set; } = new List<ShiftTypeDropDown>();
 
     public virtual ICollection<ShiftType> ShiftTypeUpdatedByNavigations { get; set; } = new List<ShiftType>();
 
@@ -618,6 +694,10 @@ public partial class StaffCreation
     public virtual Status Status { get; set; } = null!;
 
     public virtual ICollection<Status> StatusCreatedByNavigations { get; set; } = new List<Status>();
+
+    public virtual ICollection<StatusDropdown> StatusDropdownCreatedByNavigations { get; set; } = new List<StatusDropdown>();
+
+    public virtual ICollection<StatusDropdown> StatusDropdownUpdatedByNavigations { get; set; } = new List<StatusDropdown>();
 
     public virtual ICollection<Status> StatusUpdatedByNavigations { get; set; } = new List<Status>();
 
@@ -655,6 +735,8 @@ public partial class StaffCreation
 
     public virtual ICollection<WeeklyOffDetail> WeeklyOffDetailUpdatedByNavigations { get; set; } = new List<WeeklyOffDetail>();
 
+    public virtual ICollection<WeeklyOffHolidayWorking> WeeklyOffHolidayWorkingApprovedByNavigations { get; set; } = new List<WeeklyOffHolidayWorking>();
+
     public virtual ICollection<WeeklyOffHolidayWorking> WeeklyOffHolidayWorkingCreatedByNavigations { get; set; } = new List<WeeklyOffHolidayWorking>();
 
     public virtual ICollection<WeeklyOffHolidayWorking> WeeklyOffHolidayWorkingStaffs { get; set; } = new List<WeeklyOffHolidayWorking>();
@@ -670,6 +752,8 @@ public partial class StaffCreation
     public virtual ICollection<WeeklyOffType> WeeklyOffTypeUpdatedByNavigations { get; set; } = new List<WeeklyOffType>();
 
     public virtual ICollection<WeeklyOff> WeeklyOffUpdatedByNavigations { get; set; } = new List<WeeklyOff>();
+
+    public virtual ICollection<WorkFromHome> WorkFromHomeApprovedByNavigations { get; set; } = new List<WorkFromHome>();
 
     public virtual ICollection<WorkFromHome> WorkFromHomeCreatedByNavigations { get; set; } = new List<WorkFromHome>();
 

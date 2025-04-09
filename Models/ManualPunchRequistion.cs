@@ -39,9 +39,17 @@ public partial class ManualPunchRequistion
 
     public DateTime? CancelledOn { get; set; }
 
+    public bool? IsEmailSent { get; set; }
+
+    public int? ApprovedBy { get; set; }
+
+    public DateTime? ApprovedOn { get; set; }
+
     public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
+
+    public virtual StaffCreation? ApprovedByNavigation { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

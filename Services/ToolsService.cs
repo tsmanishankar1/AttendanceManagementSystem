@@ -331,7 +331,116 @@ namespace AttendanceManagement.Services
             return message;
         }
 
+        public async Task<string> AddReaderConfigurationAsync(ReaderConfigurationRequest request)
+        {
+            var readerConfiguration = new ReaderConfiguration
+            {
+                ReaderName = request.ReaderName,
+                ReaderIpAddress = request.ReaderIpAddress,
+                IsAttendanceReader = request.IsAttendanceReader,
+                IsAccessReader = request.IsAccessReader,
+                IsActive = request.IsActive,
+                CreatedBy = request.CreatedBy,
+                CreatedUtc = DateTime.UtcNow,
+                ReaderTypeId = request.ReaderTypeId
+            };
 
+            await _context.ReaderConfigurations.AddAsync(readerConfiguration);
+            await _context.SaveChangesAsync();
+
+            return "Reader Configuration added successfully";
+        }
+        public async Task<List<ReaderConfigurationResponse>> GetReaderConfigurationsAsync()
+        {
+            var result = await _context.ReaderConfigurations
+                .Include(r => r.ReaderType) // Join with ReaderType table
+                .Select(r => new ReaderConfigurationResponse
+                {
+                    Id = r.Id,
+                    ReaderName = r.ReaderName,
+                    ReaderIpAddress = r.ReaderIpAddress,
+                    IsAttendanceReader = r.IsAttendanceReader,
+                    IsAccessReader = r.IsAccessReader,
+                    IsActive = r.IsActive,
+                    CreatedBy = r.CreatedBy,
+                    CreatedUtc = r.CreatedUtc,
+                    ReaderTypeId = r.ReaderTypeId,
+                    ReaderTypeName = r.ReaderType.Name 
+                })
+                .ToListAsync();
+
+            return result;
+        }
+        public async Task<string> UpdateAttendanceStatusAsync(UpdateAttendanceStatusRequest request)
+        {
+            if (request.StaffIds == null || !request.StaffIds.Any())
+            {
+                return "StaffIds cannot be empty.";
+            }
+
+            var newRecords = new List<AttendanceStatus>();
+
+            foreach (var staffId in request.StaffIds)
+            {
+                var attendanceRecords = await _context.AttendanceRecords
+            .Where(a => a.StaffId == staffId && a.FirstIn.HasValue && a.FirstIn.Value.Date == request.FromDate.Date)
+            .ToListAsync();
+
+                if (attendanceRecords.Any())
+                {
+                    foreach (var record in attendanceRecords)
+                    {
+                        record.StatusId = request.StatusId; // Update status
+                        record.IsRegularized = true; // Set as regularized
+                        record.UpdatedBy = request.CreatedBy;
+                        record.UpdatedUtc = DateTime.UtcNow;
+                    }
+                }
+
+                // Add new attendance status record
+                newRecords.Add(new AttendanceStatus
+                {
+                    StaffId = staffId,
+                    StatusId = request.StatusId,
+                    FromDate = request.FromDate,
+                    DurationId = request.DurationId,
+                    ToDate = request.ToDate,
+                    Remarks = request.Remarks,
+                    IsActive = true,
+                    CreatedBy = request.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                });
+            }
+
+            // Update attendance records
+            await _context.SaveChangesAsync();
+
+            // Insert new attendance status records
+            await _context.AttendanceStatuses.AddRangeAsync(newRecords);
+            await _context.SaveChangesAsync();
+
+            return "Attendance status updated successfully.";
+        }
+
+
+
+        public async Task<AttendanceStatusColor> CreateAttendanceStatusColorAsync(AttendanceStatusColorDto dto)
+        {
+            var attendanceStatus = new AttendanceStatusColor
+            {
+                StatusName = dto.StatusName,
+                ShortName = dto.ShortName,
+                ColourCode = dto.ColourCode,
+                IsActive = dto.IsActive,
+                CreatedBy = dto.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+
+            _context.AttendanceStatusColors.Add(attendanceStatus);
+            await _context.SaveChangesAsync();
+            return attendanceStatus;
+        }
     }
+
 }
 

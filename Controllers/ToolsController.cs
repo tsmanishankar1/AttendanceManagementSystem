@@ -3,7 +3,6 @@ using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using AttendanceManagement.Input_Models;
 using System.Text.Json;
-
 namespace AttendanceManagement.Controllers;
 
 [Route("api/[controller]")]
@@ -12,13 +11,11 @@ public class ToolsController : ControllerBase
 {
     private readonly ToolsService _service;
     private readonly LoggingService _loggingService;
-
     public ToolsController(ToolsService toolsService, LoggingService loggingService)
     {
         _service = toolsService;
         _loggingService = loggingService;
     }
-
     [HttpGet("GetAllApplicationTypes")]
     public async Task<IActionResult> GetAllApplicationTypes()
     {
@@ -41,7 +38,6 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-
     [HttpGet("GetStaffInfoByOrganizationType")]
     public async Task<IActionResult> GetStaffInfoByOrganizationType(int organizationTypeId)
     {
@@ -215,6 +211,91 @@ public class ToolsController : ControllerBase
         }
         catch (Exception ex)
         {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+    [HttpPost("ReaderConfiguration")]
+    public async Task<IActionResult> CreateReader( ReaderConfigurationRequest readerConfiguration)
+    {
+        try
+        {
+            var ReaderConfig = await _service.AddReaderConfigurationAsync(readerConfiguration);
+            var response = new
+            {
+                Success = true,
+                Message = ReaderConfig
+            };
+            await _loggingService.AuditLog("Reader Configuration", "POST", "/api/Tools/ReaderConfiguration", ReaderConfig, readerConfiguration.CreatedBy, JsonSerializer.Serialize(readerConfiguration));
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Reader Configuration", "POST", "/api/Tools/ReaderConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, readerConfiguration.CreatedBy, JsonSerializer.Serialize(readerConfiguration));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+    [HttpGet("GetAllReaderConfigurations")]
+    public async Task<IActionResult> GetReaderConfigurations()
+    {
+        try
+        {
+            var result = await _service.GetReaderConfigurationsAsync();
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            return Ok(result);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+    [HttpPost("AttendanceRegularization")]
+    public async Task<IActionResult> UpdateAttendanceStatus(UpdateAttendanceStatusRequest request)
+    {
+        try
+        {
+            string result = await _service.UpdateAttendanceStatusAsync(request);
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AtendanceStatus", result, request.CreatedBy, JsonSerializer.Serialize(request));
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+    [HttpPost("AttendanceStatusColor")]
+    public async Task<IActionResult> CreateAttendanceStatusColor( AttendanceStatusColorDto dto)
+    {
+        try
+        {
+            var createdAttendanceStatus = await _service.CreateAttendanceStatusColorAsync(dto);
+
+            var response = new
+            {
+                Success = true,
+                Message = "Attendance status created successfully.",
+                Data = createdAttendanceStatus
+            };
+
+            await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", JsonSerializer.Serialize(response), dto.CreatedBy, JsonSerializer.Serialize(dto));
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError( "Attendance Regularization", "POST", "/api/Tools/AttendanceStatus",  ex.Message, ex.StackTrace ?? string.Empty,    ex.InnerException?.ToString() ?? string.Empty,dto.CreatedBy,   JsonSerializer.Serialize(dto)  );
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

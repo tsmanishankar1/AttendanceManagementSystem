@@ -21,6 +21,29 @@ public class DailyReportsController : ControllerBase
 
     }
 
+    [HttpGet("GetReportType")]
+    public async Task<IActionResult> GetReportType()
+    {
+        try
+        {
+            var result = await _dailyReportsService.GetReportType();
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("GetDailyReport")]
     public async Task<IActionResult> GetDailyReport(DailyReportRequest request)
     {

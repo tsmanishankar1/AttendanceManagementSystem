@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class ApplicationTypeDto
     {
@@ -71,7 +73,7 @@
         public string FromDuration { get; set; } = null!;
         public string ToDuration { get; set; } = null!;
         public string Reason { get; set; } = null!;
-        public int TotalDays { get; set; }
+        public decimal TotalDays { get; set; }
         public int CreatedBy { get; set; }
     }
     public class CompOffAvailDto
@@ -85,14 +87,14 @@
         public string FromDuration { get; set; } = null!;
         public string ToDuration { get; set; } = null!;
         public string Reason { get; set; } = null!;
-        public int TotalDays { get; set; }
+        public decimal TotalDays { get; set; }
     }
     public class CompOffCreditDto
     {
         public int ApplicationTypeId { get; set; }
         public int? StaffId { get; set; }
         public DateOnly WorkedDate { get; set; }
-        public int TotalDays { get; set; }
+        public decimal TotalDays { get; set; }
         public string Reason { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
@@ -101,7 +103,20 @@
         public int ApplicationTypeId { get; set; }
         public int Id { get; set; }
         public DateOnly WorkedDate { get; set; }
-        public int TotalDays { get; set; }
+        public decimal TotalDays { get; set; }
         public string Reason { get; set; } = null!;
+    }
+    public class ReimbursementRequestModel
+    {
+        public DateOnly BillDate { get; set; }
+        public string BillNo { get; set; } = null!;
+        public string? Description { get; set; }
+        public string BillPeriod { get; set; } = null!;
+        public decimal Amount { get; set; }
+        public int ApplicationTypeId { get; set; }
+        public IFormFile File { get; set; } 
+        public int CreatedBy { get; set; }
+        public int? StaffId { get; set; }
+        public int ReimbursementTypeId { get; set; }
     }
 }

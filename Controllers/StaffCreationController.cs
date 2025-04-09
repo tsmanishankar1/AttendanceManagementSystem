@@ -211,17 +211,17 @@ public class StaffCreationController : ControllerBase
                 return BadRequest(new { Success = false, Message = result });
             }
 
-            await _loggingService.AuditLog("Update Staff Approver", "POST", "//api/StaffCreation/UpdateApprovers", result, request.UpdatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.AuditLog("Update Staff Approver", "POST", "/api/StaffCreation/UpdateApprovers", result, request.UpdatedBy, JsonSerializer.Serialize(request));
             return Ok(new { Success = true, Message = "Approvers updated successfully" });
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Update Staff Approver", "POST", "//api/StaffCreation/UpdateApprovers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.LogError("Update Staff Approver", "POST", "/api/StaffCreation/UpdateApprovers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Update Staff Approver", "POST", "//api/StaffCreation/UpdateApprovers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.LogError("Update Staff Approver", "POST", "/api/StaffCreation/UpdateApprovers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

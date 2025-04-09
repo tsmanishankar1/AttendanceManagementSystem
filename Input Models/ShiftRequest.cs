@@ -4,14 +4,22 @@
     {
         public string ShiftName { get; set; } = null!;
         public string ShortName { get; set; } = null!;
+        public int? ShiftTypeId { get; set; }
         public string StartTime { get; set; } = null!;
-
         public string EndTime { get; set; } = null!;
-
         public int CreatedBy { get; set; }
         public bool IsActive { get; set; }
     }
-
+    public class StaffsDto
+    {
+        public int StaffId { get; set; }
+        public string StaffCreationId { get; set; } = null!;
+        public string FullName { get; set; } = null!;
+        public string DepartmentName { get; set; } = null!;
+        public string DesignationName { get; set; } = null!;
+        public int DepartmentId { get; set; }
+        public int DesignationId { get; set; }
+    }
     public class AssignShiftRequest
     {
         public DateOnly FromDate { get; set; }
@@ -23,11 +31,11 @@
     public class ShiftResponse
     {
         public int ShiftId { get; set; }
-
+        public int? ShiftTypeId { get; set; }
+        public string ShiftTypeName { get; set; } = null!;
         public string ShiftName { get; set; } = null!;
         public string ShortName { get; set; } = null!;
         public string StartTime { get; set; } = null!;
-
         public string EndTime { get; set; } = null!;
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
@@ -36,13 +44,11 @@
     public class UpdateShift
     {
         public int ShiftId { get; set; }
-
         public string ShiftName { get; set; } = null!;
+        public int ShiftTypeId { get; set; }
         public string ShortName { get; set; } = null!;
         public string StartTime { get; set; } = null!;
-
         public string EndTime { get; set; } = null!;
-
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }
     }

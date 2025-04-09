@@ -13,11 +13,11 @@ public partial class CompOffCredit
 
     public int? Balance { get; set; }
 
-    public int TotalDays { get; set; }
+    public decimal TotalDays { get; set; }
 
     public string Reason { get; set; } = null!;
 
-    public bool? Status { get; set; }
+    public bool? Status1 { get; set; }
 
     public int CreatedBy { get; set; }
 
@@ -37,9 +37,19 @@ public partial class CompOffCredit
 
     public DateTime? CancelledOn { get; set; }
 
+    public bool? Status2 { get; set; }
+
+    public bool? IsEmailSent { get; set; }
+
+    public int? ApprovedBy { get; set; }
+
+    public DateTime? ApprovedOn { get; set; }
+
     public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
+
+    public virtual StaffCreation? ApprovedByNavigation { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

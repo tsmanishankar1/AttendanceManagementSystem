@@ -14,7 +14,7 @@ public class ExcelImportService
     private readonly AttendanceManagementSystemContext _context;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly string _workspacePath = @"C:\Users\internship041\source\repos\BackendFrontendAttendance\ExcelTemplates";
+    private readonly string _workspacePath = @"C:\Users\manishankar.ts\OneDrive - Kryptos\source\repos\AttendanceSystem_API\ExcelTemplates";
     public ExcelImportService(AttendanceManagementSystemContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
@@ -457,7 +457,7 @@ public class ExcelImportService
                                         BankAccountNo = long.TryParse(worksheet.Cells[row, columnIndexes["BankAccountNo"]]?.Text, out var bankAccountNo) ? bankAccountNo : 0,
                                         BankIfscCode = worksheet.Cells[row, columnIndexes["BankIfscCode"]]?.Text.Trim(),
                                         BankBranch = worksheet.Cells[row, columnIndexes["BankBranch"]]?.Text.Trim(),
-                                        Qualification = worksheet.Cells[row, columnIndexes["Qualification"]]?.Text.Trim() ?? string.Empty,
+                                      
                                         HomeAddress = worksheet.Cells[row, columnIndexes["HomeAddress"]]?.Text.Trim() ?? string.Empty,
                                         FatherName = worksheet.Cells[row, columnIndexes["FatherName"]]?.Text.Trim() ?? string.Empty,
                                         EmergencyContactPerson1 = worksheet.Cells[row, columnIndexes["EmergencyContactPerson1"]]?.Text.Trim() ?? string.Empty,
@@ -807,7 +807,7 @@ public class ExcelImportService
                                         .AnyAsync(p => p.StaffId == staffId && p.PermissionDate == permissionDate);
                                     if (existingPermissionOnDate)
                                     {
-                                        throw new InvalidOperationException($"Permission for the date {permissionDate:yyyy-MM-dd} already exists.");
+                                        throw new Exception($"Permission for the date {permissionDate:yyyy-MM-dd} already exists.");
                                     }
 
                                     var permissionsThisMonth = await _context.CommonPermissions

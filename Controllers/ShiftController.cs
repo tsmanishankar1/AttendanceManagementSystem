@@ -17,6 +17,28 @@ public class ShiftController : ControllerBase
         _shiftService = shiftService;
         _loggingService = loggingService;
     }
+    [HttpGet("GetByDivision")]
+    public async Task<IActionResult> GetStaffByDivision(int divisionId)
+    {
+        try
+        {
+            var staffList = await _shiftService.GetStaffByDivisionIdAsync(divisionId);
+            var response = new
+            {
+                Success = true,
+                Message = staffList
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
 
     [HttpGet("GetAllShifts")]
     public async Task<IActionResult> GetShifts()
@@ -40,6 +62,7 @@ public class ShiftController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
 
     [HttpGet("GetShiftById")]
     public async Task<IActionResult> GetShiftById(int shiftId)

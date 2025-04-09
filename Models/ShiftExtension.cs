@@ -39,11 +39,25 @@ public partial class ShiftExtension
 
     public bool? IsCancelled { get; set; }
 
+    public int ShiftId { get; set; }
+
+    public DateTime? CancelledOn { get; set; }
+
+    public bool? IsEmailSent { get; set; }
+
+    public int? ApprovedBy { get; set; }
+
+    public DateTime? ApprovedOn { get; set; }
+
     public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
 
+    public virtual StaffCreation? ApprovedByNavigation { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
+    public virtual Shift Shift { get; set; } = null!;
 
     public virtual StaffCreation? Staff { get; set; }
 

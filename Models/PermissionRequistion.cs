@@ -33,6 +33,8 @@ public partial class PermissionRequistion
 
     public bool IsActive { get; set; }
 
+    public bool? IsEmailSent { get; set; }
+
     public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;

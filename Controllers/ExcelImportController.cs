@@ -24,7 +24,7 @@ public class ExcelImportController : ControllerBase
         {
             var filePath = await _excelImportService.GetExcelTemplateFilePath(excelImportId);
             filePath = Path.GetFullPath(filePath).Replace("\\", "/");
-            return Ok(new { Success = true, FilePath = filePath }); 
+            return Ok(new { Success = true, Message = filePath }); 
         }
         catch (MessageNotFoundException ex)
         {

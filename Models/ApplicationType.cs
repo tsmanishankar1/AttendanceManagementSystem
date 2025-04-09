@@ -9,6 +9,16 @@ public partial class ApplicationType
 
     public string ApplicationTypeName { get; set; } = null!;
 
+    public bool IsActive { get; set; }
+
+    public int CreatedBy { get; set; }
+
+    public DateTime CreatedUtc { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
+    public DateTime? UpdatedUtc { get; set; }
+
     public virtual ICollection<BusinessTravel> BusinessTravels { get; set; } = new List<BusinessTravel>();
 
     public virtual ICollection<CommonPermission> CommonPermissions { get; set; } = new List<CommonPermission>();
@@ -26,6 +36,8 @@ public partial class ApplicationType
     public virtual ICollection<OnDutyRequisition> OnDutyRequisitions { get; set; } = new List<OnDutyRequisition>();
 
     public virtual ICollection<PermissionRequistion> PermissionRequistions { get; set; } = new List<PermissionRequistion>();
+
+    public virtual ICollection<Reimbursement> Reimbursements { get; set; } = new List<Reimbursement>();
 
     public virtual ICollection<ShiftChange> ShiftChanges { get; set; } = new List<ShiftChange>();
 

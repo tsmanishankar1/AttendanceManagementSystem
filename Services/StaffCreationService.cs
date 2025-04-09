@@ -7,6 +7,9 @@ using System.Net;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System.Text.Json;
+using System.Text;
+using Org.BouncyCastle.Cms;
 
 namespace AttendanceManagement.Services
 {
@@ -55,6 +58,7 @@ namespace AttendanceManagement.Services
         }
         public async Task<StaffCreationResponse> GetByUserManagementIdAsync(int staffId)
         {
+
             var getUser = await _context.StaffCreations
                 .Where(s => s.Id == staffId && s.IsActive == true)
                 .Select(s => new StaffCreationResponse
@@ -146,7 +150,7 @@ namespace AttendanceManagement.Services
                     BankAccountNo = s.BankAccountNo,
                     BankIfscCode = s.BankIfscCode,
                     BankBranch = s.BankBranch,
-                    Qualification = s.Qualification,
+                   
                     HomeAddress = s.HomeAddress,
                     FatherName = s.FatherName,
                     MotherName = s.MotherName,
@@ -159,8 +163,8 @@ namespace AttendanceManagement.Services
                     OrganizationTypeId = s.OrganizationTypeId,
                     OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
                     ResignationDate = s.ResignationDate,
-                    RelievingDate = s.RelievingDate,
-                    CreatedBy = s.CreatedBy
+                    RelievingDate = s.RelievingDate,               
+                    CreatedBy = s.CreatedBy,
                 })
                 .FirstOrDefaultAsync();
 
@@ -176,32 +180,32 @@ namespace AttendanceManagement.Services
         {
             var parameters = new[]
             {
-                new SqlParameter("@ApproverId", getStaff.ApproverId ?? (object)DBNull.Value),
-                new SqlParameter("@ShiftName", string.IsNullOrWhiteSpace(getStaff.ShiftName) ? (object)DBNull.Value : getStaff.ShiftName),
-                new SqlParameter("@OrganizationTypeName", string.IsNullOrWhiteSpace(getStaff.OrganizationTypeName) ? (object)DBNull.Value : getStaff.OrganizationTypeName),
-                new SqlParameter("@CompanyName", string.IsNullOrWhiteSpace(getStaff.CompanyName) ? (object)DBNull.Value : getStaff.CompanyName),
-                new SqlParameter("@CategoryName", string.IsNullOrWhiteSpace(getStaff.CategoryName) ? (object)DBNull.Value : getStaff.CategoryName),
-                new SqlParameter("@CostCentreName", string.IsNullOrWhiteSpace(getStaff.CostCentreName) ? (object)DBNull.Value : getStaff.CostCentreName),
-                new SqlParameter("@BranchName", string.IsNullOrWhiteSpace(getStaff.BranchName) ? (object)DBNull.Value : getStaff.BranchName),
-                new SqlParameter("@DepartmentName", string.IsNullOrWhiteSpace(getStaff.DepartmentName) ? (object)DBNull.Value : getStaff.DepartmentName),
-                new SqlParameter("@DesignationName", string.IsNullOrWhiteSpace(getStaff.DesignationName) ? (object)DBNull.Value : getStaff.DesignationName),
-                new SqlParameter("@StaffName", string.IsNullOrWhiteSpace(getStaff.StaffName) ? (object)DBNull.Value : getStaff.StaffName),
-                new SqlParameter("@LocationName", string.IsNullOrWhiteSpace(getStaff.LocationName) ? (object)DBNull.Value : getStaff.LocationName),
-                new SqlParameter("@GradeName", string.IsNullOrWhiteSpace(getStaff.GradeName) ? (object)DBNull.Value : getStaff.GradeName),
-                new SqlParameter("@Status", string.IsNullOrWhiteSpace(getStaff.Status) ? (object)DBNull.Value : getStaff.Status),
-                new SqlParameter("@LoginUserName", string.IsNullOrWhiteSpace(getStaff.LoginUserName) ? (object)DBNull.Value : getStaff.LoginUserName),
-                new SqlParameter("@IncludeTerminated", getStaff.IncludeTerminated.HasValue ? (object)getStaff.IncludeTerminated.Value : DBNull.Value)
-            };
+                    new SqlParameter("@ApproverId", getStaff.ApproverId ?? (object)DBNull.Value),
+                    new SqlParameter("@ShiftName", string.IsNullOrWhiteSpace(getStaff.ShiftName) ? (object)DBNull.Value : getStaff.ShiftName),
+                    new SqlParameter("@OrganizationTypeName", string.IsNullOrWhiteSpace(getStaff.OrganizationTypeName) ? (object)DBNull.Value : getStaff.OrganizationTypeName),
+                    new SqlParameter("@CompanyName", string.IsNullOrWhiteSpace(getStaff.CompanyName) ? (object)DBNull.Value : getStaff.CompanyName),
+                    new SqlParameter("@DivisionName", string.IsNullOrWhiteSpace(getStaff.DivisionName) ? (object)DBNull.Value : getStaff.DivisionName), // Moved to match SP
+                    new SqlParameter("@CategoryName", string.IsNullOrWhiteSpace(getStaff.CategoryName) ? (object)DBNull.Value : getStaff.CategoryName),
+                    new SqlParameter("@CostCentreName", string.IsNullOrWhiteSpace(getStaff.CostCentreName) ? (object)DBNull.Value : getStaff.CostCentreName),
+                    new SqlParameter("@BranchName", string.IsNullOrWhiteSpace(getStaff.BranchName) ? (object)DBNull.Value : getStaff.BranchName),
+                    new SqlParameter("@DepartmentName", string.IsNullOrWhiteSpace(getStaff.DepartmentName) ? (object)DBNull.Value : getStaff.DepartmentName),
+                    new SqlParameter("@DesignationName", string.IsNullOrWhiteSpace(getStaff.DesignationName) ? (object)DBNull.Value : getStaff.DesignationName),
+                    new SqlParameter("@StaffName", string.IsNullOrWhiteSpace(getStaff.StaffName) ? (object)DBNull.Value : getStaff.StaffName),
+                    new SqlParameter("@LocationName", string.IsNullOrWhiteSpace(getStaff.LocationName) ? (object)DBNull.Value : getStaff.LocationName),
+                    new SqlParameter("@GradeName", string.IsNullOrWhiteSpace(getStaff.GradeName) ? (object)DBNull.Value : getStaff.GradeName),
+                    new SqlParameter("@Status", string.IsNullOrWhiteSpace(getStaff.Status) ? (object)DBNull.Value : getStaff.Status),
+                    new SqlParameter("@LoginUserName", string.IsNullOrWhiteSpace(getStaff.LoginUserName) ? (object)DBNull.Value : getStaff.LoginUserName),
+                    new SqlParameter("@IncludeTerminated", getStaff.IncludeTerminated.HasValue ? (object)getStaff.IncludeTerminated.Value : DBNull.Value)
+    };
 
             var staffList = await _storedProcedureDbContext.StaffDto
-                .FromSqlRaw("EXEC GetStaffByFilters @ApproverId, @ShiftName, @OrganizationTypeName, @CompanyName, @CategoryName, @CostCentreName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName, @Status, @LoginUserName, @IncludeTerminated", parameters)
+                .FromSqlRaw("EXEC GetStaffByFilters @ApproverId, @ShiftName, @OrganizationTypeName, @CompanyName, @DivisionName, @CategoryName, @CostCentreName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName, @Status, @LoginUserName, @IncludeTerminated", parameters)
                 .ToListAsync();
-            if (staffList.Count == 0)
-            {
-                throw new MessageNotFoundException("No staffs found");
-            }
+
             return staffList;
         }
+
+
 
         public async Task<string> UpdateMyProfile(IndividualStaffUpdate individualStaffUpdate)
         {
@@ -248,7 +252,7 @@ namespace AttendanceManagement.Services
             staff.BankAccountNo = individualStaffUpdate.BankAccountNo;
             staff.BankIfscCode = individualStaffUpdate.BankIfscCode;
             staff.BankBranch = individualStaffUpdate.BankBranch;
-            staff.Qualification = individualStaffUpdate.Qualification;
+           
             staff.HomeAddress = individualStaffUpdate.HomeAddress;
             staff.FatherName = individualStaffUpdate.FatherName;
             staff.MotherName = individualStaffUpdate.MotherName;
@@ -256,6 +260,9 @@ namespace AttendanceManagement.Services
             staff.EmergencyContactPerson2 = individualStaffUpdate.EmergencyContactPerson2;
             staff.EmergencyContactNo1 = individualStaffUpdate.EmergencyContactNo1;
             staff.EmergencyContactNo2 = individualStaffUpdate.EmergencyContactNo2;
+           
+
+            staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
             staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
             _context.StaffCreations.Update(staff);
             await _context.SaveChangesAsync();
@@ -334,7 +341,7 @@ namespace AttendanceManagement.Services
                                      BankAccountNo = s.BankAccountNo,
                                      BankIfscCode = s.BankIfscCode,
                                      BankBranch = s.BankBranch,
-                                     Qualification = s.Qualification,
+                                   
                                      HomeAddress = s.HomeAddress,
                                      FatherName = s.FatherName,
                                      MotherName = s.MotherName,
@@ -348,7 +355,8 @@ namespace AttendanceManagement.Services
                                      OrganizationTypeName = org.Name,
                                      WorkingStatusId = workingStatus.Id,
                                      WorkingStatus = workingStatus.Name,
-                                     CreatedBy = s.CreatedBy
+                                     
+                                     CreatedBy = s.CreatedBy,
                                  })
                                 .FirstOrDefaultAsync();
             return getUser;
@@ -402,6 +410,7 @@ namespace AttendanceManagement.Services
                 FirstName = staffInput.FirstName,
                 LastName = staffInput.LastName,
                 ShortName = staffInput.ShortName,
+
                 Gender = staffInput.Gender,
                 Hide = staffInput.Hide,
                 BloodGroup = staffInput.BloodGroup,
@@ -459,7 +468,7 @@ namespace AttendanceManagement.Services
                 BankAccountNo = staffInput.BankAccountNo,
                 BankIfscCode = staffInput.BankIfscCode,
                 BankBranch = staffInput.BankBranch,
-                Qualification = staffInput.Qualification,
+             
                 HomeAddress = staffInput.HomeAddress,
                 FatherName = staffInput.FatherName,
                 MotherName = staffInput.MotherName,
@@ -474,14 +483,20 @@ namespace AttendanceManagement.Services
                 AadharCardFilePath = aadharCardPath,
                 PanCardFilePath = panCardPath,
                 DrivingLicenseFilePath = drivingLicensePath,
+               
             };
 
             _context.StaffCreations.Add(staff);
             await _context.SaveChangesAsync();
 
             var reportingManager = await _context.StaffCreations
-                .Where(u => u.Id == staffInput.ApprovalLevel1 && u.IsActive == true)
-                .Select(u => u.OfficialEmail)
+                .Where(u => (u.Id == staffInput.ApprovalLevel1 || u.Id == staffInput.ApprovalLevel2) && u.IsActive == true)
+                .Join(_context.AccessLevels,
+                      staff => staff.AccessLevel,
+                      access => access.Name,
+                      (staff, access) => new { staff.OfficialEmail, access.Name })
+                .Where(x => x.Name == "REPORTING MANAGER")
+                .Select(x => x.OfficialEmail)
                 .FirstOrDefaultAsync();
 
             if (!string.IsNullOrEmpty(reportingManager))
@@ -493,94 +508,129 @@ namespace AttendanceManagement.Services
         }
         private async Task SendApprovalEmail(string managerEmail, StaffCreation staff)
         {
-            var message = new MailMessage();
             if (staff == null || string.IsNullOrEmpty(managerEmail))
                 throw new ArgumentNullException("Staff or Manager Email is null.");
 
             var reportingManager = await _context.StaffCreations
-               .Where(u => u.Id == staff.ApprovalLevel1 && u.OfficialEmail == managerEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
+           .Where(u => u.Id == staff.ApprovalLevel1 && u.OfficialEmail == managerEmail && u.IsActive == true)
+           .FirstOrDefaultAsync();
 
             if (reportingManager == null)
                 throw new Exception("Reporting manager not found or inactive.");
 
-            var host = _configuration.GetSection("Smtp").GetValue<string>("host");
-            var port = _configuration.GetSection("Smtp").GetValue<int>("port");
-            var userName = _configuration.GetSection("Smtp").GetValue<string>("userName");
-            var password = _configuration.GetSection("Smtp").GetValue<string>("password");
-            var from = _configuration.GetSection("Smtp").GetValue<string>("from");
-            var Ssl = _configuration.GetSection("Smtp").GetValue<bool>("SSL");
-            var defaultCredential = _configuration.GetSection("Smtp").GetValue<bool>("defaultCredential");
+            var host = _configuration["Smtp:host"];
+            var port = _configuration.GetValue<int>("Smtp:port");
+            var userName = _configuration["Smtp:userName"];
+            var password = _configuration["Smtp:password"];
+            var from = _configuration["Smtp:from"];
+            var ssl = _configuration.GetValue<bool>("Smtp:SSL");
+            var defaultCredential = _configuration.GetValue<bool>("Smtp:defaultCredential");
+            var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
-            string deepApprovalLink = $"myapp://approve?staffId={staff.Id}";
-            string deepRejectionLink = $"myapp://reject?staffId={staff.Id}";
+/*            string Base64UrlEncode(string input)
+            {
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
+                    .TrimEnd('=')
+                    .Replace('+', '-')
+                    .Replace('/', '_');
+            }
+
+            var approvalJson = JsonSerializer.Serialize(new
+            {
+                staffId = staff.Id,
+                StaffCreationId = staff.StaffId,
+                IsApproved = true
+            });
+            var rejectJson = JsonSerializer.Serialize(new
+            {
+                staffId = staff.Id,
+                StaffCreationId = staff.StaffId,
+                IsApproved = false
+            });
+
+            string approvalEncoded = Base64UrlEncode(approvalJson);
+            string rejectEncoded = Base64UrlEncode(rejectJson);
+
+            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
+            string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
+*/
+            string webApprovalLink = $"{frontEndUrl}/approve?staffId={staff.Id}";
+            string webRejectionLink = $"{frontEndUrl}/reject?staffId={staff.Id}";
 
             string reportingManagerFullName = $"{reportingManager.FirstName} {reportingManager.LastName}";
             string staffFullName = $"{staff.FirstName} {staff.LastName}";
+            string subject = "Staff Approval Request";
 
             string emailBody = $@"
-                        <p>Dear {reportingManagerFullName},</p>
-                        <p>A new staff member <strong>{staffFullName}</strong> has been added and requires your approval.</p>       
-                        <p><strong>Approve/Reject staff</strong></p>
-                        <p><a href='{deepApprovalLink}'>Approve</a> | <a href='{deepRejectionLink}'>Reject</a></p>
-                        <br>Best Regards,</br>
-                        HR Team";
+            <p>Dear {reportingManagerFullName},</p>
+            <p>A new staff member <strong>{staffFullName}</strong> has been added and requires your approval.</p>       
+            <p><strong>Approve/Reject staff:</strong></p>
+            <p>
+                <a href='{webApprovalLink}'>Approve (Web)</a> | 
+                <a href='{webRejectionLink}'>Reject (Web)</a>
+            </p>
+            <br>Best Regards,<br>
+            HR Team";
+
+            if (from == null) throw new ArgumentNullException("Sender email is not found");
 
             try
             {
-                message.Subject = "Staff Approval Request";
-                message.Body = emailBody;
-                message.IsBodyHtml = true;
-                if (from != null)
+                var message = new MailMessage
                 {
-                    message.From = new MailAddress(from, "Test Mail");
-                    message.To.Add(new MailAddress(managerEmail));
+                    Subject = subject,
+                    Body = emailBody,
+                    IsBodyHtml = true,
+                    From = new MailAddress(from, "HR Team")
+                };
 
-                    using var smtp = new SmtpClient(host, port)
-                    {
-                        UseDefaultCredentials = defaultCredential,
-                        Credentials = new NetworkCredential(userName, password),
-                        DeliveryMethod = SmtpDeliveryMethod.Network,
-                        EnableSsl = true
-                    };
+                message.To.Add(new MailAddress(managerEmail));
 
-                    await smtp.SendMailAsync(message);
-                    var log = new EmailLog
-                    {
-                        From = from,
-                        To = managerEmail,
-                        EmailSubject = message.Subject,
-                        EmailBody = emailBody,
-                        IsSent = true,
-                        IsError = false,
-                        CreatedBy = staff.CreatedBy,
-                        CreatedUtc = DateTime.UtcNow
-                    };
-                    _context.EmailLogs.Add(log);
-                    await _context.SaveChangesAsync();
-                }
+                using var smtp = new SmtpClient(host, port)
+                {
+                    UseDefaultCredentials = defaultCredential,
+                    Credentials = new NetworkCredential(userName, password),
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    EnableSsl = ssl
+                };
+
+                await smtp.SendMailAsync(message);
+
+                var log = new EmailLog
+                {
+                    From = from,
+                    To = managerEmail,
+                    EmailSubject = subject,
+                    EmailBody = emailBody,
+                    IsSent = true,
+                    IsError = false,
+                    CreatedBy = staff.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
+
+                _context.EmailLogs.Add(log);
+                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                if (from != null)
+                var log = new EmailLog
                 {
-                    var log = new EmailLog
-                    {
-                        From = from,
-                        To = managerEmail,
-                        EmailSubject = message.Subject,
-                        EmailBody = emailBody,
-                        IsSent = false,
-                        IsError = true,
-                        ErrorDescription = ex.Message,
-                        CreatedBy = staff.CreatedBy,
-                        CreatedUtc = DateTime.UtcNow
-                    };
-                    _context.EmailLogs.Add(log);
-                    await _context.SaveChangesAsync();
-                }
+                    From = from,
+                    To = managerEmail,
+                    EmailSubject = subject,
+                    EmailBody = emailBody,
+                    IsSent = false,
+                    IsError = true,
+                    ErrorDescription = ex.Message,
+                    CreatedBy = staff.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
+
+                _context.EmailLogs.Add(log);
+                await _context.SaveChangesAsync();
             }
         }
+
         public async Task<string> UpdateStaffCreationAsync(UpdateStaff updatedStaff)
         {
             var message = "Staff updated successfully";
@@ -666,7 +716,7 @@ namespace AttendanceManagement.Services
             existingStaff.BankAccountNo = updatedStaff.BankAccountNo;
             existingStaff.BankIfscCode = updatedStaff.BankIfscCode;
             existingStaff.BankBranch = updatedStaff.BankBranch;
-            existingStaff.Qualification = updatedStaff.Qualification;
+          
             existingStaff.HomeAddress = updatedStaff.HomeAddress;
             existingStaff.FatherName = updatedStaff.FatherName;
             existingStaff.MotherName = updatedStaff.MotherName;
@@ -680,6 +730,7 @@ namespace AttendanceManagement.Services
             existingStaff.WorkingStatus = updatedStaff.WorkingStatus;
             existingStaff.ResignationDate = updatedStaff.ResignationDate;
             existingStaff.RelievingDate = updatedStaff.RelievingDate;
+           
             existingStaff.UpdatedBy = updatedStaff.UpdatedBy;
             existingStaff.UpdatedUtc = DateTime.UtcNow;
 
@@ -804,7 +855,7 @@ namespace AttendanceManagement.Services
                     BankAccountNo = s.BankAccountNo,
                     BankIfscCode = s.BankIfscCode,
                     BankBranch = s.BankBranch,
-                    Qualification = s.Qualification,
+                 
                     HomeAddress = s.HomeAddress,
                     FatherName = s.FatherName,
                     MotherName = s.MotherName,
@@ -818,6 +869,7 @@ namespace AttendanceManagement.Services
                     OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
                     ResignationDate = s.ResignationDate,
                     RelievingDate = s.RelievingDate,
+                   
                     CreatedBy = s.CreatedBy
                 })
                 .ToListAsync();
@@ -921,7 +973,7 @@ namespace AttendanceManagement.Services
                     BankAccountNo = s.BankAccountNo,
                     BankIfscCode = s.BankIfscCode,
                     BankBranch = s.BankBranch,
-                    Qualification = s.Qualification,
+                   
                     HomeAddress = s.HomeAddress,
                     FatherName = s.FatherName,
                     MotherName = s.MotherName,
@@ -1053,7 +1105,13 @@ namespace AttendanceManagement.Services
                 {1010, new WeeklyOffType() },
                 {1011, new WeeklyOff() },
                 {1012, new DailyReport() },
-                {1013, new MonthRange() }
+                {1013, new MonthRange() },
+                {1014, new ReaderType() },
+                {1015, new StatusDropdown() },
+                 {1016, new GraceTimeDropdown() },
+                 {1017, new ShiftTypeDropDown() },
+                  {1018, new ReimbursementType() }
+
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
@@ -1100,7 +1158,12 @@ namespace AttendanceManagement.Services
                 { 1010, _context.WeeklyOffTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1011, _context.WeeklyOffs.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1012, _context.DailyReports.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1013, _context.MonthRanges.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1013, _context.MonthRanges.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1014, _context.ReaderTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1015, _context.StatusDropdowns.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1016, _context.GraceTimeDropdowns.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                  { 1017, _context.ShiftTypeDropDowns.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                  { 1018, _context.ReimbursementTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -1145,8 +1208,12 @@ namespace AttendanceManagement.Services
                 { 1010, async () => await _context.WeeklyOffTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1011, async () => await _context.WeeklyOffs.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1012, async () => await _context.DailyReports.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1013, async () => await _context.MonthRanges.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
-
+                { 1013, async () => await _context.MonthRanges.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1014, async () => await _context.ReaderTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1015, async () => await _context.StatusDropdowns.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1016, async () => await _context.GraceTimeDropdowns.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                 { 1017, async () => await _context.ShiftTypeDropDowns.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                  { 1018, async () => await _context.ReimbursementTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

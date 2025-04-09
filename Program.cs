@@ -1,4 +1,5 @@
 ﻿using AttendanceManagement;
+using AttendanceManagement.AtrakModels;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using AttendanceManagement.Services;
@@ -39,12 +40,11 @@ builder.Services.AddCors(options =>
         });
 });
 builder.Services.AddDbContext<AttendanceManagementSystemContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"), sqlOptions =>
-        sqlOptions.CommandTimeout(300)));
-
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
+builder.Services.AddDbContext<AtrakContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ATRAKConnection")));
 builder.Services.AddDbContext<StoredProcedureDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"), sqlOptions =>
-        sqlOptions.CommandTimeout(300)));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
 
 builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<BranchMasterService>();
@@ -82,6 +82,10 @@ builder.Services.AddScoped<FamilyDetailsService>();
 builder.Services.AddScoped<LoggingService>();
 builder.Services.AddScoped<DailyReportsService>();
 builder.Services.AddScoped<PayrollService>();
+builder.Services.AddScoped<AttendanceService>();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<StaffTransactionService>();
+
 
 builder.Services.AddHttpContextAccessor();
 
@@ -115,8 +119,6 @@ app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();
-
-
 static IConfigurationRoot ConfigureWebApiAppSettings()
 {
     var configurationBuilder = new ConfigurationBuilder()
