@@ -656,6 +656,102 @@ public class ApplicationService
             var dateOnly = DateOnly.FromDateTime(date);
             var attendance = attendanceRecords
                 .FirstOrDefault(a => a.LoginTime.HasValue && a.LogoutTime.HasValue && a.LoginTime.Value.Date == date);
+            var todayDateOnly = DateOnly.FromDateTime(DateTime.Today);
+            var statusId = _context.AttendanceRecords
+                .Where(a => !a.IsDeleted && a.AttendanceDate == dateOnly)
+                .Select(a => a.StatusId)
+                .FirstOrDefault();
+
+            string statusName = _context.StatusDropdowns.Where(s => s.Id == statusId).Select(s => s.Name).FirstOrDefault();
+
+            // Load all colors once for mapping
+            var statusColors = _context.AttendanceStatusColors
+                .Where(c => c.IsActive)
+                .Select(c => new { c.Id, c.StatusName })
+                .ToList();
+
+            int? color = null;
+
+            color = statusColors
+            .Where(c => c.StatusName == "Absent")
+            .Select(c => c.Id)
+            .FirstOrDefault();
+            if (dateOnly > todayDateOnly && statusName == null)
+            {
+                statusName = "Unprocessed";
+                // Future date – Unprocessed
+                color = statusColors
+                    .Where(c => c.StatusName == "Unprocessed")
+                    .Select(c => c.Id)
+                    .FirstOrDefault();
+            }
+            else if (dateOnly == todayDateOnly && statusName == null)
+            {
+                statusName = "Not Updated";
+                // Today and not updated – Not Updated
+                color = statusColors
+                    .Where(c => c.StatusName == "Not Updated")
+                    .Select(c => c.Id)
+                    .FirstOrDefault();
+            }
+            else if (statusName != null)
+            {
+                string name = statusName;
+
+                // Handle grouped types for consistent color mapping
+                if (new[]
+                {
+        "Casual Leave", "First Half Casual Leave", "Second Half Casual Leave",
+        "Sick Leave", "First Half Sick Leave", "Second Half Sick Leave",
+        "Paternity Leave", "Marriage Leave", "Non Confirmed Leave",
+        "First Half Non Confirmed Leave", "Second Half Non Confirmed Leave",
+        "Medical Leave", "Bereavement Leave", "Maternity Leave"
+    }.Contains(name))
+                {
+                    name = "Leave";
+                }
+                else if (new[]
+                {
+        "Work From Home", "First Half Work From Home", "Second Half Work From Home"
+    }.Contains(name))
+                {
+                    name = "Work From Home";
+                }
+                else if (new[]
+                {
+        "On Duty", "First Half On Duty", "Second Half On Duty"
+    }.Contains(name))
+                {
+                    name = "On Duty";
+                }
+                else if (new[]
+                {
+        "Comp-Off", "First Half Comp-Off", "Second Half Comp-Off"
+    }.Contains(name))
+                {
+                    name = "Comp Off";
+                }
+
+                color = statusColors
+                    .Where(c => c.StatusName == name)
+                    .Select(c => c.Id)
+                    .FirstOrDefault();
+            }
+            else if(statusName == null)
+            {
+                statusName = "Absent";
+            }
+            else if (statusName != null)
+            {
+                // Valid status found
+                var matchedColor = statusColors
+                    .Where(c => c.StatusName == statusName)
+                    .Select(c => c.Id)
+                    .FirstOrDefault();
+
+                if (matchedColor != 0)
+                    color = matchedColor;
+            }
             var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);
             var workFromHome = workFromHomeRecords.Any(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
             var onDuty = onDutyRecords.Any(od => dateOnly >= od.StartDate && dateOnly <= od.EndDate);
@@ -663,33 +759,12 @@ public class ApplicationService
             var compOff = compOffRecords.Any(co => dateOnly >= co.FromDate && dateOnly <= co.ToDate);
             var weeklyOff = weeklyOffRecords.FirstOrDefault(wo => wo.TxnDate == dateOnly);
             var holiday = holidayRecords.FirstOrDefault(h => h.Transactions.Any(t => dateOnly >= t.FromDate && dateOnly <= t.ToDate));
-            var status = leave != null ? "Leave"
-                : workFromHome ? "Work From Home"
-                : onDuty ? "On Duty"
-                : businessTravel ? "Business Travel"
-                : compOff ? "Comp Off"
-                : holiday != null ? "Holiday"
-                : date.DayOfWeek == DayOfWeek.Sunday ? "Weekly Off"
-                : attendance != null ? "Present"
-                : date.Date == DateTime.Today ? "Not Updated"
-                : date.Date > DateTime.Today
-                    ? (holiday != null ? "Holiday" : "Unprocessed")
-                : "Absent";
-            var statusColors = _context.AttendanceStatusColors
-                    .Where(c => c.IsActive)
-                    .Select(c => new
-                    {
-                        c.Id,
-                        c.StatusName
-                    })
-                    .ToList();
-            var color = statusColors.FirstOrDefault(c => c.StatusName == status);
             return new
             {
                 date = date.ToString("yyyy-MM-dd"),
                 day = date.DayOfWeek.ToString(),
-                status = status,
-                statusColorId = color.Id,
+                status = statusName,
+                statusColorId = color,
                 login = attendance?.LoginTime.HasValue == true ? attendance.LoginTime.Value.ToString("hh:mm tt") : "00:00:000",
                 logout = attendance?.LogoutTime.HasValue == true ? attendance.LogoutTime.Value.ToString("hh:mm tt") : "00:00:000",
                 //totalHoursWorked = attendance?.TotalHoursWorked ?? 0,
