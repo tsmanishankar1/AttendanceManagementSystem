@@ -564,7 +564,7 @@ public class ApplicationService
         var leaveRecords = await _context.LeaveRequisitions
             .Where(lr => (staffId == null ? lr.CreatedBy != null : lr.StaffId == staffId || lr.CreatedBy == staffId) &&
                          (lr.FromDate <= DateOnly.FromDateTime(endDate) &&
-                          lr.ToDate >= DateOnly.FromDateTime(startDate)))
+                          lr.ToDate >= DateOnly.FromDateTime(startDate)) && !lr.IsActive)
             .Select(lr => new
             {
                 lr.FromDate,
@@ -577,7 +577,7 @@ public class ApplicationService
         var workFromHomeRecords = await _context.WorkFromHomes
              .Where(wfh => (staffId == null ? wfh.CreatedBy != null : wfh.StaffId == staffId || wfh.CreatedBy == staffId) &&
                            ((wfh.FromDate.HasValue && wfh.FromDate.Value <= DateOnly.FromDateTime(endDate)) &&
-                            (wfh.ToDate.HasValue && wfh.ToDate.Value >= DateOnly.FromDateTime(startDate))))
+                            (wfh.ToDate.HasValue && wfh.ToDate.Value >= DateOnly.FromDateTime(startDate))) && !wfh.IsActive)
              .Select(wfh => new
              {
                  wfh.FromDate,
@@ -591,7 +591,7 @@ public class ApplicationService
 
         var onDutyRecords = await _context.OnDutyRequisitions
             .Where(od => (staffId == null ? od.CreatedBy != null : od.StaffId == staffId || od.CreatedBy == staffId) &&
-                         (od.StartDate <= endDateOnly && od.EndDate >= startDateOnly))
+                         (od.StartDate <= endDateOnly && od.EndDate >= startDateOnly) && !od.IsActive)
             .Select(od => new
             {
                 od.StartDate,
@@ -602,7 +602,7 @@ public class ApplicationService
 
         var businessTravelRecords = await _context.BusinessTravels
             .Where(bt => (staffId == null ? bt.CreatedBy != null : bt.StaffId == staffId || bt.CreatedBy == staffId) &&
-                         (bt.FromDate <= endDateOnly && bt.ToDate >= startDateOnly))
+                         (bt.FromDate <= endDateOnly && bt.ToDate >= startDateOnly) && !bt.IsActive)
             .Select(bt => new
             {
                 bt.FromDate,
@@ -613,7 +613,7 @@ public class ApplicationService
 
         var compOffRecords = await _context.CompOffAvails
             .Where(co => (staffId == null ? co.CreatedBy != null : co.StaffId == staffId || co.CreatedBy == staffId) &&
-                         (co.FromDate <= endDateOnly && co.ToDate >= startDateOnly))
+                         (co.FromDate <= endDateOnly && co.ToDate >= startDateOnly) && !co.IsActive)
             .Select(co => new
             {
                 co.FromDate,
