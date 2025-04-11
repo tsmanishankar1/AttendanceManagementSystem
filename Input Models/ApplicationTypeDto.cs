@@ -119,4 +119,21 @@ namespace AttendanceManagement.Input_Models
         public int? StaffId { get; set; }
         public int ReimbursementTypeId { get; set; }
     }
+
+    public class ReimbursementResponse
+    {
+        public int Id { get; set; }
+
+        public DateOnly BillDate { get; set; }
+
+        public string BillNo { get; set; } = null!;
+
+        public string? Description { get; set; }
+
+        public string BillPeriod { get; set; } = null!;
+
+        public decimal Amount { get; set; }
+        public string ReimbursementType { get; set; } = null!;
+        public string UploadFilePath { get; set; } = null!;
+    }
 }

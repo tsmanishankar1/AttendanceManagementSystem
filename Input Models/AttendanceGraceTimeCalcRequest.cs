@@ -44,4 +44,16 @@
         public int? FromMonth { get; set; }
         public int? ToMonth { get; set; }
     }
+
+    public class AttendanceFreezeRequest
+    {
+        public bool IsFreezed { get; set; }
+        public int FreezedBy { get; set; }
+        public IEnumerable<AttendanceFreezeRecord> SelectedRows { get; set; } = null!;
+    }
+
+    public class AttendanceFreezeRecord
+    {
+        public int Id { get; set; }
+    }
 }

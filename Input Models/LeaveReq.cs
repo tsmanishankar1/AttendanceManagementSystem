@@ -154,6 +154,7 @@ namespace AttendanceManagement.Input_Models
         public string BillPeriod { get; set; } = null!;
         public decimal Amount { get; set; }
         public string ReimbursementTypeName { get; set; } = null!;
+        public string UploadFilePath { get; set; } = null!;
         public string? Status1 { get; set; }
         public string? Status2 { get; set; }
     }

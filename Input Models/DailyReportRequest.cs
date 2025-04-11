@@ -36,7 +36,7 @@
         public int DesignationId { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
-        public double TotalDays { get; set; }
+        public int TotalDays { get; set; }
     }
     public class CompOffAvailResponse
     {
@@ -51,10 +51,12 @@
         public DateOnly ToDate { get; set; }
         public string ToDuration { get; set; } = null!;
         public string AppliedOn { get; set; } = null!;
-        public string? ApproverStatus1 { get; set; }
-        public string? ApproverStatus2 { get; set; }
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
@@ -70,10 +72,12 @@
         public int? Credit { get; set; }
         public string? Reason { get; set; }
         public string AppliedOn { get; set; } = null!;
-        public string? ApproverStatus1 { get; set; }
-        public string? ApproverStatus2 { get; set; }
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
@@ -124,13 +128,15 @@
         public DateTime? InTime { get; set; }
         public DateTime? OutTime { get; set; }
         public DateTime? AppliedOn { get; set; }
-        public string? ApprovalStatus1 { get; set; }
-        public string? ApprovalStatus2 { get; set; }
-        public bool IsCancelled { get; set; } 
-        public int AppliedBy { get; set; } 
-        public int ApprovedBy { get; set; } 
-        public DateTime? ApprovedOn { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
+        public bool IsCancelled { get; set; }
         public DateTime? CancelledOn { get; set; }
+        public int? CancelledBy { get; set; }
     }
     public class FirstInLastOutResponse
     {
@@ -211,10 +217,12 @@
         public string? Reason { get; set; }
         public string? TotalHoursDays { get; set; }
         public string? AppliedOn { get; set; }
-        public string? ApprovalStatus1 { get; set; }
-        public string? ApprovalStatus2 { get; set; }
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
@@ -244,15 +252,17 @@
         public int? DesignationId { get; set; }  
         public DateTime? AttendanceDate { get; set; } 
         public DateTime? ShiftIn { get; set; }  
-        public DateTime? ShiftOut { get; set; }  
-        public string? ApprovalStatus1 { get; set; }  
-        public string? ApprovalStatus2 { get; set; }  
-        public int? AppliedBy { get; set; }  
-        public int? ApprovedBy { get; set; }  
-        public string? AppliedOn { get; set; }  
-        public string? ApprovedOn { get; set; }  
+        public DateTime? ShiftOut { get; set; }
+        public string? AppliedOn { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }  
         public DateTime? CancelledOn { get; set; }  
+        public int? CancelledBy { get; set; }
     }
     public class PresentListResponse
     {
@@ -279,10 +289,12 @@
         public string? TotalHoursDays { get; set; }
         public string Reason { get; set; } = null!;
         public string AppliedOn { get; set; } = null!;
-        public string? ApproverStatus1 { get; set; }
-        public string? ApproverStatus2 { get; set; }
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
@@ -302,10 +314,12 @@
         public decimal TotalDays { get; set; }
         public string Reason { get; set; } = null!;
         public string AppliedOn { get; set; } = null!;
-        public string? ApproverStatus1 { get; set; }
-        public string? ApproverStatus2 { get; set; }
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
@@ -337,10 +351,12 @@
         public string TotalHours { get; set; } = null!;
         public string? Reason { get; set; }
         public string AppliedOn { get; set; } = null!;
-        public string? ApproverStatus1 { get; set; }
-        public string? ApproverStatus2 { get; set; }
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
@@ -360,10 +376,12 @@
         public string TotalHoursOrDays { get; set; } = null!;
         public string Reason { get; set; } = null!;
         public string AppliedOn { get; set; } = null!;
-        public string ApprovalStatus1 { get; set; } = null!;
-        public string ApprovalStatus2 { get; set; } = null!;
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
@@ -394,10 +412,12 @@
         public string HoursAfterShift { get; set; } = null!;
         public string Remarks { get; set; } = null!;
         public string AppliedOn { get; set; } = null!;
-        public string ApprovalStatus1 { get; set; } = null!;
-        public string ApprovalStatus2 { get; set; } = null!;
-        public string? ApprovedOn { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? Approval1Status { get; set; }
+        public string? Approved1On { get; set; }
+        public int? Approved1By { get; set; }
+        public string? Approval2Status { get; set; }
+        public string? Approved2On { get; set; }
+        public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }

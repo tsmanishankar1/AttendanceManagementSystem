@@ -21,11 +21,11 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpGet("AttendanceDetails")]
-    public async Task<IActionResult> GetFirstCheckin(string trChId, DateTime date)
+    public async Task<IActionResult> GetFirstCheckin(int staffId)
     {
         try
         {
-            var checkinRecord = await _smaxTransactionService.GetCheckInCheckOutAsync(trChId, date);
+            var checkinRecord = await _smaxTransactionService.GetCheckInCheckOutAsync(staffId);
             var response = new
             {
                 Success = true,
@@ -142,6 +142,29 @@ public class AttendanceController : ControllerBase
         try
         {
             var results = await _smaxTransactionService.GetAttendanceRecords(attendanceStatus);
+            var response = new
+            {
+                Success = true,
+                Message = results
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpPost("FreezeAttendanceRecords")]
+    public async Task<IActionResult> FreezeAttendanceRecords(AttendanceFreezeRequest attendanceFreeze)
+    {
+        try
+        {
+            var results = await _smaxTransactionService.FreezeAttendanceRecords(attendanceFreeze);
             var response = new
             {
                 Success = true,

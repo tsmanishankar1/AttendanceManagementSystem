@@ -27,8 +27,6 @@ public partial class AttendanceRecord
 
     public bool? IsFreezed { get; set; }
 
-    public DateTime? FreezedDate { get; set; }
-
     public bool IsDeleted { get; set; }
 
     public int? ShiftId { get; set; }
@@ -39,15 +37,15 @@ public partial class AttendanceRecord
 
     public int StatusId { get; set; }
 
-    public int? CreatedBy { get; set; }
+    public int CreatedBy { get; set; }
 
     public int? UpdatedBy { get; set; }
 
     public int? FreezedBy { get; set; }
 
-    public DateTime? UpdatedUtc { get; set; }
-
     public DateTime CreatedUtc { get; set; }
+
+    public DateTime? UpdatedUtc { get; set; }
 
     public bool IsHolidayWorkingEligible { get; set; }
 

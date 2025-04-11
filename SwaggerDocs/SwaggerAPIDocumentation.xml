@@ -314,12 +314,11 @@
 			<param name="smaxTransactionService">The attendance service handling business logic.</param>
 			<param name="loggingService">The logging service for recording logs.</param>
 		</member>
-		<member name="M:AttendanceController.GetFirstCheckin(System.String,System.DateTime)">
+		<member name="M:AttendanceController.GetFirstCheckin(System.Int32)">
 			<summary>
-				Retrieves the attendance record for an employee on a given date.
+				Returns checkin and checkout details, including reader names and shift information.
 			</summary>
-			<param name="trChId">The transaction ID of the employee.</param>
-			<param name="date">The date for which the check-in record is requested.</param>
+			<param name="staffId">The transaction ID of the employee.</param>
 			<returns>The first check-in record for the given date.</returns>
 			<response code="200">Returns the success message and the check-in record.</response>
 			<response code="404">If no check-in record is found.</response>
@@ -380,6 +379,22 @@
 			</response>
 			<response code="500">
 				Internal Server Error - An unexpected error occurred while processing the request.
+			</response>
+		</member>
+		<member name="M:AttendanceController.FreezeAttendanceRecords(AttendanceManagement.Input_Models.AttendanceFreezeRequest)">
+			<summary>
+				Freezes the selected attendance records based on the provided request.
+			</summary>
+			<param name="attendanceFreeze">The request containing the attendance records to be frozen.</param>
+			<returns>A response containing the result of the freeze operation.</returns>
+			<response code="200">
+				<description>Indicates that the attendance records were successfully frozen.</description>
+			</response>
+			<response code="404">
+				<description>Indicates that the requested attendance records could not be found.</description>
+			</response>
+			<response code="500">
+				<description>Indicates a server error occurred during the operation.</description>
 			</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.BranchMasterController">
@@ -2462,6 +2477,25 @@
 			<returns>The created attendance status color.</returns>
 			<response code="200">Returns the created attendance status color</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.GetAttendanceStatusColor">
+			<summary>
+				Retrieves the list of active attendance status colors.
+			</summary>
+			<returns>A list of attendance status colors that are currently active.</returns>
+			<response code="200">Returns a list of active attendance status colors.</response>
+			<response code="404">If no attendance status colors are found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ToolsController.UpdateAttendanceStatusColor(AttendanceManagement.Input_Models.UpdateAttendanceStatusColor)">
+			<summary>
+				Updates the color associated with an attendance status.
+			</summary>
+			<param name="dto">The attendance status color update details, including StatusId, ColorHex, and UpdatedBy.</param>
+			<returns>A response indicating whether the update was successful.</returns>
+			<response code="200">Returns a success message if the color update was successful.</response>
+			<response code="404">If the specified attendance status is not found.</response>
+			<response code="500">If there is an internal server error during the update process.</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.WeeklyOffController">
 			<summary>

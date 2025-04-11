@@ -11,7 +11,7 @@ public partial class AttendanceStatusColor
 
     public string ShortName { get; set; } = null!;
 
-    public string ColourCode { get; set; } = null!;
+    public string? ColourCode { get; set; }
 
     public bool IsActive { get; set; }
 

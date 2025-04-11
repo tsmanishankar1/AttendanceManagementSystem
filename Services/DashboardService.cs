@@ -1,19 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AttendanceManagement.AtrakModels;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AttendanceManagement.Services
 {
     public class DashboardService
     {
         private readonly AttendanceManagementSystemContext _context;
+        private readonly AtrakContext _atrakContext;
 
-        public DashboardService(AttendanceManagementSystemContext context)
+        public DashboardService(AttendanceManagementSystemContext context, AtrakContext atrakContext)
         {
             _context = context;
+            _atrakContext = atrakContext;
         }
 
         public async Task<List<EventTypeResponse>> GetAllEventTypes()
@@ -255,18 +259,41 @@ namespace AttendanceManagement.Services
         }
         public async Task<List<object>> GetHeadCountByDepartmentAsync()
         {
+            var today = DateTime.Today;
+
+            var attendanceData = await _atrakContext.SmaxTransactions
+                .Where(st => st.TrDate == today)
+                .ToListAsync();
+
             var result = await (from sc in _context.StaffCreations
                                 join dm in _context.DepartmentMasters on sc.DepartmentId equals dm.Id
-                                group sc by new { dm.Id, dm.FullName } into g
                                 select new
                                 {
-                                    DepartmentName = g.Key.FullName,
-                                    HeadCount = g.Count()
+                                    sc.StaffId,
+                                    DepartmentName = dm.FullName
                                 }).ToListAsync();
 
-            return result.Cast<object>().ToList();
-        }
+            var groupedData = result.GroupBy(r => r.DepartmentName)
+                .Select(g => {
+                    int headCount = g.Count();
+                    int presentCount = g.Count(x => attendanceData.Any(att => att.TrChId == x.StaffId));
+                    int absentCount = headCount - presentCount;
+                    double presentPercentage = headCount > 0 ? Math.Round(presentCount * 100.0 / headCount, 2) : 0;
+                    double absentPercentage = headCount > 0 ? Math.Round(absentCount * 100.0 / headCount, 2) : 0;
 
+                    return new
+                    {
+                        DepartmentName = g.Key,
+                        HeadCount = headCount,
+                        PresentCount = presentCount,
+                        AbsentCount = absentCount,
+                        PresentPercentage = presentPercentage,
+                        AbsentPercentage = absentPercentage
+                    };
+                }).ToList();
+
+            return groupedData.Cast<object>().ToList();
+        }
         public async Task<List<object>> GetUpcomingShiftsForStaffAsync(int staffId)
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow); 

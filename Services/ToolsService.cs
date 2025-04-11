@@ -424,8 +424,9 @@ namespace AttendanceManagement.Services
 
 
 
-        public async Task<AttendanceStatusColor> CreateAttendanceStatusColorAsync(AttendanceStatusColorDto dto)
+        public async Task<string> CreateAttendanceStatusColorAsync(AttendanceStatusColorDto dto)
         {
+            var message = "Attendance status created successfully.";
             var attendanceStatus = new AttendanceStatusColor
             {
                 StatusName = dto.StatusName,
@@ -438,7 +439,47 @@ namespace AttendanceManagement.Services
 
             _context.AttendanceStatusColors.Add(attendanceStatus);
             await _context.SaveChangesAsync();
-            return attendanceStatus;
+            return message;
+        }
+
+        public async Task<List<AttendanceStatusColorResponse>> GetAttendanceStatusColor()
+        {
+            var response = await _context.AttendanceStatusColors
+                .Where(color => color.IsActive)
+                .Select(color => new AttendanceStatusColorResponse
+                {
+                    Id = color.Id,
+                    StatusName = color.StatusName,
+                    ShortName = color.ShortName,
+                    ColourCode = color.ColourCode
+                })
+                .ToListAsync();
+
+            if (response.Count == 0)
+            {
+                throw new MessageNotFoundException("No attendance status color found");
+            }
+
+            return response;
+        }
+
+        public async Task<string> UpdateAttendanceStatusColor(UpdateAttendanceStatusColor updateAttendanceStatusColor)
+        {
+            var message = "Attendance status Updated successfully.";
+            var existingStatusColor = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == updateAttendanceStatusColor.Id);
+            if(existingStatusColor == null)
+            {
+                throw new MessageNotFoundException("No attendance status color found");
+            }
+            existingStatusColor.StatusName = updateAttendanceStatusColor.StatusName;
+            existingStatusColor.ShortName = updateAttendanceStatusColor.ShortName;
+            existingStatusColor.ColourCode = updateAttendanceStatusColor.ColourCode;
+            existingStatusColor.IsActive = updateAttendanceStatusColor.IsActive;
+            existingStatusColor.UpdatedBy = updateAttendanceStatusColor.UpdatedBy;
+            existingStatusColor.UpdatedUtc = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return message;
         }
     }
 

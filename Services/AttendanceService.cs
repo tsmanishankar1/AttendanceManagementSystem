@@ -21,14 +21,28 @@ public class AttendanceService
         _storedProcedureDbContext = storedProcedureDbContext;
 
     }
-    public async Task<SmaxTransactionResponse?> GetCheckInCheckOutAsync(string trChId, DateTime date)
+    public async Task<SmaxTransactionResponse?> GetCheckInCheckOutAsync(int staffId)
     {
-        var transactions = await _atrakContext.SmaxTransactions
-            .Where(t => t.TrChId == trChId && t.TrDate.HasValue && t.TrDate.Value.Date == date.Date)
+        var staff = await _attendanceContext.StaffCreations
+            .FirstOrDefaultAsync(s => s.Id == staffId);
+
+        if (staff == null)
+            throw new MessageNotFoundException("Staff not found for the given ID.");
+        var assignedShift = await _attendanceContext.AssignShifts
+            .Where(a => a.StaffId == staffId)
+            .OrderByDescending(a => a.FromDate)
+            .FirstOrDefaultAsync();
+        var shift = assignedShift != null ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.ShiftTypeId == assignedShift.ShiftId) : null;
+
+        string shiftName = shift?.ShiftName ?? "Not Assigned"; 
+            var transactions = await _atrakContext.SmaxTransactions
+            .Where(t => t.TrChId == staff.StaffId && t.TrDate.HasValue && t.TrDate.Value.Date == DateTime.Today)
             .OrderBy(t => t.TrTime)
             .ToListAsync();
-        var staff = await _attendanceContext.StaffCreations
-             .FirstOrDefaultAsync(s => s.StaffId == trChId);
+
+        if (!transactions.Any())
+            throw new MessageNotFoundException("No record found for today's date and given Staff ID.");
+
         var checkIn = transactions.FirstOrDefault();
         var checkOut = transactions.LastOrDefault();
         string? trIpAddressIn = checkIn?.TrIpaddress;
@@ -43,18 +57,21 @@ public class AttendanceService
             ? await _attendanceContext.ReaderConfigurations
                 .FirstOrDefaultAsync(r => r.ReaderIpAddress == trIpAddressOut)
             : null;
-        if (transactions == null || !transactions.Any())
-            throw new MessageNotFoundException("No record found for the given date and TrChId.");  
+        TimeSpan? duration = checkIn?.TrTime != null && checkOut?.TrTime != null
+            ? checkOut.TrTime - checkIn.TrTime
+            : null;
 
         return new SmaxTransactionResponse
         {
             StaffCreationId = checkIn?.TrChId,
-            StaffId = staff?.Id,
+            StaffId = staff.Id,
+            ShiftName = shiftName, 
             ReaderNameIn = readerIn?.ReaderName,
             ReaderNameOut = readerOut?.ReaderName,
-            Date = checkIn?.TrDate,
-            CheckInTime = checkIn?.TrTime,   
-            CheckOutTime = checkOut?.TrTime
+            Date = checkIn?.TrDate?.ToString("dd-MMM-yyyy"),
+            CheckInTime = checkIn?.TrTime?.ToString("dd-MMM-yyyy HH:mm:ss"),
+            CheckOutTime = checkOut?.TrTime?.ToString("dd-MMM-yyyy HH:mm:ss"),
+            Duration = duration?.ToString(@"hh\:mm\:ss") ?? "-"
         };
     }
 
@@ -133,6 +150,7 @@ public class AttendanceService
                             && attendanceStatus.ToMonth <= ar.AttendanceDate.Month)) && staff.IsActive == true && !ar.IsDeleted && ar.IsFreezed == null
                             select new AttendanceRecordDto
                             {
+                                Id = ar.Id,
                                 StaffId = ar.StaffId,
                                 StaffCreationId = staff.StaffId,
                                 StaffName = $"{staff.FirstName}{staff.LastName}",
@@ -160,6 +178,25 @@ public class AttendanceService
             throw new MessageNotFoundException("No attendance record found");
         }
         return result;
+    }
+
+    public async Task<string> FreezeAttendanceRecords(AttendanceFreezeRequest attendanceFreezeRequest)
+    {
+        var message = "Selected attendance records freezed successfully";
+        var selectedRows = attendanceFreezeRequest.SelectedRows;
+        foreach(var item in selectedRows)
+        {
+            var existingAttendanceRecord = await _attendanceContext.AttendanceRecords.FirstOrDefaultAsync(a => a.Id == item.Id && !a.IsDeleted);
+            if(existingAttendanceRecord != null)
+            {
+                existingAttendanceRecord.IsFreezed = attendanceFreezeRequest.IsFreezed;
+                existingAttendanceRecord.FreezedBy = attendanceFreezeRequest.FreezedBy;
+                existingAttendanceRecord.FreezedOn = DateTime.UtcNow;
+            }
+            await _attendanceContext.SaveChangesAsync();
+        }
+
+        return message;
     }
 }
 

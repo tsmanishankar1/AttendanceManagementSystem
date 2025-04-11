@@ -276,6 +276,7 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("AttendanceStatusColor")]
     public async Task<IActionResult> CreateAttendanceStatusColor( AttendanceStatusColorDto dto)
     {
@@ -286,8 +287,7 @@ public class ToolsController : ControllerBase
             var response = new
             {
                 Success = true,
-                Message = "Attendance status created successfully.",
-                Data = createdAttendanceStatus
+                Message = createdAttendanceStatus
             };
 
             await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", JsonSerializer.Serialize(response), dto.CreatedBy, JsonSerializer.Serialize(dto));
@@ -296,6 +296,57 @@ public class ToolsController : ControllerBase
         catch (Exception ex)
         {
             await _loggingService.LogError( "Attendance Regularization", "POST", "/api/Tools/AttendanceStatus",  ex.Message, ex.StackTrace ?? string.Empty,    ex.InnerException?.ToString() ?? string.Empty,dto.CreatedBy,   JsonSerializer.Serialize(dto)  );
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpGet("GetAttendanceStatusColor")]
+    public async Task<IActionResult> GetAttendanceStatusColor()
+    {
+        try
+        {
+            var result = await _service.GetAttendanceStatusColor();
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            return Ok(response);
+        }
+        catch(MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch(Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpPost("UpdateAttendanceStatusColor")]
+    public async Task<IActionResult> UpdateAttendanceStatusColor(UpdateAttendanceStatusColor dto)
+    {
+        try
+        {
+            var createdAttendanceStatus = await _service.UpdateAttendanceStatusColor(dto);
+
+            var response = new
+            {
+                Success = true,
+                Message = createdAttendanceStatus
+            };
+
+            await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/UpdateAttendanceStatusColor", JsonSerializer.Serialize(response), dto.UpdatedBy, JsonSerializer.Serialize(dto));
+            return Ok(response);
+        }
+        catch(MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/UpdateAttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.UpdatedBy, JsonSerializer.Serialize(dto));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/UpdateAttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.UpdatedBy, JsonSerializer.Serialize(dto));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

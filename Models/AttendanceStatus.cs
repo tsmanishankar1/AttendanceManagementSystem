@@ -9,9 +9,9 @@ public partial class AttendanceStatus
 
     public int StaffId { get; set; }
 
-    public DateTime? FromDate { get; set; }
+    public DateTime FromDate { get; set; }
 
-    public DateTime? ToDate { get; set; }
+    public DateTime ToDate { get; set; }
 
     public int StatusId { get; set; }
 

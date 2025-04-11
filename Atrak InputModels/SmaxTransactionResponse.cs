@@ -4,10 +4,12 @@
     {
         public int? StaffId { get; set; }
         public string? StaffCreationId { get; set; }
-        public DateTime? Date { get; set; }
-        public DateTime? CheckInTime { get; set; }
-        public DateTime? CheckOutTime { get; set; }
+        public string ShiftName { get; set; } = null!;
+        public string? Date { get; set; }
+        public string? CheckInTime { get; set; }
+        public string? CheckOutTime { get; set; }
         public string? ReaderNameIn { get; set; }
         public string? ReaderNameOut { get; set; }
+        public string? Duration { get; set; }
     }
 }
