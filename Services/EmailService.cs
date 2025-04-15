@@ -89,8 +89,8 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendLeaveRequestEmail(
-        string recipientEmail, int recipientId, string recipientName, int applicationTypeId, int id,  string leaveType,
-        DateOnly fromDate, DateOnly toDate, decimal totalDays, string reason, int createdBy, string creatorName, string requestDate)
+        string recipientEmail, int recipientId, string recipientName, int applicationTypeId, int id,  string leaveType, DateOnly fromDate, DateOnly toDate,
+        string fromDuration, string toDuration, decimal totalDays, string reason, int createdBy, string creatorName, string requestDate)
         {
             if (string.IsNullOrEmpty(recipientEmail))
                 throw new ArgumentNullException("Approver email not found");
@@ -152,6 +152,8 @@ namespace AttendanceManagement.Services
             <p><strong>Leave Type:</strong> {leaveType}</p>
             <p><strong>From Date:</strong> {fromDateFormatted}</p>
             <p><strong>To Date:</strong> {toDateFormatted}</p>
+            <p><strong>From Duration:</strong> {fromDuration}</p>
+            <p><strong>To Duration:</strong> {toDuration}</p>
             <p><strong>Total Days:</strong> {totalDays}</p>
             <p><strong>Reason:</strong> {reason}</p>
             <p><strong>Requested By:</strong> {creatorName}</p>

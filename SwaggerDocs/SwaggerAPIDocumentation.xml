@@ -10,11 +10,12 @@
 			</summary>
 		</member>
 
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.#ctor(AttendanceManagement.Services.ApplicationService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.#ctor(AttendanceManagement.Services.ApplicationService,AttendanceManagement.Services.ApproveApplicationService,AttendanceManagement.Services.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ApplicationController"/> class.
 			</summary>
 			<param name="service">The application service for managing application-related logic.</param>
+			<param name="approveApplicationService">The service responsible for approving application requests.</param>
 			<param name="loggingService">The logging service for capturing and storing logs.</param>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationDetails(AttendanceManagement.Input_Models.ApplicationDetails)">

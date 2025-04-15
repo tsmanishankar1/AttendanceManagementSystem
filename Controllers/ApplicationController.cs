@@ -14,12 +14,15 @@ namespace AttendanceManagement.Controllers;
 public class ApplicationController : ControllerBase
 {
     private readonly ApplicationService _service;
+    private readonly ApproveApplicationService _approveApplicationService;
     private readonly LoggingService _loggingService;
 
-    public ApplicationController(ApplicationService service, LoggingService loggingService)
+    public ApplicationController(ApplicationService service, ApproveApplicationService approveApplicationService, LoggingService loggingService)
     {
         _service = service;
+        _approveApplicationService = approveApplicationService;
         _loggingService = loggingService;
+
     }
 
     [HttpPost("GetStaffApplicationStatus")]
@@ -263,7 +266,7 @@ public class ApplicationController : ControllerBase
     {
         try
         {
-            var approveLeave = await _service.ApproveApplicationRequisition(approveLeaveRequest);
+            var approveLeave = await _approveApplicationService.ApproveApplicationRequisition(approveLeaveRequest);
             var response = new
             {
                 Success = true,

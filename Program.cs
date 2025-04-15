@@ -85,7 +85,7 @@ builder.Services.AddScoped<PayrollService>();
 builder.Services.AddScoped<AttendanceService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<StaffTransactionService>();
-
+builder.Services.AddScoped<ApproveApplicationService>();
 
 builder.Services.AddHttpContextAccessor();
 
