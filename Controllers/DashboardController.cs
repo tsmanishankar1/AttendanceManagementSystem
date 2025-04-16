@@ -166,7 +166,7 @@ public class DashboardController : ControllerBase
         var response = new
         {
             Success = true,
-            Data = upcomingShifts
+            Message = upcomingShifts
         };
 
         return Ok(response);

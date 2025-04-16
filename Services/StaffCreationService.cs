@@ -10,6 +10,9 @@ using Microsoft.Data.SqlClient;
 using System.Text.Json;
 using System.Text;
 using Org.BouncyCastle.Cms;
+using DocumentFormat.OpenXml.Bibliography;
+using Title = AttendanceManagement.Models.Title;
+using Volume = AttendanceManagement.Models.Volume;
 
 namespace AttendanceManagement.Services
 {
@@ -527,36 +530,43 @@ namespace AttendanceManagement.Services
             var defaultCredential = _configuration.GetValue<bool>("Smtp:defaultCredential");
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
-/*            string Base64UrlEncode(string input)
+            string Base64UrlEncode(string input)
             {
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
                     .TrimEnd('=')
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-
+            var staffName = $"{staff.FirstName} {staff.LastName}";
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
             var approvalJson = JsonSerializer.Serialize(new
             {
                 staffId = staff.Id,
                 StaffCreationId = staff.StaffId,
-                IsApproved = true
+                StaffName = staffName,
+                Department = department,
+                IsApproved = true,
+                ApprovedBy = staff.CreatedBy
             });
             var rejectJson = JsonSerializer.Serialize(new
             {
                 staffId = staff.Id,
                 StaffCreationId = staff.StaffId,
-                IsApproved = false
+                StaffName = staffName,
+                Department = department,
+                IsApproved = false,
+                ApprovedBy = staff.CreatedBy
             });
 
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
 
-            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
-            string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
-*/
-            string webApprovalLink = $"{frontEndUrl}/approve?staffId={staff.Id}";
-            string webRejectionLink = $"{frontEndUrl}/reject?staffId={staff.Id}";
+            string approvalLink = $"{frontEndUrl}/#/main/Employee/Approve?data={approvalEncoded}";
+            string rejectLink = $"{frontEndUrl}/#/main/Employee/Approve?data={rejectEncoded}";
 
+/*            string webApprovalLink = $"{frontEndUrl}/approve?staffId={staff.Id}";
+            string webRejectionLink = $"{frontEndUrl}/reject?staffId={staff.Id}";
+*/
             string reportingManagerFullName = $"{reportingManager.FirstName} {reportingManager.LastName}";
             string staffFullName = $"{staff.FirstName} {staff.LastName}";
             string subject = "Staff Approval Request";
@@ -566,8 +576,8 @@ namespace AttendanceManagement.Services
             <p>A new staff member <strong>{staffFullName}</strong> has been added and requires your approval.</p>       
             <p><strong>Approve/Reject staff:</strong></p>
             <p>
-                <a href='{webApprovalLink}'>Approve (Web)</a> | 
-                <a href='{webRejectionLink}'>Reject (Web)</a>
+                <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
+                <a href='{rejectLink}' style='background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none;'>Reject</a>
             </p>
             <br>Best Regards,<br>
             HR Team";
@@ -1005,6 +1015,16 @@ namespace AttendanceManagement.Services
             {
                 if (approvePendingStaff.IsApproved)
                 {
+                    var staff1 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == true).FirstOrDefaultAsync();
+                    if(staff1 != null)
+                    {
+                        throw new InvalidOperationException("Staff already approved");
+                    }
+                    var staff2 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == false).FirstOrDefaultAsync();
+                    if (staff2 != null)
+                    {
+                        throw new InvalidOperationException("Staff already rejected");
+                    }
                     var staff = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == null).FirstOrDefaultAsync();
                     if (staff != null)
                     {
@@ -1017,6 +1037,16 @@ namespace AttendanceManagement.Services
                 }
                 else if (!approvePendingStaff.IsApproved)
                 {
+                    var staff1 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == true).FirstOrDefaultAsync();
+                    if (staff1 != null)
+                    {
+                        throw new InvalidOperationException("Staff already approved");
+                    }
+                    var staff2 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == false).FirstOrDefaultAsync();
+                    if (staff2 != null)
+                    {
+                        throw new InvalidOperationException("Staff already rejected");
+                    }
                     var staff = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == null).FirstOrDefaultAsync();
                     if (staff != null)
                     {

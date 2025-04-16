@@ -28,23 +28,64 @@ public class AttendanceService
 
         if (staff == null)
             throw new MessageNotFoundException("Staff not found for the given ID.");
+
         var assignedShift = await _attendanceContext.AssignShifts
             .Where(a => a.StaffId == staffId)
             .OrderByDescending(a => a.FromDate)
             .FirstOrDefaultAsync();
-        var shift = assignedShift != null ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.ShiftTypeId == assignedShift.ShiftId) : null;
 
-        string shiftName = shift?.ShiftName ?? "Not Assigned"; 
-            var transactions = await _atrakContext.SmaxTransactions
-            .Where(t => t.TrChId == staff.StaffId && t.TrDate.HasValue && t.TrDate.Value.Date == DateTime.Today)
-            .OrderBy(t => t.TrTime)
-            .ToListAsync();
+        var shift = assignedShift != null
+            ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.Id == assignedShift.ShiftId)
+            : null;
+
+        string shiftName = shift?.ShiftName ?? "Not Assigned";
+        TimeSpan? fromTime = TimeSpan.TryParse(shift?.StartTime, out var from) ? from : (TimeSpan?)null;
+        TimeSpan? toTime = TimeSpan.TryParse(shift?.EndTime, out var to) ? to : (TimeSpan?)null;
+
+        var today = DateTime.Today;
+        var yesterday = today.AddDays(-1);
+
+        List<SmaxTransaction> transactions;
+
+        if (fromTime.HasValue && toTime.HasValue && fromTime > toTime)
+        {
+            var shiftStartDateTime = yesterday.Add(fromTime.Value);
+            var shiftEndDateTime = today.Add(toTime.Value);
+            var bufferEndTime = shiftEndDateTime.AddHours(1);
+
+            transactions = await _atrakContext.SmaxTransactions
+                .Where(t => t.TrChId == staff.StaffId
+                    && t.TrDate.HasValue
+                    && (t.TrDate.Value.Date == yesterday || t.TrDate.Value.Date == today))
+                .OrderBy(t => t.TrDate)
+                .ThenBy(t => t.TrTime)
+                .ToListAsync();
+
+            transactions = transactions.Where(t =>
+            {
+                var date = t.TrDate?.Date ?? DateTime.MinValue;
+                var time = t.TrTime?.TimeOfDay ?? TimeSpan.Zero;
+                var dateTime = date + time;
+
+                return dateTime >= shiftStartDateTime && dateTime <= bufferEndTime;
+            }).ToList();
+        }
+        else
+        {
+            transactions = await _atrakContext.SmaxTransactions
+                .Where(t => t.TrChId == staff.StaffId
+                    && t.TrDate.HasValue
+                    && t.TrDate.Value.Date == today)
+                .OrderBy(t => t.TrTime)
+                .ToListAsync();
+        }
 
         if (!transactions.Any())
-            throw new MessageNotFoundException("No record found for today's date and given Staff ID.");
+            throw new MessageNotFoundException("No record found for the given Staff ID and shift timings.");
 
         var checkIn = transactions.FirstOrDefault();
         var checkOut = transactions.LastOrDefault();
+
         string? trIpAddressIn = checkIn?.TrIpaddress;
         string? trIpAddressOut = checkOut?.TrIpaddress;
 
@@ -57,6 +98,7 @@ public class AttendanceService
             ? await _attendanceContext.ReaderConfigurations
                 .FirstOrDefaultAsync(r => r.ReaderIpAddress == trIpAddressOut)
             : null;
+
         TimeSpan? duration = checkIn?.TrTime != null && checkOut?.TrTime != null
             ? checkOut.TrTime - checkIn.TrTime
             : null;
@@ -65,7 +107,7 @@ public class AttendanceService
         {
             StaffCreationId = checkIn?.TrChId,
             StaffId = staff.Id,
-            ShiftName = shiftName, 
+            ShiftName = shiftName,
             ReaderNameIn = readerIn?.ReaderName,
             ReaderNameOut = readerOut?.ReaderName,
             Date = checkIn?.TrDate?.ToString("dd-MMM-yyyy"),
@@ -80,11 +122,19 @@ public class AttendanceService
         var message = "";
         if (request.GraceTimeId == 1) message = "Grace time added successfully";
         else if (request.GraceTimeId == 2) message = "Extra break time added successfully";
+        var existingActiveEntries = _attendanceContext.AttendanceGraceTimeCalcs
+        .Where(x => x.GraceTimeId == request.GraceTimeId && x.IsActive).ToList();
+        foreach (var entry in existingActiveEntries)
+        {
+            entry.IsActive = false;
+            entry.UpdatedBy = request.CreatedBy;
+            entry.UpdatedUtc = DateTime.UtcNow;
+        }
         var graceTime = new AttendanceGraceTimeCalc
         {
             GraceTimeId = request.GraceTimeId,
             Value = request.Value,
-            IsActive = request.IsActive,
+            IsActive = true,
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
@@ -99,8 +149,7 @@ public class AttendanceService
                                {
                                    Id = g.Id,
                                    GraceTimeId = g.GraceTimeId,
-                                   Value = g.Value,
-                                   IsActive = g.IsActive
+                                   Value = g.Value
                                }).ToListAsync();
         if (graceTime.Count == 0)
         {
@@ -121,7 +170,6 @@ public class AttendanceService
         }
         graceTime.GraceTimeId = request.GraceTimeId;
         graceTime.Value = request.Value;
-        graceTime.IsActive = request.IsActive;
         graceTime.UpdatedBy = request.UpdatedBy;
         graceTime.UpdatedUtc = DateTime.UtcNow;
         await _attendanceContext.SaveChangesAsync();

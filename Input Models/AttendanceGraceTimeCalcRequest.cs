@@ -6,8 +6,6 @@
 
         public int Value { get; set; }
 
-        public bool IsActive { get; set; }
-
         public int CreatedBy { get; set; }
     }
 
@@ -18,7 +16,6 @@
         public int GraceTimeId { get; set; }
 
         public int Value { get; set; }
-        public bool IsActive { get; set; }
     }
 
     public class UpdateAttendanceGraceTimeCalc
@@ -28,8 +25,6 @@
         public int GraceTimeId { get; set; }
 
         public int Value { get; set; }
-
-        public bool IsActive { get; set; }
 
         public int UpdatedBy { get; set; }
     }

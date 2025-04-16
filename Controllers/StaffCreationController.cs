@@ -115,6 +115,11 @@ public class StaffCreationController : ControllerBase
             await _loggingService.LogError("Create Staff", "POST", "/api/StaffCreation/AddStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Create Staff", "POST", "/api/StaffCreation/AddStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Create Staff", "POST", "/api/StaffCreation/AddStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
