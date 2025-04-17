@@ -973,10 +973,11 @@ public class ApplicationService
         {
             var getLeaves = await (from leave in _context.LeaveRequisitions
                                    join leaveType in _context.LeaveTypes on leave.LeaveTypeId equals leaveType.Id
+                                   let staffIdToUse = leave.StaffId ?? leave.CreatedBy
                                    join application in _context.ApplicationTypes on leave.ApplicationTypeId equals application.Id
                                    join leaveStaff in _context.StaffCreations on leave.StaffId equals leaveStaff.Id into leaveStaffJoin
                                    from leaveStaff in leaveStaffJoin.DefaultIfEmpty()
-                                   join creatorStaff in _context.StaffCreations on leave.CreatedBy equals creatorStaff.Id
+                                   join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                    join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                    where leave.IsActive == true
                                          && (leave.StaffId == null || leaveStaff.IsActive == true)
@@ -984,13 +985,14 @@ public class ApplicationService
                                          && leave.IsCancelled == null
                                          && (!fromDate.HasValue || leave.FromDate >= fromDate)
                                          && (!toDate.HasValue || leave.ToDate <= toDate)
-
-                                         // Check approval logic
-                                         && (
-                                             approverId < 0 || // No filter
-                                             (
-                                                 // Approver 1 Logic
-                                                 (
+                                         && _context.AttendanceRecords.Any(att =>
+                                         (att.IsFreezed == null || att.IsFreezed == false) &&
+                                         (
+                                             (leave.StaffId != null && att.StaffId == leave.StaffId) ||
+                                             (leave.StaffId == null && att.StaffId == leave.CreatedBy)
+                                         ))
+                                         && (approverId < 0 || 
+                                             ((
                                                      leave.StaffId.HasValue &&
                                                      leaveStaff.ApprovalLevel1 == approverId &&
                                                      leave.Status1 == null &&
@@ -1001,11 +1003,8 @@ public class ApplicationService
                                                      creatorStaff.ApprovalLevel1 == approverId &&
                                                      leave.Status1 == null &&
                                                      leave.ApplicationTypeId == 1
-                                                 )
-                                             ) ||
-                                             (
-                                                 // Approver 2 Logic
-                                                 (
+                                                 )) ||
+                                                 ((
                                                      leave.StaffId.HasValue &&
                                                      leaveStaff.ApprovalLevel2 == approverId &&
                                                      leave.Status1 == true &&
@@ -1020,11 +1019,7 @@ public class ApplicationService
                                                      leave.Status2 == null &&
                                                      leave.ApplicationTypeId == 1 &&
                                                      leave.Status1 != false
-                                                 )
-                                             )
-                                         )
-
-                                         // Staff filter (optional)
+                                                 )))
                                          && (
                                              staffIds == null || !staffIds.Any() ||
                                              (
@@ -1056,24 +1051,25 @@ public class ApplicationService
             }
             result.AddRange(getLeaves.Cast<object>());
         }
-
         else if (applicationTypeId.HasValue && applicationTypeId == 2)
         {
             var getCommonPermissions = await (from permission in _context.CommonPermissions
-                                              join staff in _context.StaffCreations on permission.StaffId equals staff.Id into staffJoin
-                                              from staff in staffJoin.DefaultIfEmpty()
-                                              join creatorStaff in _context.StaffCreations on permission.CreatedBy equals creatorStaff.Id
-                                              join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
-                                              where permission.IsActive == true
-                                                    && (permission.StaffId == null || staff.IsActive == true)
-                                                    && creatorStaff.IsActive == true
-                                                    && permission.IsCancelled == null
-
-                                                    // Approver logic
-                                                    && (
-                                                        approverId < 0 ||
+                                             let staffIdToUse = permission.StaffId ?? permission.CreatedBy
+                                             join staff in _context.StaffCreations on staffIdToUse equals staff.Id
+                                             join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
+                                             join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
+                                             where permission.IsActive == true
+                                             && (permission.StaffId == null || staff.IsActive == true)
+                                             && creatorStaff.IsActive == true
+                                             && permission.IsCancelled == null
+                                             && _context.AttendanceRecords.Any(att =>
+                                              (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                         (
+                                                             (permission.StaffId != null && att.StaffId == permission.StaffId) ||
+                                                             (permission.StaffId == null && att.StaffId == permission.CreatedBy)
+                                                         ))
+                                             && (approverId < 0 ||
                                                         (
-                                                            // Approver 1
                                                             (
                                                                 permission.StaffId.HasValue &&
                                                                 staff.ApprovalLevel1 == approverId &&
@@ -1088,7 +1084,6 @@ public class ApplicationService
                                                             )
                                                         ) ||
                                                         (
-                                                            // Approver 2
                                                             (
                                                                 permission.StaffId.HasValue &&
                                                                 staff.ApprovalLevel2 == approverId &&
@@ -1108,7 +1103,6 @@ public class ApplicationService
                                                         )
                                                     )
 
-                                                    // Staff filter (optional)
                                                     && (
                                                         staffIds == null || !staffIds.Any() ||
                                                         (
@@ -1139,27 +1133,28 @@ public class ApplicationService
             }
             result.AddRange(getCommonPermissions.Cast<object>());
         }
-
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 3)
         {
             var getManualPunch = await (from punch in _context.ManualPunchRequistions
                                         join application in _context.ApplicationTypes on punch.ApplicationTypeId equals application.Id
+                                        let staffIdToUse = punch.StaffId ?? punch.CreatedBy
                                         join staff in _context.StaffCreations on punch.StaffId equals staff.Id into staffJoin
-                                        from staff in staffJoin.DefaultIfEmpty() // Left join for StaffId
-                                        join creatorStaff in _context.StaffCreations on punch.CreatedBy equals creatorStaff.Id
+                                        from staff in staffJoin.DefaultIfEmpty() 
+                                        join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                         join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                         where punch.IsActive == true
                                               && (punch.StaffId == null || staff.IsActive == true)
                                               && creatorStaff.IsActive == true
                                               && punch.IsCancelled == null
-
-                                              // Approver logic
+                                              && _context.AttendanceRecords.Any(att =>
+                                              (att.IsFreezed == null || att.IsFreezed == false) &&
+                                              (
+                                                    (punch.StaffId != null && att.StaffId == punch.StaffId) ||
+                                                    (punch.StaffId == null && att.StaffId == punch.CreatedBy)
+                                              ))
                                               && (
                                                   approverId < 0 ||
                                                   (
-                                                      // Approver 1
                                                       (
                                                           punch.StaffId.HasValue &&
                                                           staff.ApprovalLevel1 == approverId &&
@@ -1174,7 +1169,6 @@ public class ApplicationService
                                                       )
                                                   ) ||
                                                   (
-                                                      // Approver 2
                                                       (
                                                           punch.StaffId.HasValue &&
                                                           staff.ApprovalLevel2 == approverId &&
@@ -1194,7 +1188,6 @@ public class ApplicationService
                                                   )
                                               )
 
-                                              // StaffId filter
                                               && (
                                                   staffIds == null || !staffIds.Any() ||
                                                   (
@@ -1232,9 +1225,10 @@ public class ApplicationService
         {
             var getOnDutyRequisitions = await (from duty in _context.OnDutyRequisitions
                                                join application in _context.ApplicationTypes on duty.ApplicationTypeId equals application.Id
+                                               let staffIdToUse = duty.StaffId ?? duty.CreatedBy
                                                join staff in _context.StaffCreations on duty.StaffId equals staff.Id into dutyStaffJoin
                                                from staff in dutyStaffJoin.DefaultIfEmpty()
-                                               join creatorStaff in _context.StaffCreations on duty.CreatedBy equals creatorStaff.Id
+                                               join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                                join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                                where duty.IsActive == true
                                                      && (duty.StaffId == null || staff.IsActive == true)
@@ -1242,6 +1236,12 @@ public class ApplicationService
                                                      && duty.IsCancelled == null
                                                      && (!fromDate.HasValue || duty.StartDate >= fromDate)
                                                      && (!toDate.HasValue || duty.EndDate <= toDate)
+                                                     && _context.AttendanceRecords.Any(att =>
+                                                        (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                        (
+                                                            (duty.StaffId != null && att.StaffId == duty.StaffId) ||
+                                                            (duty.StaffId == null && att.StaffId == duty.CreatedBy)
+                                                        ))
                                                      && (
                                                          approverId < 0 ||                                                    
                                                          (
@@ -1259,8 +1259,6 @@ public class ApplicationService
                                                               duty.Status1 != false && duty.ApplicationTypeId == 4)
                                                          )
                                                      )
-
-                                                     // Filter by staff IDs
                                                      && (
                                                          staffIds == null || !staffIds.Any() ||
                                                          (duty.StaffId.HasValue && staffIds.Contains(duty.StaffId.Value)) ||
@@ -1294,15 +1292,14 @@ public class ApplicationService
 
             result.AddRange(getOnDutyRequisitions.Cast<object>());
         }
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 5)
         {
             var getBusinessTravels = await (from travel in _context.BusinessTravels
                                             join application in _context.ApplicationTypes on travel.ApplicationTypeId equals application.Id
+                                            let staffIdToUse = travel.StaffId ?? travel.CreatedBy
                                             join staff in _context.StaffCreations on travel.StaffId equals staff.Id into travelStaffJoin
                                             from staff in travelStaffJoin.DefaultIfEmpty()
-                                            join creatorStaff in _context.StaffCreations on travel.CreatedBy equals creatorStaff.Id
+                                            join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                             join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                             where travel.IsActive == true
                                                   && (travel.StaffId == null || staff.IsActive == true)
@@ -1310,6 +1307,12 @@ public class ApplicationService
                                                   && travel.IsCancelled == null
                                                   && (!fromDate.HasValue || travel.FromDate >= fromDate)
                                                   && (!toDate.HasValue || travel.ToDate <= toDate)
+                                                  && _context.AttendanceRecords.Any(att =>
+                                                    (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                    (
+                                                        (travel.StaffId != null && att.StaffId == travel.StaffId) ||
+                                                        (travel.StaffId == null && att.StaffId == travel.CreatedBy)
+                                                    ))
                                                   && (
                                                       approverId < 0 ||
                                                       (
@@ -1360,22 +1363,27 @@ public class ApplicationService
 
             result.AddRange(getBusinessTravels.Cast<object>());
         }
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 6)
         {
             var getWorkFromHomes = await (from workFromHome in _context.WorkFromHomes
                                           join application in _context.ApplicationTypes on workFromHome.ApplicationTypeId equals application.Id
+                                          let staffIdToUse = workFromHome.StaffId ?? workFromHome.CreatedBy
                                           join staff in _context.StaffCreations on workFromHome.StaffId equals staff.Id into workFromHomeStaffJoin
                                           from staff in workFromHomeStaffJoin.DefaultIfEmpty()
-                                          join creatorStaff in _context.StaffCreations on workFromHome.CreatedBy equals creatorStaff.Id
+                                          join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                           join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                           where workFromHome.IsActive == true
                                                 && (workFromHome.StaffId == null || staff.IsActive == true)
                                                 && creatorStaff.IsActive == true
                                                 && workFromHome.IsCancelled == null
                                                 && (!fromDate.HasValue || workFromHome.FromDate >= fromDate)
-                                                && (!toDate.HasValue || workFromHome.ToDate <= toDate)             
+                                                && (!toDate.HasValue || workFromHome.ToDate <= toDate)
+                                                && _context.AttendanceRecords.Any(att =>
+                                                (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                (
+                                                    (workFromHome.StaffId != null && att.StaffId == workFromHome.StaffId) ||
+                                                    (workFromHome.StaffId == null && att.StaffId == workFromHome.CreatedBy)
+                                                ))
                                                 && (
                                                     approverId < 0 ||                                            
                                                     (
@@ -1393,8 +1401,6 @@ public class ApplicationService
                                                          workFromHome.Status1 != false && workFromHome.ApplicationTypeId == 6)
                                                     )
                                                 )
-
-                                                // Staff filter
                                                 && (
                                                     staffIds == null || !staffIds.Any() ||
                                                     (workFromHome.StaffId.HasValue && staffIds.Contains(workFromHome.StaffId.Value)) ||
@@ -1428,16 +1434,15 @@ public class ApplicationService
 
             result.AddRange(getWorkFromHomes.Cast<object>());
         }
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 7)
         {
             var getShiftChanges = await (from shiftChange in _context.ShiftChanges
                                          join application in _context.ApplicationTypes on shiftChange.ApplicationTypeId equals application.Id
+                                         let staffIdToUse = shiftChange.StaffId ?? shiftChange.CreatedBy
                                          join shift in _context.Shifts on shiftChange.ShiftId equals shift.Id
                                          join staff in _context.StaffCreations on shiftChange.StaffId equals staff.Id into staffJoin
                                          from staff in staffJoin.DefaultIfEmpty()  
-                                         join creatorStaff in _context.StaffCreations on shiftChange.CreatedBy equals creatorStaff.Id
+                                         join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                          join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                          where shiftChange.IsActive == true
                                                && (shiftChange.StaffId == null || staff.IsActive == true)
@@ -1445,7 +1450,12 @@ public class ApplicationService
                                                && shiftChange.IsCancelled == null
                                                && (!fromDate.HasValue || shiftChange.FromDate >= fromDate)
                                                && (!toDate.HasValue || shiftChange.ToDate <= toDate)
-                                            
+                                               && _context.AttendanceRecords.Any(att =>
+                                                (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                (
+                                                    (shiftChange.StaffId != null && att.StaffId == shiftChange.StaffId) ||
+                                                    (shiftChange.StaffId == null && att.StaffId == shiftChange.CreatedBy)
+                                                ))
                                                && (
                                                    approverId < 0 ||
                                                    (
@@ -1493,14 +1503,13 @@ public class ApplicationService
 
             result.AddRange(getShiftChanges.Cast<object>());
         }
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 8)
         {
             var getShiftExtensions = await (from shiftExtension in _context.ShiftExtensions
                                             join staff in _context.StaffCreations on shiftExtension.StaffId equals staff.Id into staffJoin
+                                            let staffIdToUse = shiftExtension.StaffId ?? shiftExtension.CreatedBy
                                             from staff in staffJoin.DefaultIfEmpty()
-                                            join creatorStaff in _context.StaffCreations on shiftExtension.CreatedBy equals creatorStaff.Id
+                                            join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                             join application in _context.ApplicationTypes on shiftExtension.ApplicationTypeId equals application.Id
                                             join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                             where shiftExtension.IsActive == true
@@ -1511,6 +1520,12 @@ public class ApplicationService
                                                       (shiftExtension.StaffId.HasValue
                                                           ? staffIds.Contains(shiftExtension.StaffId.Value)
                                                           : staffIds.Contains(shiftExtension.CreatedBy)))
+                                                  && _context.AttendanceRecords.Any(att =>
+                                                    (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                    (
+                                                        (shiftExtension.StaffId != null && att.StaffId == shiftExtension.StaffId) ||
+                                                        (shiftExtension.StaffId == null && att.StaffId == shiftExtension.CreatedBy)
+                                                    ))
                                                   && (
                                                       approverId < 0 ||
                                                       (
@@ -1556,14 +1571,13 @@ public class ApplicationService
 
             result.AddRange(getShiftExtensions.Cast<object>());
         }
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 9)
         {
             var getWeeklyOffHolidayWorking = await (from holidayWorking in _context.WeeklyOffHolidayWorkings
                                                     join staff in _context.StaffCreations on holidayWorking.StaffId equals staff.Id into staffJoin
+                                                    let staffIdToUse = holidayWorking.StaffId ?? holidayWorking.CreatedBy
                                                     from staff in staffJoin.DefaultIfEmpty()
-                                                    join creatorStaff in _context.StaffCreations on holidayWorking.CreatedBy equals creatorStaff.Id
+                                                    join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                                     join application in _context.ApplicationTypes on holidayWorking.ApplicationTypeId equals application.Id
                                                     join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                                     where holidayWorking.IsActive == true
@@ -1574,6 +1588,12 @@ public class ApplicationService
                                                               (holidayWorking.StaffId.HasValue
                                                                   ? staffIds.Contains(holidayWorking.StaffId.Value)
                                                                   : staffIds.Contains(holidayWorking.CreatedBy)))
+                                                          && _context.AttendanceRecords.Any(att =>
+                                                            (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                            (
+                                                                (holidayWorking.StaffId != null && att.StaffId == holidayWorking.StaffId) ||
+                                                                (holidayWorking.StaffId == null && att.StaffId == holidayWorking.CreatedBy)
+                                                            ))
                                                           && (
                                                               approverId < 0 ||
 
@@ -1620,26 +1640,28 @@ public class ApplicationService
 
             result.AddRange(getWeeklyOffHolidayWorking.Cast<object>());
         }
-
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 10)
         {
             var getCompOffAvail = await (from compOff in _context.CompOffAvails
                                          join staff in _context.StaffCreations on compOff.StaffId equals staff.Id into staffJoin
+                                         let staffIdToUse = compOff.StaffId ?? compOff.CreatedBy
                                          from staff in staffJoin.DefaultIfEmpty()
-                                         join creatorStaff in _context.StaffCreations on compOff.CreatedBy equals creatorStaff.Id
+                                         join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                          join application in _context.ApplicationTypes on compOff.ApplicationTypeId equals application.Id
                                          join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                          where compOff.IsActive == true
                                                && (compOff.StaffId == null || staff.IsActive == true)
                                                && creatorStaff.IsActive == true
                                                && compOff.IsCancelled == null
-
-                                               // Staff filtering
                                                && (staffIds == null || !staffIds.Any() ||
                                                    (compOff.StaffId.HasValue && staffIds.Contains(compOff.StaffId.Value)) ||
-                                                   (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))                                       
+                                                   (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
+                                               && _context.AttendanceRecords.Any(att =>
+                                                (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                (
+                                                    (compOff.StaffId != null && att.StaffId == compOff.StaffId) ||
+                                                    (compOff.StaffId == null && att.StaffId == compOff.CreatedBy)
+                                                ))
                                                && (
                                                    approverId < 0 ||
                                                    (
@@ -1687,14 +1709,13 @@ public class ApplicationService
 
             result.AddRange(getCompOffAvail.Cast<object>());
         }
-
-
         else if (applicationTypeId.HasValue && applicationTypeId == 11)
         {
             var getCompOffCredit = await (from compOff in _context.CompOffCredits
                                           join staff in _context.StaffCreations on compOff.StaffId equals staff.Id into staffJoin
+                                          let staffIdToUse = compOff.StaffId ?? compOff.CreatedBy
                                           from staff in staffJoin.DefaultIfEmpty()
-                                          join creatorStaff in _context.StaffCreations on compOff.CreatedBy equals creatorStaff.Id
+                                          join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                           join application in _context.ApplicationTypes on compOff.ApplicationTypeId equals application.Id
                                           join org in _context.OrganizationTypes on creatorStaff.OrganizationTypeId equals org.Id
                                           where compOff.IsActive == true
@@ -1704,6 +1725,12 @@ public class ApplicationService
                                                 && (staffIds == null || !staffIds.Any() ||
                                                     (compOff.StaffId.HasValue && staffIds.Contains(compOff.StaffId.Value)) ||
                                                     (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
+                                                && _context.AttendanceRecords.Any(att =>
+                                                (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                (
+                                                    (compOff.StaffId != null && att.StaffId == compOff.StaffId) ||
+                                                    (compOff.StaffId == null && att.StaffId == compOff.CreatedBy)
+                                                ))
                                                 && (
                                                     approverId < 0 ||
                                                     (
@@ -1751,8 +1778,9 @@ public class ApplicationService
         {
             var getReimbursements = await (from reimbursement in _context.Reimbursements
                                            join staff in _context.StaffCreations on reimbursement.StaffId equals staff.Id into staffJoin
+                                           let staffIdToUse = reimbursement.StaffId ?? reimbursement.CreatedBy
                                            from staff in staffJoin.DefaultIfEmpty()
-                                           join creatorStaff in _context.StaffCreations on reimbursement.CreatedBy equals creatorStaff.Id
+                                           join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                            join reimbursementType in _context.ReimbursementTypes on reimbursement.ReimbursementTypeId equals reimbursementType.Id
                                            where reimbursement.IsActive == true
                                                  && reimbursement.CancelledOn == null
@@ -1763,6 +1791,12 @@ public class ApplicationService
                                                      (reimbursement.StaffId.HasValue && staffIds.Contains(reimbursement.StaffId.Value)) ||
                                                      (!reimbursement.StaffId.HasValue && staffIds.Contains(reimbursement.CreatedBy))
                                                  )
+                                                 && _context.AttendanceRecords.Any(att =>
+                                                    (att.IsFreezed == null || att.IsFreezed == false) &&
+                                                    (
+                                                        (reimbursement.StaffId != null && att.StaffId == reimbursement.StaffId) ||
+                                                        (reimbursement.StaffId == null && att.StaffId == reimbursement.CreatedBy)
+                                                    ))
                                                  &&
                                                  (
                                                      approverId < 0 ||
@@ -1810,9 +1844,6 @@ public class ApplicationService
 
             result.AddRange(getReimbursements.Cast<object>());
         }
-
-
-
         return result;
     }
 

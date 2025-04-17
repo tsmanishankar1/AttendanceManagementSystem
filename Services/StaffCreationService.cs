@@ -13,6 +13,7 @@ using Org.BouncyCastle.Cms;
 using DocumentFormat.OpenXml.Bibliography;
 using Title = AttendanceManagement.Models.Title;
 using Volume = AttendanceManagement.Models.Volume;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AttendanceManagement.Services
 {
@@ -21,12 +22,14 @@ namespace AttendanceManagement.Services
         private readonly AttendanceManagementSystemContext _context;
         private readonly StoredProcedureDbContext _storedProcedureDbContext;
         private readonly IConfiguration _configuration;
-
-        public StaffCreationService(AttendanceManagementSystemContext context, IConfiguration configuration, StoredProcedureDbContext storedProcedureDbContext)
+        private readonly EmailService _emailService;
+        public StaffCreationService(AttendanceManagementSystemContext context, IConfiguration configuration, StoredProcedureDbContext storedProcedureDbContext, EmailService emailService)
         {
             _context = context;
             _configuration = configuration;
             _storedProcedureDbContext = storedProcedureDbContext;
+            _emailService = emailService;
+
         }
         public async Task<string> UpdateApproversAsync(List<int> staffIds, int? approverId1, int? approverId2, int updatedBy)
         {
@@ -574,7 +577,7 @@ namespace AttendanceManagement.Services
             string emailBody = $@"
             <p>Dear {reportingManagerFullName},</p>
             <p>A new staff member <strong>{staffFullName}</strong> has been added and requires your approval.</p>       
-            <p><strong>Approve/Reject staff:</strong></p>
+            <p>Please review this request and take appropriate action:</p>
             <p>
                 <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
                 <a href='{rejectLink}' style='background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none;'>Reject</a>
@@ -893,7 +896,7 @@ namespace AttendanceManagement.Services
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
             var records = await _context.StaffCreations
-                .Where(s => s.ApprovalLevel1 == approverId && s.IsActive == null)
+                .Where(s => (s.ApprovalLevel1 == approverId || s.ApprovalLevel2 == approverId) && s.IsActive == null)
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,
@@ -1011,52 +1014,48 @@ namespace AttendanceManagement.Services
         {
             var message = "";
             var selectedRows = approvePendingStaff.SelectedRows;
+
             foreach (var item in selectedRows)
             {
-                if (approvePendingStaff.IsApproved)
-                {
-                    var staff1 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == true).FirstOrDefaultAsync();
-                    if(staff1 != null)
-                    {
-                        throw new InvalidOperationException("Staff already approved");
-                    }
-                    var staff2 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == false).FirstOrDefaultAsync();
-                    if (staff2 != null)
-                    {
-                        throw new InvalidOperationException("Staff already rejected");
-                    }
-                    var staff = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == null).FirstOrDefaultAsync();
-                    if (staff != null)
-                    {
-                        staff.IsActive = true;
-                        staff.UpdatedBy = approvePendingStaff.ApprovedBy;
-                        staff.UpdatedUtc = DateTime.UtcNow;
-                    }
-                    await _context.SaveChangesAsync();
-                    message = "Staff profile approved successfully";
-                }
-                else if (!approvePendingStaff.IsApproved)
-                {
-                    var staff1 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == true).FirstOrDefaultAsync();
-                    if (staff1 != null)
-                    {
-                        throw new InvalidOperationException("Staff already approved");
-                    }
-                    var staff2 = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == false).FirstOrDefaultAsync();
-                    if (staff2 != null)
-                    {
-                        throw new InvalidOperationException("Staff already rejected");
-                    }
-                    var staff = await _context.StaffCreations.Where(s => s.Id == item.StaffId && s.IsActive == null).FirstOrDefaultAsync();
-                    if (staff != null)
-                    {
-                        staff.IsActive = false;
-                        staff.UpdatedBy = approvePendingStaff.ApprovedBy;
-                        staff.UpdatedUtc = DateTime.UtcNow;
-                    }
-                    await _context.SaveChangesAsync();
-                    message = "Staff profile rejected successfully";
-                }
+                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.StaffId);
+                if (staff == null)
+                    throw new InvalidOperationException("Staff not found");
+
+                if (staff.IsActive == true)
+                    throw new InvalidOperationException("Staff already approved");
+                if (staff.IsActive == false)
+                    throw new InvalidOperationException("Staff already rejected");
+
+                staff.IsActive = approvePendingStaff.IsApproved;
+                staff.UpdatedBy = approvePendingStaff.ApprovedBy;
+                staff.UpdatedUtc = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                // Get Creator's Email
+                var createdByUser = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == staff.CreatedBy && u.IsActive == true);
+                if (createdByUser == null || string.IsNullOrWhiteSpace(createdByUser.OfficialEmail))
+                    throw new InvalidOperationException("Creator or official email not found");
+                var createdByUserName = $"{createdByUser.FirstName} {createdByUser.LastName}";
+                var staffName = $"{staff.FirstName} {staff.LastName}";
+                var approver = await _context.StaffCreations.FirstOrDefaultAsync(a => a.Id == approvePendingStaff.ApprovedBy && a.IsActive == true);
+                var approverName = $"{approver.FirstName} {approver.LastName}";
+                // Prepare Email
+                string subject = approvePendingStaff.IsApproved
+                    ? "Staff Profile Approved"
+                    : "Staff Profile Rejected";
+
+                string emailBody = $@"
+                <p>Dear {createdByUserName},</p>
+                <p>The staff profile for {staffName} has been {(approvePendingStaff.IsApproved ? "approved" : "rejected")} by {approverName}.</p>       
+                <br>Best Regards,<br>
+                HR Team";
+
+                await _emailService.SendApprovalEmail(createdByUser.OfficialEmail, subject, emailBody, approvePendingStaff.ApprovedBy);
+
+                message = approvePendingStaff.IsApproved
+                    ? "Staff profile approved successfully"
+                    : "Staff profile rejected successfully";
             }
 
             return message;

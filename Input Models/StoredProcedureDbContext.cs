@@ -41,6 +41,7 @@ namespace AttendanceManagement.Input_Models
         public DbSet<PermissionRequisitionResponse> PermissionRequisitionResponses { get; set; } = null!;
         public DbSet<MonthlyReportResponse> MonthlyReportResponse { get; set; } = null!;
         public DbSet<AttendanceRecordDto> attendanceRecordDtos { get; set; } = null!;
+        public DbSet<StatutoryReportResponse> statutoryReportResponses { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<AbsentListResponse>().HasNoKey();
@@ -68,6 +69,7 @@ namespace AttendanceManagement.Input_Models
             modelBuilder.Entity<ShiftExtensionResponse>().HasNoKey();
             modelBuilder.Entity<MonthlyReportResponse>().HasNoKey();
             modelBuilder.Entity<AttendanceRecordDto>().HasNoKey();
+            modelBuilder.Entity<StatutoryReportResponse>().HasNoKey();
         }
     }
 }

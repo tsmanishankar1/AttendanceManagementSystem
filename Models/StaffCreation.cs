@@ -703,6 +703,12 @@ public partial class StaffCreation
 
     public virtual ICollection<StatutoryReport> StatutoryReportCreatedByNavigations { get; set; } = new List<StatutoryReport>();
 
+    public virtual ICollection<StatutoryReportSummary> StatutoryReportSummaryCreatedByNavigations { get; set; } = new List<StatutoryReportSummary>();
+
+    public virtual ICollection<StatutoryReportSummary> StatutoryReportSummaryStaffs { get; set; } = new List<StatutoryReportSummary>();
+
+    public virtual ICollection<StatutoryReportSummary> StatutoryReportSummaryUpdatedByNavigations { get; set; } = new List<StatutoryReportSummary>();
+
     public virtual ICollection<StatutoryReport> StatutoryReportUpdatedByNavigations { get; set; } = new List<StatutoryReport>();
 
     public virtual ICollection<SubFunctionMaster> SubFunctionMasterCreatedByNavigations { get; set; } = new List<SubFunctionMaster>();

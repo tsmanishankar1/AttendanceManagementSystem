@@ -19,6 +19,8 @@ public partial class StatusDropdown
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public string ShortName { get; set; } = null!;
+
     public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
 
     public virtual ICollection<AttendanceStatus> AttendanceStatuses { get; set; } = new List<AttendanceStatus>();

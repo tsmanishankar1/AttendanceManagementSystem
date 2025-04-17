@@ -19,7 +19,7 @@ namespace AttendanceManagement.Services
             _configuration = configuration;
         }
 
-        private async Task SendApprovalEmail(string recipientEmail, string subject, string emailBody, int approvedBy)
+        public async Task SendApprovalEmail(string recipientEmail, string subject, string emailBody, int approvedBy)
         {
             var host = _configuration["Smtp:host"];
             var port = _configuration.GetValue<int>("Smtp:port");

@@ -54,7 +54,7 @@
 			<param name="request">The CompOff availability request.</param>
 			<returns>The created CompOff availability record.</returns>
 			<response code="200">Returns the created CompOff availability record.</response>
-			<response code="400">If the request is invalid.</response>
+			<response code="404">If the request is invalid.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetCompOffCreditAll">
@@ -2087,7 +2087,6 @@
 			<param name="approvePendingStaff">The details of the staff to be approved.</param>
 			<returns>A success message upon approval.</returns>
 			<response code="200">Returns a success message.</response>
-			<response code="400">If the request data is invalid.</response>
 			<response code="404">If the pending staff is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
@@ -2098,7 +2097,7 @@
 			<param name="dropDownRequest">The request model containing dropdown details.</param>
 			<returns>Returns the created dropdown master entry.</returns>
 			<response code="200">Dropdown master created successfully.</response>
-			<response code="400">Invalid input data.</response>
+			<response code="404">Invalid input data.</response>
 			<response code="500">Internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetDropDownMaster">
@@ -2179,7 +2178,7 @@
 			<param name="academicDetailRequests">The academic details request containing staff ID, created by, and a list of academic records.</param>
 			<returns>A success message if academic details are added successfully.</returns>
 			<response code="200">Returns a success message.</response>
-			<response code="400">Returned when no academic details are provided.</response>
+			<response code="404">Returned when no academic details are provided.</response>
 			<response code="500">Returned when there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Input_Models.ListAcademicDetailUpdateRequest)">
@@ -2191,7 +2190,7 @@
 		  </param>
 		  <returns>A success message if the records are updated successfully.</returns>
 		  <response code="200">Returns a success message.</response>
-		  <response code="400">Returned when no academic details are provided.</response>
+		  <response code="404">Returned when no academic details are provided.</response>
 		  <response code="404">Returned when no matching academic records are found.</response>
 		  <response code="500">Returned when there is an internal server error.</response>
 		</member>
@@ -2225,7 +2224,7 @@
 			  </param>
 			  <returns>A success message upon successful creation.</returns>
 			  <response code="200">Returns the success message.</response>
-			  <response code="400">If no certification courses are provided.</response>
+			  <response code="404">If no certification courses are provided.</response>
 			  <response code="500">If there is an internal server error.</response>
 			</member>
 			<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Input_Models.ListCertificationCourseUpdateRequest)">
@@ -2237,7 +2236,7 @@
 			  </param>
 			  <returns>A success message upon successful update.</returns>
 			  <response code="200">Returns the success message.</response>
-			  <response code="400">If no certification courses are provided.</response>
+			  <response code="404">If no certification courses are provided.</response>
 			  <response code="404">If the certification records are not found.</response>
 			  <response code="500">If there is an internal server error.</response>
 		  </member>
@@ -2271,7 +2270,7 @@
 		  </param>
 		  <returns>The success message after creation.</returns>
 		  <response code="200">Returns the success message.</response>
-		  <response code="400">If no work history details are provided.</response>
+		  <response code="404">If no work history details are provided.</response>
 		  <response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Input_Models.ListPreviousEmploymentUpdateRequest)">
@@ -2283,7 +2282,7 @@
 			  </param>
 			  <returns>The success message after update.</returns>
 			  <response code="200">Returns the success message.</response>
-			  <response code="400">If no work history details are provided.</response>
+			  <response code="404">If no work history details are provided.</response>
 			  <response code="404">If no matching work history records are found.</response>
 			  <response code="500">If there is an internal server error.</response>
 		</member>
@@ -2297,6 +2296,23 @@
 			<response code="200">Returns the success message</response>
 			<response code="404">If the work history detail is not found</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StatutoryReportController.#ctor(AttendanceManagement.Services.StatutoryReportService,AttendanceManagement.Services.LoggingService)">
+			<summary>
+				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.StatutoryReportController"/> class.
+			</summary>
+			<param name="service">The statutory report service.</param>
+			<param name="loggingService">The logging service.</param>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StatutoryReportController.GenerateStatutoryReport(AttendanceManagement.Input_Models.StatutoryReportRequest)">
+			<summary>
+				Generates the statutory report based on the provided input data.
+			</summary>
+			<param name="statutoryReportRequest">The request data required to generate the report.</param>
+			<returns>An object indicating success and the generated report message.</returns>
+			<response code="200">Returns the generated statutory report.</response>
+			<response code="404">If no data is found to generate the report.</response>
+			<response code="500">If an internal server error occurs while generating the report.</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.SubFunctionMasterController">
 			<summary>
@@ -2668,7 +2684,7 @@
 			<param name="userRequest">The user details to register.</param>
 			<returns>The result of the registration.</returns>
 			<response code="200">Returns the success message</response>
-			<response code="400">If the request is invalid</response>
+			<response code="404">If the request is invalid</response>
 			<response code="409">If there is a conflict in the request</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
