@@ -25,5 +25,6 @@
         public string Name { get; set; } = null!;
         public int? ParentMenuId { get; set; }
         public int CreatedBy { get; set; }
+        public List<MenuResponse>? Children { get; set; }
     }
 }

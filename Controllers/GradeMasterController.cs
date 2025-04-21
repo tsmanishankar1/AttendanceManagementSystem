@@ -41,29 +41,6 @@ public class GradeMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetGradeById")]
-    public async Task<IActionResult> GetById(int gradeMasterId)
-    {
-        try
-        {
-            var grade = await _service.GetGradeById(gradeMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = grade
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateGrade")]
     public async Task<IActionResult> Create(GradeMasterRequest gradeMaster)
     {

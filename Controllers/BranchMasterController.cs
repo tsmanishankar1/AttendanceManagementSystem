@@ -42,29 +42,6 @@ public class BranchMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetBranchById")]
-    public async Task<IActionResult> GetById(int branchMasterId)
-    {
-        try
-        {
-            var branch = await _service.GetBranchById(branchMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = branch
-            };
-           return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateBranch")]
     public async Task<IActionResult> Create(BranchMasterRequest branchMasterRequest)
     {

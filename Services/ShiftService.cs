@@ -66,36 +66,6 @@ namespace AttendanceManagement.Services
             return allShift;
         }
 
-
-        public async Task<ShiftResponse> GetShiftByIdAsync(int shiftId)
-        {
-            var shiftDetail = await (from shift in _context.Shifts
-                                     join shiftType in _context.ShiftTypeDropDowns
-                                     on shift.ShiftTypeId equals shiftType.Id into shiftTypeGroup
-                                     from shiftType in shiftTypeGroup.DefaultIfEmpty() // Left Join to handle nulls
-                                     where shift.Id == shiftId
-                                     select new ShiftResponse
-                                     {
-                                         ShiftId = shift.Id,
-                                         ShiftName = shift.ShiftName,
-                                         ShiftTypeId = shift.ShiftTypeId,
-                                         ShiftTypeName = shiftType != null ? shiftType.Name : null, // Get ShiftType Name
-                                         ShortName = shift.ShortName,
-                                         StartTime = shift.StartTime,
-                                         EndTime = shift.EndTime,
-                                         IsActive = shift.IsActive,
-                                         CreatedBy = shift.CreatedBy
-                                     })
-                                     .FirstOrDefaultAsync();
-
-            if (shiftDetail == null)
-            {
-                throw new MessageNotFoundException("Shift not found");
-            }
-            return shiftDetail;
-        }
-
-
         public async Task<string> CreateShiftAsync(ShiftRequest newShift)
         {
             var message = "Shift added successfully";
@@ -104,7 +74,7 @@ namespace AttendanceManagement.Services
             {
                 ShiftName = newShift.ShiftName,
                 ShortName = newShift.ShortName,
-                ShiftTypeId = newShift.ShiftTypeId, // Added ShiftTypeId
+                ShiftTypeId = newShift.ShiftTypeId,
                 StartTime = newShift.StartTime,
                 EndTime = newShift.EndTime,
                 IsActive = newShift.IsActive,

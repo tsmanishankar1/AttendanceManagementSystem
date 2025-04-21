@@ -41,30 +41,6 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpGet("GetSkillById")]
-        public async Task<IActionResult> GetByIdAsync(int skillId)
-        {
-            try
-            {
-                var skill = await _skillInventoryService.GetByIdAsync(skillId);
-                var response = new
-                {
-                    Success = true,
-                    Message = skill
-                };
-                return Ok(response);
-            }
-            catch (MessageNotFoundException ex)
-            {
-                return ErrorClass.NotFoundResponse(ex.Message);
-            }
-
-            catch (Exception ex)
-            {
-                return ErrorClass.ErrorResponse(ex.Message);
-            }
-        }
-
         [HttpPost("CreateSkill")]
         public async Task<IActionResult> CreateAsync(SkillInventoryRequestModel model)
         {

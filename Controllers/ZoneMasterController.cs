@@ -41,29 +41,6 @@ public class ZoneMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetZoneById")]
-    public async Task<IActionResult> GetById(int zoneMasterId)
-    {
-        try
-        {
-            var zone = await _service.GetZoneByIdAsync(zoneMasterId);
-            var response = new 
-            { 
-                Success = true, 
-                Message = zone 
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateZone")]
     public async Task<IActionResult> Create(ZoneMasterRequest zoneMaster)
     {

@@ -41,29 +41,6 @@ public class WorkstationMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetWorkstationById")]
-    public async Task<IActionResult> GetWorkstationById(int workstationMasterId)
-    {
-        try
-        {
-            var workstation = await _service.GetWorkstationByIdAsync(workstationMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = workstation
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateWorkstation")]
     public async Task<IActionResult> CreateWorkstation(WorkStationRequest workstation)
     {

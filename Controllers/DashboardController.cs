@@ -18,29 +18,6 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [HttpGet("GetAllEventTypes")]
-    public async Task<IActionResult> GetAllEventTypes()
-    {
-        try
-        {
-            var events = await _dashboardService.GetAllEventTypes();
-            var response = new
-            {
-                Success = true,
-                Message = events
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpGet("Anniversaries")]
     public async Task<IActionResult> GetTodaysAnniversaries(int eventTypeId)
     {

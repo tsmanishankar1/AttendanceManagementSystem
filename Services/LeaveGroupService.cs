@@ -47,30 +47,6 @@ namespace AttendanceManagement.Services
 
             return leaveGroupResponses;
         }
-
-        public async Task<LeaveGroupResponse> GetLeaveGroupDetailsById(int leaveGroupId)
-        {
-            var leaveGroup = await (from leave in _context.LeaveGroups
-                                    where leave.Id == leaveGroupId
-                                    select new LeaveGroupResponse
-                                    {
-                                        LeaveGroupId = leave.Id,
-                                        LeaveGroupName = leave.LeaveGroupName,
-                                        IsActive = leave.IsActive,
-                                        CreatedBy = leave.CreatedBy,
-                                        LeaveTypeIds = (from transaction in _context.LeaveGroupTransactions
-                                                        where transaction.LeaveGroupId == leaveGroupId && transaction.IsActive
-                                                        select transaction.LeaveTypeId).ToList()
-                                    })
-                                  .FirstOrDefaultAsync();
-
-            if (leaveGroup == null)
-            {
-                throw new MessageNotFoundException("Leave group not found");
-            }
-
-            return leaveGroup;
-        }
         public async Task<string> AddLeaveGroupWithTransactionsAsync(AddLeaveGroupDto addLeaveGroupDto)
         {
             var message = "Leave group added successfully";

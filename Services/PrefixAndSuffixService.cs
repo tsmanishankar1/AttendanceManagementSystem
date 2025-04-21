@@ -98,33 +98,6 @@ public class PrefixAndSuffixService
         }
         return allPrefix;
     }
-
-    public async Task<PrefixAndSuffixDto> GetPrefixAndSuffixById(int prefixAndSuffixId)
-    {
-        var allPrefix = await (from prefix in _context.PrefixAndSuffixes
-                               join leaveType in _context.LeaveTypes
-                               on prefix.LeaveTypeId equals leaveType.Id
-                               join prefixLeave in _context.PrefixLeaveTypes
-                               on prefix.PrefixLeaveTypeId equals prefixLeave.Id
-                               join suffixLeave in _context.SuffixLeaveTypes
-                               on prefix.SuffixLeaveTypeId equals suffixLeave.Id
-                               where prefix.Id == prefixAndSuffixId
-                               select new PrefixAndSuffixDto
-                               {
-                                   PrefixAndSuffixId = prefix.Id,
-                                   LeaveTypeName = leaveType.Name,
-                                   PrefixName = prefixLeave.PrefixLeaveTypeName,
-                                   SuffixName = suffixLeave.SuffixLeaveTypeName,
-                                   IsActive = prefix.IsActive,
-                                   CreatedBy = prefix.CreatedBy
-                               })
-                              .FirstOrDefaultAsync();
-        if (allPrefix == null)
-        {
-            throw new MessageNotFoundException("Prefix and suffix not found");
-        }
-        return allPrefix;
-    }
     public async Task<string> Create(PrefixAndSuffixRequest prefixAndSuffixRequest)
     {
         var message = "Prefix and suffix added successfully";

@@ -37,31 +37,6 @@ namespace AttendanceManagement.Services
             return certifications;
         }
 
-        public async Task<CertificateTrackingResponse?> GetCertificateById(int certificateId)
-        {
-            var certificate = await _context.CertificateTrackings
-                .Where(c => c.Id == certificateId)
-                .Select(c => new CertificateTrackingResponse
-                {
-                    CertificateId = c.Id,
-                    StaffCreationId = c.StaffCreationId,
-                    CertificationCourseApplication = c.CertificationCourseApplication,
-                    CertificationCourse = c.CertificationCourse,
-                    Institute = c.Institute,
-                    ValidUpto = c.ValidUpto,
-                    YearOfPassing = c.YearOfPassing,
-                    CourseAppraisal = c.CourseAppraisal,
-                    IsActive = c.IsActive,
-                    CreatedBy = c.CreatedBy
-                })
-                .FirstOrDefaultAsync();
-            if (certificate == null)
-            {
-                throw new MessageNotFoundException("Certificate details not found");
-            }
-            return certificate;
-        }
-
         public async Task<string> CreateCertificate(CertificateTrackingDto dto)
         {
             var message = "certificate Added Successfully";

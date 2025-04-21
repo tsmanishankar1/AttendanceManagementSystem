@@ -43,32 +43,6 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return message;
         }
-        public async Task<WeeklyOffResponse> GetWeeklyOffByIdAsync(int weeklyOffId)
-        {
-            var weeklyOff = await _context.WeeklyOffMasters
-                .Where(w => w.Id == weeklyOffId)
-                .Select(w => new WeeklyOffResponse
-                {
-                    WeeklyOffId = w.Id,
-                    WeeklyOffName = w.WeeklyOffName,
-                    IsActive = w.IsActive,
-                    CreatedBy = w.CreatedBy,
-                    MarkWeeklyOffs = _context.WeeklyOffDetails
-                        .Where(d => d.WeeklyOffMasterId == w.Id && d.IsActive)
-                        .Select(d => new WeeklyOffDetailResponse
-                        {
-                            MarkWeeklyOffId = d.Id,
-                            MarkWeeklyOff = ((WeekdaysEnum)d.MarkWeeklyOff).ToString()
-                        }).ToList()
-                })
-                .FirstOrDefaultAsync();
-
-            if (weeklyOff == null)
-            {
-                throw new MessageNotFoundException("Weekly off not found");
-            }
-            return weeklyOff;
-        }
         public async Task<IEnumerable<WeeklyOffResponse>> GetAllWeeklyOffsAsync()
         {
             var weeklyOffs = await _context.WeeklyOffMasters

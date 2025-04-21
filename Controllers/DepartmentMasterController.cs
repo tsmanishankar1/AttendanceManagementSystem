@@ -43,29 +43,6 @@ public class DepartmentMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetDepartmentById")]
-    public async Task<IActionResult> GetDepartmentById(int departmentMasterId)
-    {
-        try
-        {
-            var department = await _service.GetDepartmentById(departmentMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = department
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateDepartment")]
     public async Task<IActionResult> CreateDepartment(DepartmentRequest department)
     {

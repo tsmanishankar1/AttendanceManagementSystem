@@ -36,28 +36,6 @@ namespace AttendanceManagement.Services
             return emergency;
         }
 
-        public async Task<EmergencyContactResponseModel> GetByIdAsync(int emergencyContactId)
-        {
-            var emergency = await _context.EmergencyContacts
-                .Where(ec => ec.Id == emergencyContactId && ec.IsActive)
-                .Select(ec => new EmergencyContactResponseModel
-                {
-                    EmergencyContactId = ec.Id,
-                    Name = ec.Name,
-                    Relationship = ec.Relationship,
-                    DateOfBirth = ec.DateOfBirth,
-                    LandlineNo = ec.LandlineNo,
-                    MobileNo = ec.MobileNo,
-                    EmailId = ec.EmailId,
-                    OfficeExtensionPhoneNumber = ec.OfficeExtensionPhoneNumber,
-                    Address = ec.Address
-                })
-                .FirstOrDefaultAsync();
-            if (emergency == null)
-                throw new MessageNotFoundException("Emergency Contact not found");
-            return emergency;
-        }
-
         public async Task<string> CreateAsync(EmergencyContactRequestModel model)
         {
             var message = "Emergency Contact created successfully";

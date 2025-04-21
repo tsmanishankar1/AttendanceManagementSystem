@@ -30,25 +30,6 @@ public class CategoryMasterService
         return allCategory;
     }
 
-    public async Task<CategoryMasterResponse> GetCategoryByIdAsync(int categoryMasterId)
-    {
-        var category = await _context.CategoryMasters
-            .Where(category => category.Id == categoryMasterId)
-            .Select(category => new CategoryMasterResponse
-            {
-                CategoryMasterId = category.Id,
-                FullName = category.FullName,
-                ShortName = category.ShortName,
-                IsActive = category.IsActive
-            })
-            .FirstOrDefaultAsync();
-        if (category == null)
-        {
-            throw new MessageNotFoundException("Category not found");
-        }
-        return category;
-    }
-
     public async Task<string> CreateCategoryAsync(CategoryMasterRequest request)
     {
         var message = "Category Master added successfully";

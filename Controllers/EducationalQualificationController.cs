@@ -44,29 +44,6 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpGet("GetEducationalQualificationById")]
-        public async Task<IActionResult> GetById(int educationalQualificationId)
-        {
-            try
-            {
-                var details = await _service.GetEducationalQualificationById(educationalQualificationId);
-                var response = new
-                {
-                    Success = true,
-                    Message = details
-                };
-                return Ok(response);
-            }
-            catch (MessageNotFoundException ex)
-            {
-                return ErrorClass.NotFoundResponse(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return ErrorClass.ErrorResponse(ex.Message);
-            }
-        }
-
         [HttpPost("AddEducationalQualification")]
         public async Task<IActionResult> Create(EducationalQualificationDto qualificationDto)
         {

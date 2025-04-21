@@ -31,27 +31,6 @@ public class WorkstationMasterService
         }
         return allWorkstations;
     }
-
-    public async Task<WorkStationResponse> GetWorkstationByIdAsync(int workStationMasterId)
-    {
-        var workstation = await _context.WorkstationMasters
-            .Where(ws => ws.Id == workStationMasterId)
-            .Select(ws => new WorkStationResponse
-            {
-                WorkstationMasterId = ws.Id,
-                FullName = ws.FullName,
-                ShortName = ws.ShortName,
-                IsActive = ws.IsActive,
-                CreatedBy = ws.CreatedBy
-            })
-            .FirstOrDefaultAsync();
-        if (workstation == null)
-        {
-            throw new MessageNotFoundException("Workstation not found");
-        }
-        return workstation;
-    }
-
     public async Task<string> CreateWorkstationAsync(WorkStationRequest workstationRequest)
     {
         var message = "Workstation added successfully.";

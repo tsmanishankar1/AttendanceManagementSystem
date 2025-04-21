@@ -16,28 +16,7 @@ public class ToolsController : ControllerBase
         _service = toolsService;
         _loggingService = loggingService;
     }
-    [HttpGet("GetAllApplicationTypes")]
-    public async Task<IActionResult> GetAllApplicationTypes()
-    {
-        try
-        {
-            var applicationTypes = await _service.GetAllApplicationTypesAsync();
-            var response = new
-            {
-                Success = true,
-                Message = applicationTypes
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
+
     [HttpGet("GetStaffInfoByOrganizationType")]
     public async Task<IActionResult> GetStaffInfoByOrganizationType(int organizationTypeId)
     {
@@ -93,29 +72,6 @@ public class ToolsController : ControllerBase
             {
                 Success = true,
                 Message = assignLeaveTypes
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
-    [HttpGet("GetAssignLeaveTypeById")]
-    public async Task<IActionResult> GetById(int id)
-    {
-        try
-        {
-            var assignLeaveType = await _service.GetAssignLeaveTypeById(id);
-            var response = new
-            {
-                Success = true,
-                Message = assignLeaveType
             };
             return Ok(response);
         }
@@ -196,24 +152,6 @@ public class ToolsController : ControllerBase
         }
     }
 
-    [HttpPost("AddApplicationType")]
-    public async Task<IActionResult> CreateApplicationType(ApplicationTypeRequest applicationType)
-    {
-        try
-        {
-            var createdApplicationType = await _service.AddApplicationTypeAsync(applicationType);
-            var response = new
-            {
-                Success = true,
-                Message = createdApplicationType
-            };
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
     [HttpPost("ReaderConfiguration")]
     public async Task<IActionResult> CreateReader( ReaderConfigurationRequest readerConfiguration)
     {

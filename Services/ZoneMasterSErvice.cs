@@ -31,27 +31,6 @@ public class ZoneMasterService
         }
         return allZones;
     }
-
-    public async Task<ZoneMasterResponse> GetZoneByIdAsync(int zoneMasterId)
-    {
-        var getZone = await (from zone in _context.ZoneMasters
-                             where zone.Id == zoneMasterId
-                             select new ZoneMasterResponse
-                             {
-                                 ZoneMasterId = zone.Id,
-                                 FullName = zone.FullName,
-                                 ShortName = zone.ShortName,
-                                 IsActive = zone.IsActive,
-                                 CreatedBy = zone.CreatedBy
-                             })
-                             .FirstOrDefaultAsync();
-        if (getZone == null)
-        {
-            throw new MessageNotFoundException("Zone not found");
-        }
-        return getZone;
-    }
-
     public async Task<string> CreateZoneAsync(ZoneMasterRequest zoneMaster)
     {
         var message = "Zone added successfully.";

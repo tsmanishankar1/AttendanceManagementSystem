@@ -32,28 +32,6 @@ public class CostCentreMasterService
 
         return allCostMaster;
     }
-
-    public async Task<CostMasterResponse> GetCostCentreById(int costCentreMasterId)
-    {
-        var allCostMaster = await (from cost in _context.CostCentreMasters
-                             where cost.Id == costCentreMasterId
-                             select new CostMasterResponse
-                             {
-                                 CostCentreMasterId = cost.Id,
-                                 FullName = cost.FullName,
-                                 ShortName = cost.ShortName,
-                                 IsActive = cost.IsActive,
-                                 CreatedBy = cost.CreatedBy
-                             })
-                             .FirstOrDefaultAsync();
-        if (allCostMaster == null)
-        {
-            throw new MessageNotFoundException("Cost centre not found");
-        }
-
-        return allCostMaster;
-    }
-
     public async Task<string> CreateCostCentre(CostMasterRequest costCentreMaster)
     {
         var message = "Cost centre added successfully";

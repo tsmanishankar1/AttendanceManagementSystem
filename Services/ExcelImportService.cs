@@ -14,12 +14,17 @@ public class ExcelImportService
     private readonly AttendanceManagementSystemContext _context;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly string _workspacePath = @"C:\Users\manishankar.ts\OneDrive - Kryptos\source\repos\AttendanceSystem_API\ExcelTemplates";
+    private readonly string _workspacePath = "ExcelTemplates";
     public ExcelImportService(AttendanceManagementSystemContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
+        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _workspacePath);
+        if (!Directory.Exists(uploadPath))
+        {
+            Directory.CreateDirectory(uploadPath);
+        }
     }
     public async Task<byte[]> GetExcelTemplateBytes(int excelImportId)
     {
@@ -678,7 +683,7 @@ public class ExcelImportService
                                         throw new Exception($"ERROR: ApplicationTypeName is required at row {row}.");
                                     }
                                     var applicationType = await _context.ApplicationTypes
-                                        .FirstOrDefaultAsync(a => a.ApplicationTypeName.ToLower() == applicationTypeName.ToLower());
+                                        .FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower());
 
                                     if (applicationType == null)
                                     {
@@ -757,7 +762,7 @@ public class ExcelImportService
                                 {
                                     var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
                                     var applicationType = await _context.ApplicationTypes
-                                        .FirstOrDefaultAsync(a => a.ApplicationTypeName == applicationTypeName);
+                                        .FirstOrDefaultAsync(a => a.Name == applicationTypeName);
 
                                     if (applicationType == null)
                                     {
@@ -958,7 +963,7 @@ public class ExcelImportService
                                 {
                                     var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
                                     var applicationType = await _context.ApplicationTypes
-                                        .FirstOrDefaultAsync(a => a.ApplicationTypeName == applicationTypeName);
+                                        .FirstOrDefaultAsync(a => a.Name == applicationTypeName);
                                     if (applicationType == null)
                                     {
                                         throw new Exception($"Invalid ApplicationTypeName '{applicationTypeName}' at row {row}. It does not exist in the database.");
@@ -1039,7 +1044,7 @@ public class ExcelImportService
                                 {
                                     var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
                                     var applicationType = await _context.ApplicationTypes
-                                        .FirstOrDefaultAsync(a => a.ApplicationTypeName == applicationTypeName);
+                                        .FirstOrDefaultAsync(a => a.Name == applicationTypeName);
                                     if (applicationType == null)
                                     {
                                         throw new Exception($"Invalid ApplicationTypeName '{applicationTypeName}' at row {row}. It does not exist in the database.");
@@ -1119,7 +1124,7 @@ public class ExcelImportService
                                 {
                                     var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
                                     var applicationType = await _context.ApplicationTypes
-                                        .FirstOrDefaultAsync(a => a.ApplicationTypeName == applicationTypeName);
+                                        .FirstOrDefaultAsync(a => a.Name == applicationTypeName);
 
                                     if (applicationType == null)
                                     {
@@ -1280,7 +1285,7 @@ public class ExcelImportService
                                         throw new Exception($"ERROR: ApplicationTypeName is required at row {row}.");
                                     }
                                     var applicationType = await _context.ApplicationTypes
-                                        .FirstOrDefaultAsync(a => a.ApplicationTypeName.ToLower() == applicationTypeName.ToLower());
+                                        .FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower());
 
                                     if (applicationType == null)
                                     {

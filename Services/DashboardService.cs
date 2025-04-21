@@ -20,22 +20,6 @@ namespace AttendanceManagement.Services
             _atrakContext = atrakContext;
         }
 
-        public async Task<List<EventTypeResponse>> GetAllEventTypes()
-        {
-            var eventTypes = await _context.EventTypes
-                .Where(e => e.IsActive)
-                .Select(e => new EventTypeResponse
-                {
-                    EventTypeId = e.Id,
-                    EventTypeName = e.EventName
-                })
-                .ToListAsync();
-            if (eventTypes.Count == 0)
-            {
-                throw new MessageNotFoundException("No event types found");
-            }
-            return eventTypes;
-        }
         public async Task<List<object>> GetTodaysAnniversaries(int eventTypeId)
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
@@ -241,7 +225,7 @@ namespace AttendanceManagement.Services
                 .Select(g => new
                 {
                     LeaveTypeId = g.Key,
-                    AvailableBalance = g.OrderByDescending(l => l.UpdatedUtc).First().AvailableBalance
+                    AvailableBalance = g.OrderByDescending(l => l.Id).FirstOrDefault().AvailableBalance
                 })
                 .ToListAsync();
             var leaveDetails = allLeaveTypes.Select(lt =>

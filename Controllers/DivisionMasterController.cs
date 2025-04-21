@@ -43,29 +43,6 @@ public class DivisionMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetDivisionById")]
-    public async Task<IActionResult> GetDivisionById(int divisionMasterId)
-    {
-        try
-        {
-            var division = await _service.GetDivisionById(divisionMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = division
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateDivision")]
     public async Task<IActionResult> AddDivision(DivisionRequest division)
     {

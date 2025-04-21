@@ -34,29 +34,6 @@ namespace AttendanceManagement.Services
 
             return allDivision;
         }
-
-        public async Task<DivisionResponse> GetDivisionById(int divisionMasterId)
-        {
-            var allDivision = await (from division in _context.DivisionMasters
-                               where division.Id == divisionMasterId
-                               select new DivisionResponse
-                               {
-                                   DivisionMasterId = division.Id,
-                                   FullName = division.FullName,
-                                   ShortName = division.ShortName,
-                                   IsActive = division.IsActive,
-                                   CreatedBy = division.CreatedBy
-                               })
-                               .FirstOrDefaultAsync();
-
-            if (allDivision == null)
-            {
-                throw new MessageNotFoundException("Division not found");
-            }
-
-            return allDivision;
-        }
-
         public async Task<string> AddDivision(DivisionRequest divisionRequest)
         {
             var message = "Division added successfully";

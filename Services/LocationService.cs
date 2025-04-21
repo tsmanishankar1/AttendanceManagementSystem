@@ -46,26 +46,6 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return message;
         }
-        public async Task<LocationResponse> GetLocationMasterByIdAsync(int locationMasterId)
-        {
-            var allLocation = await (from location in _context.LocationMasters
-                                     where location.Id == locationMasterId
-                                     select new LocationResponse
-                                     {
-                                         LocationMasterId = location.Id,
-                                         FullName = location.FullName,
-                                         ShortName = location.ShortName,
-                                         IsActive = location.IsActive,
-                                         CreatedBy = location.CreatedBy
-                                     })
-                                    .FirstOrDefaultAsync();
-            if (allLocation == null)
-            {
-                throw new MessageNotFoundException("Location not found");
-            }
-
-            return allLocation;
-        }
         public async Task<string> UpdateLocationMasterAsync(UpdateLocation locationMaster)
         {
             var message = "Location updated successfully";

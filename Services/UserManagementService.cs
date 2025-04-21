@@ -196,19 +196,38 @@ public class UserManagementService
 
     public async Task<List<MenuResponse>> GetMenusByRoleIdAsync(int roleId)
     {
-        var menus = await _context.RoleMenuMappings
+        var flatMenus = await _context.RoleMenuMappings
             .Where(rm => rm.RoleId == roleId && rm.IsActive)
             .Select(rm => rm.Menu)
             .Where(m => m.IsActive)
             .OrderBy(m => m.Id)
             .ToListAsync();
 
-        return menus.Select(m => new MenuResponse
+        var menuResponses = flatMenus.Select(m => new MenuResponse
         {
             Id = m.Id,
             Name = m.Name,
             ParentMenuId = m.ParentMenuId,
-            CreatedBy = m.CreatedBy
+            CreatedBy = m.CreatedBy,
+            Children = new List<MenuResponse>()
         }).ToList();
+
+        var menuDict = menuResponses.ToDictionary(m => m.Id);
+
+        List<MenuResponse> rootMenus = new List<MenuResponse>();
+
+        foreach (var menu in menuResponses)
+        {
+            if (menu.ParentMenuId.HasValue && menuDict.ContainsKey(menu.ParentMenuId.Value))
+            {
+                menuDict[menu.ParentMenuId.Value].Children.Add(menu);
+            }
+            else
+            {
+                rootMenus.Add(menu);
+            }
+        }
+
+        return rootMenus;
     }
 }

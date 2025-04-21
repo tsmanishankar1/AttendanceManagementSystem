@@ -41,37 +41,6 @@ namespace AttendanceManagement.Services
             }
             return qualifications;
         }
-
-        public async Task<EducationalQualificationResponse> GetEducationalQualificationById(int educationalQualificationId)
-        {
-            var qualification = await _context.EducationalQualifications
-                .Where(q => q.Id == educationalQualificationId)
-                .Select(q => new EducationalQualificationResponse
-                {
-                    EducationalQualificationId = q.Id,
-                    StaffCreationId = q.StaffCreationId,
-                    Qualification = q.Qualification,
-                    Specilization = q.Specilization,
-                    University = q.University,
-                    Institute = q.Institute,
-                    MediumOfInstruction = q.MediumOfInstruction,
-                    CourseType = q.CourseType,
-                    YearOfPassing = q.YearOfPassing,
-                    CourseAppraisal = q.CourseAppraisal,
-                    Score = q.Score,
-                    OutOf = q.OutOf,
-                    IsActive = q.IsActive,
-                    CreatedBy = q.CreatedBy
-                })
-                .FirstOrDefaultAsync();
-
-            if (qualification == null)
-            {
-                throw new MessageNotFoundException("Educational qualification not found");
-            }
-            return qualification;
-        }
-
         public async Task<string> CreateEducationalQualification(EducationalQualificationDto qualificationDto)
         {
             var message = "Educational qualification added successfully.";

@@ -43,29 +43,6 @@ public class CertificateTrackingController : ControllerBase
         }
     }
 
-    [HttpGet("GetCertificateById")]
-    public async Task<IActionResult> GetCertificateById(int certificateId)
-    {
-        try
-        {
-            var certificate = await _service.GetCertificateById(certificateId);
-            var response = new
-            {
-                Success = true,
-                Message = certificate
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateCertificate")]
     public async Task<IActionResult> CreateCertificate(CertificateTrackingDto certificate)
     {

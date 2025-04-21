@@ -47,29 +47,6 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpGet("GetEmploymentHistoryById")]
-        public async Task<IActionResult> GetByIdAsync(int employeeHistoryId)
-        {
-            try
-            {
-                var employmentHistory = await _employmentHistoryService.GetByIdAsync(employeeHistoryId);
-                var response = new
-                {
-                    Success = true,
-                    Message = employmentHistory
-                };
-                return Ok(response);
-            }
-            catch (MessageNotFoundException ex)
-            {
-                return ErrorClass.NotFoundResponse(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return ErrorClass.ErrorResponse(ex.Message);
-            }
-        }
-
         [HttpPost("CreateEmploymentHistory")]
         public async Task<IActionResult> CreateAsync(EmploymentHistoryRequestModel model)
         {

@@ -34,30 +34,6 @@ public class DepartmentMasterService
         }
         return allDepartment;
     }
-
-    public async Task<DepartmentResponse> GetDepartmentById(int departmentMasterId)
-    {
-        var allDepartment = await (from department in _context.DepartmentMasters
-                             where department.Id == departmentMasterId
-                             select new DepartmentResponse
-                             {
-                                 DepartmentMasterId = department.Id,
-                                 FullName = department.FullName,
-                                 ShortName = department.ShortName,
-                                 Phone = department.Phone,
-                                 Fax = department.Fax,
-                                 Email = department.Email,
-                                 IsActive = department.IsActive,
-                                 CreatedBy = department.CreatedBy
-                             })
-                             .FirstOrDefaultAsync();
-        if (allDepartment == null)
-        {
-            throw new MessageNotFoundException("Department not found");
-        }
-        return allDepartment;
-    }
-
     public async Task<string> CreateDepartment(DepartmentRequest departmentRequest)
     {
         var message = "Department added successfully";

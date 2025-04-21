@@ -91,7 +91,6 @@ namespace AttendanceManagement.Services
                         .ToList()
                 })
                 .ToList();
-#pragma warning restore CS8629 // Nullable value type may be null.
             return result;
         }
         public async Task<List<AssignLeaveTypeDTO>> GetAllAssignLeaveTypes()
@@ -108,23 +107,6 @@ namespace AttendanceManagement.Services
                         OrganizationTypeId = assign.OrganizationTypeId
                     })
                 .ToListAsync();
-        }
-        public async Task<AssignLeaveTypeDTO> GetAssignLeaveTypeById(int id)
-        {
-            var assignLeaveType = await _context.AssignLeaveTypes
-                .Where(a => a.Id == id)
-                .Select(a => new AssignLeaveTypeDTO
-                {
-                    Id = a.Id,
-                    LeaveTypeId = a.LeaveTypeId,
-                    OrganizationTypeId = a.OrganizationTypeId
-                })
-                .FirstOrDefaultAsync();
-
-            if (assignLeaveType == null)
-                throw new MessageNotFoundException("AssignLeaveType not found.");
-
-            return assignLeaveType;
         }
 
         public async Task<string> CreateAssignLeaveType(CreateAssignLeaveTypeDTO dto)
@@ -303,33 +285,6 @@ namespace AttendanceManagement.Services
         //        throw new Exception(ex.Message);
         //    }
         //}
-
-        public async Task<List<ApplicationTypeDto>> GetAllApplicationTypesAsync()
-        {
-            var applicationType = await (from application in _context.ApplicationTypes
-                                         select new ApplicationTypeDto
-                                         {
-                                             ApplicationTypeId = application.Id,
-                                             ApplicationTypeName = application.ApplicationTypeName
-                                         })
-                                        .ToListAsync();
-            if (applicationType.Count == 0)
-            {
-                throw new MessageNotFoundException("No application types found");
-            }
-            return applicationType;
-        }
-        public async Task<string> AddApplicationTypeAsync(ApplicationTypeRequest applicationType)
-        {
-            var message = "Application type added successfully";
-            var application = new ApplicationType
-            {
-                ApplicationTypeName = applicationType.ApplicationTypeName
-            };
-            _context.ApplicationTypes.Add(application);
-            await _context.SaveChangesAsync();
-            return message;
-        }
 
         public async Task<string> AddReaderConfigurationAsync(ReaderConfigurationRequest request)
         {

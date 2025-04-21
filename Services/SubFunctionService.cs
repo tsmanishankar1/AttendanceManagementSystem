@@ -32,26 +32,6 @@ public class SubFunctionMasterService
         return allSubFunctions;
     }
 
-    public async Task<SubFunctionResponse> GetSubFunctionByIdAsync(int subFunctionMasterId)
-    {
-        var subFunctions = await (from subFunction in _context.SubFunctionMasters
-                                 where subFunction.Id == subFunctionMasterId
-                                 select new SubFunctionResponse
-                                 {
-                                     SubFunctionMasterId = subFunction.Id,
-                                     FullName = subFunction.FullName,
-                                     ShortName = subFunction.ShortName,
-                                     IsActive = subFunction.IsActive,
-                                     CreatedBy = subFunction.CreatedBy
-                                 })
-                               .FirstOrDefaultAsync();
-        if (subFunctions == null)
-        {
-            throw new MessageNotFoundException("Sub function not found");
-        }
-        return subFunctions;
-    }
-
     public async Task<string> CreateSubFunctionAsync(SubFunctionRequest subFunctionMaster)
     {
         var message = "Sub function added successfully";

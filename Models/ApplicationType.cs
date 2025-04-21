@@ -7,7 +7,7 @@ public partial class ApplicationType
 {
     public int Id { get; set; }
 
-    public string ApplicationTypeName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public bool IsActive { get; set; }
 
@@ -27,6 +27,8 @@ public partial class ApplicationType
 
     public virtual ICollection<CompOffCredit> CompOffCredits { get; set; } = new List<CompOffCredit>();
 
+    public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
     public virtual ICollection<LeaveRequisition> LeaveRequisitions { get; set; } = new List<LeaveRequisition>();
 
     public virtual ICollection<ManualPunchRequistion> ManualPunchRequistions { get; set; } = new List<ManualPunchRequistion>();
@@ -42,6 +44,8 @@ public partial class ApplicationType
     public virtual ICollection<ShiftChange> ShiftChanges { get; set; } = new List<ShiftChange>();
 
     public virtual ICollection<ShiftExtension> ShiftExtensions { get; set; } = new List<ShiftExtension>();
+
+    public virtual StaffCreation? UpdatedByNavigation { get; set; }
 
     public virtual ICollection<WeeklyOffHolidayWorking> WeeklyOffHolidayWorkings { get; set; } = new List<WeeklyOffHolidayWorking>();
 

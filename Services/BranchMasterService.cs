@@ -46,40 +46,6 @@ public class BranchMasterService
         }
         return allBranch;
     }
-    public async Task<BranchMasterResponse> GetBranchById(int branchMasterId)
-    {
-        var branch = await (from b in _context.BranchMasters
-                            join c in _context.CompanyMasters
-                            on b.CompanyMasterId equals c.Id
-                            where b.Id == branchMasterId
-                            select new BranchMasterResponse
-                            {
-                                BranchMasterId = b.Id,
-                                FullName = b.FullName,
-                                ShortName = b.ShortName,
-                                Address = b.Address,
-                                City = b.City,
-                                District = b.District,
-                                State = b.State,
-                                Country = b.Country,
-                                PostalCode = b.PostalCode,
-                                PhoneNumber = b.PhoneNumber,
-                                Fax = b.Fax,
-                                Email = b.Email,
-                                CompanyMasterId = b.CompanyMasterId,
-                                CompanyMasterName = c.FullName,
-                                IsHeadOffice = b.IsHeadOffice,
-                                IsActive = b.IsActive,
-                                CreatedBy = b.CreatedBy
-                            })
-                          .FirstOrDefaultAsync();
-
-        if (branch == null)
-        {
-            throw new MessageNotFoundException("Branch not found");
-        }
-        return branch;
-    }
     public async Task<string> CreateBranch(BranchMasterRequest branchMasterRequest)
     {
         var message = "Branch master added successfully.";

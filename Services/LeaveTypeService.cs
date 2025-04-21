@@ -38,33 +38,6 @@ namespace AttendanceManagement.Services
             return allLeaveType;
         }
 
-
-        public async Task<LeaveTypeResponse> GetLeaveTypeByIdAsync(int leaveTypeId)
-        {
-            var allLeaveType = await (from leaveType in _context.LeaveTypes
-                                      where leaveType.Id == leaveTypeId
-                                      select new LeaveTypeResponse
-                                      {
-                                          LeaveTypeId = leaveType.Id,
-                                          Name = leaveType.Name,
-                                          ShortName = leaveType.ShortName,
-                                          Accountable = leaveType.Accountable,
-                                          Encashable = leaveType.Encashable,
-                                          PaidLeave = leaveType.PaidLeave,
-                                          CommonType = leaveType.CommonType,
-                                          PermissionType = leaveType.PermissionType,
-                                          CarryForward = leaveType.CarryForward,
-                                          IsActive = leaveType.IsActive,
-                                          CreatedBy = leaveType.CreatedBy
-                                      })
-                                     .FirstOrDefaultAsync();
-            if (allLeaveType == null)
-            {
-                throw new MessageNotFoundException("Leave type not found");
-            }
-            return allLeaveType;
-        }
-
         public async Task<string> CreateLeaveTypeAsync(LeaveTypeRequest leaveTypeRequest)
         {
             var message = "Leave type added successfully";

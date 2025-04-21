@@ -43,29 +43,6 @@ public class CostCentreMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetCostCentreById")]
-    public async Task<IActionResult> GetCostCentreById(int costCentreMasterId)
-    {
-        try
-        {
-            var costCentre = await _service.GetCostCentreById(costCentreMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = costCentre
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateCostCentre")]
     public async Task<IActionResult> CreateCostCentre(CostMasterRequest costCentreMaster)
     {

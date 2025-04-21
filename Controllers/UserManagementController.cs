@@ -197,7 +197,7 @@ public class UserManagementController : ControllerBase
             var response = new
             {
                 Success = true,
-                Menus = menus
+                Message = menus
             };
             return Ok(response);
         }

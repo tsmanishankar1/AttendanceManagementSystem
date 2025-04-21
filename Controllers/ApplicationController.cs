@@ -215,28 +215,6 @@ public class ApplicationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-    [HttpGet("GetApplicationTypeName")]
-    public async Task<IActionResult> GetAllApplicationTypes()
-    {
-        try
-        {
-            var applicationTypes = await _service.GetAllApplicationTypesAsync();
-            var response = new
-            {
-                Success = true,
-                Message = applicationTypes
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
 
     [HttpPost("GetApplicationRequisition")]
     public async Task<IActionResult> GetApplicationRequisition(GetLeaveRequest getLeaveRequest)

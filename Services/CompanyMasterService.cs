@@ -43,38 +43,6 @@ namespace AttendanceManagement.Services
 
             return allCompany;
         }
-
-        public async Task<CompanyMasterResponse> GetById(int companyMasterId)
-        {
-            var allCompany = await (from company in _context.CompanyMasters
-                              where company.Id == companyMasterId
-                              select new CompanyMasterResponse
-                              {
-                                  CompanyMasterId = company.Id,
-                                  FullName = company.FullName,
-                                  ShortName = company.ShortName,
-                                  LegalName = company.LegalName,
-                                  Address = company.Address,
-                                  Website = company.Website,
-                                  RegisterNumber = company.RegisterNumber,
-                                  Tngsnumber = company.Tngsnumber,
-                                  Cstnumber = company.Cstnumber,
-                                  Tinnumber = company.Tinnumber,
-                                  ServiceTaxNo = company.ServiceTaxNo,
-                                  Pannumber = company.Pannumber,
-                                  Pfnumber = company.Pfnumber,
-                                  IsActive = company.IsActive,
-                                  CreatedBy = company.CreatedBy
-                              })
-                              .FirstOrDefaultAsync();
-
-            if (allCompany == null)
-            {
-                throw new MessageNotFoundException("Company not found");
-            }
-
-            return allCompany;
-        }
         public async Task<string> Add(CompanyMasterRequest companyMasterRequest)
         {
             var message = "Company added successfully";

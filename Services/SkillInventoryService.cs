@@ -34,24 +34,6 @@ namespace AttendanceManagement.Services
             return skills;
         }
 
-        public async Task<SkillInventoryResponseModel> GetByIdAsync(int skillId)
-        {
-            var skills = await _context.SkillInventories
-                .Where(skill => skill.Id == skillId && skill.IsActive)
-                .Select(skill => new SkillInventoryResponseModel
-                {
-                    SkillId = skill.Id,
-                    StaffCreationId = skill.StaffCreationId,
-                    Name = skill.Name,
-                    LevelOfProficiency = skill.LevelOfProficiency,
-                    Notes = skill.Notes,
-
-                })
-                .FirstOrDefaultAsync();
-            if (skills == null) throw new MessageNotFoundException("Skill inventory not found");
-            return skills;
-        }
-
         public async Task<string> CreateAsync(SkillInventoryRequestModel model)
         {
             var messaage = "Skill inventory created successfully.";

@@ -40,29 +40,6 @@ public class LocationMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetLocationById")]
-    public async Task<IActionResult> GetLocationById(int locationMasterId)
-    {
-        try
-        {
-            var location = await _service.GetLocationMasterByIdAsync(locationMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = location
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateLocation")]
     public async Task<IActionResult> CreateLocation(LocationRequest location)
     {

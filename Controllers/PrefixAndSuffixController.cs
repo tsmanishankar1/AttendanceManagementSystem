@@ -125,29 +125,6 @@ public class PrefixAndSuffixController : ControllerBase
         }
     }
 
-    [HttpGet("GetPrefixAndSuffixById")]
-    public async Task<IActionResult> GetPrefixAndSuffixById(int prefixAndSuffixId)
-    {
-        try
-        {
-            var prefixAndSuffixes = await _prefixAndSuffixService.GetPrefixAndSuffixById(prefixAndSuffixId);
-            var response = new
-            {
-                Success = true,
-                Message = prefixAndSuffixes
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("AddPrefixAndSuffix")]
     public async Task<IActionResult> Create(PrefixAndSuffixRequest prefixAndSuffix)
     {

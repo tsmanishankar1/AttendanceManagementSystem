@@ -225,8 +225,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<StatutoryReport> StatutoryReports { get; set; }
 
-    public virtual DbSet<StatutoryReportSummary> StatutoryReportSummaries { get; set; }
-
     public virtual DbSet<SubFunctionMaster> SubFunctionMasters { get; set; }
 
     public virtual DbSet<SuffixLeaveType> SuffixLeaveTypes { get; set; }
@@ -386,11 +384,20 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.ToTable("ApplicationType");
 
-            entity.Property(e => e.ApplicationTypeName)
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ApplicationTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ATCRID");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ApplicationTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_ATUPID");
         });
 
         modelBuilder.Entity<Approval>(entity =>
@@ -1596,9 +1603,20 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.ToTable("EventType");
 
-            entity.Property(e => e.EventName)
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.EventTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ETCRID");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.EventTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_ETUPID");
         });
 
         modelBuilder.Entity<ExcelImport>(entity =>
@@ -4021,34 +4039,6 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.UserManagementId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Statutory__UserM__47A6A41B");
-        });
-
-        modelBuilder.Entity<StatutoryReportSummary>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Statutor__3214EC078B737D4B");
-
-            entity.ToTable("StatutoryReportSummary");
-
-            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
-            entity.Property(e => e.Lop).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.NightShiftPresentDays).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.NoOfDaysInMonth).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.NumberOfDaysToBePaid).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
-
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StatutoryReportSummaryCreatedByNavigations)
-                .HasForeignKey(d => d.CreatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CRSRSID");
-
-            entity.HasOne(d => d.Staff).WithMany(p => p.StatutoryReportSummaryStaffs)
-                .HasForeignKey(d => d.StaffId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SRSID");
-
-            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.StatutoryReportSummaryUpdatedByNavigations)
-                .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK_UPSRSID");
         });
 
         modelBuilder.Entity<SubFunctionMaster>(entity =>

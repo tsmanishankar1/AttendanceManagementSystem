@@ -33,28 +33,6 @@ namespace AttendanceManagement.Services
             if(employmentHistory.Count == 0) throw new MessageNotFoundException("No employment history found.");
             return employmentHistory;
         }
-        public async Task<EmploymentHistoryResponseModel> GetByIdAsync(int employementHistoryId)
-        {
-            var employmentHistory = await _context.EmploymentHistories
-                .Where(eh => eh.Id == employementHistoryId && eh.IsActive)
-                .Select(eh => new EmploymentHistoryResponseModel
-                {
-                    EmployeeHistoryId = eh.Id,
-                    StaffCreationId = eh.StaffCreationId,
-                    CompanyName = eh.CompanyName,
-                    JobTitle = eh.JobTitle,
-                    StartDate = eh.StartDate,
-                    EndDate = eh.EndDate,
-                    LastDrawnSalary = eh.LastDrawnSalary,
-                    JobLocation = eh.JobLocation,
-                    EmploymentType = eh.EmploymentType,
-                    ReasonForLeaving = eh.ReasonForLeaving,
-                    ReferenceContact = eh.ReferenceContact
-                })
-                .FirstOrDefaultAsync();
-            if(employmentHistory == null) throw new MessageNotFoundException("Employment history not found.");
-            return employmentHistory;
-        }
         public async Task<string> CreateAsync(EmploymentHistoryRequestModel model)
         {
             var message = "Employment history created successfully.";

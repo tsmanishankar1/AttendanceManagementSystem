@@ -43,29 +43,6 @@ public class CompanyMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetCompanyById")]
-    public async Task<IActionResult> GetCompanyMasterById(int companyMasterId)
-    {
-        try
-        {
-            var company = await _service.GetById(companyMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = company
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateCompany")]
     public async Task<IActionResult> AddCompanyMaster(CompanyMasterRequest companyMaster)
     {

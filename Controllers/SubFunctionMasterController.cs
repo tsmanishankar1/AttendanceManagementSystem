@@ -40,29 +40,6 @@ public class SubFunctionMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetSubFunctionById")]
-    public async Task<IActionResult> GetById(int subFunctionMasterId)
-    {
-        try
-        {
-            var subFunction = await _service.GetSubFunctionByIdAsync(subFunctionMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = subFunction
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateSubFunction")]
     public async Task<IActionResult> Create(SubFunctionRequest subFunctionMaster)
     {

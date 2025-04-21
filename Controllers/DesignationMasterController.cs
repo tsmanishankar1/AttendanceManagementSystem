@@ -43,29 +43,6 @@ public class DesignationMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetDesignationById")]
-    public async Task<IActionResult> GetDesignationById(int designationMasterId)
-    {
-        try
-        {
-            var designation = await _service.GetDesignationById(designationMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = designation
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateDesignation")]
     public async Task<IActionResult> AddDesignation(DesignationRequest designation)
     {

@@ -42,29 +42,6 @@ public class WeeklyOffController : ControllerBase
         }
     }
 
-    [HttpGet("GetWeeklyOffById")]
-    public async Task<IActionResult> GetWeeklyOffById(int weeklyOffId)
-    {
-        try
-        {
-            var weeklyOff = await _weeklyOffService.GetWeeklyOffByIdAsync(weeklyOffId);
-            var response = new
-            {
-                Success = true,
-                Message = weeklyOff
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("AddWeeklyOff")]
     public async Task<IActionResult> CreateWeeklyOff(WeeklyOffRequest weeklyOff)
     {

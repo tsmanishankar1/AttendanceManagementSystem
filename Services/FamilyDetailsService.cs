@@ -39,35 +39,6 @@ namespace AttendanceManagement.Services
             }
             return allFamilyDetails;
         }
-
-        public async Task<FamilyDetailsResponse> GetFamilyDetailById(int familyDetailsId)
-        {
-            var familyDetail = await _context.FamilyDetails
-                .Where(f => f.Id == familyDetailsId)
-                .Select(f => new FamilyDetailsResponse
-                {
-                    FamilyDetailsId = f.Id,
-                    MemberName = f.MemberName,
-                    Relationship = f.Relationship,
-                    DateOfBirth = f.DateOfBirth,
-                    IncomePerAnnum = f.IncomePerAnnum,
-                    Occupation = f.Occupation,
-                    NomineeForPF = f.NomineeForPf,
-                    PFSharePercentage = f.PfsharePercentage,
-                    NomineeForGratuity = f.NomineeForGratuity,
-                    GratuitySharePercentage = f.GratuitySharePercentage,
-                    StaffCreationId = f.StaffCreationId,
-                    IsActive = f.IsActive,
-                    CreatedBy = f.CreatedBy
-                })
-                .FirstOrDefaultAsync();
-
-            if (familyDetail == null)
-            {
-                throw new MessageNotFoundException("Family detail not found");
-            }
-            return familyDetail;
-        }
         public async Task<string> CreateFamilyDetail(FamilyDetailsDTO familyDetailDto)
         {
             var message = "Family detail added successfully.";

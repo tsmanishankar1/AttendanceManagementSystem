@@ -120,15 +120,6 @@
 			<response code="404">If no shifts are found for the specified criteria.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetAllApplicationTypes">
-			<summary>
-				Retrieves all application types.
-			</summary>
-			<returns>A list of application types.</returns>
-			<response code="200">Returns the list of application types.</response>
-			<response code="404">If no application types are found.</response>
-			<response code="500">If there is an internal server error.</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationRequisition(AttendanceManagement.Input_Models.GetLeaveRequest)">
 			<summary>
 				Retrieves application requisitions based on the provided criteria.
@@ -419,16 +410,6 @@
 			<response code="404">If no branches are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.BranchMasterController.GetById(System.Int32)">
-			<summary>
-				Retrieves a branch by its ID.
-			</summary>
-			<param name="branchMasterId">The ID of the branch.</param>
-			<returns>The branch with the specified ID.</returns>
-			<response code="200">Returns the branch</response>
-			<response code="404">If the branch is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.BranchMasterController.Create(AttendanceManagement.Input_Models.BranchMasterRequest)">
 			<summary>
 				Creates a new branch.
@@ -467,16 +448,6 @@
 			<returns>All categories.</returns>
 			<response code="200">Returns the list of categories</response>
 			<response code="404">If no categories are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.GetCategoryById(System.Int32)">
-			<summary>
-				Retrieves a category by its ID.
-			</summary>
-			<param name="categoryMasterId">The ID of the category.</param>
-			<returns>The category with the specified ID.</returns>
-			<response code="200">Returns the category</response>
-			<response code="404">If the category is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.CreateCategory(AttendanceManagement.Input_Models.CategoryMasterRequest)">
@@ -519,16 +490,6 @@
 			<response code="404">If no certificates are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CertificateTrackingController.GetCertificateById(System.Int32)">
-			<summary>
-				Retrieves a certificate by its ID.
-			</summary>
-			<param name="certificateId">The ID of the certificate.</param>
-			<returns>The certificate with the specified ID.</returns>
-			<response code="200">Returns the certificate</response>
-			<response code="404">If the certificate is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.CertificateTrackingController.CreateCertificate(AttendanceManagement.Input_Models.CertificateTrackingDto)">
 			<summary>
 				Creates a new certificate.
@@ -569,16 +530,6 @@
 			<response code="404">If no companies are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.GetCompanyMasterById(System.Int32)">
-			<summary>
-				Retrieves a company by its ID.
-			</summary>
-			<param name="companyMasterId">The ID of the company.</param>
-			<returns>The company with the specified ID.</returns>
-			<response code="200">Returns the company</response>
-			<response code="404">If the company is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.AddCompanyMaster(AttendanceManagement.Input_Models.CompanyMasterRequest)">
 			<summary>
 				Creates a new company.
@@ -617,16 +568,6 @@
 			<returns>All cost centres.</returns>
 			<response code="200">Returns the list of cost centres</response>
 			<response code="404">If no cost centres are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.GetCostCentreById(System.Int32)">
-			<summary>
-				Retrieves a cost centre by its ID.
-			</summary>
-			<param name="costCentreMasterId">The ID of the cost centre.</param>
-			<returns>The cost centre with the specified ID.</returns>
-			<response code="200">Returns the cost centre</response>
-			<response code="404">If the cost centre is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.CreateCostCentre(AttendanceManagement.Input_Models.CostMasterRequest)">
@@ -724,15 +665,6 @@
 			<response code="404">If no anniversaries of the specified type are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DashboardController.GetAllEventTypes">
-			<summary>
-				Retrieves all available event types in the system.
-			</summary>
-			<returns>A list of all event types</returns>
-			<response code="200">Returns the list of all event types</response>
-			<response code="404">If no event types are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.DashboardController.GetNewJoinee">
 			<summary>
 				Retrieves all New Joinees.
@@ -803,16 +735,6 @@
 			<response code="404">If no departments are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.GetDepartmentById(System.Int32)">
-			<summary>
-				Retrieves a department by its ID.
-			</summary>
-			<param name="departmentMasterId">The ID of the department.</param>
-			<returns>The department with the specified ID.</returns>
-			<response code="200">Returns the department</response>
-			<response code="404">If the department is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.CreateDepartment(AttendanceManagement.Input_Models.DepartmentRequest)">
 			<summary>
 				Creates a new department.
@@ -851,16 +773,6 @@
 			<returns>All designations.</returns>
 			<response code="200">Returns the list of designations</response>
 			<response code="404">If no designations are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.GetDesignationById(System.Int32)">
-			<summary>
-				Retrieves a designation by its ID.
-			</summary>
-			<param name="designationMasterId">The ID of the designation.</param>
-			<returns>The designation with the specified ID.</returns>
-			<response code="200">Returns the designation</response>
-			<response code="404">If the designation is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.AddDesignation(AttendanceManagement.Input_Models.DesignationRequest)">
@@ -903,16 +815,6 @@
 			<response code="404">If no divisions are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.GetDivisionById(System.Int32)">
-			<summary>
-				Retrieves a division by its ID.
-			</summary>
-			<param name="divisionMasterId">The ID of the division.</param>
-			<returns>The division with the specified ID.</returns>
-			<response code="200">Returns the division</response>
-			<response code="404">If the division is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.AddDivision(AttendanceManagement.Input_Models.DivisionRequest)">
 			<summary>
 				Creates a new division.
@@ -951,16 +853,6 @@
 			<returns>All educational qualifications.</returns>
 			<response code="200">Returns the list of educational qualifications</response>
 			<response code="404">If no educational qualifications are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EducationalQualificationController.GetById(System.Int32)">
-			<summary>
-				Retrieves an educational qualification by its ID.
-			</summary>
-			<param name="educationalQualificationId">The ID of the educational qualification.</param>
-			<returns>The educational qualification with the specified ID.</returns>
-			<response code="200">Returns the educational qualification</response>
-			<response code="404">If the educational qualification is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.EducationalQualificationController.Create(AttendanceManagement.Input_Models.EducationalQualificationDto)">
@@ -1003,16 +895,6 @@
 			<response code="404">If no emergency contacts are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.EmergencyContactController.GetByIdAsync(System.Int32)">
-			<summary>
-				Retrieves an emergency contact by its ID.
-			</summary>
-			<param name="emergencyContactId">The ID of the emergency contact.</param>
-			<returns>The emergency contact with the specified ID.</returns>
-			<response code="200">Returns the emergency contact</response>
-			<response code="404">If the emergency contact is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.EmergencyContactController.Create(AttendanceManagement.Input_Models.AttendanceManagement.Models.EmergencyContactRequestModel)">
 			<summary>
 				Creates a new emergency contact.
@@ -1051,16 +933,6 @@
 			<returns>All employment histories.</returns>
 			<response code="200">Returns the list of employment histories</response>
 			<response code="404">If no employment histories are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmploymentHistoryController.GetByIdAsync(System.Int32)">
-			<summary>
-				Retrieves an employment history by its ID.
-			</summary>
-			<param name="employeeHistoryId">The ID of the employment history.</param>
-			<returns>The employment history with the specified ID.</returns>
-			<response code="200">Returns the employment history</response>
-			<response code="404">If the employment history is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.EmploymentHistoryController.CreateAsync(AttendanceManagement.Input_Models.EmploymentHistoryRequestModel)">
@@ -1133,16 +1005,6 @@
 			<response code="404">If no family details are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.FamilyDetailsController.GetById(System.Int32)">
-			<summary>
-				Retrieves a family detail by its ID.
-			</summary>
-			<param name="familyDetailsId">The ID of the family detail.</param>
-			<returns>The family detail with the specified ID.</returns>
-			<response code="200">Returns the family detail</response>
-			<response code="404">If the family detail is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.FamilyDetailsController.Create(AttendanceManagement.Input_Models.FamilyDetailsDTO)">
 			<summary>
 				Creates a new family detail.
@@ -1181,16 +1043,6 @@
 			<returns>All grades.</returns>
 			<response code="200">Returns the list of grades</response>
 			<response code="404">If no grades are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.GradeMasterController.GetById(System.Int32)">
-			<summary>
-				Retrieves a grade by its ID.
-			</summary>
-			<param name="gradeMasterId">The ID of the grade.</param>
-			<returns>The grade with the specified ID.</returns>
-			<response code="200">Returns the grade</response>
-			<response code="404">If the grade is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.GradeMasterController.Create(AttendanceManagement.Input_Models.GradeMasterRequest)">
@@ -1408,16 +1260,6 @@
 			<response code="404">If no leave groups are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.GetLeaveGroupById(System.Int32)">
-			<summary>
-				Retrieves a leave group by its ID.
-			</summary>
-			<param name="leaveGroupId">The ID of the leave group.</param>
-			<returns>The leave group with the specified ID.</returns>
-			<response code="200">Returns the leave group</response>
-			<response code="404">If the leave group is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.AddLeaveGroup(AttendanceManagement.Input_Models.AddLeaveGroupDto)">
 			<summary>
 				Creates a new leave group.
@@ -1458,16 +1300,6 @@
 			<response code="404">If no leave types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.GetLeaveTypeById(System.Int32)">
-			<summary>
-				Retrieves a leave type by its ID.
-			</summary>
-			<param name="leaveTypeId">The ID of the leave type.</param>
-			<returns>The leave type with the specified ID.</returns>
-			<response code="200">Returns the leave type</response>
-			<response code="404">If the leave type is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.CreateLeaveType(AttendanceManagement.Input_Models.LeaveTypeRequest)">
 			<summary>
 				Creates a new leave type.
@@ -1506,16 +1338,6 @@
 			<returns>All locations.</returns>
 			<response code="200">Returns the list of locations</response>
 			<response code="404">If no locations are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.LocationMasterController.GetLocationById(System.Int32)">
-			<summary>
-				Retrieves a location by its ID.
-			</summary>
-			<param name="locationMasterId">The ID of the location.</param>
-			<returns>The location with the specified ID.</returns>
-			<response code="200">Returns the location</response>
-			<response code="404">If the location is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.LocationMasterController.CreateLocation(AttendanceManagement.Input_Models.LocationRequest)">
@@ -1684,16 +1506,6 @@
 			<returns>All prefix and suffix records.</returns>
 			<response code="200">Returns the list of prefix and suffix records</response>
 			<response code="404">If no prefix and suffix records are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.GetPrefixAndSuffixById(System.Int32)">
-			<summary>
-				Retrieves a prefix and suffix by its ID.
-			</summary>
-			<param name="prefixAndSuffixId">The ID of the prefix and suffix.</param>
-			<returns>The prefix and suffix with the specified ID.</returns>
-			<response code="200">Returns the prefix and suffix</response>
-			<response code="404">If the prefix and suffix is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Create(AttendanceManagement.Input_Models.PrefixAndSuffixRequest)">
@@ -1881,16 +1693,6 @@
 			<response code="404">If no staff members are found for the specified division</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ShiftController.GetShiftById(System.Int32)">
-			<summary>
-				Retrieves a shift by its ID.
-			</summary>
-			<param name="shiftId">The ID of the shift.</param>
-			<returns>The shift with the specified ID.</returns>
-			<response code="200">Returns the shift</response>
-			<response code="404">If the shift is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.ShiftController.CreateShift(AttendanceManagement.Input_Models.ShiftRequest)">
 			<summary>
 				Creates a new shift.
@@ -1948,16 +1750,6 @@
 			<returns>All skills.</returns>
 			<response code="200">Returns the list of skills</response>
 			<response code="404">If no skills are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.SkillInventoryController.GetByIdAsync(System.Int32)">
-			<summary>
-				Retrieves a skill by its ID.
-			</summary>
-			<param name="skillId">The ID of the skill.</param>
-			<returns>The skill with the specified ID.</returns>
-			<response code="200">Returns the skill</response>
-			<response code="404">If the skill is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.SkillInventoryController.CreateAsync(AttendanceManagement.Input_Models.SkillInventoryRequestModel)">
@@ -2335,16 +2127,6 @@
 			<response code="404">If no sub functions are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.GetById(System.Int32)">
-			<summary>
-				Retrieves a sub function by its ID.
-			</summary>
-			<param name="subFunctionMasterId">The ID of the sub function.</param>
-			<returns>The sub function with the specified ID.</returns>
-			<response code="200">Returns the sub function</response>
-			<response code="404">If the sub function is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.Create(AttendanceManagement.Input_Models.SubFunctionRequest)">
 			<summary>
 				Creates a new sub function.
@@ -2376,15 +2158,6 @@
 			<param name="toolsService">The tools service.</param>
 			<param name="context">The attendance management system context.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.GetAllApplicationTypes">
-			<summary>
-				Retrieves all application types.
-			</summary>
-			<returns>All application types.</returns>
-			<response code="200">Returns the list of application types</response>
-			<response code="404">If no application types are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.GetStaffInfoByStaffId(System.Collections.Generic.List{System.Int32})">
 			<summary>
 				Retrieves staff leave information based on Staff IDs.
@@ -2401,16 +2174,6 @@
 			</summary>
 			<returns>A list of all assigned leave types.</returns>
 			<response code="200">Returns the list of assigned leave types</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.GetById(System.Int32)">
-			<summary>
-				Retrieves an assigned leave type by its ID.
-			</summary>
-			<param name="id">The ID of the assigned leave type.</param>
-			<returns>The assigned leave type with the specified ID.</returns>
-			<response code="200">Returns the assigned leave type</response>
-			<response code="404">If the assigned leave type is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.Create(AttendanceManagement.Input_Models.CreateAssignLeaveTypeDTO)">
@@ -2536,16 +2299,6 @@
 			<response code="404">If no weekly offs are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.GetWeeklyOffById(System.Int32)">
-			<summary>
-				Retrieves a weekly off by its ID.
-			</summary>
-			<param name="weeklyOffId">The ID of the weekly off.</param>
-			<returns>The weekly off with the specified ID.</returns>
-			<response code="200">Returns the weekly off</response>
-			<response code="404">If the weekly off is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.CreateWeeklyOff(AttendanceManagement.Input_Models.WeeklyOffRequest)">
 			<summary>
 				Creates a new weekly off.
@@ -2586,16 +2339,6 @@
 			<response code="404">If no workstations are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.GetWorkstationById(System.Int32)">
-			<summary>
-				Retrieves a workstation by its ID.
-			</summary>
-			<param name="workstationMasterId">The ID of the workstation.</param>
-			<returns>The workstation with the specified ID.</returns>
-			<response code="200">Returns the workstation</response>
-			<response code="404">If the workstation is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.CreateWorkstation(AttendanceManagement.Input_Models.WorkStationRequest)">
 			<summary>
 				Creates a new workstation.
@@ -2634,16 +2377,6 @@
 			<returns>All zones.</returns>
 			<response code="200">Returns the list of zones</response>
 			<response code="404">If no zones are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.GetById(System.Int32)">
-			<summary>
-				Retrieves a zone by its ID.
-			</summary>
-			<param name="zoneMasterId">The ID of the zone.</param>
-			<returns>The zone with the specified ID.</returns>
-			<response code="200">Returns the zone</response>
-			<response code="404">If the zone is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.Create(AttendanceManagement.Input_Models.ZoneMasterRequest)">

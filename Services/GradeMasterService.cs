@@ -34,26 +34,6 @@ public class GradeMasterService
     }
 
 
-    public async Task<GradeMasterResponse> GetGradeById(int gradeMasterId)
-    {
-        var allGrade = await (from grade in _context.GradeMasters
-                        where grade.Id == gradeMasterId
-                        select new GradeMasterResponse
-                        {
-                            GradeMasterId = grade.Id,
-                            FullName = grade.FullName,
-                            ScreenOption = grade.ScreenOption,
-                            IsActive = grade.IsActive,
-                            CreatedBy = grade.CreatedBy
-                        })
-                        .FirstOrDefaultAsync();
-        if (allGrade == null)
-        {
-            throw new MessageNotFoundException("Grade not found");
-        }
-        return allGrade;
-    }
-
     public async Task<string> CreateGrade(GradeMasterRequest gradeMasterRequest)
     {
         var message = "Grade added successfully";

@@ -187,6 +187,10 @@ public partial class StaffCreation
 
     public virtual ICollection<AddressVerification> AddressVerificationUpdatedByNavigations { get; set; } = new List<AddressVerification>();
 
+    public virtual ICollection<ApplicationType> ApplicationTypeCreatedByNavigations { get; set; } = new List<ApplicationType>();
+
+    public virtual ICollection<ApplicationType> ApplicationTypeUpdatedByNavigations { get; set; } = new List<ApplicationType>();
+
     public virtual ICollection<Approval> ApprovalCreatedByNavigations { get; set; } = new List<Approval>();
 
     public virtual StaffCreation ApprovalLevel1Navigation { get; set; } = null!;
@@ -376,6 +380,10 @@ public partial class StaffCreation
     public virtual ICollection<EmploymentHistory> EmploymentHistoryStaffCreations { get; set; } = new List<EmploymentHistory>();
 
     public virtual ICollection<EmploymentHistory> EmploymentHistoryUpdatedByNavigations { get; set; } = new List<EmploymentHistory>();
+
+    public virtual ICollection<EventType> EventTypeCreatedByNavigations { get; set; } = new List<EventType>();
+
+    public virtual ICollection<EventType> EventTypeUpdatedByNavigations { get; set; } = new List<EventType>();
 
     public virtual ICollection<ExcelImport> ExcelImportCreatedByNavigations { get; set; } = new List<ExcelImport>();
 
@@ -702,12 +710,6 @@ public partial class StaffCreation
     public virtual ICollection<Status> StatusUpdatedByNavigations { get; set; } = new List<Status>();
 
     public virtual ICollection<StatutoryReport> StatutoryReportCreatedByNavigations { get; set; } = new List<StatutoryReport>();
-
-    public virtual ICollection<StatutoryReportSummary> StatutoryReportSummaryCreatedByNavigations { get; set; } = new List<StatutoryReportSummary>();
-
-    public virtual ICollection<StatutoryReportSummary> StatutoryReportSummaryStaffs { get; set; } = new List<StatutoryReportSummary>();
-
-    public virtual ICollection<StatutoryReportSummary> StatutoryReportSummaryUpdatedByNavigations { get; set; } = new List<StatutoryReportSummary>();
 
     public virtual ICollection<StatutoryReport> StatutoryReportUpdatedByNavigations { get; set; } = new List<StatutoryReport>();
 

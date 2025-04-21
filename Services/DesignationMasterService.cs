@@ -36,28 +36,6 @@ namespace AttendanceManagement.Services
             return allDesignation;
         }
 
-        public async Task<DesignationResponse> GetDesignationById(int designationMasterId)
-        {
-            var allDesignation = await (from designation in _context.DesignationMasters
-                                  where designation.Id == designationMasterId
-                                  select new DesignationResponse
-                                  {
-                                      DesignationMasterId = designation.Id,
-                                      FullName = designation.FullName,
-                                      ShortName = designation.ShortName,
-                                      IsActive = designation.IsActive,
-                                      CreatedBy = designation.CreatedBy
-                                  })
-                                  .FirstOrDefaultAsync();
-
-            if (allDesignation == null)
-            {
-                throw new MessageNotFoundException("Designation not found");
-            }
-
-            return allDesignation;
-        }
-
         public async Task<string> AddDesignation(DesignationRequest designationRequest)
         {
             var message = "Designation added successfully";

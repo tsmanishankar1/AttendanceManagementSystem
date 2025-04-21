@@ -24,7 +24,7 @@ namespace AttendanceManagement.Services
             var selectedRows = approveLeaveRequest.SelectedRows;
             var approverName = _context.StaffCreations.Where(s => s.Id == approveLeaveRequest.ApprovedBy && s.IsActive == true).Select(s => $"{s.FirstName}{s.LastName}").FirstOrDefault();
             //string approvedDateTime = DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-            var applicationType = await _context.ApplicationTypes.Where(a => a.Id == approveLeaveRequest.ApplicationTypeId && a.IsActive).Select(a => a.ApplicationTypeName).FirstOrDefaultAsync();
+            var applicationType = await _context.ApplicationTypes.Where(a => a.Id == approveLeaveRequest.ApplicationTypeId && a.IsActive).Select(a => a.Name).FirstOrDefaultAsync();
             foreach (var item in selectedRows)
             {
                 if (approveLeaveRequest.ApplicationTypeId == 1)

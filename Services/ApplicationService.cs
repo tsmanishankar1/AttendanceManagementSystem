@@ -135,7 +135,7 @@ public class ApplicationService
                     (tempWithSc, sc) => new LeaveReq
                     {
                         ApplicationTypeId = tempWithSc.temp.lr.ApplicationTypeId,
-                        ApplicationTypeName = tempWithSc.temp.at.ApplicationTypeName,
+                        ApplicationTypeName = tempWithSc.temp.at.Name,
                         Status1 = tempWithSc.temp.lr.IsCancelled == true ? "Cancelled" :
                             (sc != null)
                                 ? (tempWithSc.temp.lr.Status1.HasValue
@@ -168,7 +168,7 @@ public class ApplicationService
                         ApplicationTypeId = tempWithSc.cp.ApplicationTypeId,
                         ApplicationTypeName = _context.ApplicationTypes
                             .Where(at => at.Id == tempWithSc.cp.ApplicationTypeId)
-                            .Select(at => at.ApplicationTypeName)
+                            .Select(at => at.Name)
                             .FirstOrDefault(),
                         Status1 = tempWithSc.cp.IsCancelled == true ? "Cancelled" :
                             (sc != null)
@@ -198,7 +198,7 @@ public class ApplicationService
                      (tempWithSc, sc) => new ManualPunch
                      {
                          ApplicationTypeId = tempWithSc.mp.ApplicationTypeId,
-                         ApplicationTypeName = tempWithSc.mp.ApplicationType.ApplicationTypeName,
+                         ApplicationTypeName = tempWithSc.mp.ApplicationType.Name,
                          Status1 = tempWithSc.mp.IsCancelled == true ? "Cancelled" :
                              (sc != null)
                                  ? (tempWithSc.mp.Status1.HasValue
@@ -226,7 +226,7 @@ public class ApplicationService
                     (tempWithSc, sc) => new OnDutyRequest
                     {
                         ApplicationTypeId = tempWithSc.od.ApplicationTypeId,
-                        ApplicationTypeName = tempWithSc.od.ApplicationType.ApplicationTypeName,
+                        ApplicationTypeName = tempWithSc.od.ApplicationType.Name,
                         Status1 = tempWithSc.od.IsCancelled == true ? "Cancelled" :
                             (sc != null)
                                 ? (tempWithSc.od.Status1.HasValue
@@ -258,7 +258,7 @@ public class ApplicationService
                      (tempWithSc, sc) => new Business
                      {
                          ApplicationTypeId = tempWithSc.bt.ApplicationTypeId,
-                         ApplicationTypeName = tempWithSc.bt.ApplicationType.ApplicationTypeName,
+                         ApplicationTypeName = tempWithSc.bt.ApplicationType.Name,
 
                          Status1 = tempWithSc.bt.IsCancelled == true ? "Cancelled" :
                              (sc != null)
@@ -293,7 +293,7 @@ public class ApplicationService
                        (tempWithSc, sc) => new WorkFrom
                        {
                            ApplicationTypeId = tempWithSc.wfh.ApplicationTypeId,
-                           ApplicationTypeName = tempWithSc.wfh.ApplicationType.ApplicationTypeName,
+                           ApplicationTypeName = tempWithSc.wfh.ApplicationType.Name,
 
                            Status1 = tempWithSc.wfh.IsCancelled == true ? "Cancelled" :
                                (sc != null)
@@ -332,7 +332,7 @@ public class ApplicationService
                       (tempWithSc, sc) => new ShiftChan
                       {
                           ApplicationTypeId = tempWithSc.tempWithS.temp.sc.ApplicationTypeId,
-                          ApplicationTypeName = tempWithSc.tempWithS.temp.at.ApplicationTypeName,
+                          ApplicationTypeName = tempWithSc.tempWithS.temp.at.Name,
                           ShiftName = tempWithSc.tempWithS.s.ShiftName,
                           FromDate = tempWithSc.tempWithS.temp.sc.FromDate,
                           ToDate = tempWithSc.tempWithS.temp.sc.ToDate,
@@ -363,7 +363,7 @@ public class ApplicationService
                      (tempWithSc, sc) => new ShiftExte
                      {
                          ApplicationTypeId = tempWithSc.se.ApplicationTypeId,
-                         ApplicationTypeName = tempWithSc.se.ApplicationType.ApplicationTypeName,
+                         ApplicationTypeName = tempWithSc.se.ApplicationType.Name,
                          TransactionDate = tempWithSc.se.TransactionDate,
                          DurationHours = tempWithSc.se.DurationHours,
                          BeforeShiftHours = tempWithSc.se.BeforeShiftHours,
@@ -399,7 +399,7 @@ public class ApplicationService
                     temp => temp.wh.ShiftId, s => s.Id, (temp, s) => new WeeklyOffHoliday
                     {
                         ApplicationTypeId = temp.wh.ApplicationTypeId,
-                        ApplicationTypeName = temp.at.ApplicationTypeName,
+                        ApplicationTypeName = temp.at.Name,
                         SelectShiftType = temp.wh.SelectShiftType,
                         TxnDate = temp.wh.TxnDate,
                         ShiftName = s.ShiftName,  
@@ -430,7 +430,7 @@ public class ApplicationService
                     (tempWithSc, sc) => new CompOffAvai
                     {
                         ApplicationTypeId = tempWithSc.coa.ApplicationTypeId,
-                        ApplicationTypeName = tempWithSc.coa.ApplicationType.ApplicationTypeName,
+                        ApplicationTypeName = tempWithSc.coa.ApplicationType.Name,
                         WorkedDate = tempWithSc.coa.WorkedDate,
                         FromDate = tempWithSc.coa.FromDate,
                         ToDate = tempWithSc.coa.ToDate,
@@ -464,7 +464,7 @@ public class ApplicationService
                     (tempWithSc, sc) => new CompOffCred
                     {
                         ApplicationTypeId = tempWithSc.coc.ApplicationTypeId,
-                        ApplicationTypeName = tempWithSc.coc.ApplicationType.ApplicationTypeName,
+                        ApplicationTypeName = tempWithSc.coc.ApplicationType.Name,
                         WorkedDate = tempWithSc.coc.WorkedDate,
                         TotalDays = tempWithSc.coc.TotalDays,
                         Reason = tempWithSc.coc.Reason,
@@ -950,21 +950,6 @@ public class ApplicationService
         }
         return compOffs;
     }
-    public async Task<IEnumerable<ApplicationTypeDto>> GetAllApplicationTypesAsync()
-    {
-        var application = await (from applicationType in _context.ApplicationTypes
-                                 select new ApplicationTypeDto
-                                 {
-                                     ApplicationTypeId = applicationType.Id,
-                                     ApplicationTypeName = applicationType.ApplicationTypeName
-                                 })
-                                 .ToListAsync();
-        if (application.Count == 0)
-        {
-            throw new MessageNotFoundException("No application type found");
-        }
-        return application;
-    }
 
     public async Task<List<object>> GetApplicationRequisition(int approverId, List<int>? staffIds, int? applicationTypeId, DateOnly? fromDate, DateOnly? toDate)
     {
@@ -1031,7 +1016,7 @@ public class ApplicationService
                                    {
                                        leave.Id,
                                        leave.ApplicationTypeId,
-                                       ApplicationType = application.ApplicationTypeName,
+                                       ApplicationType = application.Name,
                                        StaffId = leave.StaffId ?? leave.CreatedBy,
                                        StaffName = leave.StaffId.HasValue
                                            ? leaveStaff.FirstName + " " + (leaveStaff.LastName ?? "")
@@ -1199,7 +1184,7 @@ public class ApplicationService
                                         {
                                             punch.Id,
                                             punch.ApplicationTypeId,
-                                            ApplicationType = application.ApplicationTypeName,
+                                            ApplicationType = application.Name,
                                             StaffId = punch.StaffId ?? punch.CreatedBy,
                                             StaffName = punch.StaffId.HasValue
                                                 ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1268,7 +1253,7 @@ public class ApplicationService
                                                {
                                                    duty.Id,
                                                    duty.ApplicationTypeId,
-                                                   ApplicationType = application.ApplicationTypeName,
+                                                   ApplicationType = application.Name,
                                                    StaffId = duty.StaffId ?? duty.CreatedBy,
                                                    StaffName = duty.StaffId.HasValue
                                                        ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1339,7 +1324,7 @@ public class ApplicationService
                                             {
                                                 travel.Id,
                                                 travel.ApplicationTypeId,
-                                                ApplicationType = application.ApplicationTypeName,
+                                                ApplicationType = application.Name,
                                                 StaffId = travel.StaffId ?? travel.CreatedBy,
                                                 StaffName = travel.StaffId.HasValue
                                                     ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1410,7 +1395,7 @@ public class ApplicationService
                                           {
                                               workFromHome.Id,
                                               workFromHome.ApplicationTypeId,
-                                              ApplicationType = application.ApplicationTypeName,
+                                              ApplicationType = application.Name,
                                               StaffId = workFromHome.StaffId ?? workFromHome.CreatedBy,
                                               StaffName = workFromHome.StaffId.HasValue
                                                   ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1482,7 +1467,7 @@ public class ApplicationService
                                          {
                                              shiftChange.Id,
                                              shiftChange.ApplicationTypeId,
-                                             ApplicationType = application.ApplicationTypeName,
+                                             ApplicationType = application.Name,
                                              StaffId = shiftChange.StaffId ?? shiftChange.CreatedBy,
                                              StaffName = shiftChange.StaffId.HasValue
                                                  ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1549,7 +1534,7 @@ public class ApplicationService
                                             {
                                                 shiftExtension.Id,
                                                 shiftExtension.ApplicationTypeId,
-                                                ApplicationType = application.ApplicationTypeName,
+                                                ApplicationType = application.Name,
                                                 StaffId = shiftExtension.StaffId ?? shiftExtension.CreatedBy,
                                                 StaffName = shiftExtension.StaffId.HasValue
                                                     ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1618,7 +1603,7 @@ public class ApplicationService
                                                     {
                                                         holidayWorking.Id,
                                                         holidayWorking.ApplicationTypeId,
-                                                        ApplicationType = application.ApplicationTypeName,
+                                                        ApplicationType = application.Name,
                                                         StaffId = holidayWorking.StaffId ?? holidayWorking.CreatedBy,
                                                         StaffName = holidayWorking.StaffId.HasValue
                                                             ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1685,7 +1670,7 @@ public class ApplicationService
                                          {
                                              compOff.Id,
                                              compOff.ApplicationTypeId,
-                                             ApplicationType = application.ApplicationTypeName,
+                                             ApplicationType = application.Name,
                                              StaffId = compOff.StaffId ?? compOff.CreatedBy,
                                              StaffName = compOff.StaffId.HasValue
                                                  ? staff.FirstName + " " + (staff.LastName ?? "")
@@ -1753,7 +1738,7 @@ public class ApplicationService
                                           {
                                               compOff.Id,
                                               compOff.ApplicationTypeId,
-                                              ApplicationType = application.ApplicationTypeName,
+                                              ApplicationType = application.Name,
                                               StaffId = compOff.StaffId ?? compOff.CreatedBy,
                                               StaffName = compOff.StaffId.HasValue
                                                   ? staff.FirstName + " " + (staff.LastName ?? "")

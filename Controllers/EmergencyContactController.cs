@@ -46,29 +46,6 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpGet("GetEmergencyById")]
-        public async Task<IActionResult> GetByIdAsync(int emergencyContactId)
-        {
-            try
-            {
-                var emergencyContact = await _emergencyContactService.GetByIdAsync(emergencyContactId);
-                var response = new
-                {
-                    Success = true,
-                    Message = emergencyContact
-                };
-                return Ok(response);
-            }
-            catch (MessageNotFoundException ex)
-            {
-                return ErrorClass.NotFoundResponse(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return ErrorClass.ErrorResponse(ex.Message);
-            }
-        }
-
         [HttpPost("CreateEmergencyContact")]
         public async Task<IActionResult> Create(EmergencyContactRequestModel model)
         {
