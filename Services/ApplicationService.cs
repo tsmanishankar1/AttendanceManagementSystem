@@ -33,90 +33,80 @@ public class ApplicationService
         _emailService = emailService;
         _storedProcedureDbContext = storedProcedureDbContext;
     }
-    public async Task<bool> CancelAppliedLeave(int applicationTypeId, int id, int updatedBy)
+    public async Task<bool> CancelAppliedLeave(CancelAppliedLeave cancel)
     {
         object? entity = null;
-        try
+        switch (cancel.ApplicationTypeId)
         {
-            switch (applicationTypeId)
-            {
-                case 1:
-                    entity = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == id && l.IsActive);
-                    break;
-                case 2:
-                    entity = await _context.CommonPermissions.FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
-                    break;
-                case 3:
-                    entity = await _context.ManualPunchRequistions.FirstOrDefaultAsync(m => m.Id == id && m.IsActive);
-                    break;
-                case 4:
-                    entity = await _context.OnDutyRequisitions.FirstOrDefaultAsync(o => o.Id == id && o.IsActive);
-                    break;
-                case 5:
-                    entity = await _context.BusinessTravels.FirstOrDefaultAsync(b => b.Id == id && b.IsActive);
-                    break;
-                case 6:
-                    entity = await _context.WorkFromHomes.FirstOrDefaultAsync(w => w.Id == id && w.IsActive);
-                    break;
-                case 7:
-                    entity = await _context.ShiftChanges.FirstOrDefaultAsync(s => s.Id == id && s.IsActive);
-                    break;
-                case 8:
-                    entity = await _context.ShiftExtensions.FirstOrDefaultAsync(se => se.Id == id && se.IsActive);
-                    break;
-                case 9:
-                    entity = await _context.WeeklyOffHolidayWorkings.FirstOrDefaultAsync(wh => wh.Id == id && wh.IsActive);
-                    break;
-                case 10:
-                    entity = await _context.CompOffAvails.FirstOrDefaultAsync(ca => ca.Id == id && ca.IsActive);
-                    break;
-                case 11:
-                    entity = await _context.CompOffCredits.FirstOrDefaultAsync(cc => cc.Id == id && cc.IsActive);
-                    break;
-                case 12:
-                    entity = await _context.Reimbursements.FirstOrDefaultAsync(cc => cc.Id == id && cc.IsActive);
-                    break;
-                default:
-                    return false;
-            }
-
-            if (entity == null)
-            {
-                Console.WriteLine($"Active entity not found for ApplicationTypeId: {applicationTypeId}, Id: {id}");
+            case 1:
+                entity = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == cancel.Id && l.IsActive);
+                break;
+            case 2:
+                entity = await _context.CommonPermissions.FirstOrDefaultAsync(p => p.Id == cancel.Id && p.IsActive);
+                break;
+            case 3:
+                entity = await _context.ManualPunchRequistions.FirstOrDefaultAsync(m => m.Id == cancel.Id && m.IsActive);
+                break;
+            case 4:
+                entity = await _context.OnDutyRequisitions.FirstOrDefaultAsync(o => o.Id == cancel.Id && o.IsActive);
+                break;
+            case 5:
+                entity = await _context.BusinessTravels.FirstOrDefaultAsync(b => b.Id == cancel.Id && b.IsActive);
+                break;
+            case 6:
+                entity = await _context.WorkFromHomes.FirstOrDefaultAsync(w => w.Id == cancel.Id && w.IsActive);
+                break;
+            case 7:
+                entity = await _context.ShiftChanges.FirstOrDefaultAsync(s => s.Id == cancel.Id && s.IsActive);
+                break;
+            case 8:
+                entity = await _context.ShiftExtensions.FirstOrDefaultAsync(se => se.Id == cancel.Id && se.IsActive);
+                break;
+            case 9:
+                entity = await _context.WeeklyOffHolidayWorkings.FirstOrDefaultAsync(wh => wh.Id == cancel.Id && wh.IsActive);
+                break;
+            case 10:
+                entity = await _context.CompOffAvails.FirstOrDefaultAsync(ca => ca.Id == cancel.Id && ca.IsActive);
+                break;
+            case 11:
+                entity = await _context.CompOffCredits.FirstOrDefaultAsync(cc => cc.Id == cancel.Id && cc.IsActive);
+                break;
+            case 12:
+                entity = await _context.Reimbursements.FirstOrDefaultAsync(cc => cc.Id == cancel.Id && cc.IsActive);
+                break;
+            default:
                 return false;
-            }
-
-            var entityType = entity.GetType();
-            var isCancelledProperty = entityType.GetProperty("IsCancelled");
-            var cancelledOnProperty = entityType.GetProperty("CancelledOn");
-            var updatedByProperty = entityType.GetProperty("UpdatedBy");
-            var isActiveProperty = entityType.GetProperty("IsActive");
-
-            if (isCancelledProperty == null)
-            {
-                Console.WriteLine($"IsCancelled property not found in entity type: {entityType.Name}");
-                return false;
-            }
-
-            bool isAlreadyCancelled = (bool)(isCancelledProperty.GetValue(entity) ?? false);
-            if (isAlreadyCancelled)
-            {
-                Console.WriteLine($"Application already cancelled for Id: {id}");
-                return false;
-            }
-            isCancelledProperty.SetValue(entity, true);
-            cancelledOnProperty?.SetValue(entity, DateTime.UtcNow);
-            updatedByProperty?.SetValue(entity, updatedBy);
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return true;
         }
-        catch (Exception ex)
+
+        if (entity == null)
         {
-            Console.WriteLine($"Error in CancelAppliedLeave: {ex.Message}");
-            return false;
+            throw new MessageNotFoundException($"Active entity not found for ApplicationTypeId: {cancel.ApplicationTypeId}, Id: {cancel.Id}");
         }
+
+        var entityType = entity.GetType();
+        var isCancelledProperty = entityType.GetProperty("IsCancelled");
+        var cancelledOnProperty = entityType.GetProperty("CancelledOn");
+        //var updatedByProperty = entityType.GetProperty("UpdatedBy");
+        var isActiveProperty = entityType.GetProperty("IsActive");
+
+        if (isCancelledProperty == null)
+        {
+            throw new MessageNotFoundException($"IsCancelled property not found in entity type: {entityType.Name}");
+        }
+
+        bool isAlreadyCancelled = (bool)(isCancelledProperty.GetValue(entity) ?? false);
+        if (isAlreadyCancelled)
+        {
+            throw new InvalidOperationException("Application already cancelled");
+        }
+        isCancelledProperty.SetValue(entity, cancel.IsCancelled);
+        cancelledOnProperty?.SetValue(entity, DateTime.UtcNow);
+        //updatedByProperty?.SetValue(entity, updatedBy);
+        isActiveProperty?.SetValue(entity, false);
+        _context.Entry(entity).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+
+        return true;
     }
     public async Task<IEnumerable<object>> GetApplicationDetails(int staffId, int applicationTypeId)
     {
@@ -134,6 +124,7 @@ public class ApplicationService
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                     (tempWithSc, sc) => new LeaveReq
                     {
+                        Id = tempWithSc.temp.lr.Id,
                         ApplicationTypeId = tempWithSc.temp.lr.ApplicationTypeId,
                         ApplicationTypeName = tempWithSc.temp.at.Name,
                         Status1 = tempWithSc.temp.lr.IsCancelled == true ? "Cancelled" :
@@ -165,6 +156,7 @@ public class ApplicationService
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                     (tempWithSc, sc) => new PermissionDto
                     {
+                        Id = tempWithSc.cp.Id,
                         ApplicationTypeId = tempWithSc.cp.ApplicationTypeId,
                         ApplicationTypeName = _context.ApplicationTypes
                             .Where(at => at.Id == tempWithSc.cp.ApplicationTypeId)
@@ -197,6 +189,7 @@ public class ApplicationService
                  .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                      (tempWithSc, sc) => new ManualPunch
                      {
+                         Id = tempWithSc.mp.Id,
                          ApplicationTypeId = tempWithSc.mp.ApplicationTypeId,
                          ApplicationTypeName = tempWithSc.mp.ApplicationType.Name,
                          Status1 = tempWithSc.mp.IsCancelled == true ? "Cancelled" :
@@ -225,6 +218,7 @@ public class ApplicationService
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                     (tempWithSc, sc) => new OnDutyRequest
                     {
+                        Id = tempWithSc.od.Id,
                         ApplicationTypeId = tempWithSc.od.ApplicationTypeId,
                         ApplicationTypeName = tempWithSc.od.ApplicationType.Name,
                         Status1 = tempWithSc.od.IsCancelled == true ? "Cancelled" :
@@ -257,6 +251,7 @@ public class ApplicationService
                  .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                      (tempWithSc, sc) => new Business
                      {
+                         Id = tempWithSc.bt.Id,
                          ApplicationTypeId = tempWithSc.bt.ApplicationTypeId,
                          ApplicationTypeName = tempWithSc.bt.ApplicationType.Name,
 
@@ -292,6 +287,7 @@ public class ApplicationService
                    .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                        (tempWithSc, sc) => new WorkFrom
                        {
+                           Id = tempWithSc.wfh.Id,
                            ApplicationTypeId = tempWithSc.wfh.ApplicationTypeId,
                            ApplicationTypeName = tempWithSc.wfh.ApplicationType.Name,
 
@@ -331,6 +327,7 @@ public class ApplicationService
                   .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                       (tempWithSc, sc) => new ShiftChan
                       {
+                          Id = tempWithSc.tempWithS.temp.sc.Id,
                           ApplicationTypeId = tempWithSc.tempWithS.temp.sc.ApplicationTypeId,
                           ApplicationTypeName = tempWithSc.tempWithS.temp.at.Name,
                           ShiftName = tempWithSc.tempWithS.s.ShiftName,
@@ -362,6 +359,7 @@ public class ApplicationService
                  .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                      (tempWithSc, sc) => new ShiftExte
                      {
+                         Id = tempWithSc.se.Id,
                          ApplicationTypeId = tempWithSc.se.ApplicationTypeId,
                          ApplicationTypeName = tempWithSc.se.ApplicationType.Name,
                          TransactionDate = tempWithSc.se.TransactionDate,
@@ -398,6 +396,7 @@ public class ApplicationService
                 .Join(_context.Shifts,
                     temp => temp.wh.ShiftId, s => s.Id, (temp, s) => new WeeklyOffHoliday
                     {
+                        Id = temp.wh.Id,
                         ApplicationTypeId = temp.wh.ApplicationTypeId,
                         ApplicationTypeName = temp.at.Name,
                         SelectShiftType = temp.wh.SelectShiftType,
@@ -429,6 +428,7 @@ public class ApplicationService
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                     (tempWithSc, sc) => new CompOffAvai
                     {
+                        Id = tempWithSc.coa.Id,
                         ApplicationTypeId = tempWithSc.coa.ApplicationTypeId,
                         ApplicationTypeName = tempWithSc.coa.ApplicationType.Name,
                         WorkedDate = tempWithSc.coa.WorkedDate,
@@ -463,6 +463,7 @@ public class ApplicationService
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                     (tempWithSc, sc) => new CompOffCred
                     {
+                        Id = tempWithSc.coc.Id,
                         ApplicationTypeId = tempWithSc.coc.ApplicationTypeId,
                         ApplicationTypeName = tempWithSc.coc.ApplicationType.Name,
                         WorkedDate = tempWithSc.coc.WorkedDate,
@@ -493,6 +494,7 @@ public class ApplicationService
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
                     (tempWithSc, sc) => new Reimbursements
                     {
+                        Id = tempWithSc.r.Id,
                         BillDate = tempWithSc.r.BillDate,
                         BillNo = tempWithSc.r.BillNo,
                         Description = tempWithSc.r.Description,

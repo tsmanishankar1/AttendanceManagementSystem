@@ -1066,7 +1066,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CompOffAvailCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__CompOffAv__Creat__7DF8932B");
+                .HasConstraintName("FK__CompOffAv__Creat__40DA7652");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.CompOffAvailStaffs)
                 .HasForeignKey(d => d.StaffId)
@@ -1074,7 +1074,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.CompOffAvailUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__CompOffAv__Updat__7EECB764");
+                .HasConstraintName("FK__CompOffAv__Updat__41CE9A8B");
         });
 
         modelBuilder.Entity<CompOffCredit>(entity =>
@@ -2800,16 +2800,16 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PaySlipCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PaySlip__Created__4CB63D52");
+                .HasConstraintName("FK__PaySlip__Created__2AB62B09");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.PaySlipStaffs)
                 .HasForeignKey(d => d.StaffId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PaySlip__StaffId__4E9E85C4");
+                .HasConstraintName("FK__PaySlip__StaffId__2BAA4F42");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PaySlipUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__PaySlip__Updated__4DAA618B");
+                .HasConstraintName("FK__PaySlip__Updated__2C9E737B");
         });
 
         modelBuilder.Entity<PaySlipComponent>(entity =>
@@ -2833,7 +2833,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PaySlipComponentCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__PaySlipCo__Creat__517AF26F");
+                .HasConstraintName("FK__PaySlipCo__Creat__2D9297B4");
 
             entity.HasOne(d => d.PaySlip).WithMany(p => p.PaySlipComponents)
                 .HasForeignKey(d => d.PaySlipId)
@@ -2841,11 +2841,11 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Staff).WithMany(p => p.PaySlipComponentStaffs)
                 .HasForeignKey(d => d.StaffId)
-                .HasConstraintName("FK__PaySlipCo__Staff__53633AE1");
+                .HasConstraintName("FK__PaySlipCo__Staff__2E86BBED");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PaySlipComponentUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__PaySlipCo__Updat__526F16A8");
+                .HasConstraintName("FK__PaySlipCo__Updat__2F7AE026");
         });
 
         modelBuilder.Entity<PermissionRequistion>(entity =>
@@ -3348,7 +3348,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SalaryComponentCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__SalaryCom__Creat__46FD63FC");
+                .HasConstraintName("FK__SalaryCom__Creat__4FE7AFB8");
 
             entity.HasOne(d => d.SalaryStructure).WithMany(p => p.SalaryComponents)
                 .HasForeignKey(d => d.SalaryStructureId)
@@ -3356,11 +3356,11 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Staff).WithMany(p => p.SalaryComponentStaffs)
                 .HasForeignKey(d => d.StaffId)
-                .HasConstraintName("FK__SalaryCom__Staff__48E5AC6E");
+                .HasConstraintName("FK__SalaryCom__Staff__50DBD3F1");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SalaryComponentUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__SalaryCom__Updat__47F18835");
+                .HasConstraintName("FK__SalaryCom__Updat__51CFF82A");
         });
 
         modelBuilder.Entity<SalaryStructure>(entity =>
@@ -3417,16 +3417,16 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SalaryStructureCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__SalaryStr__Creat__4238AEDF");
+                .HasConstraintName("FK__SalaryStr__Creat__52C41C63");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.SalaryStructureStaffs)
                 .HasForeignKey(d => d.StaffId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__SalaryStr__Staff__4420F751");
+                .HasConstraintName("FK__SalaryStr__Staff__53B8409C");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SalaryStructureUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__SalaryStr__Updat__432CD318");
+                .HasConstraintName("FK__SalaryStr__Updat__54AC64D5");
         });
 
         modelBuilder.Entity<Shift>(entity =>
@@ -3627,11 +3627,11 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ShiftTypeDropDownCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ShiftType__Creat__2937F6EB");
+                .HasConstraintName("FK__ShiftType__Creat__62FA842C");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ShiftTypeDropDownUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__ShiftType__Updat__2A2C1B24");
+                .HasConstraintName("FK__ShiftType__Updat__63EEA865");
         });
 
         modelBuilder.Entity<SkillInventory>(entity =>
@@ -3666,8 +3666,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<StaffCreation>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__StaffCre__549079222042F33E");
-
             entity.ToTable("StaffCreation");
 
             entity.Property(e => e.AadharCardFilePath).IsUnicode(false);
@@ -3805,7 +3803,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.Branch).WithMany(p => p.StaffCreations)
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__StaffCrea__Branc__5535A963");
+                .HasConstraintName("FK_SCBRMID001");
 
             entity.HasOne(d => d.Category).WithMany(p => p.StaffCreations)
                 .HasForeignKey(d => d.CategoryId)

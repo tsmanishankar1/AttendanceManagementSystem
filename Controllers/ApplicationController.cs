@@ -101,23 +101,28 @@ public class ApplicationController : ControllerBase
     {
         try
         {
-            var result = await _service.CancelAppliedLeave(cancel.ApplicationTypeId, cancel.Id, cancel.UpdatedBy);
-            if (!result)
-            {
-                return NotFound(new { Success = false, Message = "Application request not found or already cancelled" });
-            }
+            var result = await _service.CancelAppliedLeave(cancel);
             var response = new
             {
                 Success = true,
                 Message = "Application request successfully cancelled"
             };
-
-            await _loggingService.AuditLog("Application Cancellation","POST","/api/Application/CancelAppliedLeave","Application request cancelled successfully",cancel.UpdatedBy,JsonSerializer.Serialize(new { cancel.ApplicationTypeId, cancel.Id, cancel.UpdatedBy }));
+            await _loggingService.AuditLog("Application Cancellation","POST","/api/Application/CancelAppliedLeave","Application request cancelled successfully",cancel.UpdatedBy,JsonSerializer.Serialize(cancel));
             return Ok(response);
+        }
+        catch(MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Application Cancellation", "POST", "/api/Application/CancelAppliedLeave", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Application Cancellation", "POST", "/api/Application/CancelAppliedLeave", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Application Cancellation","POST","/api/Application/CancelAppliedLeave",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,cancel.UpdatedBy,JsonSerializer.Serialize(new { cancel.ApplicationTypeId, cancel.Id, cancel.UpdatedBy }));
+            await _loggingService.LogError("Application Cancellation","POST","/api/Application/CancelAppliedLeave",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,cancel.UpdatedBy,JsonSerializer.Serialize(cancel));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

@@ -370,147 +370,161 @@ namespace AttendanceManagement.Services
 
         public async Task<string> AddStaff(StaffCreationInputModel staffInput)
         {
-            bool staffExists = await _context.StaffCreations.AnyAsync(s => s.StaffId == staffInput.StaffId);
-            if (staffExists)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                return $"Staff ID {staffInput.StaffId} already exists.";
-            }
-            var message = "Staff added, mail sent successfully.";
-
-            string profilePhotoPath = string.Empty;
-            string aadharCardPath = string.Empty;
-            string panCardPath = string.Empty;
-            string drivingLicensePath = string.Empty;
-
-            string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-
-            async Task<string> SaveFile(IFormFile file, string folderName)
-            {
-                if (file == null) return null;
-
-                string directoryPath = Path.Combine(baseDirectory, folderName);
-                if (!Directory.Exists(directoryPath))
+                try
                 {
-                    Directory.CreateDirectory(directoryPath);
+                    bool staffExists = await _context.StaffCreations.AnyAsync(s => s.StaffId == staffInput.StaffId && s.IsActive == true);
+                    if (staffExists)
+                    {
+                        throw new InvalidOperationException($"Staff ID {staffInput.StaffId} already exists.");
+                    }
+
+                    var message = "The staff member has been successfully created.";
+
+                    string profilePhotoPath = string.Empty;
+                    string aadharCardPath = string.Empty;
+                    string panCardPath = string.Empty;
+                    string drivingLicensePath = string.Empty;
+
+                    string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+                    async Task<string> SaveFile(IFormFile file, string folderName)
+                    {
+                        if (file == null) return null;
+
+                        string directoryPath = Path.Combine(baseDirectory, folderName);
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+
+                        string fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        string filePath = Path.Combine(directoryPath, fileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                        }
+
+                        return $"/{folderName}/{fileName}";
+                    }
+
+                    profilePhotoPath = await SaveFile(staffInput.ProfilePhoto, "ProfilePhotos");
+                    aadharCardPath = await SaveFile(staffInput.AadharCardFilePath, "AadharCards");
+                    panCardPath = await SaveFile(staffInput.PanCardFilePath, "PanCards");
+                    drivingLicensePath = await SaveFile(staffInput.DrivingLicenseFilePath, "DrivingLicenses");
+
+                    var staff = new StaffCreation
+                    {
+                        CardCode = staffInput.CardCode,
+                        StaffId = staffInput.StaffId,
+                        Title = staffInput.Title,
+                        FirstName = staffInput.FirstName,
+                        LastName = staffInput.LastName,
+                        ShortName = staffInput.ShortName,
+                        Gender = staffInput.Gender,
+                        Hide = staffInput.Hide,
+                        BloodGroup = staffInput.BloodGroup,
+                        ProfilePhoto = profilePhotoPath,
+                        MaritalStatus = staffInput.MaritalStatus,
+                        Dob = staffInput.Dob,
+                        MarriageDate = staffInput.MarriageDate,
+                        PersonalPhone = staffInput.PersonalPhone,
+                        OfficialPhone = staffInput.OfficialPhone,
+                        JoiningDate = staffInput.JoiningDate,
+                        Confirmed = staffInput.Confirmed,
+                        ConfirmationDate = staffInput.ConfirmationDate,
+                        BranchId = staffInput.BranchId,
+                        DepartmentId = staffInput.DepartmentId,
+                        HolidayCalendarId = staffInput.HolidayCalendarId,
+                        DivisionId = staffInput.DivisionId,
+                        Volume = staffInput.Volume,
+                        DesignationId = staffInput.DesignationId,
+                        GradeId = staffInput.GradeId,
+                        CategoryId = staffInput.CategoryId,
+                        CostCenterId = staffInput.CostCenterId,
+                        WorkStationId = staffInput.WorkStationId,
+                        City = staffInput.City,
+                        District = staffInput.District,
+                        State = staffInput.State,
+                        Country = staffInput.Country,
+                        PostalCode = staffInput.PostalCode,
+                        OtEligible = staffInput.OtEligible,
+                        ApprovalLevel = staffInput.ApprovalLevel,
+                        ApprovalLevel1 = staffInput.ApprovalLevel1,
+                        ApprovalLevel2 = staffInput.ApprovalLevel2,
+                        AccessLevel = staffInput.AccessLevel,
+                        PolicyGroup = staffInput.PolicyGroup,
+                        WorkingDayPattern = staffInput.WorkingDayPattern,
+                        Tenure = staffInput.Tenure,
+                        UanNumber = staffInput.UanNumber,
+                        EsiNumber = staffInput.EsiNumber,
+                        IsMobileAppEligible = staffInput.IsMobileAppEligible,
+                        GeoStatus = staffInput.GeoStatus,
+                        CreatedBy = staffInput.CreatedBy,
+                        CreatedUtc = DateTime.UtcNow,
+                        MiddleName = staffInput.MiddleName,
+                        PersonalLocation = staffInput.PersonalLocation,
+                        PersonalEmail = staffInput.PersonalEmail,
+                        OfficialEmail = staffInput.OfficialEmail,
+                        LeaveGroupId = staffInput.LeaveGroupId,
+                        CompanyMasterId = staffInput.CompanyMasterId,
+                        LocationMasterId = staffInput.LocationMasterId,
+                        StatusId = staffInput.StatusId,
+                        AadharNo = staffInput.AadharNo,
+                        PanNo = staffInput.PanNo,
+                        PassportNo = staffInput.PassportNo,
+                        DrivingLicense = staffInput.DrivingLicense,
+                        BankName = staffInput.BankName,
+                        BankAccountNo = staffInput.BankAccountNo,
+                        BankIfscCode = staffInput.BankIfscCode,
+                        BankBranch = staffInput.BankBranch,
+                        HomeAddress = staffInput.HomeAddress,
+                        FatherName = staffInput.FatherName,
+                        MotherName = staffInput.MotherName,
+                        FatherAadharNo = staffInput.FatherAadharNo,
+                        MotherAadharNo = staffInput.MotherAadharNo,
+                        EmergencyContactPerson1 = staffInput.EmergencyContactPerson1,
+                        EmergencyContactPerson2 = staffInput.EmergencyContactPerson2,
+                        EmergencyContactNo1 = staffInput.EmergencyContactNo1,
+                        EmergencyContactNo2 = staffInput.EmergencyContactNo2,
+                        OrganizationTypeId = staffInput.OrganizationTypeId,
+                        WorkingStatus = staffInput.WorkingStatus,
+                        AadharCardFilePath = aadharCardPath,
+                        PanCardFilePath = panCardPath,
+                        DrivingLicenseFilePath = drivingLicensePath,
+                    };
+
+                    _context.StaffCreations.Add(staff);
+                    await _context.SaveChangesAsync();
+
+                    var reportingManager = await _context.StaffCreations
+                        .Where(u => (u.Id == staffInput.ApprovalLevel1 || u.Id == staffInput.ApprovalLevel2) && u.IsActive == true)
+                        .Join(_context.AccessLevels,
+                              staff => staff.AccessLevel,
+                              access => access.Name,
+                              (staff, access) => new { staff.OfficialEmail, access.Name })
+                        .Where(x => x.Name == "REPORTING MANAGER")
+                        .Select(x => x.OfficialEmail)
+                        .FirstOrDefaultAsync();
+
+                    if (!string.IsNullOrEmpty(reportingManager))
+                    {
+                        await SendApprovalEmail(reportingManager, staff);
+                    }
+
+                    // Commit the transaction
+                    await transaction.CommitAsync();
+                    return message;
                 }
-
-                string fileName = $"{Guid.NewGuid()}_{file.FileName}";
-                string filePath = Path.Combine(directoryPath, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                catch (Exception ex)
                 {
-                    await file.CopyToAsync(fileStream);
+                    // If something goes wrong, roll back the transaction
+                    await transaction.RollbackAsync();
+                    return $"Error: {ex.Message}";
                 }
-
-                return $"/{folderName}/{fileName}";
             }
-            profilePhotoPath = await SaveFile(staffInput.ProfilePhoto, "ProfilePhotos");
-            aadharCardPath = await SaveFile(staffInput.AadharCardFilePath, "AadharCards");
-            panCardPath = await SaveFile(staffInput.PanCardFilePath, "PanCards");
-            drivingLicensePath = await SaveFile(staffInput.DrivingLicenseFilePath, "DrivingLicenses");
-            var staff = new StaffCreation
-            {
-                CardCode = staffInput.CardCode,
-                StaffId = staffInput.StaffId,
-                Title = staffInput.Title,
-                FirstName = staffInput.FirstName,
-                LastName = staffInput.LastName,
-                ShortName = staffInput.ShortName,
-
-                Gender = staffInput.Gender,
-                Hide = staffInput.Hide,
-                BloodGroup = staffInput.BloodGroup,
-                ProfilePhoto = profilePhotoPath,
-                MaritalStatus = staffInput.MaritalStatus,
-                Dob = staffInput.Dob,
-                MarriageDate = staffInput.MarriageDate,
-                PersonalPhone = staffInput.PersonalPhone,
-                OfficialPhone = staffInput.OfficialPhone,
-                JoiningDate = staffInput.JoiningDate,
-                Confirmed = staffInput.Confirmed,
-                ConfirmationDate = staffInput.ConfirmationDate,
-                BranchId = staffInput.BranchId,
-                DepartmentId = staffInput.DepartmentId,
-                HolidayCalendarId = staffInput.HolidayCalendarId,
-                DivisionId = staffInput.DivisionId,
-                Volume = staffInput.Volume,
-                DesignationId = staffInput.DesignationId,
-                GradeId = staffInput.GradeId,
-                CategoryId = staffInput.CategoryId,
-                CostCenterId = staffInput.CostCenterId,
-                WorkStationId = staffInput.WorkStationId,
-                City = staffInput.City,
-                District = staffInput.District,
-                State = staffInput.State,
-                Country = staffInput.Country,
-                PostalCode = staffInput.PostalCode,
-                OtEligible = staffInput.OtEligible,
-                ApprovalLevel = staffInput.ApprovalLevel,
-                ApprovalLevel1 = staffInput.ApprovalLevel1,
-                ApprovalLevel2 = staffInput.ApprovalLevel2,
-                AccessLevel = staffInput.AccessLevel,
-                PolicyGroup = staffInput.PolicyGroup,
-                WorkingDayPattern = staffInput.WorkingDayPattern,
-                Tenure = staffInput.Tenure,
-                UanNumber = staffInput.UanNumber,
-                EsiNumber = staffInput.EsiNumber,
-                IsMobileAppEligible = staffInput.IsMobileAppEligible,
-                GeoStatus = staffInput.GeoStatus,
-                CreatedBy = staffInput.CreatedBy,
-                CreatedUtc = DateTime.UtcNow,
-                MiddleName = staffInput.MiddleName,
-                PersonalLocation = staffInput.PersonalLocation,
-                PersonalEmail = staffInput.PersonalEmail,
-                OfficialEmail = staffInput.OfficialEmail,
-                LeaveGroupId = staffInput.LeaveGroupId,
-                CompanyMasterId = staffInput.CompanyMasterId,
-                LocationMasterId = staffInput.LocationMasterId,
-                StatusId = staffInput.StatusId,
-                AadharNo = staffInput.AadharNo,
-                PanNo = staffInput.PanNo,
-                PassportNo = staffInput.PassportNo,
-                DrivingLicense = staffInput.DrivingLicense,
-                BankName = staffInput.BankName,
-                BankAccountNo = staffInput.BankAccountNo,
-                BankIfscCode = staffInput.BankIfscCode,
-                BankBranch = staffInput.BankBranch,
-             
-                HomeAddress = staffInput.HomeAddress,
-                FatherName = staffInput.FatherName,
-                MotherName = staffInput.MotherName,
-                FatherAadharNo = staffInput.FatherAadharNo,
-                MotherAadharNo = staffInput.MotherAadharNo,
-                EmergencyContactPerson1 = staffInput.EmergencyContactPerson1,
-                EmergencyContactPerson2 = staffInput.EmergencyContactPerson2,
-                EmergencyContactNo1 = staffInput.EmergencyContactNo1,
-                EmergencyContactNo2 = staffInput.EmergencyContactNo2,
-                OrganizationTypeId = staffInput.OrganizationTypeId,
-                WorkingStatus = staffInput.WorkingStatus,
-                AadharCardFilePath = aadharCardPath,
-                PanCardFilePath = panCardPath,
-                DrivingLicenseFilePath = drivingLicensePath,
-               
-            };
-
-            _context.StaffCreations.Add(staff);
-            await _context.SaveChangesAsync();
-
-            var reportingManager = await _context.StaffCreations
-                .Where(u => (u.Id == staffInput.ApprovalLevel1 || u.Id == staffInput.ApprovalLevel2) && u.IsActive == true)
-                .Join(_context.AccessLevels,
-                      staff => staff.AccessLevel,
-                      access => access.Name,
-                      (staff, access) => new { staff.OfficialEmail, access.Name })
-                .Where(x => x.Name == "REPORTING MANAGER")
-                .Select(x => x.OfficialEmail)
-                .FirstOrDefaultAsync();
-
-            if (!string.IsNullOrEmpty(reportingManager))
-            {
-                await SendApprovalEmail(reportingManager, staff);
-            }
-
-            return message;
         }
         private async Task SendApprovalEmail(string managerEmail, StaffCreation staff)
         {
@@ -1017,7 +1031,7 @@ namespace AttendanceManagement.Services
 
             foreach (var item in selectedRows)
             {
-                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.StaffId);
+                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.Id);
                 if (staff == null)
                     throw new InvalidOperationException("Staff not found");
 

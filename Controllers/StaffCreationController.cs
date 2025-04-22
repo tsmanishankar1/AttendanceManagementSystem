@@ -47,7 +47,7 @@ public class StaffCreationController : ControllerBase
     }
 
     [HttpPost("search")]
-    public async Task<ActionResult<List<StaffDto>>> SearchStaff(GetStaff getStaff)
+    public async Task<IActionResult> SearchStaff(GetStaff getStaff)
     {
         try
         {
@@ -61,11 +61,11 @@ public class StaffCreationController : ControllerBase
         }
         catch (MessageNotFoundException ex)
         {
-            return NotFound(new { Success = false, Message = ex.Message });
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = ex.Message });
+            return ErrorClass.ErrorResponse(ex.Message);
         }
     }
 

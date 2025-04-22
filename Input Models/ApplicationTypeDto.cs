@@ -16,6 +16,7 @@ namespace AttendanceManagement.Input_Models
     {
         public int ApplicationTypeId { get; set; }
         public int Id { get; set; }
+        public bool IsCancelled { get; set; }
         public int UpdatedBy { get;set; }
     }
     public class ApplicationDetails

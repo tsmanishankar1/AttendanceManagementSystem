@@ -4,6 +4,7 @@ namespace AttendanceManagement.Input_Models
 {
     public class LeaveReq
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; } 
@@ -19,6 +20,7 @@ namespace AttendanceManagement.Input_Models
 
     public class PermissionDto
     {
+        public int Id { get; set; }
         public int? ApplicationTypeId { get; set; }
         public string? ApplicationTypeName { get; set; } 
         public TimeOnly StartTime { get; set; }
@@ -33,6 +35,7 @@ namespace AttendanceManagement.Input_Models
 
     public class ManualPunch
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; }
@@ -45,6 +48,7 @@ namespace AttendanceManagement.Input_Models
 
     public class OnDutyRequest
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; }
@@ -59,6 +63,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class Business
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; }
@@ -73,6 +78,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class WorkFrom
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; } 
@@ -87,6 +93,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class ShiftChan
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; }
@@ -98,6 +105,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class ShiftExte
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; }
@@ -110,6 +118,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class WeeklyOffHoliday
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; } 
@@ -124,6 +133,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class CompOffAvai
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string? ApplicationTypeName { get; set; }
         public string? Status1 { get; set; }
@@ -138,6 +148,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class CompOffCred
     {
+        public int Id { get; set; }
         public int ApplicationTypeId { get; set; }
         public string ApplicationTypeName { get; set; } = null!;
         public string? Status1 { get; set; }
@@ -148,6 +159,7 @@ namespace AttendanceManagement.Input_Models
     }
     public class Reimbursements
     {
+        public int Id { get; set; }
         public DateOnly BillDate { get; set; }
         public string BillNo { get; set; } = null!;
         public string? Description { get; set; }

@@ -95,7 +95,8 @@
 			<param name="cancel">The applied leave cancellation request.</param>
 			<returns>Returns the status of the cancellation request.</returns>
 			<response code="200">If the application request is successfully cancelled.</response>
-			<response code="404">If the application request is not found or already cancelled.</response>
+			<response code="404">If the application request is not found.</response>
+			<response code="409">If the application request has already been cancelled.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetMonthlyDetails(AttendanceManagement.Input_Models.MonthlyCalendar)">
@@ -1829,7 +1830,7 @@
 			<param name="staffInput">The staff details to create.</param>
 			<returns>The created staff member.</returns>
 			<response code="200">Returns the success message</response>
-			<response code="409">If the staff request has already been processed or is in conflict.</response>
+			<response code="409">If the staff id is already exists.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetStaffRecordsByApprovalLevel(System.Int32)">

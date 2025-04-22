@@ -9,6 +9,6 @@
 
     public class ApproveStaff
     {
-        public int StaffId { get; set; }
+        public int Id { get; set; }
     }
 }
