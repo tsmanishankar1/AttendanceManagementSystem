@@ -22,7 +22,7 @@ namespace AttendanceManagement.Services
                 {
                     StaffId = s.Id,
                     StaffName = $"{s.FirstName} {s.LastName}",
-                    DepartmentName = s.Department.FullName
+                    DepartmentName = s.Department.Name
                 })
                 .ToListAsync();
 

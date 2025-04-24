@@ -7,7 +7,7 @@ public partial class DivisionMaster
 {
     public int Id { get; set; }
 
-    public string FullName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public string ShortName { get; set; } = null!;
 
@@ -22,6 +22,8 @@ public partial class DivisionMaster
     public DateTime? UpdatedUtc { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
+    public virtual ICollection<ProbationTarget> ProbationTargets { get; set; } = new List<ProbationTarget>();
 
     public virtual ICollection<StaffCreation> StaffCreations { get; set; } = new List<StaffCreation>();
 

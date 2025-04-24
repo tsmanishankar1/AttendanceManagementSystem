@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using AttendanceManagement.Models;
+
+namespace AttendanceManagement.Input_Models
 {
     public class ProbationRequest
     {
@@ -11,6 +13,12 @@
         public int CreatedBy { get; set; }
     }
 
+    public class AssignManagerRequest
+    {
+        public int ProbationId { get; set; }
+        public int ManagerId { get; set; }
+        public int CreatedBy { get; set; }
+    }
     public class ProbationResponse
     {
         public int ProbationId { get; set; }
@@ -19,11 +27,10 @@
         public string StaffName { get; set; } = null!;
         public string DepartmentName { get; set; } = null!;
         public DateOnly ProbationStartDate { get; set; }
-
         public DateOnly ProbationEndDate { get; set; }
-
-        public bool? IsCompleted { get; set; }
         public int CreatedBy { get; set; }
+        public ProbationReport? ProbationReport { get; set; }
+        public ProbationTarget? ProbationTarget { get; set; }
     }
 
     public class UpdateProbation

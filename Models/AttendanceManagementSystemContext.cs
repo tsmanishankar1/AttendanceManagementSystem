@@ -179,6 +179,10 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<Probation> Probations { get; set; }
 
+    public virtual DbSet<ProbationReport> ProbationReports { get; set; }
+
+    public virtual DbSet<ProbationTarget> ProbationTargets { get; set; }
+
     public virtual DbSet<ProfessionalCertification> ProfessionalCertifications { get; set; }
 
     public virtual DbSet<PunchRegularizationApproval> PunchRegularizationApprovals { get; set; }
@@ -792,7 +796,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Fax)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -884,7 +888,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -1138,10 +1142,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("CSTNumber");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.LegalName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.LegalName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Pannumber)
@@ -1231,7 +1235,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -1286,7 +1290,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Fax)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -1315,7 +1319,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -1344,7 +1348,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -1774,7 +1778,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ScreenOption)
@@ -2320,7 +2324,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -3032,6 +3036,11 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_CRPROB");
 
+            entity.HasOne(d => d.Manager).WithMany(p => p.ProbationManagers)
+                .HasForeignKey(d => d.ManagerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PRMGID");
+
             entity.HasOne(d => d.StaffCreation).WithMany(p => p.ProbationStaffCreations)
                 .HasForeignKey(d => d.StaffCreationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -3040,6 +3049,104 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ProbationUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPPROB");
+        });
+
+        modelBuilder.Entity<ProbationReport>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Probatio__3214EC07301FA71E");
+
+            entity.ToTable("ProbationReport");
+
+            entity.Property(e => e.AttendanceGrade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.AttendancePercentage).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.AttendanceScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.EmpId)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalGrade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalScorePercentage).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.FinalTotal).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Name)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.NoOfAbsent).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProdGrade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.ProdPercentage).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProdScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageApr).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageAug).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageDec).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageFeb).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageJan).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageJul).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageJun).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageMar).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageMay).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageNov).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageOct).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductionAchievedPercentageSep).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.QualityScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.TotalScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ProbationReportCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRPRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ProbationReportUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPPRId");
+        });
+
+        modelBuilder.Entity<ProbationTarget>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Probatio__3214EC071BE9C066");
+
+            entity.ToTable("ProbationTarget");
+
+            entity.Property(e => e.Apr).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Aug).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Dec).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.EmpId)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Feb).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Jan).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Jul).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Jun).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Mar).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.May).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Name)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.Nov).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Oct).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Sep).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ProbationTargetCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRPRTId");
+
+            entity.HasOne(d => d.Division).WithMany(p => p.ProbationTargets)
+                .HasForeignKey(d => d.DivisionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_DIVPRTId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ProbationTargetUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPPRTId");
         });
 
         modelBuilder.Entity<ProfessionalCertification>(entity =>
@@ -3441,7 +3548,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.EndTime)
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            entity.Property(e => e.ShiftName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)
@@ -3719,7 +3826,7 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.FirstName)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Gender)
                 .HasMaxLength(50)

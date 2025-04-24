@@ -9,7 +9,7 @@ public partial class Feedback
 
     public int ProbationId { get; set; }
 
-    public string? FeedbackText { get; set; }
+    public string FeedbackText { get; set; } = null!;
 
     public int CreatedBy { get; set; }
 
@@ -20,6 +20,10 @@ public partial class Feedback
     public DateTime? UpdatedUtc { get; set; }
 
     public bool IsActive { get; set; }
+
+    public bool? IsApproved { get; set; }
+
+    public DateOnly? ExtensionPeriod { get; set; }
 
     public virtual ICollection<Approval> Approvals { get; set; } = new List<Approval>();
 

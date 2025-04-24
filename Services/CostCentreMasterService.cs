@@ -19,7 +19,7 @@ public class CostCentreMasterService
                              select new CostMasterResponse
                              {
                                  CostCentreMasterId = cost.Id,
-                                 FullName = cost.FullName,
+                                 FullName = cost.Name,
                                  ShortName = cost.ShortName,
                                  IsActive = cost.IsActive,
                                  CreatedBy = cost.CreatedBy
@@ -37,7 +37,7 @@ public class CostCentreMasterService
         var message = "Cost centre added successfully";
 
         CostCentreMaster costMaster = new CostCentreMaster();
-        costMaster.FullName = costCentreMaster.FullName;
+        costMaster.Name = costCentreMaster.FullName;
         costMaster.ShortName = costCentreMaster.ShortName;
         costMaster.IsActive = costCentreMaster.IsActive;
         costMaster.CreatedBy = costCentreMaster.CreatedBy;
@@ -59,7 +59,7 @@ public class CostCentreMasterService
         {
             throw new MessageNotFoundException("Cost centre not found");
         }
-        existingCostCentre.FullName = costCentreMaster.FullName ?? existingCostCentre.FullName;
+        existingCostCentre.Name = costCentreMaster.FullName ?? existingCostCentre.Name;
         existingCostCentre.ShortName = costCentreMaster.ShortName ?? existingCostCentre.ShortName;
         existingCostCentre.UpdatedBy = costCentreMaster.UpdatedBy;
         existingCostCentre.IsActive = costCentreMaster.IsActive;

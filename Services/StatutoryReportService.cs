@@ -76,8 +76,8 @@ namespace AttendanceManagement.Services
                                               staff.Id,
                                               StaffCreationId = staff.StaffId,
                                               Name = staff.FirstName + " " + staff.LastName,
-                                              Department = dept.FullName,
-                                              Designation = desig.FullName
+                                              Department = dept.Name,
+                                              Designation = desig.Name
                                           }).ToListAsync();
 
             // Get all status short names

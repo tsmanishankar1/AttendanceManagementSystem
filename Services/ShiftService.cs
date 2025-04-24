@@ -27,12 +27,12 @@ namespace AttendanceManagement.Services
                     DepartmentId = s.DepartmentId,
                     DepartmentName = _context.DepartmentMasters
                                     .Where(d => d.Id == s.DepartmentId)
-                                    .Select(d => d.FullName)
+                                    .Select(d => d.Name)
                                     .FirstOrDefault() ?? "Unknown",
                     DesignationId = s.DesignationId,
                     DesignationName = _context.DesignationMasters
                                     .Where(des => des.Id == s.DesignationId)
-                                    .Select(des => des.FullName)
+                                    .Select(des => des.Name)
                                     .FirstOrDefault() ?? "Unknown"
                 })
                 .ToListAsync();
@@ -48,7 +48,7 @@ namespace AttendanceManagement.Services
                                   select new ShiftResponse
                                   {
                                       ShiftId = shift.Id,
-                                      ShiftName = shift.ShiftName,
+                                      ShiftName = shift.Name,
                                       ShiftTypeId = shift.ShiftTypeId,
                                       ShiftTypeName = shiftType != null ? shiftType.Name : null, 
                                       ShortName = shift.ShortName,
@@ -72,7 +72,7 @@ namespace AttendanceManagement.Services
 
             var shift = new Shift
             {
-                ShiftName = newShift.ShiftName,
+                Name = newShift.ShiftName,
                 ShortName = newShift.ShortName,
                 ShiftTypeId = newShift.ShiftTypeId,
                 StartTime = newShift.StartTime,
@@ -95,7 +95,7 @@ namespace AttendanceManagement.Services
             if (existingShift == null)
                 throw new MessageNotFoundException("Shift not found");
 
-            existingShift.ShiftName = updatedShift.ShiftName;
+            existingShift.Name = updatedShift.ShiftName;
             existingShift.ShortName = updatedShift.ShortName;
             existingShift.ShiftTypeId = updatedShift.ShiftTypeId;
             existingShift.StartTime = updatedShift.StartTime;
@@ -186,7 +186,6 @@ namespace AttendanceManagement.Services
 
             return message;
         }
-
         private async Task MarkExpiredShiftsInactive(int updatedBy)
         {
             DateTime date = DateTime.Now;
@@ -203,6 +202,30 @@ namespace AttendanceManagement.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<AssignedShiftResponse>> GetAllAssignedShifts(int approverId)
+        {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == approverId)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN";
+            var getAssignedShifts = await (from ass in _context.AssignShifts
+                                           join sh in _context.Shifts on ass.ShiftId equals sh.Id
+                                           join st in _context.StaffCreations on ass.StaffId equals st.Id
+                                           where (isSuperAdmin || st.ApprovalLevel1 == approverId || st.ApprovalLevel2 == approverId)
+                                           && ass.IsActive && sh.IsActive && st.IsActive == true
+                                           select new AssignedShiftResponse
+                                           {
+                                               ShiftName = sh.Name,
+                                               FromDate = ass.FromDate,
+                                               ToDate = ass.ToDate,
+                                               StaffName = $"{st.FirstName} {st.LastName}"
+                                           })
+                                           .ToListAsync();
+            if (getAssignedShifts.Count == 0) throw new MessageNotFoundException("No assigned shifts found");
+            return getAssignedShifts;
         }
     }
 }

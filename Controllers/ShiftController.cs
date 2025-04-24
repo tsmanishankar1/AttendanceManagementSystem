@@ -161,4 +161,27 @@ public class ShiftController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
+    [HttpGet("GetAllAssignedShifts")]
+    public async Task<IActionResult> GetAllAssignedShifts(int approverId)
+    {
+        try
+        {
+            var shifts = await _shiftService.GetAllAssignedShifts(approverId);
+            var response = new
+            {
+                Success = true,
+                Message = shifts
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
 }

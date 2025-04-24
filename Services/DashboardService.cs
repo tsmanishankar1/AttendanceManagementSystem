@@ -50,8 +50,8 @@ namespace AttendanceManagement.Services
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
-                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
-                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
+                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
+                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                     BirthDate = staff.Dob.ToString("MMMM dd"),
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
@@ -68,8 +68,8 @@ namespace AttendanceManagement.Services
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
-                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
-                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
+                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
+                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                     MarriageDate = staff.MarriageDate?.ToString("MMMM dd") ?? string.Empty,
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
@@ -86,8 +86,8 @@ namespace AttendanceManagement.Services
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
-                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
-                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
+                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
+                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                     JoiningDate = staff.JoiningDate.ToString("MMMM dd"),
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
@@ -106,8 +106,8 @@ namespace AttendanceManagement.Services
                         StaffId = staff.Id,
                         StaffCreationId = staff.StaffId,
                         StaffName = $"{staff.FirstName} {staff.LastName}",
-                        Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.FullName ?? string.Empty,
-                        Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.FullName ?? string.Empty,
+                        Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
+                        Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                         JoiningDate = staff.JoiningDate.ToString("MMMM dd"),
                         JoiningAnniversaryYear = $"{(today.Year - staff.JoiningDate.Year + 1)}{GetOrdinalSuffix(today.Year - staff.JoiningDate.Year + 1)} Year",
                         ProfilePhoto = staff.ProfilePhoto
@@ -127,8 +127,8 @@ namespace AttendanceManagement.Services
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
-                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId && loc.IsActive)?.FullName ?? string.Empty,
-                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId && des.IsActive)?.FullName ?? string.Empty,
+                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId && loc.IsActive)?.Name ?? string.Empty,
+                    Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId && des.IsActive)?.Name ?? string.Empty,
                     ProfilePhoto = staff.ProfilePhoto
                 }).ToList<object>();
                 if (threeYearStaff.Count == 0)
@@ -184,8 +184,8 @@ namespace AttendanceManagement.Services
                                         StaffId = staff.Id,
                                         StaffCreationId = staff.StaffId,
                                         StaffName = $"{staff.FirstName} {staff.LastName}",
-                                        Location = loc.FullName,
-                                        Designation = des.FullName,
+                                        Location = loc.Name,
+                                        Designation = des.Name,
                                         JoiningDate = staff.JoiningDate.ToString("MMMM dd")
                                     })
                                     .ToListAsync();
@@ -254,7 +254,7 @@ namespace AttendanceManagement.Services
                                 select new
                                 {
                                     sc.StaffId,
-                                    DepartmentName = dm.FullName
+                                    DepartmentName = dm.Name
                                 }).ToListAsync();
 
             var groupedData = result.GroupBy(r => r.DepartmentName)
@@ -296,14 +296,12 @@ namespace AttendanceManagement.Services
             DateOnly currentShiftEndDate = currentShift.ToDate;
 
             var upcomingShifts = await _context.AssignShifts
-                .Where(asg => asg.IsActive &&
-                              asg.FromDate > currentShiftEndDate &&  
-                              (asg.StaffId == staffId || asg.CreatedBy == staffId)) 
+                .Where(asg => asg.IsActive && asg.FromDate > currentShiftEndDate && asg.StaffId == staffId) 
                 .OrderBy(asg => asg.FromDate)
                 .Select(asg => new
                 {
                     asg.Shift.Id,
-                    asg.Shift.ShiftName,
+                    asg.Shift.Name,
                     asg.Shift.StartTime,
                     asg.Shift.EndTime,
                     asg.FromDate,

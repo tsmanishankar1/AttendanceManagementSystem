@@ -10,36 +10,49 @@ using System.Text;
 using Document = iTextSharp.text.Document;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
+using OfficeOpenXml;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Http.HttpResults;
+using NETCore.MailKit.Core;
 
 namespace AttendanceManagement.Services
 {
     public class ProbationService
     {
         private readonly AttendanceManagementSystemContext _context;
+        private readonly EmailService _emailService;
 
-        public ProbationService(AttendanceManagementSystemContext context)
+        public ProbationService(AttendanceManagementSystemContext context, EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
+
         }
+
         public async Task<List<ProbationResponse>> GetAllProbationsAsync()
         {
-            var allProbation = await (from p in _context.Probations
-                                      join s in _context.StaffCreations on p.StaffCreationId equals s.Id
-                                      join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
-                                      join o in _context.OrganizationTypes on d.Id equals o.Id
-                                      where p.IsActive
-                                      select new ProbationResponse
-                                      {
-                                          ProbationId = p.Id,
-                                          StaffId = p.StaffCreationId,
-                                          StaffCreationId = s.StaffId,
-                                          StaffName = s.FirstName + " " + s.LastName,
-                                          DepartmentName = d.FullName,
-                                          ProbationStartDate = p.ProbationStartDate,
-                                          ProbationEndDate = p.ProbationEndDate,
-                                          IsCompleted = p.IsCompleted,
-                                          CreatedBy = p.CreatedBy
-                                      }).ToListAsync();
+            var allProbation = await ( from p in _context.Probations
+                 join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                 join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
+                 join r in _context.ProbationReports on s.StaffId equals r.EmpId into reportGroup
+                 from report in reportGroup.DefaultIfEmpty()
+                 join t in _context.ProbationTargets on s.StaffId equals t.EmpId into targetGroup
+                 from target in targetGroup.DefaultIfEmpty()
+                 where p.IsActive
+                 select new ProbationResponse
+                 {
+                     ProbationId = p.Id,
+                     StaffId = p.StaffCreationId,
+                     StaffCreationId = s.StaffId,
+                     StaffName = s.FirstName + " " + s.LastName,
+                     DepartmentName = d.Name,
+                     ProbationStartDate = p.ProbationStartDate,
+                     ProbationEndDate = p.ProbationEndDate,
+                     CreatedBy = p.CreatedBy,
+                     ProbationReport = report,
+                     ProbationTarget = target
+                 }).ToListAsync();
+
 
             if (!allProbation.Any())
             {
@@ -51,22 +64,26 @@ namespace AttendanceManagement.Services
         public async Task<ProbationResponse> GetProbationByIdAsync(int probationId)
         {
             var probation = await (from p in _context.Probations
-                                   join s in _context.StaffCreations on p.StaffCreationId equals s.Id
-                                   join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
-                                   join o in _context.OrganizationTypes on d.Id equals o.Id
-                                   where p.Id == probationId && p.IsActive
-                                   select new ProbationResponse
-                                   {
-                                       ProbationId = p.Id,
-                                       StaffId = p.StaffCreationId,
-                                       StaffCreationId = s.StaffId,
-                                       StaffName = s.FirstName + " " + s.LastName,
-                                       DepartmentName = d.FullName,
-                                       ProbationStartDate = p.ProbationStartDate,
-                                       ProbationEndDate = p.ProbationEndDate,
-                                       IsCompleted = p.IsCompleted,
-                                       CreatedBy = p.CreatedBy
-                                   }).FirstOrDefaultAsync();
+                                      join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                                      join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
+                                      join r in _context.ProbationReports on s.StaffId equals r.EmpId into reportGroup
+                                      from report in reportGroup.DefaultIfEmpty()
+                                      join t in _context.ProbationTargets on s.StaffId equals t.EmpId into targetGroup
+                                      from target in targetGroup.DefaultIfEmpty()
+                                      where p.IsActive
+                                      select new ProbationResponse
+                                      {
+                                          ProbationId = p.Id,
+                                          StaffId = p.StaffCreationId,
+                                          StaffCreationId = s.StaffId,
+                                          StaffName = s.FirstName + " " + s.LastName,
+                                          DepartmentName = d.Name,
+                                          ProbationStartDate = p.ProbationStartDate,
+                                          ProbationEndDate = p.ProbationEndDate,
+                                          CreatedBy = p.CreatedBy,
+                                          ProbationReport = report,
+                                          ProbationTarget = target
+                                      }).FirstOrDefaultAsync();
 
             if (probation == null)
             {
@@ -76,6 +93,21 @@ namespace AttendanceManagement.Services
             return probation;
         }
 
+        public async Task<string> AssignManagerForProbationReview(AssignManagerRequest assignManagerRequest)
+        {
+            var message = "Manager assigned successfully";
+            var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == assignManagerRequest.ProbationId && p.IsActive);
+            if (probation == null) throw new MessageNotFoundException("Probation not found");
+            var probationer = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == probation.StaffCreationId && s.IsActive == true);
+            if (probationer == null) throw new MessageNotFoundException("Probationer not found");
+            var manager = await _context.StaffCreations.FirstOrDefaultAsync(m => m.Id == assignManagerRequest.ManagerId && m.IsActive == true);
+            if (manager == null) throw new MessageNotFoundException("Manager not found");
+            if (manager.OfficialEmail == null) throw new MessageNotFoundException("Manager email not found");
+            probation.ManagerId = assignManagerRequest.ManagerId;
+            await _context.SaveChangesAsync();
+            await _emailService.AssignManager(manager.OfficialEmail, manager.Id, $"{manager.FirstName} {manager.LastName}", $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, probation.ProbationEndDate, assignManagerRequest.CreatedBy);
+            return message;
+        }
         public async Task<string> CreateProbationAsync(ProbationRequest probationRequest)
         {
             var message = "Probation created successfully.";
@@ -117,27 +149,29 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return message;
         }
-        public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel1(int approverLevel1Id)
+        public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId)
         {
             var matchingProbations = await (from p in _context.Probations
-                                            join s in _context.StaffCreations on p.StaffCreationId equals s.Id
-                                            join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
-                                            join o in _context.OrganizationTypes on d.Id equals o.Id
-                                            where s.ApprovalLevel1 == approverLevel1Id &&
-                                                  p.StaffCreationId == s.Id &&
-                                                  p.IsActive
-                                            select new ProbationResponse
-                                            {
-                                                ProbationId = p.Id,
-                                                StaffId = p.StaffCreationId,
-                                                StaffCreationId = s.StaffId,
-                                                StaffName = s.FirstName + " " + s.LastName,
-                                                DepartmentName = d.FullName,
-                                                ProbationStartDate = p.ProbationStartDate,
-                                                ProbationEndDate = p.ProbationEndDate,
-                                                IsCompleted = p.IsCompleted,
-                                                CreatedBy = p.CreatedBy
-                                            }).ToListAsync();
+                                      join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                                      join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
+                                      join r in _context.ProbationReports on s.StaffId equals r.EmpId into reportGroup
+                                      from report in reportGroup.DefaultIfEmpty()
+                                      join t in _context.ProbationTargets on s.StaffId equals t.EmpId into targetGroup
+                                      from target in targetGroup.DefaultIfEmpty()
+                                      where p.IsActive && (s.ApprovalLevel1 == approverLevelId || s.ApprovalLevel2 == approverLevelId || s.AccessLevel == "SUPER ADMIN")
+                                      select new ProbationResponse
+                                      {
+                                          ProbationId = p.Id,
+                                          StaffId = p.StaffCreationId,
+                                          StaffCreationId = s.StaffId,
+                                          StaffName = s.FirstName + " " + s.LastName,
+                                          DepartmentName = d.Name,
+                                          ProbationStartDate = p.ProbationStartDate,
+                                          ProbationEndDate = p.ProbationEndDate,
+                                          CreatedBy = p.CreatedBy,
+                                          ProbationReport = report,
+                                          ProbationTarget = target
+                                      }).ToListAsync();
 
             if (!matchingProbations.Any())
             {
@@ -176,16 +210,41 @@ namespace AttendanceManagement.Services
 
         public async Task<string> AddFeedbackAsync(FeedbackRequest feedbackRequest)
         {
-            var message = "Feedback added successfully.";
-            var feedback = new Feedback
+            var message = "";
+            if (feedbackRequest.IsApproved)
             {
-                ProbationId = feedbackRequest.ProbationId,
-                FeedbackText = feedbackRequest.FeedbackText,
-                CreatedBy = feedbackRequest.CreatedBy,
-                CreatedUtc = DateTime.UtcNow,
-                IsActive = true
-            };
-            _context.Feedbacks.Add(feedback);
+                message = "Probation approved successfully.";
+                var feedback = new Feedback
+                {
+                    ProbationId = feedbackRequest.ProbationId,
+                    FeedbackText = feedbackRequest.FeedbackText,
+                    IsApproved = feedbackRequest.IsApproved,
+                    IsActive = true,
+                    CreatedBy = feedbackRequest.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
+                _context.Feedbacks.Add(feedback);
+                var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == feedbackRequest.ProbationId && p.IsActive);
+                var probationer = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == probation.StaffCreationId && s.IsActive == true);
+                var approver = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == feedbackRequest.CreatedBy && s.IsActive == true);
+                string approvedTime = feedback.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                await _emailService.SendProbationNotificationToHrAsync($"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, probation.ProbationEndDate, feedbackRequest.IsApproved, $"{approver.FirstName} {approver.LastName}", approvedTime, feedbackRequest.CreatedBy);
+            }
+            else
+            {
+                message = "Probation period has been extended successfully.";
+                var feedback = new Feedback
+                {
+                    ProbationId = feedbackRequest.ProbationId,
+                    FeedbackText = feedbackRequest.FeedbackText,
+                    IsApproved = feedbackRequest.IsApproved,
+                    ExtensionPeriod = feedbackRequest.ExtensionPeriod,
+                    IsActive = true,
+                    CreatedBy = feedbackRequest.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
+                _context.Feedbacks.Add(feedback);
+            }
             await _context.SaveChangesAsync();
             return message;
         }

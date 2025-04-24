@@ -19,7 +19,7 @@ public class GradeMasterService
                         select new GradeMasterResponse
                         {
                             GradeMasterId = grade.Id,
-                            FullName = grade.FullName,
+                            FullName = grade.Name,
                             ScreenOption = grade.ScreenOption,
                             IsActive = grade.IsActive,
                             CreatedBy = grade.CreatedBy
@@ -40,7 +40,7 @@ public class GradeMasterService
 
         var gradeMaster = new GradeMaster
         {
-            FullName = gradeMasterRequest.FullName,
+            Name = gradeMasterRequest.FullName,
             ScreenOption = gradeMasterRequest.ScreenOption,
             IsActive = gradeMasterRequest.IsActive,
             CreatedBy = gradeMasterRequest.CreatedBy,
@@ -62,7 +62,7 @@ public class GradeMasterService
             throw new MessageNotFoundException("Grade not found");
         }
 
-        existingGrade.FullName = gradeMaster.FullName;
+        existingGrade.Name = gradeMaster.FullName;
         existingGrade.ScreenOption = gradeMaster.ScreenOption;
         existingGrade.IsActive = gradeMaster.IsActive;
         existingGrade.UpdatedBy = gradeMaster.UpdatedBy;

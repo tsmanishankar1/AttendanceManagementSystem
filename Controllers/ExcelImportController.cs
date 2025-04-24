@@ -41,7 +41,7 @@ public class ExcelImportController : ControllerBase
     {
         try
         {
-            var result = await _excelImportService.ImportExcelAsync(excelImportDto.ExcelImportId, excelImportDto.CreatedBy, excelImportDto.File);
+            var result = await _excelImportService.ImportExcelAsync(excelImportDto);
             var response = new
             {
                 Success = true,
@@ -50,7 +50,12 @@ public class ExcelImportController : ControllerBase
             await _loggingService.AuditLog("Excel Import", "POST", "/api/ExcelImport/ImportExcel", result, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return Ok(response);
         }
-        catch(InvalidOperationException ex)
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return ErrorClass.ConflictResponse(ex.Message);

@@ -10,4 +10,13 @@
 
         public int CreatedBy { get; set; }
     }
+
+    public class HrConfirmation
+    {
+        public int ProbationId { get; set; }
+
+        public bool IsCompleted { get; set; }
+
+        public int CreatedBy { get; set; }
+    }
 }

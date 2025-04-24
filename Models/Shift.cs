@@ -7,7 +7,7 @@ public partial class Shift
 {
     public int Id { get; set; }
 
-    public string ShiftName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public string StartTime { get; set; } = null!;
 

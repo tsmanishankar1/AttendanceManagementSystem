@@ -7,7 +7,7 @@ public partial class GradeMaster
 {
     public int Id { get; set; }
 
-    public string FullName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public string? ScreenOption { get; set; }
 

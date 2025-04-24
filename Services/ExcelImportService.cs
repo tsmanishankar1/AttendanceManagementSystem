@@ -65,7 +65,7 @@ public class ExcelImportService
     }
 
 
-    public async Task<string> ImportExcelAsync(int excelImportId, int createdBy, IFormFile file)
+    public async Task<string> ImportExcelAsync(ExcelImportDto excelImportDto)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -73,7 +73,7 @@ public class ExcelImportService
         {
             using (var stream = new MemoryStream())
             {
-                await file.CopyToAsync(stream);
+                await excelImportDto.File.CopyToAsync(stream);
                 using (var package = new ExcelPackage(stream))
                 {
                     var worksheet = package.Workbook.Worksheets.FirstOrDefault();
@@ -82,7 +82,7 @@ public class ExcelImportService
                     var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns]
                                     .Select(cell => cell.Text.Trim()).ToList();
                     var requiredHeaders = new List<string>();
-                    if (excelImportId == 1)
+                    if (excelImportDto.ExcelImportId == 1)
                     {
                         requiredHeaders = new List<string>
                         {
@@ -96,93 +96,111 @@ public class ExcelImportService
                             "FatherAadharNo", "MotherAadharNo", "OrganizationType", "WorkingStatus", "ConfirmationDate", "PostalCode", "ApprovalLevel", "OfficialEmail"
                         };
                     }
-                    else if (excelImportId == 2)
+                    else if (excelImportDto.ExcelImportId == 2)
                     {
                         requiredHeaders = new List<string> {"LeaveTypeName", "StaffCreationId", "TransactionFlag", "Month", "Year", "Remarks", "LeaveCount", "LeaveReason"};
                     }
-                    else if (excelImportId == 3)
+                    else if (excelImportDto.ExcelImportId == 3)
                     {
                         requiredHeaders = new List<string> {"FullName", "ShortName", "Phone", "Fax", "Email" };
                     }
-                    else if (excelImportId == 4 || excelImportId == 5 || excelImportId == 6)
+                    else if (excelImportDto.ExcelImportId == 4 || excelImportDto.ExcelImportId == 5 || excelImportDto.ExcelImportId == 6)
                     {
                         requiredHeaders = new List<string> {"FullName", "ShortName" };
                     }
-                    else if (excelImportId == 7)
+                    else if (excelImportDto.ExcelImportId == 7)
                     {
                         requiredHeaders = new List<string> {"Name", "ShortName" };
                     }
-                    else if (excelImportId == 8)
+                    else if (excelImportDto.ExcelImportId == 8)
                     {
                         requiredHeaders = new List<string> {"StaffId", "SelectPunch", "InPunch", "OutPunch", "Remarks", "ApplicationTypeName" };
                     }
-                    else if (excelImportId == 9)
+                    else if (excelImportDto.ExcelImportId == 9)
                     {
                         requiredHeaders = new List<string> {"StartTime", "EndTime", "StaffId", "Remarks", "PermissionDate", "PermissionType", "ApplicationTypeName" };
                     }
-                    else if (excelImportId == 10)
+                    else if (excelImportDto.ExcelImportId == 10)
                     {
                         requiredHeaders = new List<string> {"StaffId", "ResignationDate", "RelievingDate", "Status" };
                     }
-                    else if (excelImportId == 11)
+                    else if (excelImportDto.ExcelImportId == 11)
                     {
                         requiredHeaders = new List<string> {"ShiftName", "StartTime", "EndTime", "ShortName" };
                     }
-                    else if (excelImportId == 12)
+                    else if (excelImportDto.ExcelImportId == 12)
                     {
                         requiredHeaders = new List<string> {"ApplicationTypeName", "FromDate", "ToDate", "Reason", "StaffId", "StartDuration", "EndDuration", "LeaveTypeName" };
                     }
-                    else if (excelImportId == 13)
+                    else if (excelImportDto.ExcelImportId == 13)
                     {
                         requiredHeaders = new List<string> {"ApplicationTypeName", "StartTime", "EndTime", "StartDate", "EndDate", "Reason", "StaffId", "StartDuration", "EndDuration" };
                     }
-                    else if (excelImportId == 14)
+                    else if (excelImportDto.ExcelImportId == 14)
                     {
                         requiredHeaders = new List<string> {"ApplicationTypeName", "FromTime", "ToTime", "FromDate", "ToDate", "Reason", "StartDuration", "EndDuration", "StaffId" };
                     }
-                    else if (excelImportId == 15)
+                    else if (excelImportDto.ExcelImportId == 15)
                     {
                         requiredHeaders = new List<string> {"ApplicationTypeName", "StaffId", "OTDate", "StartTime", "EndTime", "OTType" };
                     }
-                    else if (excelImportId == 16)
+                    else if (excelImportDto.ExcelImportId == 16)
                     {
                         requiredHeaders = new List<string> {"ApplicationTypeName", "StaffId", "TransactionDate", "BeforeShiftHours", "AfterShiftHours", "Remarks", "DurationHours" };
                     }
-                    else if (excelImportId == 17)
+                    else if (excelImportDto.ExcelImportId == 17)
                     {
                         requiredHeaders = new List<string> {"StaffId", "VaccinatedDate", "VaccinationNumber", "IsExempted", "Comments" };
                     }
+                    else if(excelImportDto.ExcelImportId == 18)
+                    {
+                        requiredHeaders = new List<string>
+                        {
+                            "Emp ID", "Name", "Department", "Prod Score", "Prod %", "Prod Grade", "Quality Score", "Qual %", "No Of Absent",
+                            "Attd Score", "Attd %", "Attd Grade", "Final Total", "Total Score", "Final Score %", "Final Grade", "Production Achieved % Jan",
+                            "Production Achieved % Feb", "Production Achieved % Mar", "Production Achieved % Apr", "Production Achieved % May",
+                            "Production Achieved % Jun", "Production Achieved % Jul", "Production Achieved % Aug", "Production Achieved % Sep",
+                            "Production Achieved % Oct","Production Achieved % Nov", "Production Achieved % Dec"
+                        };
+                    }
+                    else if (excelImportDto.ExcelImportId == 19)
+                    {
+                        requiredHeaders = new List<string>
+                        {
+                            "Emp ID", "Name", "EMP Division", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct","Nov", "Dec"
+                        };
+                    }
                     else
                     {
-                        throw new Exception("Invalid ExcelImportId. Only 1 or 2 or 3 or 4 or 5 or 6 or 9 or 10 or 11 or 12 or 13 or 14 or 15 or 16 or 17 are valid.");
+                        throw new Exception("Invalid excelImportDto.ExcelImportId. Only 1 or 2 or 3 or 4 or 5 or 6 or 9 or 10 or 11 or 12 or 13 or 14 or 15 or 16 or 17 are valid.");
                     }
                     var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                     if (missingHeaders.Any())
                     {
-                        throw new Exception($"Invalid Excel file for ExcelImportId {excelImportId}. Missing headers: {string.Join(", ", missingHeaders)}");
+                        throw new InvalidOperationException($"Invalid Excel file for excelImportId {excelImportDto.ExcelImportId}. Missing headers: {string.Join(", ", missingHeaders)}");
                     }
                     var extraHeaders = headerRow.Except(requiredHeaders).ToList();
                     if (extraHeaders.Any())
                     {
-                        throw new Exception($"Invalid Excel file for ExcelImportId {excelImportId}. Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                        throw new InvalidOperationException($"Invalid Excel file for excelImportId {excelImportDto.ExcelImportId}. Contains unexpected headers: {string.Join(", ", extraHeaders)}");
                     }
                     var columnIndexes = requiredHeaders.ToDictionary(
                         header => header,
                         header => headerRow.IndexOf(header) + 1
                     );
                     var staffExists = await _context.StaffCreations
-                        .AnyAsync(s => s.Id == createdBy);
+                        .AnyAsync(s => s.Id == excelImportDto.CreatedBy);
 
                     if (!staffExists)
                     {
-                        throw new Exception($"StaffId {createdBy} not found in the database.");
+                        throw new Exception($"StaffId {excelImportDto.CreatedBy} not found in the database.");
                     }
                     var rowCount = worksheet.Dimension.Rows;
                     using (var transaction = await _context.Database.BeginTransactionAsync())
                     {
                         try
                         {
-                            if (excelImportId == 1)
+                            if (excelImportDto.ExcelImportId == 1)
                             {
                                 var staffCreations = new List<StaffCreation>();
                                 var validDepartmentIds = _context.DepartmentMasters.Select(d => d.Id).ToHashSet();
@@ -195,7 +213,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var branchId = _context.BranchMasters
-                                        .Where(d => d.FullName.ToLower() == branchName.ToLower())
+                                        .Where(d => d.Name.ToLower() == branchName.ToLower())
                                         .Select(d => d.Id)
                                         .FirstOrDefault();
                                     if (branchId == 0)
@@ -242,7 +260,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var departmentId = _context.DepartmentMasters
-                                        .Where(d => d.FullName.ToLower() == departmentName.ToLower())
+                                        .Where(d => d.Name.ToLower() == departmentName.ToLower())
                                         .Select(d => d.Id)
                                         .FirstOrDefault();
                                     if (departmentId == 0)
@@ -267,7 +285,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var divisionId = _context.DivisionMasters
-                                        .Where(d => d.FullName.ToLower() == divisionName.ToLower())
+                                        .Where(d => d.Name.ToLower() == divisionName.ToLower())
                                         .Select(d => d.Id)
                                         .FirstOrDefault();
                                     if (divisionId == 0)
@@ -280,7 +298,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var designationId = _context.DesignationMasters
-                                        .Where(d => d.FullName.ToLower() == designationName.ToLower())
+                                        .Where(d => d.Name.ToLower() == designationName.ToLower())
                                         .Select(d => d.Id)
                                         .FirstOrDefault();
                                     if (designationId == 0)
@@ -293,7 +311,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var gradeId = _context.GradeMasters
-                                        .Where(g => g.FullName.ToLower() == gradeName.ToLower())
+                                        .Where(g => g.Name.ToLower() == gradeName.ToLower())
                                         .Select(g => g.Id)
                                         .FirstOrDefault();
                                     if (gradeId == 0)
@@ -320,7 +338,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var categoryId = _context.CategoryMasters
-                                        .Where(c => c.FullName.ToLower() == categoryName.ToLower())
+                                        .Where(c => c.Name.ToLower() == categoryName.ToLower())
                                         .Select(c => c.Id)
                                         .FirstOrDefault();
                                     if (categoryId == 0)
@@ -333,7 +351,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var costCenterId = _context.CostCentreMasters
-                                        .Where(c => c.FullName.ToLower() == costCenterName.ToLower())
+                                        .Where(c => c.Name.ToLower() == costCenterName.ToLower())
                                         .Select(c => c.Id)
                                         .FirstOrDefault();
                                     if (costCenterId == 0)
@@ -372,7 +390,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var companyMasterId = _context.CompanyMasters
-                                        .Where(c => c.FullName.ToLower() == companyName.ToLower())
+                                        .Where(c => c.Name.ToLower() == companyName.ToLower())
                                         .Select(c => c.Id)
                                         .FirstOrDefault();
                                     if (companyMasterId == 0)
@@ -385,7 +403,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var locationMasterId = _context.LocationMasters
-                                        .Where(l => l.FullName.ToLower() == locationName.ToLower())
+                                        .Where(l => l.Name.ToLower() == locationName.ToLower())
                                         .Select(l => l.Id)
                                         .FirstOrDefault();
                                     if (locationMasterId == 0)
@@ -462,7 +480,6 @@ public class ExcelImportService
                                         BankAccountNo = long.TryParse(worksheet.Cells[row, columnIndexes["BankAccountNo"]]?.Text, out var bankAccountNo) ? bankAccountNo : 0,
                                         BankIfscCode = worksheet.Cells[row, columnIndexes["BankIfscCode"]]?.Text.Trim(),
                                         BankBranch = worksheet.Cells[row, columnIndexes["BankBranch"]]?.Text.Trim(),
-                                      
                                         HomeAddress = worksheet.Cells[row, columnIndexes["HomeAddress"]]?.Text.Trim() ?? string.Empty,
                                         FatherName = worksheet.Cells[row, columnIndexes["FatherName"]]?.Text.Trim() ?? string.Empty,
                                         EmergencyContactPerson1 = worksheet.Cells[row, columnIndexes["EmergencyContactPerson1"]]?.Text.Trim() ?? string.Empty,
@@ -478,7 +495,7 @@ public class ExcelImportService
                                         PostalCode = int.TryParse(worksheet.Cells[row, columnIndexes["PostalCode"]]?.Text, out var postalCode) ? postalCode : 0,
                                         ApprovalLevel = worksheet.Cells[row, columnIndexes["ApprovalLevel"]]?.Text.Trim() ?? string.Empty,
                                         OfficialEmail = worksheet.Cells[row, columnIndexes["OfficialEmail"]]?.Text.Trim() ?? string.Empty,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         IsActive = true,
                                         CreatedUtc = DateTime.UtcNow
                                     };
@@ -487,7 +504,7 @@ public class ExcelImportService
                                 }
                                 await _context.StaffCreations.AddRangeAsync(staffCreations);
                             }
-                            else if (excelImportId == 2)
+                            else if (excelImportDto.ExcelImportId == 2)
                             {
                                 var individualLeaveCreditDebits = new List<IndividualLeaveCreditDebit>();
 
@@ -562,17 +579,15 @@ public class ExcelImportService
                                         ActualBalance = actualBalance,
                                         AvailableBalance = availableBalance,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
-                                        CreatedUtc = DateTime.UtcNow,
-                                        UpdatedUtc = DateTime.UtcNow,
-                                        UpdatedBy = createdBy
+                                        CreatedBy = excelImportDto.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
                                     };
 
                                     individualLeaveCreditDebits.Add(individualLeaveCreditDebit);
                                 }
                                 await _context.IndividualLeaveCreditDebits.AddRangeAsync(individualLeaveCreditDebits);
                             }
-                            else if (excelImportId == 3)
+                            else if (excelImportDto.ExcelImportId == 3)
                             {
                                 var departmentMasters = new List<DepartmentMaster>();
 
@@ -580,13 +595,13 @@ public class ExcelImportService
                                 {
                                     var departmentMaster = new DepartmentMaster
                                     {
-                                        FullName = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         Phone = long.TryParse(worksheet.Cells[row, columnIndexes["Phone"]].Text, out var phone) ? phone : 0,
                                         Fax = worksheet.Cells[row, columnIndexes["Fax"]].Text.Trim(),
                                         Email = worksheet.Cells[row, columnIndexes["Email"]].Text.Trim(),
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
 
@@ -595,7 +610,7 @@ public class ExcelImportService
 
                                 await _context.DepartmentMasters.AddRangeAsync(departmentMasters);
                             }
-                            else if (excelImportId == 4)
+                            else if (excelImportDto.ExcelImportId == 4)
                             {
                                 var designationMasters = new List<DesignationMaster>();
 
@@ -603,10 +618,10 @@ public class ExcelImportService
                                 {
                                     var designationMaster = new DesignationMaster
                                     {
-                                        FullName = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
 
@@ -615,7 +630,7 @@ public class ExcelImportService
 
                                 await _context.DesignationMasters.AddRangeAsync(designationMasters);
                             }
-                            else if (excelImportId == 5)
+                            else if (excelImportDto.ExcelImportId == 5)
                             {
                                 var divisionMasters = new List<DivisionMaster>();
 
@@ -623,10 +638,10 @@ public class ExcelImportService
                                 {
                                     var divisionMaster = new DivisionMaster
                                     {
-                                        FullName = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
 
@@ -635,7 +650,7 @@ public class ExcelImportService
 
                                 await _context.DivisionMasters.AddRangeAsync(divisionMasters);
                             }
-                            else if (excelImportId == 6)
+                            else if (excelImportDto.ExcelImportId == 6)
                             {
                                 var costCentreMasters = new List<CostCentreMaster>();
 
@@ -643,17 +658,17 @@ public class ExcelImportService
                                 {
                                     var costCentreMaster = new CostCentreMaster
                                     {
-                                        FullName = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
                                     costCentreMasters.Add(costCentreMaster);
                                 }
                                 await _context.CostCentreMasters.AddRangeAsync(costCentreMasters);
                             }
-                            else if (excelImportId == 7)
+                            else if (excelImportDto.ExcelImportId == 7)
                             {
                                 var volumes = new List<Volume>();
 
@@ -664,14 +679,14 @@ public class ExcelImportService
                                         Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
                                     volumes.Add(volume);
                                 }
                                 await _context.Volumes.AddRangeAsync(volumes);
                             }
-                            else if (excelImportId == 8)
+                            else if (excelImportDto.ExcelImportId == 8)
                             {
                                 var manualPunchRequisitions = new List<ManualPunchRequistion>();
 
@@ -736,10 +751,8 @@ public class ExcelImportService
                                         OutPunch = outPunch.Value,
                                         Remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text?.Trim() ?? string.Empty,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow,
-                                        UpdatedUtc = DateTime.UtcNow,
-                                        UpdatedBy = createdBy,
                                         ApplicationTypeId = applicationType.Id
                                     };
 
@@ -755,7 +768,7 @@ public class ExcelImportService
                                     throw new Exception("No valid manual punch requisitions found in the Excel file.");
                                 }
                             }
-                            else if (excelImportId == 9)
+                            else if (excelImportDto.ExcelImportId == 9)
                             {
                                 var commonPermissions = new List<CommonPermission>();
                                 for (int row = 2; row <= rowCount; row++)
@@ -845,7 +858,7 @@ public class ExcelImportService
                                         ApplicationTypeId = applicationType.Id,
                                         Remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim(),
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
 
@@ -853,7 +866,7 @@ public class ExcelImportService
                                 }
                                 await _context.CommonPermissions.AddRangeAsync(commonPermissions);
                             }
-                            else if (excelImportId == 10)
+                            else if (excelImportDto.ExcelImportId == 10)
                             {
                                 var staffCreations = new List<StaffCreation>();
 
@@ -910,7 +923,7 @@ public class ExcelImportService
                                     existingStaff.ResignationDate = resignationDate;
                                     existingStaff.RelievingDate = relievingDate;
                                     existingStaff.StatusId = statusId;
-                                    existingStaff.UpdatedBy = createdBy;
+                                    existingStaff.UpdatedBy = excelImportDto.CreatedBy;
                                     existingStaff.IsActive = false;
                                     existingStaff.UpdatedUtc = DateTime.UtcNow;
 
@@ -926,7 +939,7 @@ public class ExcelImportService
                                     Console.WriteLine("No valid staff records found for update.");
                                 }
                             }
-                            else if (excelImportId == 11)
+                            else if (excelImportDto.ExcelImportId == 11)
                             {
                                 var shiftMasters = new List<Shift>();
 
@@ -942,12 +955,12 @@ public class ExcelImportService
 
                                     var shiftMaster = new Shift
                                     {
-                                        ShiftName = worksheet.Cells[row, columnIndexes["ShiftName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["ShiftName"]].Text.Trim(),
                                         StartTime = startTime,
                                         ShortName = shortName,
                                         EndTime = endTime,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
 
@@ -956,7 +969,7 @@ public class ExcelImportService
 
                                 await _context.Shifts.AddRangeAsync(shiftMasters);
                             }
-                            else if (excelImportId == 12)
+                            else if (excelImportDto.ExcelImportId == 12)
                             {
                                 var leaveRequisitions = new List<LeaveRequisition>();
                                 for (int row = 2; row <= rowCount; row++)
@@ -1027,7 +1040,7 @@ public class ExcelImportService
                                         TotalDays = totalDays,
                                         StaffId = staffId,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
                                     leaveRequisitions.Add(leaveRequisition);
@@ -1037,7 +1050,7 @@ public class ExcelImportService
                                     await _context.LeaveRequisitions.AddRangeAsync(leaveRequisitions);
                                 }
                             }
-                            else if (excelImportId == 13)
+                            else if (excelImportDto.ExcelImportId == 13)
                             {
                                 var onDutyRequisitions = new List<OnDutyRequisition>();
                                 for (int row = 2; row <= rowCount; row++)
@@ -1106,7 +1119,7 @@ public class ExcelImportService
                                         TotalHours = totalHours,
                                         StaffId = staffId,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
                                     onDutyRequisitions.Add(onDutyRequisition);
@@ -1116,7 +1129,7 @@ public class ExcelImportService
                                     await _context.OnDutyRequisitions.AddRangeAsync(onDutyRequisitions);
                                 }
                             }
-                            else if (excelImportId == 14)
+                            else if (excelImportDto.ExcelImportId == 14)
                             {
                                 var workFromHomes = new List<WorkFromHome>();
 
@@ -1192,7 +1205,7 @@ public class ExcelImportService
                                         EndDuration = worksheet.Cells[row, columnIndexes["EndDuration"]]?.Text.Trim() ?? string.Empty,
                                         StaffId = staffId,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
 
@@ -1204,7 +1217,7 @@ public class ExcelImportService
                                     await _context.WorkFromHomes.AddRangeAsync(workFromHomes);
                                 }
                             }
-                            else if (excelImportId == 15)
+                            else if (excelImportDto.ExcelImportId == 15)
                             {
                                 var onDutyOvertimes = new List<OnDutyOvertime>();
                                 for (int row = 2; row <= rowCount; row++)
@@ -1262,7 +1275,7 @@ public class ExcelImportService
                                         EndTime = endTime,
                                         Ottype = otType,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
 
@@ -1273,7 +1286,7 @@ public class ExcelImportService
                                     await _context.OnDutyOvertimes.AddRangeAsync(onDutyOvertimes);
                                 }
                             }
-                            else if (excelImportId == 16)
+                            else if (excelImportDto.ExcelImportId == 16)
                             {
                                 var shiftExtensions = new List<ShiftExtension>();
 
@@ -1342,7 +1355,7 @@ public class ExcelImportService
                                         AfterShiftHours = afterShiftHours,
                                         Remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text?.Trim(),
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow,
                                         StaffId = staffId
                                     };
@@ -1358,7 +1371,7 @@ public class ExcelImportService
                                     throw new Exception("No valid shift extensions found in the Excel file.");
                                 }
                             }
-                            else if (excelImportId == 17)
+                            else if (excelImportDto.ExcelImportId == 17)
                             {
                                 var staffVaccinations = new List<StaffVaccination>();
 
@@ -1433,7 +1446,7 @@ public class ExcelImportService
                                         IsExempted = isExempted,
                                         Comments = comments,
                                         IsActive = true,
-                                        CreatedBy = createdBy,
+                                        CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow,
                                     };
                                     staffVaccinations.Add(staffVaccination);
@@ -1445,6 +1458,119 @@ public class ExcelImportService
                                 else
                                 {
                                     throw new Exception("No valid staff vaccinations found in the Excel file.");
+                                }
+                            }
+                            else if(excelImportDto.ExcelImportId == 18)
+                            {
+                                var probations = new List<ProbationReport>();
+                                var validDepartmentIds = _context.DepartmentMasters.Select(d => d.Id).ToHashSet();
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var departmentName = worksheet.Cells[row, columnIndexes["Department"]]?.Text.Trim();
+                                    if (string.IsNullOrEmpty(departmentName))
+                                    {
+                                        continue;
+                                    }
+                                    var departmentId = _context.DepartmentMasters
+                                        .Where(d => d.Name.ToLower() == departmentName.ToLower())
+                                        .Select(d => d.Id)
+                                        .FirstOrDefault();
+                                    if (departmentId == 0)
+                                        throw new MessageNotFoundException($"Department '{departmentName}' not found.");
+                                    var addProbation = new ProbationReport
+                                    {
+                                        EmpId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
+                                        DepartmentId = departmentId,
+                                        ProdScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod Score"]]?.Text.Trim(), out decimal prodeScore) ? prodeScore : 0m,
+                                        ProdPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod %"]]?.Text.Trim(), out decimal prodPercentage) ? prodPercentage : 0m,
+                                        ProdGrade = worksheet.Cells[row, columnIndexes["Prod Grade"]].Text.Trim(),
+                                        QualityScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality Score"]]?.Text.Trim(), out decimal qualityScore) ? qualityScore : 0m,
+                                        QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Qual %"]]?.Text.Trim(), out decimal qualityPercentage) ? qualityPercentage : 0m,
+                                        NoOfAbsent = decimal.TryParse(worksheet.Cells[row, columnIndexes["No Of Absent"]]?.Text.Trim(), out decimal noOfAbsent) ? noOfAbsent : 0m,
+                                        AttendanceScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd Score"]]?.Text.Trim(), out decimal attendanceScore) ? attendanceScore : 0m,
+                                        AttendancePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd %"]]?.Text.Trim(), out decimal attendancePercentage) ? attendancePercentage : 0m,
+                                        AttendanceGrade = worksheet.Cells[row, columnIndexes["Attd Grade"]].Text.Trim(),
+                                        FinalTotal = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Total"]]?.Text.Trim(), out decimal finalTotal) ? finalTotal : 0m,
+                                        TotalScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Score"]]?.Text.Trim(), out decimal totalScore) ? totalScore : 0m,
+                                        FinalScorePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Score %"]]?.Text.Trim(), out decimal finalScorePercentage) ? finalScorePercentage : 0m,
+                                        FinalGrade = worksheet.Cells[row, columnIndexes["Final Grade"]].Text.Trim(),
+                                        ProductionAchievedPercentageJan = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Jan"]]?.Text.Trim(), out decimal jan) ? jan : (decimal?)null,
+                                        ProductionAchievedPercentageFeb = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Feb"]]?.Text.Trim(), out decimal feb) ? feb : (decimal?)null,
+                                        ProductionAchievedPercentageMar = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Mar"]]?.Text.Trim(), out decimal mar) ? mar : (decimal?)null,
+                                        ProductionAchievedPercentageApr = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Apr"]]?.Text.Trim(), out decimal apr) ? apr : (decimal?)null,
+                                        ProductionAchievedPercentageMay = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % May"]]?.Text.Trim(), out decimal may) ? may : (decimal?)null,
+                                        ProductionAchievedPercentageJun = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Jun"]]?.Text.Trim(), out decimal jun) ? jun : (decimal?)null,
+                                        ProductionAchievedPercentageJul = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Jul"]]?.Text.Trim(), out decimal jul) ? jul : (decimal?)null,
+                                        ProductionAchievedPercentageAug = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Aug"]]?.Text.Trim(), out decimal aug) ? aug : (decimal?)null,
+                                        ProductionAchievedPercentageSep = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Sep"]]?.Text.Trim(), out decimal sep) ? sep : (decimal?)null,
+                                        ProductionAchievedPercentageOct = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Oct"]]?.Text.Trim(), out decimal oct) ? oct : (decimal?)null,
+                                        ProductionAchievedPercentageNov = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Nov"]]?.Text.Trim(), out decimal nov) ? nov : (decimal?)null,
+                                        ProductionAchievedPercentageDec = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Dec"]]?.Text.Trim(), out decimal dec) ? dec : (decimal?)null,
+                                        ProductivityYear = (int)excelImportDto.ProductivityYear,
+                                        IsActive = true,
+                                        CreatedBy = excelImportDto.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    probations.Add(addProbation);
+                                }
+                                if (probations.Count > 0)
+                                {
+                                    await _context.ProbationReports.AddRangeAsync(probations);
+                                }
+                                else
+                                {
+                                    throw new Exception("No valid probation report found in the Excel file.");
+                                }
+                            }
+                            else if(excelImportDto.ExcelImportId == 19)
+                            {
+                                var probations = new List<ProbationTarget>();
+                                var validDivisionIds = _context.DivisionMasters.Select(d => d.Id).ToHashSet();
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var divisionName = worksheet.Cells[row, columnIndexes["EMP Division"]]?.Text.Trim();
+                                    if (string.IsNullOrEmpty(divisionName))
+                                    {
+                                        continue;
+                                    }
+                                    var divisionId = _context.DivisionMasters
+                                        .Where(d => d.Name.ToLower() == divisionName.ToLower())
+                                        .Select(d => d.Id)
+                                        .FirstOrDefault();
+                                    if (divisionId == 0)
+                                        throw new MessageNotFoundException($"Division '{divisionName}' not found.");
+                                    var addProbation = new ProbationTarget
+                                    {
+                                        EmpId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
+                                        DivisionId = divisionId,
+                                        Jan = decimal.TryParse(worksheet.Cells[row, columnIndexes["Jan"]]?.Text.Trim(), out decimal jan) ? jan : (decimal?)null,
+                                        Feb = decimal.TryParse(worksheet.Cells[row, columnIndexes["Feb"]]?.Text.Trim(), out decimal feb) ? feb : (decimal?)null,
+                                        Mar = decimal.TryParse(worksheet.Cells[row, columnIndexes["Mar"]]?.Text.Trim(), out decimal mar) ? mar : (decimal?)null,
+                                        Apr = decimal.TryParse(worksheet.Cells[row, columnIndexes["Apr"]]?.Text.Trim(), out decimal apr) ? apr : (decimal?)null,
+                                        May = decimal.TryParse(worksheet.Cells[row, columnIndexes["May"]]?.Text.Trim(), out decimal may) ? may : (decimal?)null,
+                                        Jun = decimal.TryParse(worksheet.Cells[row, columnIndexes["Jun"]]?.Text.Trim(), out decimal jun) ? jun : (decimal?)null,
+                                        Jul = decimal.TryParse(worksheet.Cells[row, columnIndexes["Jul"]]?.Text.Trim(), out decimal jul) ? jul : (decimal?)null,
+                                        Aug = decimal.TryParse(worksheet.Cells[row, columnIndexes["Aug"]]?.Text.Trim(), out decimal aug) ? aug : (decimal?)null,
+                                        Sep = decimal.TryParse(worksheet.Cells[row, columnIndexes["Sep"]]?.Text.Trim(), out decimal sep) ? sep : (decimal?)null,
+                                        Oct = decimal.TryParse(worksheet.Cells[row, columnIndexes["Oct"]]?.Text.Trim(), out decimal oct) ? oct : (decimal?)null,
+                                        Nov = decimal.TryParse(worksheet.Cells[row, columnIndexes["Nov"]]?.Text.Trim(), out decimal nov) ? nov : (decimal?)null,
+                                        Dec = decimal.TryParse(worksheet.Cells[row, columnIndexes["Dec"]]?.Text.Trim(), out decimal dec) ? dec : (decimal?)null,
+                                        ProductivityYear = (int)excelImportDto.ProductivityYear,
+                                        IsActive = true,
+                                        CreatedBy = excelImportDto.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    probations.Add(addProbation);
+                                }
+                                if (probations.Count > 0)
+                                {
+                                    await _context.ProbationTargets.AddRangeAsync(probations);
+                                }
+                                else
+                                {
+                                    throw new Exception("No valid probation report found in the Excel file.");
                                 }
                             }
                             await _context.SaveChangesAsync();

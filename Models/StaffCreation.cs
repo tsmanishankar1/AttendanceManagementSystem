@@ -595,7 +595,17 @@ public partial class StaffCreation
 
     public virtual ICollection<Probation> ProbationCreatedByNavigations { get; set; } = new List<Probation>();
 
+    public virtual ICollection<Probation> ProbationManagers { get; set; } = new List<Probation>();
+
+    public virtual ICollection<ProbationReport> ProbationReportCreatedByNavigations { get; set; } = new List<ProbationReport>();
+
+    public virtual ICollection<ProbationReport> ProbationReportUpdatedByNavigations { get; set; } = new List<ProbationReport>();
+
     public virtual ICollection<Probation> ProbationStaffCreations { get; set; } = new List<Probation>();
+
+    public virtual ICollection<ProbationTarget> ProbationTargetCreatedByNavigations { get; set; } = new List<ProbationTarget>();
+
+    public virtual ICollection<ProbationTarget> ProbationTargetUpdatedByNavigations { get; set; } = new List<ProbationTarget>();
 
     public virtual ICollection<Probation> ProbationUpdatedByNavigations { get; set; } = new List<Probation>();
 

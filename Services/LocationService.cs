@@ -18,7 +18,7 @@ namespace AttendanceManagement.Services
                                      select new LocationResponse
                                      {
                                          LocationMasterId = location.Id,
-                                         FullName = location.FullName,
+                                         FullName = location.Name,
                                          ShortName = location.ShortName,
                                          IsActive = location.IsActive,
                                          CreatedBy = location.CreatedBy
@@ -36,7 +36,7 @@ namespace AttendanceManagement.Services
             var message = "Location added successfully";
             var location = new LocationMaster
             {
-                FullName = locationMaster.FullName,
+                Name = locationMaster.FullName,
                 ShortName = locationMaster.ShortName,
                 IsActive = locationMaster.IsActive,
                 CreatedBy = locationMaster.CreatedBy,
@@ -56,7 +56,7 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("Location not found");
             }
-            existingLocation.FullName = locationMaster.FullName;
+            existingLocation.Name = locationMaster.FullName;
             existingLocation.ShortName = locationMaster.ShortName;
             existingLocation.IsActive = locationMaster.IsActive;
             existingLocation.UpdatedBy = locationMaster.UpdatedBy;

@@ -51,7 +51,7 @@ public class LoginService
                 throw new MessageNotFoundException("Designation not found");
             }
 
-            var token = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.FullName);
+            var token = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name);
             return token;
         }
         catch (Exception ex)
@@ -108,7 +108,7 @@ public class LoginService
                     new Claim("StaffId", staff.Id.ToString()),
                     new Claim("StaffCreationId", staff.StaffId),
                     new Claim("DesignationId", designation.Id.ToString()),
-                    new Claim("DesignationName", designation.FullName),
+                    new Claim("DesignationName", designation.Name),
                     new Claim("RoleId", roleId.Id.ToString()),
                     new Claim("Role", roleId.Name.ToString()),
                     new Claim("ProfilePhoto", profilePhoto),

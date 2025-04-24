@@ -27,11 +27,15 @@ public partial class Probation
 
     public int? ApprovalNotificationId { get; set; }
 
+    public int ManagerId { get; set; }
+
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
+    public virtual StaffCreation Manager { get; set; } = null!;
 
     public virtual StaffCreation StaffCreation { get; set; } = null!;
 

@@ -19,7 +19,7 @@ public class DepartmentMasterService
                              select new DepartmentResponse
                              {
                                  DepartmentMasterId = department.Id,
-                                 FullName = department.FullName,
+                                 FullName = department.Name,
                                  ShortName = department.ShortName,
                                  Phone = department.Phone,
                                  Fax = department.Fax,
@@ -39,7 +39,7 @@ public class DepartmentMasterService
         var message = "Department added successfully";
 
         DepartmentMaster department = new DepartmentMaster();
-        department.FullName = departmentRequest.FullName;
+        department.Name = departmentRequest.FullName;
         department.ShortName = departmentRequest.ShortName;
         department.Phone = departmentRequest.Phone;
         department.Fax = departmentRequest.Fax;
@@ -62,7 +62,7 @@ public class DepartmentMasterService
         if (existingDepartment == null)
             throw new MessageNotFoundException("Department not found");
 
-        existingDepartment.FullName = department.FullName;
+        existingDepartment.Name = department.FullName;
         existingDepartment.ShortName = department.ShortName;
         existingDepartment.Phone = department.Phone;
         existingDepartment.Fax = department.Fax;

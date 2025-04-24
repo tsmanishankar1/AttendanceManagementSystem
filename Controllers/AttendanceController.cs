@@ -136,6 +136,29 @@ public class AttendanceController : ControllerBase
         }
     }
 
+    [HttpPost("GetAllStaffsByDepartmentAndDivision")]
+    public async Task<IActionResult> GetAllStaffsByDepartmentAndDivision(GetStaffByDepartmentDivision staff)
+    {
+        try
+        {
+            var results = await _smaxTransactionService.GetAllStaffsByDepartmentAndDivision(staff);
+            var response = new
+            {
+                Success = true,
+                Message = results
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("GetAttendanceRecords")]
     public async Task<IActionResult> GetAttendanceRecords(AttendanceStatusResponse attendanceStatus)
     {
@@ -170,14 +193,17 @@ public class AttendanceController : ControllerBase
                 Success = true,
                 Message = results
             };
+            await _loggingService.AuditLog("Freeze Attendance Records", "POST", "/api/Attendance/FreezeAttendanceRecords", results, attendanceFreeze.FreezedBy, JsonSerializer.Serialize(attendanceFreeze));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
+            await _loggingService.LogError("Freeze Attendance Records", "POST", "/api/Attendance/FreezeAttendanceRecords", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, attendanceFreeze.FreezedBy, JsonSerializer.Serialize(attendanceFreeze));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Freeze Attendance Records", "POST", "/api/Attendance/FreezeAttendanceRecords", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, attendanceFreeze.FreezedBy, JsonSerializer.Serialize(attendanceFreeze));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

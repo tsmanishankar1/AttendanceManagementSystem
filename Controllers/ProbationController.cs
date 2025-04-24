@@ -63,6 +63,29 @@ public class ProbationController : ControllerBase
         }
     }
 
+    [HttpPost("AssignManagerForProbationReview")]
+    public async Task<IActionResult> AssignManagerForProbationReview(AssignManagerRequest assignManagerRequest)
+    {
+        try
+        {
+            var probation = await _probationService.AssignManagerForProbationReview(assignManagerRequest);
+            var response = new
+            {
+                Success = true,
+                Message = probation
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("AddProbation")]
     public async Task<IActionResult> CreateProbation(ProbationRequest probation)
     {
@@ -115,12 +138,12 @@ public class ProbationController : ControllerBase
         }
     }
 
-    [HttpGet("GetByApproverLevel1")]
-    public async Task<IActionResult> GetByApproverLevel1(int approverLevel1Id)
+    [HttpGet("GetProbationDetailsByApproverLevel")]
+    public async Task<IActionResult> GetProbationDetailsByApproverLevel(int approverLevelId)
     {
         try
         {
-            var result = await _probationService.GetProbationDetailsByApproverLevel1(approverLevel1Id);
+            var result = await _probationService.GetProbationDetailsByApproverLevel(approverLevelId);
             var response = new
             {
                 Success = true,
@@ -159,6 +182,7 @@ public class ProbationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("HrApprovalWithLetterGeneration")]
     public async Task<IActionResult> ProcessApprovalAsync(ApprovalRequest approval)
     {

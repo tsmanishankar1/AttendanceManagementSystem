@@ -19,7 +19,7 @@ namespace AttendanceManagement.Services
                               select new CompanyMasterResponse
                               {
                                   CompanyMasterId = company.Id,
-                                  FullName = company.FullName,
+                                  FullName = company.Name,
                                   ShortName = company.ShortName,
                                   LegalName = company.LegalName,
                                   Address = company.Address,
@@ -47,7 +47,7 @@ namespace AttendanceManagement.Services
         {
             var message = "Company added successfully";
             CompanyMaster company = new CompanyMaster();
-            company.FullName = companyMasterRequest.FullName;
+            company.Name = companyMasterRequest.FullName;
             company.ShortName = companyMasterRequest.ShortName;
             company.LegalName = companyMasterRequest.LegalName;
             company.Address = companyMasterRequest.Address;
@@ -76,7 +76,7 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("Category not found");
             }
-            existingCompany.FullName = companyMaster.FullName ?? existingCompany.FullName;
+            existingCompany.Name = companyMaster.FullName ?? existingCompany.Name;
             existingCompany.ShortName = companyMaster.ShortName ?? existingCompany.ShortName;
             existingCompany.LegalName = companyMaster.LegalName ?? existingCompany.LegalName;
             existingCompany.Address = companyMaster.Address ?? existingCompany.Address;

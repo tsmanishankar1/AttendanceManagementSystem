@@ -153,7 +153,7 @@ public class ToolsController : ControllerBase
     }
 
     [HttpPost("ReaderConfiguration")]
-    public async Task<IActionResult> CreateReader( ReaderConfigurationRequest readerConfiguration)
+    public async Task<IActionResult> CreateReader(ReaderConfigurationRequest readerConfiguration)
     {
         try
         {

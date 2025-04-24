@@ -131,7 +131,7 @@ public class UserManagementService
                          {
                              UserManagementId = staff.Id,
                              StaffName = staff.FirstName + " " + staff.LastName,
-                             DepartmentName = department.FullName,
+                             DepartmentName = department.Name,
                              CreatedBy = staff.CreatedBy
                          }).FirstOrDefaultAsync();
 
@@ -169,7 +169,7 @@ public class UserManagementService
                           {
                               UserManagementId = staff.Id,
                               StaffName = staff.FirstName + " " + staff.LastName,
-                              DepartmentName = department.FullName,
+                              DepartmentName = department.Name,
                               CreatedBy = staff.CreatedBy
                           }).FirstOrDefaultAsync();
 

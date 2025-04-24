@@ -34,23 +34,19 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateApproversAsync(List<int> staffIds, int? approverId1, int? approverId2, int updatedBy)
         {
             var message = "Approvers updated successfully";
-
             var staffList = await _context.StaffCreations.Where(s => staffIds.Contains(s.Id)).ToListAsync();
             if (staffList == null || !staffList.Any())
             {
                 return "No valid staff members found.";
             }
-
             if (approverId1.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId1.Value))
             {
                 return $"ApproverId1 ({approverId1}) does not exist.";
             }
-
             if (approverId2.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId2.Value))
             {
                 return $"ApproverId2 ({approverId2}) does not exist.";
             }
-
             foreach (var staff in staffList)
             {
                 staff.ApprovalLevel1 = approverId1 ?? staff.ApprovalLevel1;
@@ -58,7 +54,6 @@ namespace AttendanceManagement.Services
                 staff.UpdatedBy = updatedBy;
                 staff.UpdatedUtc = DateTime.UtcNow;
             }
-
             await _context.SaveChangesAsync();
             return message;
         }
@@ -121,33 +116,33 @@ namespace AttendanceManagement.Services
                     PostalCode = s.PostalCode,
                     OtEligible = s.OtEligible,
                     BranchId = s.BranchId,
-                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.FullName).FirstOrDefault() ?? string.Empty,
+                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.Name).FirstOrDefault() ?? string.Empty,
                     DepartmentId = s.DepartmentId,
-                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     DivisionId = s.DivisionId,
-                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     MaritalStatusId = _context.MaritalStatuses.Where(m => m.Name == s.MaritalStatus).Select(m => m.Id).FirstOrDefault(),
                     MaritalStatus = s.MaritalStatus,
                     VolumeId = _context.Volumes.Where(v => v.Name == s.Volume).Select(v => v.Id).FirstOrDefault(),
                     Volume = s.Volume,
                     DesignationId = s.DesignationId,
-                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     GradeId = s.GradeId,
-                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.FullName).FirstOrDefault() ?? string.Empty,
+                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.Name).FirstOrDefault() ?? string.Empty,
                     CategoryId = s.CategoryId,
-                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     CostCenterId = s.CostCenterId,
-                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     WorkStationId = s.WorkStationId,
                     WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
                     LeaveGroupId = s.LeaveGroupId,
                     LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
                     CompanyMasterId = s.CompanyMasterId,
-                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     HolidayCalendarId = s.HolidayCalendarId,
                     HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
                     LocationMasterId = s.LocationMasterId,
-                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.FullName).FirstOrDefault() ?? string.Empty,
+                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     AadharNo = s.AadharNo,
                     PanNo = s.PanNo,
                     PassportNo = s.PassportNo,
@@ -156,7 +151,6 @@ namespace AttendanceManagement.Services
                     BankAccountNo = s.BankAccountNo,
                     BankIfscCode = s.BankIfscCode,
                     BankBranch = s.BankBranch,
-                   
                     HomeAddress = s.HomeAddress,
                     FatherName = s.FatherName,
                     MotherName = s.MotherName,
@@ -202,7 +196,7 @@ namespace AttendanceManagement.Services
                     new SqlParameter("@Status", string.IsNullOrWhiteSpace(getStaff.Status) ? (object)DBNull.Value : getStaff.Status),
                     new SqlParameter("@LoginUserName", string.IsNullOrWhiteSpace(getStaff.LoginUserName) ? (object)DBNull.Value : getStaff.LoginUserName),
                     new SqlParameter("@IncludeTerminated", getStaff.IncludeTerminated.HasValue ? (object)getStaff.IncludeTerminated.Value : DBNull.Value)
-    };
+            };
 
             var staffList = await _storedProcedureDbContext.StaffDto
                 .FromSqlRaw("EXEC GetStaffByFilters @ApproverId, @ShiftName, @OrganizationTypeName, @CompanyName, @DivisionName, @CategoryName, @CostCentreName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName, @Status, @LoginUserName, @IncludeTerminated", parameters)
@@ -210,8 +204,6 @@ namespace AttendanceManagement.Services
 
             return staffList;
         }
-
-
 
         public async Task<string> UpdateMyProfile(IndividualStaffUpdate individualStaffUpdate)
         {
@@ -258,7 +250,6 @@ namespace AttendanceManagement.Services
             staff.BankAccountNo = individualStaffUpdate.BankAccountNo;
             staff.BankIfscCode = individualStaffUpdate.BankIfscCode;
             staff.BankBranch = individualStaffUpdate.BankBranch;
-           
             staff.HomeAddress = individualStaffUpdate.HomeAddress;
             staff.FatherName = individualStaffUpdate.FatherName;
             staff.MotherName = individualStaffUpdate.MotherName;
@@ -266,8 +257,6 @@ namespace AttendanceManagement.Services
             staff.EmergencyContactPerson2 = individualStaffUpdate.EmergencyContactPerson2;
             staff.EmergencyContactNo1 = individualStaffUpdate.EmergencyContactNo1;
             staff.EmergencyContactNo2 = individualStaffUpdate.EmergencyContactNo2;
-           
-
             staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
             staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
             _context.StaffCreations.Update(staff);
@@ -330,15 +319,15 @@ namespace AttendanceManagement.Services
                                      Country = s.Country,
                                      PostalCode = s.PostalCode,
                                      DepartmentId = s.DepartmentId,
-                                     Department = department.FullName,
+                                     Department = department.Name,
                                      DivisionId = s.DivisionId,
-                                     Division = division.FullName,
+                                     Division = division.Name,
                                      MaritalStatusId = maritalStatus.Id,
                                      MaritalStatus = maritalStatus.Name,
                                      DesignationId = s.DesignationId,
-                                     Designation = designation.FullName,
+                                     Designation = designation.Name,
                                      GradeId = s.GradeId,
-                                     Grade = grade.FullName,
+                                     Grade = grade.Name,
                                      AadharNo = s.AadharNo,
                                      PanNo = s.PanNo,
                                      PassportNo = s.PassportNo,
@@ -347,7 +336,6 @@ namespace AttendanceManagement.Services
                                      BankAccountNo = s.BankAccountNo,
                                      BankIfscCode = s.BankIfscCode,
                                      BankBranch = s.BankBranch,
-                                   
                                      HomeAddress = s.HomeAddress,
                                      FatherName = s.FatherName,
                                      MotherName = s.MotherName,
@@ -361,7 +349,6 @@ namespace AttendanceManagement.Services
                                      OrganizationTypeName = org.Name,
                                      WorkingStatusId = workingStatus.Id,
                                      WorkingStatus = workingStatus.Name,
-                                     
                                      CreatedBy = s.CreatedBy,
                                  })
                                 .FirstOrDefaultAsync();
@@ -370,174 +357,172 @@ namespace AttendanceManagement.Services
 
         public async Task<string> AddStaff(StaffCreationInputModel staffInput)
         {
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            bool staffExists = await _context.StaffCreations.AnyAsync(s => s.StaffId == staffInput.StaffId && s.IsActive == true);
+            if (staffExists)
             {
-                try
-                {
-                    bool staffExists = await _context.StaffCreations.AnyAsync(s => s.StaffId == staffInput.StaffId && s.IsActive == true);
-                    if (staffExists)
-                    {
-                        throw new InvalidOperationException($"Staff ID {staffInput.StaffId} already exists.");
-                    }
-
-                    var message = "The staff member has been successfully created.";
-
-                    string profilePhotoPath = string.Empty;
-                    string aadharCardPath = string.Empty;
-                    string panCardPath = string.Empty;
-                    string drivingLicensePath = string.Empty;
-
-                    string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-
-                    async Task<string> SaveFile(IFormFile file, string folderName)
-                    {
-                        if (file == null) return null;
-
-                        string directoryPath = Path.Combine(baseDirectory, folderName);
-                        if (!Directory.Exists(directoryPath))
-                        {
-                            Directory.CreateDirectory(directoryPath);
-                        }
-
-                        string fileName = $"{Guid.NewGuid()}_{file.FileName}";
-                        string filePath = Path.Combine(directoryPath, fileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(fileStream);
-                        }
-
-                        return $"/{folderName}/{fileName}";
-                    }
-
-                    profilePhotoPath = await SaveFile(staffInput.ProfilePhoto, "ProfilePhotos");
-                    aadharCardPath = await SaveFile(staffInput.AadharCardFilePath, "AadharCards");
-                    panCardPath = await SaveFile(staffInput.PanCardFilePath, "PanCards");
-                    drivingLicensePath = await SaveFile(staffInput.DrivingLicenseFilePath, "DrivingLicenses");
-
-                    var staff = new StaffCreation
-                    {
-                        CardCode = staffInput.CardCode,
-                        StaffId = staffInput.StaffId,
-                        Title = staffInput.Title,
-                        FirstName = staffInput.FirstName,
-                        LastName = staffInput.LastName,
-                        ShortName = staffInput.ShortName,
-                        Gender = staffInput.Gender,
-                        Hide = staffInput.Hide,
-                        BloodGroup = staffInput.BloodGroup,
-                        ProfilePhoto = profilePhotoPath,
-                        MaritalStatus = staffInput.MaritalStatus,
-                        Dob = staffInput.Dob,
-                        MarriageDate = staffInput.MarriageDate,
-                        PersonalPhone = staffInput.PersonalPhone,
-                        OfficialPhone = staffInput.OfficialPhone,
-                        JoiningDate = staffInput.JoiningDate,
-                        Confirmed = staffInput.Confirmed,
-                        ConfirmationDate = staffInput.ConfirmationDate,
-                        BranchId = staffInput.BranchId,
-                        DepartmentId = staffInput.DepartmentId,
-                        HolidayCalendarId = staffInput.HolidayCalendarId,
-                        DivisionId = staffInput.DivisionId,
-                        Volume = staffInput.Volume,
-                        DesignationId = staffInput.DesignationId,
-                        GradeId = staffInput.GradeId,
-                        CategoryId = staffInput.CategoryId,
-                        CostCenterId = staffInput.CostCenterId,
-                        WorkStationId = staffInput.WorkStationId,
-                        City = staffInput.City,
-                        District = staffInput.District,
-                        State = staffInput.State,
-                        Country = staffInput.Country,
-                        PostalCode = staffInput.PostalCode,
-                        OtEligible = staffInput.OtEligible,
-                        ApprovalLevel = staffInput.ApprovalLevel,
-                        ApprovalLevel1 = staffInput.ApprovalLevel1,
-                        ApprovalLevel2 = staffInput.ApprovalLevel2,
-                        AccessLevel = staffInput.AccessLevel,
-                        PolicyGroup = staffInput.PolicyGroup,
-                        WorkingDayPattern = staffInput.WorkingDayPattern,
-                        Tenure = staffInput.Tenure,
-                        UanNumber = staffInput.UanNumber,
-                        EsiNumber = staffInput.EsiNumber,
-                        IsMobileAppEligible = staffInput.IsMobileAppEligible,
-                        GeoStatus = staffInput.GeoStatus,
-                        CreatedBy = staffInput.CreatedBy,
-                        CreatedUtc = DateTime.UtcNow,
-                        MiddleName = staffInput.MiddleName,
-                        PersonalLocation = staffInput.PersonalLocation,
-                        PersonalEmail = staffInput.PersonalEmail,
-                        OfficialEmail = staffInput.OfficialEmail,
-                        LeaveGroupId = staffInput.LeaveGroupId,
-                        CompanyMasterId = staffInput.CompanyMasterId,
-                        LocationMasterId = staffInput.LocationMasterId,
-                        StatusId = staffInput.StatusId,
-                        AadharNo = staffInput.AadharNo,
-                        PanNo = staffInput.PanNo,
-                        PassportNo = staffInput.PassportNo,
-                        DrivingLicense = staffInput.DrivingLicense,
-                        BankName = staffInput.BankName,
-                        BankAccountNo = staffInput.BankAccountNo,
-                        BankIfscCode = staffInput.BankIfscCode,
-                        BankBranch = staffInput.BankBranch,
-                        HomeAddress = staffInput.HomeAddress,
-                        FatherName = staffInput.FatherName,
-                        MotherName = staffInput.MotherName,
-                        FatherAadharNo = staffInput.FatherAadharNo,
-                        MotherAadharNo = staffInput.MotherAadharNo,
-                        EmergencyContactPerson1 = staffInput.EmergencyContactPerson1,
-                        EmergencyContactPerson2 = staffInput.EmergencyContactPerson2,
-                        EmergencyContactNo1 = staffInput.EmergencyContactNo1,
-                        EmergencyContactNo2 = staffInput.EmergencyContactNo2,
-                        OrganizationTypeId = staffInput.OrganizationTypeId,
-                        WorkingStatus = staffInput.WorkingStatus,
-                        AadharCardFilePath = aadharCardPath,
-                        PanCardFilePath = panCardPath,
-                        DrivingLicenseFilePath = drivingLicensePath,
-                    };
-
-                    _context.StaffCreations.Add(staff);
-                    await _context.SaveChangesAsync();
-
-                    var reportingManager = await _context.StaffCreations
-                        .Where(u => (u.Id == staffInput.ApprovalLevel1 || u.Id == staffInput.ApprovalLevel2) && u.IsActive == true)
-                        .Join(_context.AccessLevels,
-                              staff => staff.AccessLevel,
-                              access => access.Name,
-                              (staff, access) => new { staff.OfficialEmail, access.Name })
-                        .Where(x => x.Name == "REPORTING MANAGER")
-                        .Select(x => x.OfficialEmail)
-                        .FirstOrDefaultAsync();
-
-                    if (!string.IsNullOrEmpty(reportingManager))
-                    {
-                        await SendApprovalEmail(reportingManager, staff);
-                    }
-
-                    // Commit the transaction
-                    await transaction.CommitAsync();
-                    return message;
-                }
-                catch (Exception ex)
-                {
-                    // If something goes wrong, roll back the transaction
-                    await transaction.RollbackAsync();
-                    return $"Error: {ex.Message}";
-                }
+                throw new InvalidOperationException($"Staff ID {staffInput.StaffId} already exists.");
             }
+            var message = "The staff member has been successfully created.";
+            string profilePhotoPath = string.Empty;
+            string aadharCardPath = string.Empty;
+            string panCardPath = string.Empty;
+            string drivingLicensePath = string.Empty;
+            string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            async Task<string> SaveFile(IFormFile file, string folderName)
+            {
+                if (file == null) return null;
+
+                string directoryPath = Path.Combine(baseDirectory, folderName);
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+                string fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                string filePath = Path.Combine(directoryPath, fileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
+                return $"/{folderName}/{fileName}";
+            }
+            profilePhotoPath = await SaveFile(staffInput.ProfilePhoto, "ProfilePhotos");
+            aadharCardPath = await SaveFile(staffInput.AadharCardFilePath, "AadharCards");
+            panCardPath = await SaveFile(staffInput.PanCardFilePath, "PanCards");
+            drivingLicensePath = await SaveFile(staffInput.DrivingLicenseFilePath, "DrivingLicenses");
+            var staff = new StaffCreation
+            {
+                CardCode = staffInput.CardCode,
+                StaffId = staffInput.StaffId,
+                Title = staffInput.Title,
+                FirstName = staffInput.FirstName,
+                LastName = staffInput.LastName,
+                ShortName = staffInput.ShortName,
+                Gender = staffInput.Gender,
+                Hide = staffInput.Hide,
+                BloodGroup = staffInput.BloodGroup,
+                ProfilePhoto = profilePhotoPath,
+                MaritalStatus = staffInput.MaritalStatus,
+                Dob = staffInput.Dob,
+                MarriageDate = staffInput.MarriageDate,
+                PersonalPhone = staffInput.PersonalPhone,
+                OfficialPhone = staffInput.OfficialPhone,
+                JoiningDate = staffInput.JoiningDate,
+                Confirmed = staffInput.Confirmed,
+                ConfirmationDate = staffInput.ConfirmationDate,
+                BranchId = staffInput.BranchId,
+                DepartmentId = staffInput.DepartmentId,
+                HolidayCalendarId = staffInput.HolidayCalendarId,
+                DivisionId = staffInput.DivisionId,
+                Volume = staffInput.Volume,
+                DesignationId = staffInput.DesignationId,
+                GradeId = staffInput.GradeId,
+                CategoryId = staffInput.CategoryId,
+                CostCenterId = staffInput.CostCenterId,
+                WorkStationId = staffInput.WorkStationId,
+                City = staffInput.City,
+                District = staffInput.District,
+                State = staffInput.State,
+                Country = staffInput.Country,
+                PostalCode = staffInput.PostalCode,
+                OtEligible = staffInput.OtEligible,
+                ApprovalLevel = staffInput.ApprovalLevel,
+                ApprovalLevel1 = staffInput.ApprovalLevel1,
+                ApprovalLevel2 = staffInput.ApprovalLevel2,
+                AccessLevel = staffInput.AccessLevel,
+                PolicyGroup = staffInput.PolicyGroup,
+                WorkingDayPattern = staffInput.WorkingDayPattern,
+                Tenure = staffInput.Tenure,
+                UanNumber = staffInput.UanNumber,
+                EsiNumber = staffInput.EsiNumber,
+                IsMobileAppEligible = staffInput.IsMobileAppEligible,
+                GeoStatus = staffInput.GeoStatus,
+                CreatedBy = staffInput.CreatedBy,
+                CreatedUtc = DateTime.UtcNow,
+                MiddleName = staffInput.MiddleName,
+                PersonalLocation = staffInput.PersonalLocation,
+                PersonalEmail = staffInput.PersonalEmail,
+                OfficialEmail = staffInput.OfficialEmail,
+                LeaveGroupId = staffInput.LeaveGroupId,
+                CompanyMasterId = staffInput.CompanyMasterId,
+                LocationMasterId = staffInput.LocationMasterId,
+                StatusId = staffInput.StatusId,
+                AadharNo = staffInput.AadharNo,
+                PanNo = staffInput.PanNo,
+                PassportNo = staffInput.PassportNo,
+                DrivingLicense = staffInput.DrivingLicense,
+                BankName = staffInput.BankName,
+                BankAccountNo = staffInput.BankAccountNo,
+                BankIfscCode = staffInput.BankIfscCode,
+                BankBranch = staffInput.BankBranch,
+                HomeAddress = staffInput.HomeAddress,
+                FatherName = staffInput.FatherName,
+                MotherName = staffInput.MotherName,
+                FatherAadharNo = staffInput.FatherAadharNo,
+                MotherAadharNo = staffInput.MotherAadharNo,
+                EmergencyContactPerson1 = staffInput.EmergencyContactPerson1,
+                EmergencyContactPerson2 = staffInput.EmergencyContactPerson2,
+                EmergencyContactNo1 = staffInput.EmergencyContactNo1,
+                EmergencyContactNo2 = staffInput.EmergencyContactNo2,
+                OrganizationTypeId = staffInput.OrganizationTypeId,
+                WorkingStatus = staffInput.WorkingStatus,
+                AadharCardFilePath = aadharCardPath,
+                PanCardFilePath = panCardPath,
+                DrivingLicenseFilePath = drivingLicensePath,
+            };
+
+            _context.StaffCreations.Add(staff);
+            await _context.SaveChangesAsync();
+
+           /* var employee = staff.StaffId;
+            DateOnly probationEndDate;
+            if (employee.StartsWith("VL") && !employee.StartsWith("VLC"))
+            {
+                probationEndDate = staff.JoiningDate.AddMonths(6);
+            }
+            else if (employee.StartsWith("VLC"))
+            {
+                probationEndDate = staff.JoiningDate.AddMonths(3);
+            }
+            else
+            {
+                probationEndDate = staff.JoiningDate.AddYears(2);
+            }
+            var probation = new Probation
+            {
+                StaffCreationId = staff.Id,
+                ProbationStartDate = staff.JoiningDate,
+                ProbationEndDate = probationEndDate,
+                IsActive = true,
+                CreatedBy = staff.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+            _context.Probations.Add(probation);
+            await _context.SaveChangesAsync();*/
+
+            var reportingManager = await _context.StaffCreations
+                .Where(u => (u.Id == staffInput.ApprovalLevel1 || u.Id == staffInput.ApprovalLevel2) && u.IsActive == true)
+                .Join(_context.AccessLevels,
+                      staff => staff.AccessLevel,
+                      access => access.Name,
+                      (staff, access) => new { staff.OfficialEmail, access.Name })
+                .Where(x => x.Name == "REPORTING MANAGER")
+                .Select(x => x.OfficialEmail)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrEmpty(reportingManager))
+            {
+                await SendApprovalEmail(reportingManager, staff);
+            }
+            return message;
         }
         private async Task SendApprovalEmail(string managerEmail, StaffCreation staff)
         {
-            if (staff == null || string.IsNullOrEmpty(managerEmail))
-                throw new ArgumentNullException("Staff or Manager Email is null.");
-
+            if (staff == null || string.IsNullOrEmpty(managerEmail)) throw new ArgumentNullException("Staff or Manager Email is null.");
             var reportingManager = await _context.StaffCreations
            .Where(u => u.Id == staff.ApprovalLevel1 && u.OfficialEmail == managerEmail && u.IsActive == true)
            .FirstOrDefaultAsync();
-
             if (reportingManager == null)
                 throw new Exception("Reporting manager not found or inactive.");
-
             var host = _configuration["Smtp:host"];
             var port = _configuration.GetValue<int>("Smtp:port");
             var userName = _configuration["Smtp:userName"];
@@ -555,7 +540,7 @@ namespace AttendanceManagement.Services
                     .Replace('/', '_');
             }
             var staffName = $"{staff.FirstName} {staff.LastName}";
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             var approvalJson = JsonSerializer.Serialize(new
             {
                 staffId = staff.Id,
@@ -652,7 +637,6 @@ namespace AttendanceManagement.Services
                     CreatedBy = staff.CreatedBy,
                     CreatedUtc = DateTime.UtcNow
                 };
-
                 _context.EmailLogs.Add(log);
                 await _context.SaveChangesAsync();
             }
@@ -661,9 +645,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateStaffCreationAsync(UpdateStaff updatedStaff)
         {
             var message = "Staff updated successfully";
-            var existingStaff = await _context.StaffCreations
-                .FirstOrDefaultAsync(s => s.Id == updatedStaff.StaffCreationId && s.IsActive == true);
-
+            var existingStaff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == updatedStaff.StaffCreationId && s.IsActive == true);
             if (existingStaff == null)
                 throw new MessageNotFoundException("Staff not found");
             if (updatedStaff.ProfilePhoto != null)
@@ -743,7 +725,6 @@ namespace AttendanceManagement.Services
             existingStaff.BankAccountNo = updatedStaff.BankAccountNo;
             existingStaff.BankIfscCode = updatedStaff.BankIfscCode;
             existingStaff.BankBranch = updatedStaff.BankBranch;
-          
             existingStaff.HomeAddress = updatedStaff.HomeAddress;
             existingStaff.FatherName = updatedStaff.FatherName;
             existingStaff.MotherName = updatedStaff.MotherName;
@@ -757,7 +738,6 @@ namespace AttendanceManagement.Services
             existingStaff.WorkingStatus = updatedStaff.WorkingStatus;
             existingStaff.ResignationDate = updatedStaff.ResignationDate;
             existingStaff.RelievingDate = updatedStaff.RelievingDate;
-           
             existingStaff.UpdatedBy = updatedStaff.UpdatedBy;
             existingStaff.UpdatedUtc = DateTime.UtcNow;
 
@@ -773,26 +753,25 @@ namespace AttendanceManagement.Services
             {
                 Directory.CreateDirectory(directoryPath);
             }
-
             string fileName = $"{Guid.NewGuid()}_{file.FileName}";
             string filePath = Path.Combine(directoryPath, fileName);
-
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
             }
-
             return $"/{folderName}/{fileName}";
         }
         public async Task<IEnumerable<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1)
         {
-            var staff = await _context.StaffCreations
-                .FirstOrDefaultAsync(s => s.Id == currentApprovar1 && s.IsActive == true);
-
-            if (staff == null)
-                throw new MessageNotFoundException("Approver not found");
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == currentApprovar1)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN";
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == currentApprovar1 && s.IsActive == true);
+            if (staff == null) throw new MessageNotFoundException("Approver not found");
             var records = await _context.StaffCreations
-                .Where(s => s.ApprovalLevel1 == currentApprovar1 && s.IsActive == true)
+                .Where(s => (isSuperAdmin ||  s.ApprovalLevel1 == currentApprovar1 || s.ApprovalLevel2 == currentApprovar1) && s.IsActive == true)
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,
@@ -847,33 +826,33 @@ namespace AttendanceManagement.Services
                     PostalCode = s.PostalCode,
                     OtEligible = s.OtEligible,
                     BranchId = s.BranchId,
-                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.FullName).FirstOrDefault() ?? string.Empty,
+                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.Name).FirstOrDefault() ?? string.Empty,
                     DepartmentId = s.DepartmentId,
-                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     DivisionId = s.DivisionId,
-                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     MaritalStatusId = _context.MaritalStatuses.Where(m => m.Name == s.MaritalStatus).Select(m => m.Id).FirstOrDefault(),
                     MaritalStatus = s.MaritalStatus,
                     VolumeId = _context.Volumes.Where(v => v.Name == s.Volume).Select(v => v.Id).FirstOrDefault(),
                     Volume = s.Volume,
                     DesignationId = s.DesignationId,
-                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     GradeId = s.GradeId,
-                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.FullName).FirstOrDefault() ?? string.Empty,
+                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.Name).FirstOrDefault() ?? string.Empty,
                     CategoryId = s.CategoryId,
-                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     CostCenterId = s.CostCenterId,
-                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     WorkStationId = s.WorkStationId,
                     WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
                     LeaveGroupId = s.LeaveGroupId,
                     LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
                     CompanyMasterId = s.CompanyMasterId,
-                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     HolidayCalendarId = s.HolidayCalendarId,
                     HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
                     LocationMasterId = s.LocationMasterId,
-                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.FullName).FirstOrDefault() ?? string.Empty,
+                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     AadharNo = s.AadharNo,
                     PanNo = s.PanNo,
                     PassportNo = s.PassportNo,
@@ -882,7 +861,6 @@ namespace AttendanceManagement.Services
                     BankAccountNo = s.BankAccountNo,
                     BankIfscCode = s.BankIfscCode,
                     BankBranch = s.BankBranch,
-                 
                     HomeAddress = s.HomeAddress,
                     FatherName = s.FatherName,
                     MotherName = s.MotherName,
@@ -896,7 +874,6 @@ namespace AttendanceManagement.Services
                     OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
                     ResignationDate = s.ResignationDate,
                     RelievingDate = s.RelievingDate,
-                   
                     CreatedBy = s.CreatedBy
                 })
                 .ToListAsync();
@@ -909,8 +886,13 @@ namespace AttendanceManagement.Services
 
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == approverId)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN";
             var records = await _context.StaffCreations
-                .Where(s => (s.ApprovalLevel1 == approverId || s.ApprovalLevel2 == approverId) && s.IsActive == null)
+                .Where(s => (isSuperAdmin || s.ApprovalLevel1 == approverId || s.ApprovalLevel2 == approverId) && s.IsActive == null)
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,
@@ -965,33 +947,33 @@ namespace AttendanceManagement.Services
                     PostalCode = s.PostalCode,
                     OtEligible = s.OtEligible,
                     BranchId = s.BranchId,
-                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.FullName).FirstOrDefault() ?? string.Empty,
+                    Branch = _context.BranchMasters.Where(b => b.Id == s.BranchId).Select(b => b.Name).FirstOrDefault() ?? string.Empty,
                     DepartmentId = s.DepartmentId,
-                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Department = _context.DepartmentMasters.Where(d => d.Id == s.DepartmentId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     DivisionId = s.DivisionId,
-                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Division = _context.DivisionMasters.Where(d => d.Id == s.DivisionId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     MaritalStatusId = _context.MaritalStatuses.Where(m => m.Name == s.MaritalStatus).Select(m => m.Id).FirstOrDefault(),
                     MaritalStatus = s.MaritalStatus,
                     VolumeId = _context.Volumes.Where(v => v.Name == s.Volume).Select(v => v.Id).FirstOrDefault(),
                     Volume = s.Volume,
                     DesignationId = s.DesignationId,
-                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.FullName).FirstOrDefault() ?? string.Empty,
+                    Designation = _context.DesignationMasters.Where(d => d.Id == s.DesignationId).Select(d => d.Name).FirstOrDefault() ?? string.Empty,
                     GradeId = s.GradeId,
-                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.FullName).FirstOrDefault() ?? string.Empty,
+                    Grade = _context.GradeMasters.Where(g => g.Id == s.GradeId).Select(g => g.Name).FirstOrDefault() ?? string.Empty,
                     CategoryId = s.CategoryId,
-                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    Category = _context.CategoryMasters.Where(c => c.Id == s.CategoryId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     CostCenterId = s.CostCenterId,
-                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     WorkStationId = s.WorkStationId,
                     WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
                     LeaveGroupId = s.LeaveGroupId,
                     LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
                     CompanyMasterId = s.CompanyMasterId,
-                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.FullName).FirstOrDefault() ?? string.Empty,
+                    Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     HolidayCalendarId = s.HolidayCalendarId,
                     HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
                     LocationMasterId = s.LocationMasterId,
-                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.FullName).FirstOrDefault() ?? string.Empty,
+                    Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     AadharNo = s.AadharNo,
                     PanNo = s.PanNo,
                     PassportNo = s.PassportNo,
@@ -1000,7 +982,6 @@ namespace AttendanceManagement.Services
                     BankAccountNo = s.BankAccountNo,
                     BankIfscCode = s.BankIfscCode,
                     BankBranch = s.BankBranch,
-                   
                     HomeAddress = s.HomeAddress,
                     FatherName = s.FatherName,
                     MotherName = s.MotherName,
@@ -1028,37 +1009,23 @@ namespace AttendanceManagement.Services
         {
             var message = "";
             var selectedRows = approvePendingStaff.SelectedRows;
-
             foreach (var item in selectedRows)
             {
                 var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.Id);
-                if (staff == null)
-                    throw new InvalidOperationException("Staff not found");
-
-                if (staff.IsActive == true)
-                    throw new InvalidOperationException("Staff already approved");
-                if (staff.IsActive == false)
-                    throw new InvalidOperationException("Staff already rejected");
-
+                if (staff == null) throw new InvalidOperationException("Staff not found");
+                if (staff.IsActive == true) throw new InvalidOperationException("Staff already approved");
+                if (staff.IsActive == false) throw new InvalidOperationException("Staff already rejected");
                 staff.IsActive = approvePendingStaff.IsApproved;
                 staff.UpdatedBy = approvePendingStaff.ApprovedBy;
                 staff.UpdatedUtc = DateTime.UtcNow;
-
                 await _context.SaveChangesAsync();
-
-                // Get Creator's Email
                 var createdByUser = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == staff.CreatedBy && u.IsActive == true);
-                if (createdByUser == null || string.IsNullOrWhiteSpace(createdByUser.OfficialEmail))
-                    throw new InvalidOperationException("Creator or official email not found");
+                if (createdByUser == null || string.IsNullOrWhiteSpace(createdByUser.OfficialEmail)) throw new InvalidOperationException("Creator or official email not found");
                 var createdByUserName = $"{createdByUser.FirstName} {createdByUser.LastName}";
                 var staffName = $"{staff.FirstName} {staff.LastName}";
                 var approver = await _context.StaffCreations.FirstOrDefaultAsync(a => a.Id == approvePendingStaff.ApprovedBy && a.IsActive == true);
                 var approverName = $"{approver.FirstName} {approver.LastName}";
-                // Prepare Email
-                string subject = approvePendingStaff.IsApproved
-                    ? "Staff Profile Approved"
-                    : "Staff Profile Rejected";
-
+                string subject = approvePendingStaff.IsApproved ? "Staff Profile Approved" : "Staff Profile Rejected";
                 string emailBody = $@"
                 <p>Dear {createdByUserName},</p>
                 <p>The staff profile for {staffName} has been {(approvePendingStaff.IsApproved ? "approved" : "rejected")} by {approverName}.</p>       
@@ -1066,12 +1033,8 @@ namespace AttendanceManagement.Services
                 HR Team";
 
                 await _emailService.SendApprovalEmail(createdByUser.OfficialEmail, subject, emailBody, approvePendingStaff.ApprovedBy);
-
-                message = approvePendingStaff.IsApproved
-                    ? "Staff profile approved successfully"
-                    : "Staff profile rejected successfully";
+                message = approvePendingStaff.IsApproved ? "Staff profile approved successfully" : "Staff profile rejected successfully";
             }
-
             return message;
         }
 
@@ -1155,7 +1118,18 @@ namespace AttendanceManagement.Services
                 {1017, new ShiftTypeDropDown() },
                 {1018, new ReimbursementType() },
                 {1020, new ApplicationType() },
-                {1021, new EventType() }
+                {1021, new EventType() },
+                {1022, new CompanyMaster() },
+                {1023, new BranchMaster() },
+                {1024, new LocationMaster() },
+                {1025, new CategoryMaster() },
+                {1026, new DepartmentMaster() },
+                {1027, new DesignationMaster() },
+                {1028, new GradeMaster() },
+                {1029, new CostCentreMaster() },
+                {1030, new Shift() },
+                {1031, new DivisionMaster() }
+
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
@@ -1209,7 +1183,17 @@ namespace AttendanceManagement.Services
                 { 1017, _context.ShiftTypeDropDowns.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1018, _context.ReimbursementTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1020, _context.ApplicationTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1021, _context.EventTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1021, _context.EventTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1022, _context.CompanyMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1023, _context.BranchMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1024, _context.LocationMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1025, _context.CategoryMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1026, _context.DepartmentMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1027, _context.DesignationMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1028, _context.GradeMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1029, _context.CostCentreMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1030, _context.Shifts.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1031, _context.DivisionMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -1261,7 +1245,17 @@ namespace AttendanceManagement.Services
                 { 1017, async () => await _context.ShiftTypeDropDowns.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1018, async () => await _context.ReimbursementTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1020, async () => await _context.ApplicationTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1021, async () => await _context.EventTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1021, async () => await _context.EventTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1022, async () => await _context.CompanyMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1023, async () => await _context.BranchMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1024, async () => await _context.LocationMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1025, async () => await _context.CategoryMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1026, async () => await _context.DepartmentMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1027, async () => await _context.DesignationMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1028, async () => await _context.GradeMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1029, async () => await _context.CostCentreMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1030, async () => await _context.Shifts.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1031, async () => await _context.DivisionMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

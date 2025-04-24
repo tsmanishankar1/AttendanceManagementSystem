@@ -22,7 +22,7 @@ namespace AttendanceManagement.Services
                                   select new DesignationResponse
                                   {
                                       DesignationMasterId = designation.Id,
-                                      FullName = designation.FullName,
+                                      FullName = designation.Name,
                                       ShortName = designation.ShortName,
                                       IsActive = designation.IsActive,
                                       CreatedBy = designation.CreatedBy
@@ -42,7 +42,7 @@ namespace AttendanceManagement.Services
 
             DesignationMaster designation = new DesignationMaster
             {
-                FullName = designationRequest.FullName,
+                Name = designationRequest.FullName,
                 ShortName = designationRequest.ShortName,
                 IsActive = designationRequest.IsActive,
                 CreatedBy = designationRequest.CreatedBy,
@@ -67,7 +67,7 @@ namespace AttendanceManagement.Services
                 throw new MessageNotFoundException("Designation not found");
             }
 
-            existingDesignation.FullName = designation.FullName;
+            existingDesignation.Name = designation.FullName;
             existingDesignation.ShortName = designation.ShortName;
             existingDesignation.IsActive = designation.IsActive;
             existingDesignation.UpdatedBy = designation.UpdatedBy;

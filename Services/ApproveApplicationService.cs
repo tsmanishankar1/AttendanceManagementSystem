@@ -1035,7 +1035,7 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-                    var shiftName = await _context.Shifts.Where(s => s.Id == shiftChange.ShiftId && s.IsActive).Select(s => s.ShiftName).FirstOrDefaultAsync();
+                    var shiftName = await _context.Shifts.Where(s => s.Id == shiftChange.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
 
                     if (approver2 == null)
                     {
@@ -1306,7 +1306,7 @@ namespace AttendanceManagement.Services
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName} {staff.LastName}";
-                    var shiftName = await _context.Shifts.Where(s => s.Id == weeklyOffHoliday.ShiftId && s.IsActive).Select(s => s.ShiftName).FirstOrDefaultAsync();
+                    var shiftName = await _context.Shifts.Where(s => s.Id == weeklyOffHoliday.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
 

@@ -38,7 +38,7 @@ public class AttendanceService
             ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.Id == assignedShift.ShiftId)
             : null;
 
-        string shiftName = shift?.ShiftName ?? "Not Assigned";
+        string shiftName = shift?.Name ?? "Not Assigned";
         TimeSpan? fromTime = TimeSpan.TryParse(shift?.StartTime, out var from) ? from : (TimeSpan?)null;
         TimeSpan? toTime = TimeSpan.TryParse(shift?.EndTime, out var to) ? to : (TimeSpan?)null;
 
@@ -188,14 +188,47 @@ public class AttendanceService
         return attendanceList;
     }
 
+    public async Task<List<StaffInfoDto>> GetAllStaffsByDepartmentAndDivision(GetStaffByDepartmentDivision staff)
+    {
+        var staffInfo = await (from staffs in _attendanceContext.StaffCreations
+                               join dept in _attendanceContext.DepartmentMasters on staffs.DepartmentId equals dept.Id
+                               join div in _attendanceContext.DivisionMasters on staffs.DivisionId equals div.Id
+                               where staffs.IsActive == true && dept.IsActive && div.IsActive
+                                     && ((!staff.DepartmentId.HasValue || staffs.DepartmentId == staff.DepartmentId)) && ((!staff.DivisionId.HasValue || staffs.DivisionId == staff.DivisionId))
+                               select new StaffInfoDto
+                               {
+                                   StaffId = staffs.Id,
+                                   StaffName = $"{staffs.FirstName} {staffs.LastName}",
+                                   DepartmentName = dept.Name
+                               })
+                               .ToListAsync();
+
+        if (staffInfo.Count == 0)
+            throw new MessageNotFoundException("No staffs found");
+
+        return staffInfo;
+    }
+
     public async Task<List<AttendanceRecordDto>> GetAttendanceRecords(AttendanceStatusResponse attendanceStatus)
     {
-        var result = await (from ar in _attendanceContext.AttendanceRecords
+        var result = await (
+                            from ar in _attendanceContext.AttendanceRecords
                             join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id
-                            where (attendanceStatus.StaffId == ar.StaffId && attendanceStatus.DepartmentId == staff.DepartmentId
-                            && attendanceStatus.DivisionId == staff.DivisionId || (attendanceStatus.FromDate >= ar.AttendanceDate
-                            && attendanceStatus.ToDate <= ar.AttendanceDate) || (attendanceStatus.FromMonth >= ar.AttendanceDate.Month
-                            && attendanceStatus.ToMonth <= ar.AttendanceDate.Month)) && staff.IsActive == true && !ar.IsDeleted && ar.IsFreezed == null
+                            where staff.IsActive == true
+                                  && !ar.IsDeleted
+                                  && ar.IsFreezed == null
+                                  && ar.StaffId == attendanceStatus.StaffId
+                                  && staff.DepartmentId == attendanceStatus.DepartmentId
+                                  && staff.DivisionId == attendanceStatus.DivisionId
+                                  && (
+                                        (attendanceStatus.FromDate.HasValue && attendanceStatus.ToDate.HasValue &&
+                                         ar.AttendanceDate >= attendanceStatus.FromDate.Value &&
+                                         ar.AttendanceDate <= attendanceStatus.ToDate.Value)
+                                        ||
+                                        (attendanceStatus.FromMonth.HasValue && attendanceStatus.ToMonth.HasValue &&
+                                         ar.AttendanceDate.Month >= attendanceStatus.FromMonth.Value &&
+                                         ar.AttendanceDate.Month <= attendanceStatus.ToMonth.Value)
+                                     )
                             select new AttendanceRecordDto
                             {
                                 Id = ar.Id,
@@ -243,7 +276,6 @@ public class AttendanceService
             }
             await _attendanceContext.SaveChangesAsync();
         }
-
         return message;
     }
 }

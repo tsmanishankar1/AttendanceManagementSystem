@@ -40,6 +40,11 @@
         public int? ToMonth { get; set; }
     }
 
+    public class GetStaffByDepartmentDivision
+    {
+        public int? DepartmentId { get; set; }
+        public int? DivisionId { get; set; }
+    }
     public class AttendanceFreezeRequest
     {
         public bool IsFreezed { get; set; }

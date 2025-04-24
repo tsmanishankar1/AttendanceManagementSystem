@@ -332,9 +332,6 @@ namespace AttendanceManagement.Input_Models
         public string? BankIfscCode { get; set; }
 
         public string? BankBranch { get; set; }
-
-     
-
         public string HomeAddress { get; set; } = null!;
 
         public string FatherName { get; set; } = null!;
@@ -627,12 +624,11 @@ namespace AttendanceManagement.Input_Models
 
         public string? BankName { get; set; }
 
-        public long BankAccountNo { get; set; }
+        public long? BankAccountNo { get; set; }
 
         public string? BankIfscCode { get; set; }
 
         public string? BankBranch { get; set; }
-
      
         public string HomeAddress { get; set; } = null!;
 

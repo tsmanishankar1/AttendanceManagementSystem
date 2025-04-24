@@ -28,6 +28,18 @@
         public int CreatedBy { get; set; }
         public IEnumerable<ApproveLeave> selectedRows { get; set; } = null!;
     }
+
+    public class AssignedShiftResponse
+    {
+        public string ShiftName { get; set; } = null!;
+
+        public DateOnly FromDate { get; set; }
+
+        public DateOnly ToDate { get; set; }
+
+        public string StaffName { get; set; } = null!;
+    }
+
     public class ShiftResponse
     {
         public int ShiftId { get; set; }

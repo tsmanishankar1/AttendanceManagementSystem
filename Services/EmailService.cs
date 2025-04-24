@@ -30,7 +30,6 @@ namespace AttendanceManagement.Services
             var defaultCredential = _configuration.GetValue<bool>("Smtp:defaultCredential");
 
             if (from == null) throw new MessageNotFoundException("Sender not found");
-
             try
             {
                 var message = new MailMessage
@@ -40,9 +39,7 @@ namespace AttendanceManagement.Services
                     IsBodyHtml = true,
                     From = new MailAddress(from, "HR Team")
                 };
-
                 message.To.Add(new MailAddress(recipientEmail));
-
                 using var smtp = new SmtpClient(host, port)
                 {
                     UseDefaultCredentials = defaultCredential,
@@ -50,9 +47,7 @@ namespace AttendanceManagement.Services
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     EnableSsl = ssl
                 };
-
                 await smtp.SendMailAsync(message);
-
                 var log = new EmailLog
                 {
                     From = from,
@@ -64,7 +59,6 @@ namespace AttendanceManagement.Services
                     CreatedBy = approvedBy,
                     CreatedUtc = DateTime.UtcNow
                 };
-
                 _context.EmailLogs.Add(log);
                 await _context.SaveChangesAsync();
             }
@@ -82,7 +76,6 @@ namespace AttendanceManagement.Services
                     CreatedBy = approvedBy,
                     CreatedUtc = DateTime.UtcNow
                 };
-
                 _context.EmailLogs.Add(log);
                 await _context.SaveChangesAsync();
             }
@@ -92,16 +85,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, int applicationTypeId, int id,  string leaveType, DateOnly fromDate, DateOnly toDate,
         string fromDuration, string toDuration, decimal totalDays, string reason, int createdBy, string creatorName, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Approver email not found");
-
-            var receiver1 = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver1 == null)
-                throw new Exception("Approver not found or inactive.");
-
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Approver email not found");
+            var receiver1 = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver1 == null) throw new Exception("Approver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "New Leave Requisition Submitted";
@@ -113,7 +99,7 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -174,15 +160,9 @@ namespace AttendanceManagement.Services
         DateOnly permissionDate, TimeOnly startTime, TimeOnly endTime, string duration, string remarks,
         int createdBy, string creatorName, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "New Permission Request Submitted";
@@ -194,7 +174,7 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
 
             var approvalJson = JsonSerializer.Serialize(new
             {
@@ -255,15 +235,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, string staffName, int id, int applicationTypeId, 
         string selectPunch, DateTime? inPunch, DateTime? outPunch, string remarks, int createdBy, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "Manual Punch Requisition Submitted";
@@ -274,7 +248,7 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
 
             var approvalJson = JsonSerializer.Serialize(new
             {
@@ -338,19 +312,13 @@ namespace AttendanceManagement.Services
         DateOnly? startDate, DateOnly? endDate, DateTime? startTime, DateTime? endTime,
         decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "New On-Duty Requisition Submitted";
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
 
             string Base64UrlEncode(string input)
             {
@@ -426,19 +394,13 @@ namespace AttendanceManagement.Services
         DateOnly? fromDate, DateOnly? toDate, DateTime? fromTime, DateTime? toTime,
         decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "New Business Travel Requisition Submitted";
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             string Base64UrlEncode(string input)
             {
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
@@ -512,19 +474,13 @@ namespace AttendanceManagement.Services
         DateOnly? fromDate, DateOnly? toDate, DateTime? fromTime, DateTime? toTime,
         decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "New Work From Home Requisition Submitted";
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             string Base64UrlEncode(string input)
             {
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
@@ -597,15 +553,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId, string shiftName,
         DateOnly? fromDate, DateOnly? toDate, string reason, int createdBy, string creatorName, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "New Shift Change Requisition Submitted";
@@ -616,7 +566,7 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -672,19 +622,13 @@ namespace AttendanceManagement.Services
         DateOnly? transactionDate, string? durationHours, DateTime? beforeShiftHours, DateTime? afterShiftHours,
         string remarks, int createdBy, string creatorName, string requestDate)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "New Shift Extension Requisition Submitted";
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             string Base64UrlEncode(string input)
             {
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
@@ -752,15 +696,9 @@ namespace AttendanceManagement.Services
         int id, int applicationTypeId, DateOnly txnDate, string shiftName, DateTime? shiftInTime,
         DateTime? shiftOutTime, string requestDate, int createdBy)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "Weekly Off/Holiday Working Request Submitted";
@@ -771,7 +709,7 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -831,15 +769,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, string staffName, int id, int applicationTypeId,
         DateOnly workedDate, decimal totalDays, int? balance, string reason, string requestDate, int createdBy)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "Comp-Off Credit Request Submitted";
@@ -851,7 +783,7 @@ namespace AttendanceManagement.Services
                     .Replace('/', '_');
             }
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -904,15 +836,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, string staffName, int id, int applicationTypeId,
         DateOnly workedDate, DateOnly fromDate, DateOnly toDate, decimal totalDays, string reason, string requestDate, int createdBy)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-                .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-                .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "Comp-Off Avail Request Submitted";
@@ -923,7 +849,7 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.FullName).FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -975,16 +901,10 @@ namespace AttendanceManagement.Services
         int id, int? applicationTypeId, string recipientEmail, int recipientId, string recipientName, string staffName,
         string requestDate, DateOnly billDate, string billNo, string description, string billPeriod, decimal amount, int createdBy)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Recipient email not found");
-
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Recipient email not found");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             if (staff == null) throw new Exception("Staff not found");
-
-            var department = await _context.DepartmentMasters
-                .Where(d => d.Id == staff.DepartmentId && d.IsActive)
-                .Select(d => d.FullName)
-                .FirstOrDefaultAsync();
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "Reimbursement Request Submitted";
@@ -1049,15 +969,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, bool isApproved, string leaveType, decimal totalDays,
         DateOnly fromDate, DateOnly toDate, string reason, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1092,15 +1006,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, bool isApproved, string permissionType,
         DateOnly permissionDate, TimeOnly startTime, TimeOnly endTime, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1138,13 +1046,8 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, bool isApproved,
         string punchType, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null)
                 throw new Exception("Receiver not found or inactive.");
 
@@ -1175,15 +1078,9 @@ namespace AttendanceManagement.Services
         DateOnly? startDate, DateOnly? endDate, DateTime? startTime, DateTime? endTime,
         decimal? totalDays, string totalHours, string reason, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1230,15 +1127,9 @@ namespace AttendanceManagement.Services
         DateTime? fromTime, DateTime? toTime, string reason, decimal? totalDays, string totalHours, int approvedBy,
         string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1285,15 +1176,9 @@ namespace AttendanceManagement.Services
         DateTime? fromTime, DateTime? toTime, string reason, decimal? totalDays, string? totalHours, int approvedBy,
         string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1340,15 +1225,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, bool isApproved, string shiftName,
         DateOnly fromDate, DateOnly toDate, string reason, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1379,15 +1258,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly transactionDate, string durationHours,
         DateTime? beforeShiftHours, DateTime? afterShiftHours, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1424,15 +1297,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, bool isApproved, string shiftSelectType, string shiftName,
         DateTime? shiftInTime, DateTime? shiftOutTime, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1470,15 +1337,9 @@ namespace AttendanceManagement.Services
         bool isApproved, DateOnly workedDate, DateOnly fromDate, DateOnly toDate,
         decimal totalDays, string reason, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1515,15 +1376,9 @@ namespace AttendanceManagement.Services
         bool isApproved, DateOnly workedDate, int? balance, decimal totalDays, string reason,
         int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Receiver email not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
@@ -1557,15 +1412,9 @@ namespace AttendanceManagement.Services
         string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly billDate, string billNo,
         string description, string billPeriod, decimal amount, int approvedBy, string approverName, string approvedTime)
         {
-            if (string.IsNullOrEmpty(recipientEmail))
-                throw new ArgumentNullException("Recipient email not found");
-
-            var receiver = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
-
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Recipient email not found");
+            var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = isApproved ? "Reimbursement Request Approved" : "Reimbursement Request Rejected";
@@ -1591,6 +1440,89 @@ namespace AttendanceManagement.Services
             <p>For more information, please contact HR.</p>
             <br>Best Regards,<br>
             HR Team";
+
+            await SendApprovalEmail(recipientEmail, subject, emailBody, approvedBy);
+        }
+
+        public async Task SendProbationNotificationToHrAsync(string probationerName, DateOnly probationStartDate, DateOnly probationEndDate)
+        {
+            var subject = $"Probation Confirmation Required: {probationerName}";
+            var body = $@"
+            <p>Dear HR Team,</p>
+
+            <p>This is to notify you that the probation period for <strong>{probationerName}</strong> has ended on <strong>{probationEndDate:dd-MMM-yyyy}</strong>.</p>
+
+            <p>Details:</p>
+            <ul>
+                <li><strong>Probationer:</strong> {probationerName}</li>
+                <li><strong>Probation Start Date:</strong> {probationStartDate:dd-MMM-yyyy}</li>
+                <li><strong>Probation End Date:</strong> {probationEndDate:dd-MMM-yyyy}</li>
+            </ul>
+
+            <p>Please initiate the confirmation process at your earliest convenience.</p>
+
+            <p>Regards,<br/>Attendance Management System</p>";
+
+            var toEmail = "manishankar.ts@kryptosinfosys.com";
+
+            await SendApprovalEmail(toEmail, subject, body, 4);
+        }
+
+        public async Task AssignManager(string recipientEmail, int recipientId, string recipientName, string probationerName, DateOnly startDate, DateOnly endDate, int createdBy)
+        {
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Approver email not found");
+            var receiver1 = await _context.StaffCreations
+               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
+               .FirstOrDefaultAsync();
+            if (receiver1 == null) throw new Exception("Approver not found or inactive.");
+
+            var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
+            string subject = "Probation Confirmation Review Assignment";
+
+            string fromDateFormatted = startDate.ToString("dd-MMM-yyyy");
+            string toDateFormatted = endDate.ToString("dd-MMM-yyyy");
+
+            string emailBody = $@"
+            <p>Dear {recipientName},</p>
+
+            <p>You have been assigned as the manager to review a probation confirmation request.</p>
+
+            <p><strong>Probationer's Name:</strong> {probationerName}<br/>
+            <strong>Probation Start Date:</strong> {fromDateFormatted}<br/>
+            <strong>Probation End Date:</strong> {toDateFormatted}</p>
+
+            <p>Please log in to the system to review and take the necessary action.</p>
+
+            <br>Best Regards,<br>
+            HR Team";
+
+            await SendApprovalEmail(recipientEmail, subject, emailBody, createdBy);
+        }
+
+        public async Task SendProbationNotificationToHrAsync(string probationerName, DateOnly startDate, DateOnly endDate, bool isApproved, string approverName, string approvedTime, int approvedBy)
+        {
+            var recipientEmail = "manishankar.ts@kryptosinfosys.com";
+            if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("HR email not found");
+            var recipient = await _context.StaffCreations.FirstOrDefaultAsync(u => u.OfficialEmail == recipientEmail && u.IsActive == true);
+            if (recipient == null) throw new Exception("HR recipient not found or inactive.");
+            string subject = isApproved ? "Probation Confirmation Approved" : "Probation Confirmation Not Approved";
+            string statusMessage = isApproved ? "approved" : "not approved";
+            string actionBy = isApproved ? "Approved by" : "Not approved by";
+            string startDateFormatted = startDate.ToString("dd-MMM-yyyy");
+            string endDateFormatted = endDate.ToString("dd-MMM-yyyy");
+
+            string emailBody = $@"
+            <p>Dear HR Team,</p>
+
+            <p>The probation confirmation request for the following employee has been <strong>{statusMessage}</strong>:</p>
+
+            <p><strong>Probationer's Name:</strong> {probationerName}</p>
+            <p><strong>Probation Start Date:</strong> {startDateFormatted}</p>
+            <p><strong>Probation End Date:</strong> {endDateFormatted}</p>
+            <p><strong>{actionBy}:</strong> {approverName} on {approvedTime}</p>
+
+            <br>Best Regards,<br>
+            Attendance Management System";
 
             await SendApprovalEmail(recipientEmail, subject, emailBody, approvedBy);
         }

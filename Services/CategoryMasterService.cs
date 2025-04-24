@@ -18,7 +18,7 @@ public class CategoryMasterService
             .Select(category => new CategoryMasterResponse
             {
                 CategoryMasterId = category.Id,
-                FullName = category.FullName,
+                FullName = category.Name,
                 ShortName = category.ShortName,
                 IsActive = category.IsActive
             })
@@ -40,7 +40,7 @@ public class CategoryMasterService
 
         var newCategory = new CategoryMaster
         {
-            FullName = request.FullName,
+            Name = request.FullName,
             ShortName = request.ShortName,
             IsActive = request.IsActive,
             CreatedBy = request.CreatedBy,
@@ -65,7 +65,7 @@ public class CategoryMasterService
         {
             throw new MessageNotFoundException("Category not found");
         }
-        existingCategory.FullName = request.FullName ?? existingCategory.FullName;
+        existingCategory.Name = request.FullName ?? existingCategory.Name;
         existingCategory.ShortName = request.ShortName ?? existingCategory.ShortName;
         existingCategory.IsActive = request.IsActive;
         existingCategory.UpdatedBy = request.UpdatedBy;

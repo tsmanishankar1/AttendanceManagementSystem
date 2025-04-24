@@ -354,6 +354,16 @@
 			<response code="404">If no attendance records found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
+		<member name="M:AttendanceController.GetAllStaffsByDepartmentAndDivision(AttendanceManagement.Input_Models.GetStaffByDepartmentDivision)">
+			<summary>
+				Retrieves a list of staff members based on the selected department and division.
+			</summary>
+			<param name="staff">The request model containing DepartmentId and DivisionId to filter staff.</param>
+			<returns>A list of staff details matching the department and/or division filter.</returns>
+			<response code="200">Returns the list of matching staff records.</response>
+			<response code="404">If no matching staff records are found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
 		<member name="M:AttendanceController.GetAttendanceRecords(AttendanceManagement.Input_Models.AttendanceStatusResponse)">
 			<summary>
 				Retrieves attendance records based on staff ID, department ID, division ID, and date range.
@@ -972,9 +982,10 @@
 				Imports data from an excel file.
 			</summary>
 			<returns>The result of the import operation.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
+			<response code="200">Returns a success message if the import is successful.</response>
+			<response code="404">Returned when the specified data is not found.</response>
+			<response code="409">Returned when there is a conflict during the import process.</response>
+			<response code="500">Returned when an internal server error occurs.</response>		</member>
 		<member name="M:AttendanceManagement.Controllers.ExcelImportController.DownloadExcelTemplates(System.Int32)">
 			<summary>
 				Downloads an Excel template based on the specified Excel import ID.
@@ -1578,7 +1589,7 @@
 			<response code="404">If the probation is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.GetByApproverLevel1(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.GetProbationDetailsByApproverLevel(System.Int32)">
 			<summary>
 				Retrieves probations by approver level 1 ID.
 			</summary>
@@ -1587,6 +1598,16 @@
 			<response code="200">Returns the list of probations</response>
 			<response code="404">If no probations are found</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ProbationController.AssignManagerForProbationReview(AttendanceManagement.Input_Models.AssignManagerRequest)">
+			<summary>
+				Assigns a manager for the probation review of a staff member.
+			</summary>
+			<param name="assignManagerRequest">The request model containing staff ID and manager assignment details.</param>
+			<returns>A success message indicating manager assignment completion.</returns>
+			<response code="200">Returns the success message after assigning the manager.</response>
+			<response code="404">If the probation record or staff member is not found.</response>
+			<response code="500">If an unexpected error occurs during processing.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ProbationController.GetFeedbackByApproverLevel1(System.Int32)">
 			<summary>
@@ -1730,6 +1751,16 @@
 			<returns>The assigned shift details.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the shift or staff is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ShiftController.GetAllAssignedShifts(System.Int32)">
+			<summary>
+				Retrieves all assigned shifts for the specified approver. If the approver has SUPER ADMIN access, returns all assigned shifts.
+			</summary>
+			<param name="approverId">The ID of the approver to retrieve assigned shifts for.</param>
+			<returns>A list of assigned shifts under the approver, or all shifts if the approver is a super admin.</returns>
+			<response code="200">Returns the list of assigned shifts</response>
+			<response code="404">If no assigned shifts are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.SkillInventoryController">
@@ -2307,6 +2338,7 @@
 			<param name="weeklyOff">The weekly off details to create.</param>
 			<returns>The created weekly off.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">If no weekly off selected</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.UpdateWeeklyOff(AttendanceManagement.Input_Models.UpdateWeeklyOff)">

@@ -17,7 +17,7 @@ namespace AttendanceManagement.Services
             var message = "Weekly offs added successfully";
             if (weeklyOffRequest.MarkWeeklyOff == null || !weeklyOffRequest.MarkWeeklyOff.Any())
             {
-                return "No weekly off selected.";
+                throw new MessageNotFoundException("No weekly off selected.");
             }
             var weeklyOffMaster = new WeeklyOffMaster
             {

@@ -21,7 +21,7 @@ public class BranchMasterService
                                select new BranchMasterResponse
                                {
                                    BranchMasterId = b.Id,
-                                   FullName = b.FullName,
+                                   FullName = b.Name,
                                    ShortName = b.ShortName,
                                    Address = b.Address,
                                    City = b.City,
@@ -33,7 +33,7 @@ public class BranchMasterService
                                    Fax = b.Fax,
                                    Email = b.Email,
                                    CompanyMasterId = b.CompanyMasterId,
-                                   CompanyMasterName = c.FullName,
+                                   CompanyMasterName = c.Name,
                                    IsHeadOffice = b.IsHeadOffice,
                                    IsActive = b.IsActive,
                                    CreatedBy = b.CreatedBy
@@ -56,7 +56,7 @@ public class BranchMasterService
 
         var branchMaster = new BranchMaster
         {
-            FullName = branchMasterRequest.FullName,
+            Name = branchMasterRequest.FullName,
             ShortName = branchMasterRequest.ShortName,
             Address = branchMasterRequest.Address,
             City = branchMasterRequest.City,
@@ -93,7 +93,7 @@ public class BranchMasterService
             throw new MessageNotFoundException("Branch not found");
         }
 
-        existingBranch.FullName = branchMasterRequest.FullName ?? existingBranch.FullName;
+        existingBranch.Name = branchMasterRequest.FullName ?? existingBranch.Name;
         existingBranch.ShortName = branchMasterRequest.ShortName ?? existingBranch.ShortName;
         existingBranch.Address = branchMasterRequest.Address ?? existingBranch.Address;
         existingBranch.City = branchMasterRequest.City ?? existingBranch.City;

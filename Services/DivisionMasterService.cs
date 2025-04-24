@@ -20,7 +20,7 @@ namespace AttendanceManagement.Services
                                select new DivisionResponse
                                {
                                    DivisionMasterId = division.Id,
-                                   FullName = division.FullName,
+                                   FullName = division.Name,
                                    ShortName = division.ShortName,
                                    IsActive = division.IsActive,
                                    CreatedBy = division.CreatedBy
@@ -40,7 +40,7 @@ namespace AttendanceManagement.Services
 
             DivisionMaster division = new DivisionMaster
             {
-                FullName = divisionRequest.FullName,
+                Name = divisionRequest.FullName,
                 ShortName = divisionRequest.ShortName,
                 IsActive = divisionRequest.IsActive,
                 CreatedBy = divisionRequest.CreatedBy,
@@ -60,7 +60,7 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("Division not found");
             }
-            existingDivision.FullName = division.FullName ?? existingDivision.FullName;
+            existingDivision.Name = division.FullName ?? existingDivision.Name;
             existingDivision.ShortName = division.ShortName ?? existingDivision.ShortName;
             existingDivision.IsActive = division.IsActive;
             existingDivision.UpdatedBy = division.UpdatedBy;
