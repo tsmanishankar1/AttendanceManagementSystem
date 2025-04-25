@@ -593,6 +593,8 @@ public partial class StaffCreation
 
     public virtual ICollection<PreviousEmployment> PreviousEmploymentUpdatedByNavigations { get; set; } = new List<PreviousEmployment>();
 
+    public virtual ICollection<Probation> ProbationAssignedByNavigations { get; set; } = new List<Probation>();
+
     public virtual ICollection<Probation> ProbationCreatedByNavigations { get; set; } = new List<Probation>();
 
     public virtual ICollection<Probation> ProbationManagers { get; set; } = new List<Probation>();

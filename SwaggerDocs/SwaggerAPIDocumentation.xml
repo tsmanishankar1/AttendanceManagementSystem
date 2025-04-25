@@ -1551,7 +1551,7 @@
 			<param name="probationService">The probation service.</param>
 			<param name="context">The attendance management system context.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.GetAllProbations">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.GetAllProbations(System.Int32)">
 			<summary>
 				Retrieves all probations.
 			</summary>
@@ -1607,6 +1607,7 @@
 			<returns>A success message indicating manager assignment completion.</returns>
 			<response code="200">Returns the success message after assigning the manager.</response>
 			<response code="404">If the probation record or staff member is not found.</response>
+			<response code="409">If a manager has already been assigned to the probation record.</response>
 			<response code="500">If an unexpected error occurs during processing.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ProbationController.GetFeedbackByApproverLevel1(System.Int32)">
@@ -1619,7 +1620,7 @@
 			<response code="404">If no feedbacks are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.ProcessApprovalAsync(AttendanceManagement.Input_Models.ApprovalRequest)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.ProcessApprovalAsync(AttendanceManagement.Input_Models.HrConfirmation)">
 			<summary>
 				Processes HR approval with letter generation.
 			</summary>
@@ -1635,6 +1636,8 @@
 			<param name="feedback">The feedback details to add.</param>
 			<returns>The created feedback.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">If the probation record or staff member is not found.</response>
+			<response code="409">If the probation has already been approved.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ProbationController.GetFeedbackById(System.Int32)">

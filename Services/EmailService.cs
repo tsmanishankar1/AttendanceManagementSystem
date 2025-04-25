@@ -6,6 +6,8 @@ using AttendanceManagement.Input_Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Org.BouncyCastle.Cms;
 
 namespace AttendanceManagement.Services
 {
@@ -1424,7 +1426,6 @@ namespace AttendanceManagement.Services
             string actionText = isApproved
                                 ? $"You can view the details <a href='{webApprovalLink}'>here</a>."
                                 : "If you have any questions, please contact HR.";
-
             string billDateFormatted = billDate.ToString("dd-MMM-yyyy");
 
             string emailBody = $@"
@@ -1437,15 +1438,20 @@ namespace AttendanceManagement.Services
             <p><strong>Amount:</strong> ₹{amount:F2}</p>
             <p><strong>{actionBy}:</strong> {approverName} on {approvedTime}</p>
             <br>
-            <p>For more information, please contact HR.</p>
+            <p>{actionText}</p>
             <br>Best Regards,<br>
             HR Team";
 
             await SendApprovalEmail(recipientEmail, subject, emailBody, approvedBy);
         }
 
-        public async Task SendProbationNotificationToHrAsync(string probationerName, DateOnly probationStartDate, DateOnly probationEndDate)
+        public async Task SendProbationNotificationToHrAsync(int recipientId, string probationerName, DateOnly probationStartDate, DateOnly probationEndDate)
         {
+            var toEmail = _configuration["Smtp:to"];
+            if (toEmail == null) throw new MessageNotFoundException("Recipient email not found");
+            var createdBy = int.Parse(_configuration["Smtp:mailTriggerId"]);
+            var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
+            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?staffId={recipientId}";
             var subject = $"Probation Confirmation Required: {probationerName}";
             var body = $@"
             <p>Dear HR Team,</p>
@@ -1460,12 +1466,10 @@ namespace AttendanceManagement.Services
             </ul>
 
             <p>Please initiate the confirmation process at your earliest convenience.</p>
-
+            <p>{approvalLink}</p>
             <p>Regards,<br/>Attendance Management System</p>";
 
-            var toEmail = "manishankar.ts@kryptosinfosys.com";
-
-            await SendApprovalEmail(toEmail, subject, body, 4);
+            await SendApprovalEmail(toEmail, subject, body, createdBy);
         }
 
         public async Task AssignManager(string recipientEmail, int recipientId, string recipientName, string probationerName, DateOnly startDate, DateOnly endDate, int createdBy)
@@ -1477,6 +1481,7 @@ namespace AttendanceManagement.Services
             if (receiver1 == null) throw new Exception("Approver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
+            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?staffId={recipientId}";
             string subject = "Probation Confirmation Review Assignment";
 
             string fromDateFormatted = startDate.ToString("dd-MMM-yyyy");
@@ -1492,6 +1497,7 @@ namespace AttendanceManagement.Services
             <strong>Probation End Date:</strong> {toDateFormatted}</p>
 
             <p>Please log in to the system to review and take the necessary action.</p>
+            <p>{approvalLink}</p>
 
             <br>Best Regards,<br>
             HR Team";
@@ -1499,18 +1505,21 @@ namespace AttendanceManagement.Services
             await SendApprovalEmail(recipientEmail, subject, emailBody, createdBy);
         }
 
-        public async Task SendProbationNotificationToHrAsync(string probationerName, DateOnly startDate, DateOnly endDate, bool isApproved, string approverName, string approvedTime, int approvedBy)
+        public async Task SendProbationConfirmationNotificationToHrAsync(int recipientId, string probationerName, DateOnly startDate, DateOnly endDate, DateOnly? extensionPeriod, bool isApproved, string approverName, string approvedTime, int approvedBy)
         {
-            var recipientEmail = "manishankar.ts@kryptosinfosys.com";
+            var recipientEmail = _configuration["Smtp:to"];
+            if (recipientEmail == null) throw new MessageNotFoundException("Recipient email not found");
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("HR email not found");
             var recipient = await _context.StaffCreations.FirstOrDefaultAsync(u => u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (recipient == null) throw new Exception("HR recipient not found or inactive.");
-            string subject = isApproved ? "Probation Confirmation Approved" : "Probation Confirmation Not Approved";
-            string statusMessage = isApproved ? "approved" : "not approved";
-            string actionBy = isApproved ? "Approved by" : "Not approved by";
+            string subject = isApproved ? "Probation Confirmation Approved" : "Probation Confirmation Extended";
+            string statusMessage = isApproved ? "approved" : "extended";
+            string actionBy = isApproved ? "Approved by" : "Extended by";
             string startDateFormatted = startDate.ToString("dd-MMM-yyyy");
             string endDateFormatted = endDate.ToString("dd-MMM-yyyy");
-
+            var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
+            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?staffId={recipientId}";
+            string actionText = $"You can view the details <a href='{approvalLink}'>here</a>.";
             string emailBody = $@"
             <p>Dear HR Team,</p>
 
@@ -1518,11 +1527,20 @@ namespace AttendanceManagement.Services
 
             <p><strong>Probationer's Name:</strong> {probationerName}</p>
             <p><strong>Probation Start Date:</strong> {startDateFormatted}</p>
-            <p><strong>Probation End Date:</strong> {endDateFormatted}</p>
-            <p><strong>{actionBy}:</strong> {approverName} on {approvedTime}</p>
+            <p><strong>Probation End Date:</strong> {endDateFormatted}</p>";
 
-            <br>Best Regards,<br>
-            Attendance Management System";
+                    if (!isApproved && extensionPeriod.HasValue)
+                    {
+                        string extensionPeriodFormatted = extensionPeriod.Value.ToString("dd-MMM-yyyy");
+                        emailBody += $@"
+                        <p><strong>Extension Period:</strong> {extensionPeriodFormatted}</p>";
+                    }
+
+                    emailBody += $@"
+                    <p><strong>{actionBy}:</strong> {approverName} on {approvedTime}</p>
+                    <p>{actionText}</p>
+                    <br>Best Regards,<br>
+                    Attendance Management System";
 
             await SendApprovalEmail(recipientEmail, subject, emailBody, approvedBy);
         }

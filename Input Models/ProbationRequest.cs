@@ -30,7 +30,6 @@ namespace AttendanceManagement.Input_Models
         public DateOnly ProbationEndDate { get; set; }
         public int CreatedBy { get; set; }
         public ProbationReport? ProbationReport { get; set; }
-        public ProbationTarget? ProbationTarget { get; set; }
     }
 
     public class UpdateProbation

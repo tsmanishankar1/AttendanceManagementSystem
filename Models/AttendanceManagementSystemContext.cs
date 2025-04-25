@@ -3021,6 +3021,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.ToTable("Probation");
 
+            entity.Property(e => e.AssignedOn).HasColumnType("datetime");
             entity.Property(e => e.CreatedUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -3031,6 +3032,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.ApprovalNotificationId)
                 .HasConstraintName("FK_Probation_ApprovalNotification");
 
+            entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.ProbationAssignedByNavigations)
+                .HasForeignKey(d => d.AssignedBy)
+                .HasConstraintName("FK_ASPR");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ProbationCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -3038,7 +3043,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Manager).WithMany(p => p.ProbationManagers)
                 .HasForeignKey(d => d.ManagerId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PRMGID");
 
             entity.HasOne(d => d.StaffCreation).WithMany(p => p.ProbationStaffCreations)
@@ -3072,7 +3076,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.FinalScorePercentage).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.FinalTotal).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Name)
-                .HasMaxLength(250)
+                .HasMaxLength(200)
                 .IsUnicode(false);
             entity.Property(e => e.NoOfAbsent).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.ProdGrade)

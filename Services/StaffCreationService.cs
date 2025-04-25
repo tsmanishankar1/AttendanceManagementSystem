@@ -175,7 +175,6 @@ namespace AttendanceManagement.Services
 
             return getUser;
         }
-
         public async Task<List<StaffDto>> GetStaffAsync(GetStaff getStaff)
         {
             var parameters = new[]
@@ -204,7 +203,6 @@ namespace AttendanceManagement.Services
 
             return staffList;
         }
-
         public async Task<string> UpdateMyProfile(IndividualStaffUpdate individualStaffUpdate)
         {
             var message = "Profile updated successfully";
@@ -264,7 +262,6 @@ namespace AttendanceManagement.Services
 
             return message;
         }
-
         public async Task<IndividualStaffResponse> GetMyProfile(int staffId)
         {
             var staff = await _context.StaffCreations
@@ -354,7 +351,6 @@ namespace AttendanceManagement.Services
                                 .FirstOrDefaultAsync();
             return getUser;
         }
-
         public async Task<string> AddStaff(StaffCreationInputModel staffInput)
         {
             bool staffExists = await _context.StaffCreations.AnyAsync(s => s.StaffId == staffInput.StaffId && s.IsActive == true);
@@ -472,32 +468,6 @@ namespace AttendanceManagement.Services
 
             _context.StaffCreations.Add(staff);
             await _context.SaveChangesAsync();
-
-           /* var employee = staff.StaffId;
-            DateOnly probationEndDate;
-            if (employee.StartsWith("VL") && !employee.StartsWith("VLC"))
-            {
-                probationEndDate = staff.JoiningDate.AddMonths(6);
-            }
-            else if (employee.StartsWith("VLC"))
-            {
-                probationEndDate = staff.JoiningDate.AddMonths(3);
-            }
-            else
-            {
-                probationEndDate = staff.JoiningDate.AddYears(2);
-            }
-            var probation = new Probation
-            {
-                StaffCreationId = staff.Id,
-                ProbationStartDate = staff.JoiningDate,
-                ProbationEndDate = probationEndDate,
-                IsActive = true,
-                CreatedBy = staff.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            _context.Probations.Add(probation);
-            await _context.SaveChangesAsync();*/
 
             var reportingManager = await _context.StaffCreations
                 .Where(u => (u.Id == staffInput.ApprovalLevel1 || u.Id == staffInput.ApprovalLevel2) && u.IsActive == true)
@@ -883,7 +853,6 @@ namespace AttendanceManagement.Services
             }
             return records;
         }
-
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
             var approver = await _context.StaffCreations
@@ -1019,16 +988,52 @@ namespace AttendanceManagement.Services
                 staff.UpdatedBy = approvePendingStaff.ApprovedBy;
                 staff.UpdatedUtc = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+
+                var staffApprove = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.Id && s.IsActive == true);
+                if (staffApprove != null)
+                {
+                    var employee = staffApprove.StaffId;
+                    DateOnly probationEndDate;
+                    if (employee.StartsWith("VL") && !employee.StartsWith("VLC"))
+                    {
+                        probationEndDate = staffApprove.JoiningDate.AddMonths(6);
+                    }
+                    else if (employee.StartsWith("VLC"))
+                    {
+                        probationEndDate = staffApprove.JoiningDate.AddMonths(3);
+                    }
+                    else if (employee.StartsWith("TK"))
+                    {
+                        probationEndDate = staffApprove.JoiningDate.AddYears(1);
+                    }
+                    else
+                    {
+                        probationEndDate = staffApprove.JoiningDate.AddYears(2);
+                    }
+                    var probation = new Probation
+                    {
+                        StaffCreationId = staffApprove.Id,
+                        ProbationStartDate = staffApprove.JoiningDate,
+                        ProbationEndDate = probationEndDate,
+                        IsActive = true,
+                        CreatedBy = staffApprove.CreatedBy,
+                        CreatedUtc = DateTime.UtcNow
+                    };
+                    _context.Probations.Add(probation);
+                    await _context.SaveChangesAsync();
+                }
+
                 var createdByUser = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == staff.CreatedBy && u.IsActive == true);
                 if (createdByUser == null || string.IsNullOrWhiteSpace(createdByUser.OfficialEmail)) throw new InvalidOperationException("Creator or official email not found");
                 var createdByUserName = $"{createdByUser.FirstName} {createdByUser.LastName}";
                 var staffName = $"{staff.FirstName} {staff.LastName}";
                 var approver = await _context.StaffCreations.FirstOrDefaultAsync(a => a.Id == approvePendingStaff.ApprovedBy && a.IsActive == true);
                 var approverName = $"{approver.FirstName} {approver.LastName}";
+                string approvedTime = staff.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                 string subject = approvePendingStaff.IsApproved ? "Staff Profile Approved" : "Staff Profile Rejected";
                 string emailBody = $@"
                 <p>Dear {createdByUserName},</p>
-                <p>The staff profile for {staffName} has been {(approvePendingStaff.IsApproved ? "approved" : "rejected")} by {approverName}.</p>       
+                <p>The staff profile for {staffName} has been {(approvePendingStaff.IsApproved ? "approved" : "rejected")} by {approverName} on {approvedTime}.</p>       
                 <br>Best Regards,<br>
                 HR Team";
 
@@ -1037,7 +1042,6 @@ namespace AttendanceManagement.Services
             }
             return message;
         }
-
         public async Task<string> CreateDropDownMaster(DropDownRequest dropDownRequest)
         {
             var message = "Dropdown master created successfully";

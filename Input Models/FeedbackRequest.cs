@@ -14,12 +14,11 @@
         public int FeedbackId { get; set; }
         public int ProbationId { get; set; }
         public int StaffId { get; set; }
-        public string StaffCreationId { get; set; }
-        public string StaffCreationName { get; set; } = null!;
+        public string StaffCreationId { get; set; } = null!;
+        public string StaffName{ get; set; } = null!;
         public string? FeedbackText { get; set; }
-        public DateOnly ProbationStartDate { get; set; }
-        public DateOnly ProbationEndDate { get; set; }
-        public bool? IsCompleted { get; set; }
+        public DateOnly? ProbationExtensionPeriod { get; set; }
+        public bool? IsApproved { get; set; }
         public int CreatedBy { get; set; }
     }
 

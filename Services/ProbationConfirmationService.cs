@@ -32,20 +32,30 @@ namespace AttendanceManagement.Services
                     var dbContext = scope.ServiceProvider.GetRequiredService<AttendanceManagementSystemContext>();
                     var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
                     var today = DateOnly.FromDateTime(DateTime.Today);
-                    var probations = await (from p in dbContext.Probations
-                                            join f in dbContext.Feedbacks on p.Id equals f.ProbationId into feedbackGroup
-                                            from f in feedbackGroup.DefaultIfEmpty()
-                                            where p.IsActive &&
-                                                  (
-                                                      (f.ExtensionPeriod == null && p.ProbationEndDate == today) ||
-                                                      (f != null && f.ExtensionPeriod != null && f.ExtensionPeriod == today)
-                                                  )
-                                            select p).ToListAsync(stoppingToken);
-                    foreach (var employee in probations)
+                    var probations = await (
+                        from p in dbContext.Probations
+                        join f in dbContext.Feedbacks on p.Id equals f.ProbationId into feedbackGroup
+                        from f in feedbackGroup.DefaultIfEmpty()
+                        where p.IsActive && f.IsActive &&
+                              (
+                                  (f.ExtensionPeriod == null && p.ProbationEndDate == today) ||
+                                  (f != null && f.ExtensionPeriod != null && f.ExtensionPeriod == today)
+                              )
+                        select new
+                        {
+                            p.Id,
+                            p.StaffCreationId,
+                            p.ProbationStartDate,
+                            FinalEndDate = f != null && f.ExtensionPeriod != null ? f.ExtensionPeriod.Value : p.ProbationEndDate
+                        }).ToListAsync(stoppingToken);
+                    foreach (var probation in probations)
                     {
-                        var probation = await dbContext.Probations.FirstOrDefaultAsync(p => p.Id == employee.Id && p.IsActive, stoppingToken);
                         var probationer = await dbContext.StaffCreations.FirstOrDefaultAsync(s => s.Id == probation.StaffCreationId && s.IsActive == true, stoppingToken);
-                        await emailService.SendProbationNotificationToHrAsync($"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, probation.ProbationEndDate);
+                        if(probationer  != null)
+                        {
+                            await emailService.SendProbationNotificationToHrAsync(probationer.Id, $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, probation.FinalEndDate);
+
+                        }
                     }
                 }
                 await Task.Delay(TimeSpan.FromDays(1), stoppingToken);

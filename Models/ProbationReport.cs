@@ -9,7 +9,7 @@ public partial class ProbationReport
 
     public string EmpId { get; set; } = null!;
 
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public int DepartmentId { get; set; }
 

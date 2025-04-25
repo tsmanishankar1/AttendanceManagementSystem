@@ -274,6 +274,11 @@ public class StaffCreationController : ControllerBase
             await _loggingService.LogError("Approve Pending Staffs", "POST", "/api/StaffCreation/ApprovePendingStaffs", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Approve Pending Staffs", "POST", "/api/StaffCreation/ApprovePendingStaffs", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Approve Pending Staffs", "POST", "/api/StaffCreation/ApprovePendingStaffs", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));

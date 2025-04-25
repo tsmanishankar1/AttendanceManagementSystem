@@ -1,4 +1,5 @@
 ﻿using AttendanceManagement.Input_Models;
+using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -18,38 +19,15 @@ public class ProbationController : ControllerBase
     }
 
     [HttpGet("GetAllProbations")]
-    public async Task<IActionResult> GetAllProbations()
+    public async Task<IActionResult> GetAllProbations(int approverId)
     {
         try
         {
-            var probations = await _probationService.GetAllProbationsAsync();
+            var probations = await _probationService.GetAllProbationsAsync(approverId);
             var response = new
             {
                 Success = true,
                 Message = probations
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
-    [HttpGet("GetProbationById")]
-    public async Task<IActionResult> GetProbationById(int probationId)
-    {
-        try
-        {
-            var probation = await _probationService.GetProbationByIdAsync(probationId);
-            var response = new
-            {
-                Success = true,
-                Message = probation
             };
             return Ok(response);
         }
@@ -74,14 +52,22 @@ public class ProbationController : ControllerBase
                 Success = true,
                 Message = probation
             };
+            await _loggingService.AuditLog("Assign Probation Manager", "POST", "/api/Probation/AssignManagerForProbationReview", probation, assignManagerRequest.CreatedBy, JsonSerializer.Serialize(assignManagerRequest));
             return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Assign Probation Manager", "POST", "/api/Probation/AssignManagerForProbationReview", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignManagerRequest.CreatedBy, JsonSerializer.Serialize(assignManagerRequest));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (MessageNotFoundException ex)
         {
+            await _loggingService.LogError("Assign Probation Manager", "POST", "/api/Probation/AssignManagerForProbationReview", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignManagerRequest.CreatedBy, JsonSerializer.Serialize(assignManagerRequest));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Assign Probation Manager", "POST", "/api/Probation/AssignManagerForProbationReview", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignManagerRequest.CreatedBy, JsonSerializer.Serialize(assignManagerRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -184,27 +170,27 @@ public class ProbationController : ControllerBase
     }
 
     [HttpPost("HrApprovalWithLetterGeneration")]
-    public async Task<IActionResult> ProcessApprovalAsync(ApprovalRequest approval)
+    public async Task<IActionResult> ProcessApprovalAsync(HrConfirmation hrConfirmation)
     {
         try
         {
-            var pdfBase64 = await _probationService.ProcessApprovalAsync(approval);
+            var pdfBase64 = await _probationService.ProcessApprovalAsync(hrConfirmation);
             var response = new
             {
                 Success = true,
                 Message = pdfBase64
             };
-            await _loggingService.AuditLog("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", pdfBase64, approval.CreatedBy, JsonSerializer.Serialize(approval));
+            await _loggingService.AuditLog("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", pdfBase64, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
             return Ok(response);
         }
         catch(MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approval.CreatedBy, JsonSerializer.Serialize(approval));
+            await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approval.CreatedBy, JsonSerializer.Serialize(approval));
+            await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -224,6 +210,11 @@ public class ProbationController : ControllerBase
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Feedback Manager", "POST", "/api/Probation/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Feedback Manager", "POST", "/api/Probation/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
             return ErrorClass.NotFoundResponse(ex.Message);

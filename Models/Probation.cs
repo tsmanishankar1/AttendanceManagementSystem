@@ -17,7 +17,7 @@ public partial class Probation
 
     public int CreatedBy { get; set; }
 
-    public DateTime? CreatedUtc { get; set; }
+    public DateTime CreatedUtc { get; set; }
 
     public int? UpdatedBy { get; set; }
 
@@ -27,15 +27,21 @@ public partial class Probation
 
     public int? ApprovalNotificationId { get; set; }
 
-    public int ManagerId { get; set; }
+    public int? ManagerId { get; set; }
+
+    public int? AssignedBy { get; set; }
+
+    public DateTime? AssignedOn { get; set; }
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
+
+    public virtual StaffCreation? AssignedByNavigation { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
-    public virtual StaffCreation Manager { get; set; } = null!;
+    public virtual StaffCreation? Manager { get; set; }
 
     public virtual StaffCreation StaffCreation { get; set; } = null!;
 
