@@ -364,7 +364,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var workStationId = _context.WorkstationMasters
-                                        .Where(w => w.FullName.ToLower() == workStationName.ToLower())
+                                        .Where(w => w.Name.ToLower() == workStationName.ToLower())
                                         .Select(w => w.Id)
                                         .FirstOrDefault();
                                     if (workStationId == 0)
@@ -416,7 +416,7 @@ public class ExcelImportService
                                         continue;
                                     }
                                     var holidayCalendarId = _context.HolidayCalendarConfigurations
-                                        .Where(h => h.GroupName.ToLower() == holidayCalendarName.ToLower())
+                                        .Where(h => h.Name.ToLower() == holidayCalendarName.ToLower())
                                         .Select(h => h.Id)
                                         .FirstOrDefault();
                                     if (holidayCalendarId == 0)

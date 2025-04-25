@@ -1846,7 +1846,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.GroupName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc)
@@ -2116,7 +2116,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.LeaveGroupName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc)
@@ -4554,7 +4554,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FullName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ShortName)

@@ -115,7 +115,7 @@ namespace AttendanceManagement.Services
 
             var holidayCalendar = new HolidayCalendarConfiguration
             {
-                GroupName = request.GroupName,
+                Name = request.GroupName,
                 CalendarYear = request.CalendarYear,
                 Currents = request.Currents,
                 IsActive = request.IsActive,
@@ -151,7 +151,7 @@ namespace AttendanceManagement.Services
                                      select new
                                      {
                                          holiday.Id,
-                                         holiday.GroupName,
+                                         holiday.Name,
                                          holiday.CalendarYear,
                                          holiday.Currents,
                                          holiday.IsActive,
@@ -167,7 +167,7 @@ namespace AttendanceManagement.Services
             var holidayResponses = allHolidays.Select(holiday => new HolidayConfigurationResponse
             {
                 HolidayCalendarId = holiday.Id,
-                GroupName = holiday.GroupName,
+                GroupName = holiday.Name,
                 CalendarYear = holiday.CalendarYear,
                 Currents = holiday.Currents,
                 IsActive = holiday.IsActive,
@@ -204,7 +204,7 @@ namespace AttendanceManagement.Services
                 throw new MessageNotFoundException("Holiday calendar not found.");
 
             // Update the HolidayCalendar properties
-            existingCalendar.GroupName = request.GroupName ?? existingCalendar.GroupName;
+            existingCalendar.Name = request.GroupName ?? existingCalendar.Name;
             existingCalendar.CalendarYear = request.CalendarYear;
             existingCalendar.Currents = request.Currents;
             existingCalendar.IsActive = request.IsActive;
@@ -274,7 +274,7 @@ namespace AttendanceManagement.Services
                                         HolidayZoneId = holiday.Id,
                                         HolidayZoneName = holiday.HolidayZoneName,
                                         HolidayCalanderId = holidayCalendar.Id,
-                                        HolidayCalendarName = holidayCalendar.GroupName,
+                                        HolidayCalendarName = holidayCalendar.Name,
                                         IsActive = holiday.IsActive,
                                         CreatedBy = holiday.CreatedBy
                                     })
@@ -297,7 +297,7 @@ namespace AttendanceManagement.Services
                                         HolidayZoneId = holiday.Id,
                                         HolidayZoneName = holiday.HolidayZoneName,
                                         HolidayCalanderId = holidayCalendar.Id,
-                                        HolidayCalendarName = holidayCalendar.GroupName,
+                                        HolidayCalendarName = holidayCalendar.Name,
                                         IsActive = holiday.IsActive,
                                         CreatedBy = holiday.CreatedBy
                                     })

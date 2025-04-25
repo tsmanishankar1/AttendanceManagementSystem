@@ -22,7 +22,7 @@ namespace AttendanceManagement.Services
                                      select new
                                      {
                                          leave.Id,
-                                         leave.LeaveGroupName,
+                                         leave.Name,
                                          leave.IsActive,
                                          leave.CreatedBy
                                      })
@@ -36,7 +36,7 @@ namespace AttendanceManagement.Services
             var leaveGroupResponses = leaveGroups.Select(leave => new LeaveGroupResponse
             {
                 LeaveGroupId = leave.Id,
-                LeaveGroupName = leave.LeaveGroupName,
+                LeaveGroupName = leave.Name,
                 IsActive = leave.IsActive,
                 CreatedBy = leave.CreatedBy,
                 LeaveTypeIds = _context.LeaveGroupTransactions
@@ -52,7 +52,7 @@ namespace AttendanceManagement.Services
             var message = "Leave group added successfully";
             var leaveGroup = new LeaveGroup
             {
-                LeaveGroupName = addLeaveGroupDto.LeaveGroupName,
+                Name = addLeaveGroupDto.LeaveGroupName,
                 IsActive = addLeaveGroupDto.IsActive,
                 CreatedBy = addLeaveGroupDto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
@@ -92,7 +92,7 @@ namespace AttendanceManagement.Services
                 throw new MessageNotFoundException("Leave group not found");
             }
 
-            existingLeaveGroup.LeaveGroupName = leaveGroup.LeaveGroupName ?? existingLeaveGroup.LeaveGroupName;
+            existingLeaveGroup.Name = leaveGroup.LeaveGroupName ?? existingLeaveGroup.Name;
             existingLeaveGroup.IsActive = leaveGroup.IsActive;
             existingLeaveGroup.UpdatedBy = leaveGroup.UpdatedBy;
             existingLeaveGroup.UpdatedUtc = DateTime.UtcNow;

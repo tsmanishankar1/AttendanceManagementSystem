@@ -134,13 +134,13 @@ namespace AttendanceManagement.Services
                     CostCenterId = s.CostCenterId,
                     CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     WorkStationId = s.WorkStationId,
-                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
+                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.Name).FirstOrDefault() ?? string.Empty,
                     LeaveGroupId = s.LeaveGroupId,
-                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
+                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     CompanyMasterId = s.CompanyMasterId,
                     Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     HolidayCalendarId = s.HolidayCalendarId,
-                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
+                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.Name).FirstOrDefault() ?? string.Empty,
                     LocationMasterId = s.LocationMasterId,
                     Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     AadharNo = s.AadharNo,
@@ -844,13 +844,13 @@ namespace AttendanceManagement.Services
                     CostCenterId = s.CostCenterId,
                     CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     WorkStationId = s.WorkStationId,
-                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
+                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.Name).FirstOrDefault() ?? string.Empty,
                     LeaveGroupId = s.LeaveGroupId,
-                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
+                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     CompanyMasterId = s.CompanyMasterId,
                     Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     HolidayCalendarId = s.HolidayCalendarId,
-                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
+                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.Name).FirstOrDefault() ?? string.Empty,
                     LocationMasterId = s.LocationMasterId,
                     Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     AadharNo = s.AadharNo,
@@ -965,13 +965,13 @@ namespace AttendanceManagement.Services
                     CostCenterId = s.CostCenterId,
                     CostCenter = _context.CostCentreMasters.Where(c => c.Id == s.CostCenterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     WorkStationId = s.WorkStationId,
-                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.FullName).FirstOrDefault() ?? string.Empty,
+                    WorkStation = _context.WorkstationMasters.Where(w => w.Id == s.WorkStationId).Select(w => w.Name).FirstOrDefault() ?? string.Empty,
                     LeaveGroupId = s.LeaveGroupId,
-                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.LeaveGroupName).FirstOrDefault() ?? string.Empty,
+                    LeaveGroup = _context.LeaveGroups.Where(l => l.Id == s.LeaveGroupId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     CompanyMasterId = s.CompanyMasterId,
                     Company = _context.CompanyMasters.Where(c => c.Id == s.CompanyMasterId).Select(c => c.Name).FirstOrDefault() ?? string.Empty,
                     HolidayCalendarId = s.HolidayCalendarId,
-                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.GroupName).FirstOrDefault() ?? string.Empty,
+                    HolidayCalendar = _context.HolidayCalendarConfigurations.Where(h => h.Id == s.HolidayCalendarId).Select(h => h.Name).FirstOrDefault() ?? string.Empty,
                     LocationMasterId = s.LocationMasterId,
                     Location = _context.LocationMasters.Where(l => l.Id == s.LocationMasterId).Select(l => l.Name).FirstOrDefault() ?? string.Empty,
                     AadharNo = s.AadharNo,
@@ -1128,7 +1128,10 @@ namespace AttendanceManagement.Services
                 {1028, new GradeMaster() },
                 {1029, new CostCentreMaster() },
                 {1030, new Shift() },
-                {1031, new DivisionMaster() }
+                {1031, new DivisionMaster() },
+                {1032, new LeaveGroup() },
+                {1033, new HolidayCalendarConfiguration() },
+                {1034, new WorkstationMaster() }
 
             };
 
@@ -1193,7 +1196,10 @@ namespace AttendanceManagement.Services
                 { 1028, _context.GradeMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1029, _context.CostCentreMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1030, _context.Shifts.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1031, _context.DivisionMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1031, _context.DivisionMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1032, _context.LeaveGroups.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1033, _context.HolidayCalendarConfigurations.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1034, _context.WorkstationMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -1255,7 +1261,10 @@ namespace AttendanceManagement.Services
                 { 1028, async () => await _context.GradeMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1029, async () => await _context.CostCentreMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1030, async () => await _context.Shifts.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1031, async () => await _context.DivisionMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1031, async () => await _context.DivisionMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1032, async () => await _context.LeaveGroups.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1033, async () => await _context.HolidayCalendarConfigurations.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1034, async () => await _context.WorkstationMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

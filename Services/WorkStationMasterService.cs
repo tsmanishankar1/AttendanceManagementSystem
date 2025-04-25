@@ -19,7 +19,7 @@ public class WorkstationMasterService
             .Select(ws => new WorkStationResponse
             {
                 WorkstationMasterId = ws.Id,
-                FullName = ws.FullName,
+                FullName = ws.Name,
                 ShortName = ws.ShortName,
                 IsActive = ws.IsActive,
                 CreatedBy = ws.CreatedBy
@@ -36,7 +36,7 @@ public class WorkstationMasterService
         var message = "Workstation added successfully.";
         var workstation = new WorkstationMaster
         {
-            FullName = workstationRequest.FullName,
+            Name = workstationRequest.FullName,
             ShortName = workstationRequest.ShortName,
             IsActive = workstationRequest.IsActive,
             CreatedBy = workstationRequest.CreatedBy,
@@ -56,7 +56,7 @@ public class WorkstationMasterService
         if (workstation == null)
             throw new MessageNotFoundException("WorkStation not found");
 
-        workstation.FullName = updatedWorkstation.FullName;
+        workstation.Name = updatedWorkstation.FullName;
         workstation.IsActive = updatedWorkstation.IsActive;
         workstation.ShortName = updatedWorkstation.ShortName;
         workstation.UpdatedBy = updatedWorkstation.UpdatedBy;
