@@ -26,7 +26,7 @@
     {
         public int FeedbackId { get; set; }
         public int ProbationId { get; set; }
-        public string? FeedbackText { get; set; }
+        public string FeedbackText { get; set; } = null!;
         public int UpdatedBy { get; set; }
     }
 }

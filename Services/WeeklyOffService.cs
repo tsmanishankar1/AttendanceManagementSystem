@@ -26,9 +26,9 @@ namespace AttendanceManagement.Services
                 CreatedBy = weeklyOffRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             await _context.WeeklyOffMasters.AddAsync(weeklyOffMaster);
             await _context.SaveChangesAsync();
+
             var weeklyOffDetails = weeklyOffRequest.MarkWeeklyOff.Select(mark =>
                 new WeeklyOffDetail
                 {
@@ -38,11 +38,11 @@ namespace AttendanceManagement.Services
                     CreatedBy = weeklyOffRequest.CreatedBy,
                     CreatedUtc = DateTime.UtcNow
                 }).ToList();
-
             await _context.WeeklyOffDetails.AddRangeAsync(weeklyOffDetails);
             await _context.SaveChangesAsync();
             return message;
         }
+
         public async Task<IEnumerable<WeeklyOffResponse>> GetAllWeeklyOffsAsync()
         {
             var weeklyOffs = await _context.WeeklyOffMasters
@@ -61,29 +61,23 @@ namespace AttendanceManagement.Services
                         }).ToList()
                 })
                 .ToListAsync();
-
             if (!weeklyOffs.Any())
             {
                 throw new MessageNotFoundException("Weekly off not found");
             }
-
             return weeklyOffs;
         }
+
         public async Task<string> UpdateWeeklyOffAsync(UpdateWeeklyOff updatedWeeklyOff)
         {
             var message = "Weekly off updated successfully";
-            var existingWeeklyOffMaster = await _context.WeeklyOffMasters
-                .FirstOrDefaultAsync(w => w.Id == updatedWeeklyOff.WeeklyOffId);
-
-            if (existingWeeklyOffMaster == null)
-                throw new MessageNotFoundException("Weekly off not found");
+            var existingWeeklyOffMaster = await _context.WeeklyOffMasters.FirstOrDefaultAsync(w => w.Id == updatedWeeklyOff.WeeklyOffId);
+            if (existingWeeklyOffMaster == null) throw new MessageNotFoundException("Weekly off not found");
             existingWeeklyOffMaster.WeeklyOffName = updatedWeeklyOff.WeeklyOffName;
             existingWeeklyOffMaster.IsActive = updatedWeeklyOff.IsActive;
             existingWeeklyOffMaster.UpdatedBy = updatedWeeklyOff.UpdatedBy;
             existingWeeklyOffMaster.UpdatedUtc = DateTime.UtcNow;
-            var existingDetails = await _context.WeeklyOffDetails
-                .Where(d => d.WeeklyOffMasterId == updatedWeeklyOff.WeeklyOffId)
-                .ToListAsync();
+            var existingDetails = await _context.WeeklyOffDetails.Where(d => d.WeeklyOffMasterId == updatedWeeklyOff.WeeklyOffId).ToListAsync();
             var existingMarkWeeklyOffs = existingDetails.Select(d => d.MarkWeeklyOff).ToList();
             var newMarkWeeklyOffs = updatedWeeklyOff.MarkWeeklyOff;
 
@@ -107,7 +101,6 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             await _context.WeeklyOffDetails.AddRangeAsync(toInsert);
             await _context.SaveChangesAsync();
-
             return message;
         }
     }

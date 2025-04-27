@@ -67,29 +67,6 @@ public class HolidayController : ControllerBase
         }
     }
 
-    [HttpGet("GetHolidayMasterById")]
-    public async Task<IActionResult> GetHolidayById(int holidayMasterId)
-    {
-        try
-        {
-            var holiday = await _service.GetHolidayById(holidayMasterId);
-            var response = new
-            {
-                Success = true,
-                Message = holiday
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("AddHolidayMaster")]
     public async Task<IActionResult> CreateHoliday(HolidayRequest holiday)
     {
@@ -217,29 +194,6 @@ public class HolidayController : ControllerBase
             {
                 Success = true,
                 Message = holidayZones
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
-    [HttpGet("GetHolidayZoneById")]
-    public async Task<IActionResult> GetHolidayZone(int holidayZoneId)
-    {
-        try
-        {
-            var holidayZone = await _service.GetHolidayZoneByIdAsync(holidayZoneId);
-            var response = new
-            {
-                Success = true,
-                Message = holidayZone
             };
             return Ok(response);
         }

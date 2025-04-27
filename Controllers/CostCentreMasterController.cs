@@ -75,7 +75,7 @@ public class CostCentreMasterController : ControllerBase
                 Success = true,
                 Message = updatedCostCentre
             };
-            await _loggingService.AuditLog("Cost Centre Master", "POST", "/api/CostCentreMaster/UpdateCostCentre", updatedCostCentre ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
+            await _loggingService.AuditLog("Cost Centre Master", "POST", "/api/CostCentreMaster/UpdateCostCentre", updatedCostCentre, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)

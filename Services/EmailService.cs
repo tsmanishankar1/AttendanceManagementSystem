@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Org.BouncyCastle.Cms;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AttendanceManagement.Services
 {
@@ -83,6 +84,62 @@ namespace AttendanceManagement.Services
             }
         }
 
+        public async Task SendApprovalEmail(string managerEmail, StaffCreation staff)
+        {
+            if (staff == null || string.IsNullOrEmpty(managerEmail)) throw new ArgumentNullException("Staff or Manager Email is null.");
+            var reportingManager = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == staff.ApprovalLevel1 && u.OfficialEmail == managerEmail && u.IsActive == true);
+            if (reportingManager == null) throw new Exception("Reporting manager not found or inactive.");
+            var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
+            string Base64UrlEncode(string input)
+            {
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
+                    .TrimEnd('=')
+                    .Replace('+', '-')
+                    .Replace('/', '_');
+            }
+            var staffName = $"{staff.FirstName} {staff.LastName}";
+            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
+            var approvalJson = JsonSerializer.Serialize(new
+            {
+                staffId = staff.Id,
+                StaffCreationId = staff.StaffId,
+                StaffName = staffName,
+                Department = department,
+                IsApproved = true,
+                ApprovedBy = staff.CreatedBy
+            });
+            var rejectJson = JsonSerializer.Serialize(new
+            {
+                staffId = staff.Id,
+                StaffCreationId = staff.StaffId,
+                StaffName = staffName,
+                Department = department,
+                IsApproved = false,
+                ApprovedBy = staff.CreatedBy
+            });
+
+            string approvalEncoded = Base64UrlEncode(approvalJson);
+            string rejectEncoded = Base64UrlEncode(rejectJson);
+            string approvalLink = $"{frontEndUrl}/#/main/Employee/Approve?data={approvalEncoded}";
+            string rejectLink = $"{frontEndUrl}/#/main/Employee/Approve?data={rejectEncoded}";
+            string reportingManagerFullName = $"{reportingManager.FirstName} {reportingManager.LastName}";
+            string staffFullName = $"{staff.FirstName} {staff.LastName}";
+            string subject = "Staff Approval Request";
+
+            string emailBody = $@"
+            <p>Dear {reportingManagerFullName},</p>
+            <p>A new staff member <strong>{staffFullName}</strong> has been added and requires your approval.</p>       
+            <p>Please review this request and take appropriate action:</p>
+            <p>
+                <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
+                <a href='{rejectLink}' style='background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none;'>Reject</a>
+            </p>
+            <br>Best Regards,<br>
+            HR Team";
+
+            await SendApprovalEmail(managerEmail, subject, emailBody, staff.CreatedBy);
+        }
+
         public async Task SendLeaveRequestEmail(
         string recipientEmail, int recipientId, string recipientName, int applicationTypeId, int id,  string leaveType, DateOnly fromDate, DateOnly toDate,
         string fromDuration, string toDuration, decimal totalDays, string reason, int createdBy, string creatorName, string requestDate)
@@ -124,13 +181,10 @@ namespace AttendanceManagement.Services
                 Department = department,
                 LeaveType = leaveType
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
-
             string fromDateFormatted = fromDate.ToString("dd-MMM-yyyy");
             string toDateFormatted = toDate.ToString("dd-MMM-yyyy");
 
@@ -177,7 +231,6 @@ namespace AttendanceManagement.Services
                     .Replace('/', '_');
             }
             var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
-
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -200,13 +253,10 @@ namespace AttendanceManagement.Services
                 Department = department,
                 PermissionType = permissionType
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
-
             string permissionDateFormatted = permissionDate.ToString("dd-MMM-yyyy");
             string startTimeFormatted = startTime.ToString("hh:mm tt");
             string endTimeFormatted = endTime.ToString("hh:mm tt");
@@ -251,7 +301,6 @@ namespace AttendanceManagement.Services
                     .Replace('/', '_');
             }
             var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
-
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -274,10 +323,8 @@ namespace AttendanceManagement.Services
                 Department = department,
                 SelectPunch = selectPunch
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
             string inPunchFormatted = inPunch.HasValue ? inPunch.Value.ToString("hh:mm tt") : "N/A";
@@ -310,9 +357,8 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendOnDutyRequestEmail(
-        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId,
-        DateOnly? startDate, DateOnly? endDate, DateTime? startTime, DateTime? endTime,
-        decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
+        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId, DateOnly? startDate, DateOnly? endDate, DateTime? startTime,
+        DateTime? endTime, decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
@@ -329,7 +375,6 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -350,13 +395,10 @@ namespace AttendanceManagement.Services
                 StaffName = creatorName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
-
             string details;
             if (startDate.HasValue && endDate.HasValue)
             {
@@ -392,9 +434,8 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendBusinessTravelRequestEmail(
-        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId,
-        DateOnly? fromDate, DateOnly? toDate, DateTime? fromTime, DateTime? toTime,
-        decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
+        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId, DateOnly? fromDate, DateOnly? toDate,
+        DateTime? fromTime, DateTime? toTime, decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
@@ -410,7 +451,6 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -431,10 +471,8 @@ namespace AttendanceManagement.Services
                 StaffName = creatorName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
             string details;
@@ -472,9 +510,8 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendWorkFromHomeRequestEmail(
-        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId,
-        DateOnly? fromDate, DateOnly? toDate, DateTime? fromTime, DateTime? toTime,
-        decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
+        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId, DateOnly? fromDate, DateOnly? toDate,
+        DateTime? fromTime, DateTime? toTime, decimal? totalDays, string? totalHours, string reason, int createdBy, string creatorName, string requestDate)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
@@ -490,7 +527,6 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -511,10 +547,8 @@ namespace AttendanceManagement.Services
                 StaffName = creatorName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
             string details;
@@ -589,10 +623,8 @@ namespace AttendanceManagement.Services
                 StaffName = creatorName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
 
@@ -620,9 +652,8 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendShiftExtensionRequestEmail(
-        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId,
-        DateOnly? transactionDate, string? durationHours, DateTime? beforeShiftHours, DateTime? afterShiftHours,
-        string remarks, int createdBy, string creatorName, string requestDate)
+        string recipientEmail, int recipientId, string recipientName, int id, int applicationTypeId, DateOnly? transactionDate, string? durationHours,
+        DateTime? beforeShiftHours, DateTime? afterShiftHours, string remarks, int createdBy, string creatorName, string requestDate)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
@@ -638,7 +669,6 @@ namespace AttendanceManagement.Services
                     .Replace('+', '-')
                     .Replace('/', '_');
             }
-
             var approvalJson = JsonSerializer.Serialize(new
             {
                 Id = id,
@@ -659,10 +689,8 @@ namespace AttendanceManagement.Services
                 StaffName = creatorName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
             string details = $@"
@@ -694,9 +722,8 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendWeeklyOffHolidayWorkingRequestEmail(
-        string recipientEmail, int recipientId, string recipientName, string staffName, string selectShiftType,
-        int id, int applicationTypeId, DateOnly txnDate, string shiftName, DateTime? shiftInTime,
-        DateTime? shiftOutTime, string requestDate, int createdBy)
+        string recipientEmail, int recipientId, string recipientName, string staffName, string selectShiftType, int id, int applicationTypeId,
+        DateOnly txnDate, string shiftName, DateTime? shiftInTime, DateTime? shiftOutTime, string requestDate, int createdBy)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
@@ -732,10 +759,8 @@ namespace AttendanceManagement.Services
                 StaffName = staffName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
             string shiftInTimeFormatted = shiftInTime.HasValue ? shiftInTime.Value.ToString("dd-MMM-yyyy hh:mm tt") : "N/A";
@@ -774,7 +799,6 @@ namespace AttendanceManagement.Services
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "Comp-Off Credit Request Submitted";
             string Base64UrlEncode(string input)
@@ -806,10 +830,8 @@ namespace AttendanceManagement.Services
                 StaffName = staffName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
             string balanceText = balance.HasValue ? balance.Value.ToString() : "N/A";
@@ -872,10 +894,8 @@ namespace AttendanceManagement.Services
                 StaffName = staffName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
 
@@ -907,10 +927,8 @@ namespace AttendanceManagement.Services
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == createdBy && s.IsActive == true);
             if (staff == null) throw new Exception("Staff not found");
             var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
             string subject = "Reimbursement Request Submitted";
-
             string Base64UrlEncode(string input)
             {
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
@@ -938,10 +956,8 @@ namespace AttendanceManagement.Services
                 StaffName = staffName,
                 Department = department
             });
-
             string approvalEncoded = Base64UrlEncode(approvalJson);
             string rejectEncoded = Base64UrlEncode(rejectJson);
-
             string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
             string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
 
@@ -974,9 +990,7 @@ namespace AttendanceManagement.Services
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-
             string subject = isApproved ? "Leave Request Approved" : "Leave Request Rejected";
             string statusMessage = isApproved ? "approved" : "rejected";
             string actionBy = isApproved ? "Approved by" : "Rejected by";
@@ -1011,9 +1025,7 @@ namespace AttendanceManagement.Services
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-
             string subject = isApproved ? "Common Permission Request Approved" : "Common Permission Request Rejected";
             string statusMessage = isApproved ? "approved" : "rejected";
             string actionBy = isApproved ? "Approved by" : "Rejected by";
@@ -1050,9 +1062,7 @@ namespace AttendanceManagement.Services
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
-            if (receiver == null)
-                throw new Exception("Receiver not found or inactive.");
-
+            if (receiver == null) throw new Exception("Receiver not found or inactive.");
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Manual Punch Request Approved" : "Manual Punch Request Rejected";
@@ -1076,14 +1086,12 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendOnDutyApprovalEmail(
-        string recipientEmail, int recipientId, string recipientName, bool isApproved,
-        DateOnly? startDate, DateOnly? endDate, DateTime? startTime, DateTime? endTime,
-        decimal? totalDays, string totalHours, string reason, int approvedBy, string approverName, string approvedTime)
+        string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly? startDate, DateOnly? endDate,
+        DateTime? startTime, DateTime? endTime, decimal? totalDays, string totalHours, string reason, int approvedBy, string approverName, string approvedTime)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "On-Duty Request Approved" : "On-Duty Request Rejected";
@@ -1125,14 +1133,12 @@ namespace AttendanceManagement.Services
 
 
         public async Task SendBusinessTravelApprovalEmail(
-        string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly? fromDate, DateOnly? toDate,
-        DateTime? fromTime, DateTime? toTime, string reason, decimal? totalDays, string totalHours, int approvedBy,
-        string approverName, string approvedTime)
+        string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly? fromDate, DateOnly? toDate, DateTime? fromTime, DateTime? toTime,
+        string reason, decimal? totalDays, string totalHours, int approvedBy, string approverName, string approvedTime)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Business Travel Request Approved" : "Business Travel Request Rejected";
@@ -1174,14 +1180,12 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendWorkFromHomeApprovalEmail(
-        string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly? fromDate, DateOnly? toDate,
-        DateTime? fromTime, DateTime? toTime, string reason, decimal? totalDays, string? totalHours, int approvedBy,
-        string approverName, string approvedTime)
+        string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly? fromDate, DateOnly? toDate, DateTime? fromTime, DateTime? toTime,
+        string reason, decimal? totalDays, string? totalHours, int approvedBy, string approverName, string approvedTime)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Work From Home Request Approved" : "Work From Home Request Rejected";
@@ -1230,7 +1234,6 @@ namespace AttendanceManagement.Services
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Shift Change Request Approved" : "Shift Change Request Rejected";
@@ -1263,7 +1266,6 @@ namespace AttendanceManagement.Services
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Shift Extension Request Approved" : "Shift Extension Request Rejected";
@@ -1302,7 +1304,6 @@ namespace AttendanceManagement.Services
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Weekly Off/Holiday Working Request Approved" : "Weekly Off/Holiday Working Request Rejected";
@@ -1335,14 +1336,12 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendCompOffAvailApprovalEmail(
-        string recipientEmail, int recipientId, string recipientName,
-        bool isApproved, DateOnly workedDate, DateOnly fromDate, DateOnly toDate,
-        decimal totalDays, string reason, int approvedBy, string approverName, string approvedTime)
+        string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly workedDate,
+        DateOnly fromDate, DateOnly toDate, decimal totalDays, string reason, int approvedBy, string approverName, string approvedTime)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Comp-Off Avail Request Approved" : "Comp-Off Avail Request Rejected";
@@ -1374,14 +1373,12 @@ namespace AttendanceManagement.Services
         }
 
         public async Task SendCompOffCreditApprovalEmail(
-        string recipientEmail, int recipientId, string recipientName,
-        bool isApproved, DateOnly workedDate, int? balance, decimal totalDays, string reason,
-        int approvedBy, string approverName, string approvedTime)
+        string recipientEmail, int recipientId, string recipientName, bool isApproved, DateOnly workedDate, int? balance,
+        decimal totalDays, string reason, int approvedBy, string approverName, string approvedTime)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Receiver email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
 
             string subject = isApproved ? "Comp-Off Credit Approved" : "Comp-Off Credit Rejected";
@@ -1417,8 +1414,8 @@ namespace AttendanceManagement.Services
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Recipient email not found");
             var receiver = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver == null) throw new Exception("Receiver not found or inactive.");
-
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
+
             string subject = isApproved ? "Reimbursement Request Approved" : "Reimbursement Request Rejected";
             string statusMessage = isApproved ? "approved" : "rejected";
             string actionBy = isApproved ? "Approved by" : "Rejected by";
@@ -1445,13 +1442,13 @@ namespace AttendanceManagement.Services
             await SendApprovalEmail(recipientEmail, subject, emailBody, approvedBy);
         }
 
-        public async Task SendProbationNotificationToHrAsync(int recipientId, string probationerName, DateOnly probationStartDate, DateOnly probationEndDate)
+        public async Task SendProbationNotificationToHrAsync(string probationerName, DateOnly probationStartDate, DateOnly probationEndDate)
         {
             var toEmail = _configuration["Smtp:to"];
             if (toEmail == null) throw new MessageNotFoundException("Recipient email not found");
             var createdBy = int.Parse(_configuration["Smtp:mailTriggerId"]);
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?staffId={recipientId}";
+            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?staffId={createdBy}";
             var subject = $"Probation Confirmation Required: {probationerName}";
             var body = $@"
             <p>Dear HR Team,</p>
@@ -1466,7 +1463,9 @@ namespace AttendanceManagement.Services
             </ul>
 
             <p>Please initiate the confirmation process at your earliest convenience.</p>
-            <p>{approvalLink}</p>
+            <p>
+                <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
+            </p>
             <p>Regards,<br/>Attendance Management System</p>";
 
             await SendApprovalEmail(toEmail, subject, body, createdBy);
@@ -1475,9 +1474,7 @@ namespace AttendanceManagement.Services
         public async Task AssignManager(string recipientEmail, int recipientId, string recipientName, string probationerName, DateOnly startDate, DateOnly endDate, int createdBy)
         {
             if (string.IsNullOrEmpty(recipientEmail)) throw new MessageNotFoundException("Approver email not found");
-            var receiver1 = await _context.StaffCreations
-               .Where(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true)
-               .FirstOrDefaultAsync();
+            var receiver1 = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == recipientId && u.OfficialEmail == recipientEmail && u.IsActive == true);
             if (receiver1 == null) throw new Exception("Approver not found or inactive.");
 
             var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
@@ -1497,7 +1494,9 @@ namespace AttendanceManagement.Services
             <strong>Probation End Date:</strong> {toDateFormatted}</p>
 
             <p>Please log in to the system to review and take the necessary action.</p>
-            <p>{approvalLink}</p>
+            <p>
+                <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
+            </p>
 
             <br>Best Regards,<br>
             HR Team";

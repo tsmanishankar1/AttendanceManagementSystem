@@ -16,7 +16,7 @@ public class PrefixAndSuffixService
                          select new PrefixLeaveResponse
                          {
                              PrefixLeaveTypeId = prefix.Id,
-                             PrefixLeaveTypeName = prefix.PrefixLeaveTypeName                           
+                             PrefixLeaveTypeName = prefix.Name                           
                          })
                          .ToListAsync();
         if(getPrefix.Count == 0)
@@ -29,13 +29,12 @@ public class PrefixAndSuffixService
     public async Task<string> AddPrefixLeaveType(PrefixLeaveRequest prefixLeaveType)
     {
         var message = "PrefixLeaveType added successfully";
-        if (prefixLeaveType == null)
-        {
-            throw new ArgumentNullException(nameof(prefixLeaveType), "PrefixLeaveType cannot be null");
-        }
         var prefixLeave = new PrefixLeaveType
         {
-            PrefixLeaveTypeName = prefixLeaveType.PrefixLeaveTypeName
+            Name = prefixLeaveType.PrefixLeaveTypeName,
+            IsActive = true,
+            CreatedBy = prefixLeaveType.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
         };
         _context.PrefixLeaveTypes.Add(prefixLeave);
         await _context.SaveChangesAsync();
@@ -48,7 +47,7 @@ public class PrefixAndSuffixService
                          select new SuffixLeaveResponse
                          {
                              SuffixLeaveTypeId = suffix.Id,
-                             SuffixLeaveTypeName = suffix.SuffixLeaveTypeName
+                             SuffixLeaveTypeName = suffix.Name
                          })
                          .ToListAsync();
         if(getSuffix.Count == 0)
@@ -61,15 +60,18 @@ public class PrefixAndSuffixService
     public async Task<string> Create(SuffixLeaveRequest suffixLeaveType)
     {
         var message = "Suffix leave added successfully";
-
         var suffixLeave = new SuffixLeaveType
         {
-            SuffixLeaveTypeName = suffixLeaveType.SuffixLeaveTypeName
+            Name = suffixLeaveType.SuffixLeaveTypeName,
+            IsActive = true,
+            CreatedBy = suffixLeaveType.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
         };
         _context.SuffixLeaveTypes.Add(suffixLeave);
         await _context.SaveChangesAsync();
         return message;
     }
+
     public async Task<IEnumerable<PrefixAndSuffixDto>> GetAllPrefixAndSuffixAsync()
     {
         var allPrefix = await (from prefix in _context.PrefixAndSuffixes
@@ -86,8 +88,8 @@ public class PrefixAndSuffixService
                                    PrefixTypeId = prefixLeave.Id,
                                    SuffixTypeId = suffixLeave.Id,
                                    LeaveTypeId = leaveType.Id,
-                                   PrefixName = prefixLeave.PrefixLeaveTypeName,
-                                   SuffixName = suffixLeave.SuffixLeaveTypeName,
+                                   PrefixName = prefixLeave.Name,
+                                   SuffixName = suffixLeave.Name,
                                    IsActive = prefix.IsActive,
                                    CreatedBy = prefix.CreatedBy
                                })
@@ -98,10 +100,10 @@ public class PrefixAndSuffixService
         }
         return allPrefix;
     }
+
     public async Task<string> Create(PrefixAndSuffixRequest prefixAndSuffixRequest)
     {
         var message = "Prefix and suffix added successfully";
-
         var prefixAndSuffix = new PrefixAndSuffix
         {
             PrefixLeaveTypeId = prefixAndSuffixRequest.PrefixTypeId,
@@ -113,15 +115,13 @@ public class PrefixAndSuffixService
         };
         _context.PrefixAndSuffixes.Add(prefixAndSuffix);
         await _context.SaveChangesAsync();
-
         return message;
     }
+
     public async Task<string> Update(UpdatePrefixAndSuffix updatedPrefixAndSuffix)
     {
         var message = "Prefix and suffix updated successfully";
-
         var existingRecord = _context.PrefixAndSuffixes.FirstOrDefault(p => p.Id == updatedPrefixAndSuffix.PrefixAndSuffixId);
-
         if (existingRecord == null)
         {
             throw new MessageNotFoundException("Prefix and suffix not found");
@@ -134,7 +134,6 @@ public class PrefixAndSuffixService
         existingRecord.UpdatedUtc = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-
         return message;
     }
 }

@@ -39,6 +39,7 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("GetStaffInfo")]
     public async Task<IActionResult> GetStaffInfoByStaffId([FromBody] List<int> staffIds)
     {
@@ -96,7 +97,7 @@ public class ToolsController : ControllerBase
                 Success = true,
                 Message = createdAssignLeaveType
             };
-            await _loggingService.AuditLog("Assign Leave Type", "POST", "/api/Tools/CreateAssignLeaveType", "Assign LeaveType Created Successfully", assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
+            await _loggingService.AuditLog("Assign Leave Type", "POST", "/api/Tools/CreateAssignLeaveType", createdAssignLeaveType, assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
             return Ok(response);
         }
         catch (Exception ex)
@@ -117,7 +118,7 @@ public class ToolsController : ControllerBase
                 Success = true,
                 Message = updatedAssignLeaveType
             };
-            await _loggingService.AuditLog("Assign Leave Type", "POST", "/api/Tools/UpdateAssignLeaveType", "AssignLeaveType Updated Successfully", assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
+            await _loggingService.AuditLog("Assign Leave Type", "POST", "/api/Tools/UpdateAssignLeaveType", updatedAssignLeaveType, assignLeaveType.UpdatedBy, JsonSerializer.Serialize(assignLeaveType));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -131,6 +132,7 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("AddMultipleLeaveCreditDebit")]
     public async Task<IActionResult> AddLeaveCreditDebitForMultipleStaff(LeaveCreditDebitRequest leaveCreditDebit)
     {
@@ -172,6 +174,7 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpGet("GetAllReaderConfigurations")]
     public async Task<IActionResult> GetReaderConfigurations()
     {
@@ -194,6 +197,7 @@ public class ToolsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("AttendanceRegularization")]
     public async Task<IActionResult> UpdateAttendanceStatus(UpdateAttendanceStatusRequest request)
     {

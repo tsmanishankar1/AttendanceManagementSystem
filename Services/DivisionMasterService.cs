@@ -26,18 +26,16 @@ namespace AttendanceManagement.Services
                                    CreatedBy = division.CreatedBy
                                })
                                .ToListAsync();
-
             if (allDivision.Count == 0)
             {
                 throw new MessageNotFoundException("No divisions found");
             }
-
             return allDivision;
         }
+
         public async Task<string> AddDivision(DivisionRequest divisionRequest)
         {
             var message = "Division added successfully";
-
             DivisionMaster division = new DivisionMaster
             {
                 Name = divisionRequest.FullName,
@@ -46,7 +44,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = divisionRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.DivisionMasters.Add(division);
             await _context.SaveChangesAsync();
             return message;
@@ -65,8 +62,8 @@ namespace AttendanceManagement.Services
             existingDivision.IsActive = division.IsActive;
             existingDivision.UpdatedBy = division.UpdatedBy;
             existingDivision.UpdatedUtc = DateTime.UtcNow;
-             await _context.SaveChangesAsync();
 
+            await _context.SaveChangesAsync();
             return message;
         }
     }

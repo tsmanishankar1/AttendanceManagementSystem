@@ -32,7 +32,6 @@ namespace AttendanceManagement.Services
                     CreatedBy = f.CreatedBy
                 })
                 .ToListAsync();
-
             if (allFamilyDetails.Count == 0)
             {
                 throw new MessageNotFoundException("No family details found");
@@ -42,11 +41,6 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateFamilyDetail(FamilyDetailsDTO familyDetailDto)
         {
             var message = "Family detail added successfully.";
-            if (familyDetailDto == null)
-            {
-                throw new ArgumentNullException(nameof(familyDetailDto), "Family details cannot be null.");
-            }
-
             var familyDetail = new FamilyDetail
             {
                 MemberName = familyDetailDto.MemberName,
@@ -63,27 +57,19 @@ namespace AttendanceManagement.Services
                 CreatedBy = familyDetailDto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.FamilyDetails.Add(familyDetail);
             await _context.SaveChangesAsync();
-
             return message;
         }
 
         public async Task<string> UpdateFamilyDetail(UpdateFamilyDetails familyDetailDto)
         {
             var message = "Family detail updated successfully.";
-            if (familyDetailDto == null)
-            {
-                throw new ArgumentNullException(nameof(familyDetailDto), "Family details cannot be null.");
-            }
-
             var existingDetail = _context.FamilyDetails.FirstOrDefault(f => f.Id == familyDetailDto.FamilyDetailsId);
             if (existingDetail == null)
             {
                 throw new MessageNotFoundException("Family detail not found");
             }
-
             existingDetail.MemberName = familyDetailDto.MemberName;
             existingDetail.Relationship = familyDetailDto.Relationship;
             existingDetail.DateOfBirth = familyDetailDto.DateOfBirth;
@@ -99,7 +85,6 @@ namespace AttendanceManagement.Services
 
             _context.Update(existingDetail);
             await _context.SaveChangesAsync();
-
             return message;
         }
     }

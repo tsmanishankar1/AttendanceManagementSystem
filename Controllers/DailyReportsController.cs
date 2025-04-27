@@ -69,5 +69,4 @@ public class DailyReportsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
-
 }

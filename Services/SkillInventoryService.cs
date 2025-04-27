@@ -26,8 +26,7 @@ namespace AttendanceManagement.Services
                     StaffCreationId = skill.StaffCreationId,
                     Name = skill.Name,
                     LevelOfProficiency = skill.LevelOfProficiency,
-                    Notes = skill.Notes,
-
+                    Notes = skill.Notes
                 })
                 .ToListAsync();
             if (skills.Count == 0) throw new MessageNotFoundException("No skill inventory found");
@@ -46,7 +45,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = model.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.SkillInventories.Add(newSkill);
             await _context.SaveChangesAsync();
             return messaage;

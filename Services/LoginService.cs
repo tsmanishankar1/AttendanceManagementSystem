@@ -20,6 +20,7 @@ public class LoginService
         _context = context;
         _configuration = configuration;
     }
+
     public async Task<string> ValidateUserAsync(Login login)
     {
         try
@@ -29,28 +30,20 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Invalid username");
             }
-
             if (user.Password != login.Password)
             {
                 throw new MessageNotFoundException("Invalid password");
             }
-            var staff = _context.StaffCreations
-                .AsEnumerable()
-                .FirstOrDefault(s => s.Id == user.StaffCreationId && s.IsActive.GetValueOrDefault());
-
+            var staff = _context.StaffCreations.AsEnumerable().FirstOrDefault(s => s.Id == user.StaffCreationId && s.IsActive.GetValueOrDefault());
             if (staff == null)
             {
                 throw new MessageNotFoundException("Staff not found");
             }
-            var designation = _context.DesignationMasters
-                .AsEnumerable()
-                .FirstOrDefault(d => d.Id == staff.DesignationId && d.IsActive);
-
+            var designation = _context.DesignationMasters.AsEnumerable().FirstOrDefault(d => d.Id == staff.DesignationId && d.IsActive);
             if (designation == null)
             {
                 throw new MessageNotFoundException("Designation not found");
             }
-
             var token = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name);
             return token;
         }
@@ -59,6 +52,7 @@ public class LoginService
             throw new Exception(ex.Message);
         }
     }
+
     private string GenerateJwtToken(string userName, int staffId, int designationId, string role)
     {
         try
@@ -84,7 +78,6 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Role not found");
             }
-
             var designation = _context.DesignationMasters.FirstOrDefault(e => e.Id == designationId && e.IsActive == true);
             if (designation == null)
             {
@@ -118,7 +111,6 @@ public class LoginService
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature)
             };
-
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }

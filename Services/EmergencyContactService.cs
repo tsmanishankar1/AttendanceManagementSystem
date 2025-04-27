@@ -31,8 +31,7 @@ namespace AttendanceManagement.Services
                     CreatedBy = ec.CreatedBy
                 })
                 .ToListAsync();
-            if (emergency.Count == 0)
-                throw new MessageNotFoundException("No Emergency Contacts found");
+            if (emergency.Count == 0) throw new MessageNotFoundException("No Emergency Contacts found");
             return emergency;
         }
 
@@ -54,7 +53,6 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow,
                 StaffCreationId = model.StaffCreationId
             };
-
             _context.EmergencyContacts.Add(newEmergencyContact);
             await _context.SaveChangesAsync();
             return message;

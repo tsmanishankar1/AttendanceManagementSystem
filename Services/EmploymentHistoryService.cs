@@ -53,7 +53,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = model.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.EmploymentHistories.Add(newEmploymentHistory);
             await _context.SaveChangesAsync();
             return message;

@@ -75,7 +75,7 @@ public class CompanyMasterController : ControllerBase
                 Success = true,
                 Message = updatedCompany
             };
-            await _loggingService.AuditLog("Company Master", "POST", "/api/CompanyMaster/UpdateCompany", updatedCompany ?? string.Empty, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
+            await _loggingService.AuditLog("Company Master", "POST", "/api/CompanyMaster/UpdateCompany", updatedCompany, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)

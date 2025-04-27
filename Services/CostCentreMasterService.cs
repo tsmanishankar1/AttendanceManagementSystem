@@ -51,10 +51,7 @@ public class CostCentreMasterService
     public async Task<string> UpdateCostCentre(UpdateCostMaster costCentreMaster)
     {
         var message = "Cost centre updated successfully";
-
-        var existingCostCentre = _context.CostCentreMasters
-            .FirstOrDefault(c => c.Id == costCentreMaster.CostCentreMasterId);
-
+        var existingCostCentre = _context.CostCentreMasters.FirstOrDefault(c => c.Id == costCentreMaster.CostCentreMasterId);
         if (existingCostCentre == null)
         {
             throw new MessageNotFoundException("Cost centre not found");
@@ -64,9 +61,8 @@ public class CostCentreMasterService
         existingCostCentre.UpdatedBy = costCentreMaster.UpdatedBy;
         existingCostCentre.IsActive = costCentreMaster.IsActive;
         existingCostCentre.UpdatedUtc = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
 
+        await _context.SaveChangesAsync();
         return message;
     }
-
 }

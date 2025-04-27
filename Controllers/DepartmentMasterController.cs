@@ -75,7 +75,7 @@ public class DepartmentMasterController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Department Master", "POST", "/api/DepartmentMaster/UpdateDepartment", success ?? string.Empty, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
+            await _loggingService.AuditLog("Department Master", "POST", "/api/DepartmentMaster/UpdateDepartment", success, updatedDepartment.UpdatedBy, JsonSerializer.Serialize(updatedDepartment));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)

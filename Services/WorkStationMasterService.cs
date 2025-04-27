@@ -31,6 +31,7 @@ public class WorkstationMasterService
         }
         return allWorkstations;
     }
+
     public async Task<string> CreateWorkstationAsync(WorkStationRequest workstationRequest)
     {
         var message = "Workstation added successfully.";
@@ -50,21 +51,16 @@ public class WorkstationMasterService
     public async Task<string> UpdateWorkstationAsync(UpdateWorkStation updatedWorkstation)
     {
         var message = "Workstation updated successfully.";
-        var workstation = await _context.WorkstationMasters
-            .FirstOrDefaultAsync(ws => ws.Id == updatedWorkstation.WorkstationMasterId);
-
-        if (workstation == null)
-            throw new MessageNotFoundException("WorkStation not found");
+        var workstation = await _context.WorkstationMasters.FirstOrDefaultAsync(ws => ws.Id == updatedWorkstation.WorkstationMasterId);
+        if (workstation == null) throw new MessageNotFoundException("WorkStation not found");
 
         workstation.Name = updatedWorkstation.FullName;
         workstation.IsActive = updatedWorkstation.IsActive;
         workstation.ShortName = updatedWorkstation.ShortName;
         workstation.UpdatedBy = updatedWorkstation.UpdatedBy;
         workstation.UpdatedUtc = DateTime.UtcNow;
-
         _context.WorkstationMasters.Update(workstation);
         await _context.SaveChangesAsync();
         return message;
     }
-
 }

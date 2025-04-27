@@ -75,7 +75,7 @@ public class CertificateTrackingController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Certificate Tracking", "POST", "/api/CertificateTracking/UpdateCertificate", success ?? string.Empty, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
+            await _loggingService.AuditLog("Certificate Tracking", "POST", "/api/CertificateTracking/UpdateCertificate", success, updatedCertificate.UpdatedBy, JsonSerializer.Serialize(updatedCertificate));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)

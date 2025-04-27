@@ -17,6 +17,7 @@ public class ShiftController : ControllerBase
         _shiftService = shiftService;
         _loggingService = loggingService;
     }
+
     [HttpGet("GetByDivision")]
     public async Task<IActionResult> GetStaffByDivision(int divisionId)
     {

@@ -59,7 +59,6 @@ namespace AttendanceManagement.Services
         }
         public async Task<StaffCreationResponse> GetByUserManagementIdAsync(int staffId)
         {
-
             var getUser = await _context.StaffCreations
                 .Where(s => s.Id == staffId && s.IsActive == true)
                 .Select(s => new StaffCreationResponse
@@ -167,14 +166,13 @@ namespace AttendanceManagement.Services
                     CreatedBy = s.CreatedBy,
                 })
                 .FirstOrDefaultAsync();
-
             if (getUser == null)
             {
                 throw new MessageNotFoundException("Staff not found");
             }
-
             return getUser;
         }
+
         public async Task<List<StaffDto>> GetStaffAsync(GetStaff getStaff)
         {
             var parameters = new[]
@@ -196,13 +194,12 @@ namespace AttendanceManagement.Services
                     new SqlParameter("@LoginUserName", string.IsNullOrWhiteSpace(getStaff.LoginUserName) ? (object)DBNull.Value : getStaff.LoginUserName),
                     new SqlParameter("@IncludeTerminated", getStaff.IncludeTerminated.HasValue ? (object)getStaff.IncludeTerminated.Value : DBNull.Value)
             };
-
             var staffList = await _storedProcedureDbContext.StaffDto
                 .FromSqlRaw("EXEC GetStaffByFilters @ApproverId, @ShiftName, @OrganizationTypeName, @CompanyName, @DivisionName, @CategoryName, @CostCentreName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName, @Status, @LoginUserName, @IncludeTerminated", parameters)
                 .ToListAsync();
-
             return staffList;
         }
+
         public async Task<string> UpdateMyProfile(IndividualStaffUpdate individualStaffUpdate)
         {
             var message = "Profile updated successfully";
@@ -256,16 +253,15 @@ namespace AttendanceManagement.Services
             staff.EmergencyContactNo1 = individualStaffUpdate.EmergencyContactNo1;
             staff.EmergencyContactNo2 = individualStaffUpdate.EmergencyContactNo2;
             staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
-            staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
+            staff.UpdatedUtc = DateTime.UtcNow;
+
             _context.StaffCreations.Update(staff);
             await _context.SaveChangesAsync();
-
             return message;
         }
         public async Task<IndividualStaffResponse> GetMyProfile(int staffId)
         {
-            var staff = await _context.StaffCreations
-                .FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
             if (staff == null)
             {
                 throw new MessageNotFoundException("Staff not found");
@@ -349,8 +345,13 @@ namespace AttendanceManagement.Services
                                      CreatedBy = s.CreatedBy,
                                  })
                                 .FirstOrDefaultAsync();
+            if (getUser == null)
+            {
+                throw new MessageNotFoundException("Staff details not found");
+            }
             return getUser;
         }
+
         public async Task<string> AddStaff(StaffCreationInputModel staffInput)
         {
             bool staffExists = await _context.StaffCreations.AnyAsync(s => s.StaffId == staffInput.StaffId && s.IsActive == true);
@@ -465,7 +466,6 @@ namespace AttendanceManagement.Services
                 PanCardFilePath = panCardPath,
                 DrivingLicenseFilePath = drivingLicensePath,
             };
-
             _context.StaffCreations.Add(staff);
             await _context.SaveChangesAsync();
 
@@ -481,135 +481,9 @@ namespace AttendanceManagement.Services
 
             if (!string.IsNullOrEmpty(reportingManager))
             {
-                await SendApprovalEmail(reportingManager, staff);
+                await _emailService.SendApprovalEmail(reportingManager, staff);
             }
             return message;
-        }
-        private async Task SendApprovalEmail(string managerEmail, StaffCreation staff)
-        {
-            if (staff == null || string.IsNullOrEmpty(managerEmail)) throw new ArgumentNullException("Staff or Manager Email is null.");
-            var reportingManager = await _context.StaffCreations
-           .Where(u => u.Id == staff.ApprovalLevel1 && u.OfficialEmail == managerEmail && u.IsActive == true)
-           .FirstOrDefaultAsync();
-            if (reportingManager == null)
-                throw new Exception("Reporting manager not found or inactive.");
-            var host = _configuration["Smtp:host"];
-            var port = _configuration.GetValue<int>("Smtp:port");
-            var userName = _configuration["Smtp:userName"];
-            var password = _configuration["Smtp:password"];
-            var from = _configuration["Smtp:from"];
-            var ssl = _configuration.GetValue<bool>("Smtp:SSL");
-            var defaultCredential = _configuration.GetValue<bool>("Smtp:defaultCredential");
-            var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-
-            string Base64UrlEncode(string input)
-            {
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
-                    .TrimEnd('=')
-                    .Replace('+', '-')
-                    .Replace('/', '_');
-            }
-            var staffName = $"{staff.FirstName} {staff.LastName}";
-            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
-            var approvalJson = JsonSerializer.Serialize(new
-            {
-                staffId = staff.Id,
-                StaffCreationId = staff.StaffId,
-                StaffName = staffName,
-                Department = department,
-                IsApproved = true,
-                ApprovedBy = staff.CreatedBy
-            });
-            var rejectJson = JsonSerializer.Serialize(new
-            {
-                staffId = staff.Id,
-                StaffCreationId = staff.StaffId,
-                StaffName = staffName,
-                Department = department,
-                IsApproved = false,
-                ApprovedBy = staff.CreatedBy
-            });
-
-            string approvalEncoded = Base64UrlEncode(approvalJson);
-            string rejectEncoded = Base64UrlEncode(rejectJson);
-
-            string approvalLink = $"{frontEndUrl}/#/main/Employee/Approve?data={approvalEncoded}";
-            string rejectLink = $"{frontEndUrl}/#/main/Employee/Approve?data={rejectEncoded}";
-
-/*            string webApprovalLink = $"{frontEndUrl}/approve?staffId={staff.Id}";
-            string webRejectionLink = $"{frontEndUrl}/reject?staffId={staff.Id}";
-*/
-            string reportingManagerFullName = $"{reportingManager.FirstName} {reportingManager.LastName}";
-            string staffFullName = $"{staff.FirstName} {staff.LastName}";
-            string subject = "Staff Approval Request";
-
-            string emailBody = $@"
-            <p>Dear {reportingManagerFullName},</p>
-            <p>A new staff member <strong>{staffFullName}</strong> has been added and requires your approval.</p>       
-            <p>Please review this request and take appropriate action:</p>
-            <p>
-                <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
-                <a href='{rejectLink}' style='background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none;'>Reject</a>
-            </p>
-            <br>Best Regards,<br>
-            HR Team";
-
-            if (from == null) throw new ArgumentNullException("Sender email is not found");
-
-            try
-            {
-                var message = new MailMessage
-                {
-                    Subject = subject,
-                    Body = emailBody,
-                    IsBodyHtml = true,
-                    From = new MailAddress(from, "HR Team")
-                };
-
-                message.To.Add(new MailAddress(managerEmail));
-
-                using var smtp = new SmtpClient(host, port)
-                {
-                    UseDefaultCredentials = defaultCredential,
-                    Credentials = new NetworkCredential(userName, password),
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    EnableSsl = ssl
-                };
-
-                await smtp.SendMailAsync(message);
-
-                var log = new EmailLog
-                {
-                    From = from,
-                    To = managerEmail,
-                    EmailSubject = subject,
-                    EmailBody = emailBody,
-                    IsSent = true,
-                    IsError = false,
-                    CreatedBy = staff.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-
-                _context.EmailLogs.Add(log);
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                var log = new EmailLog
-                {
-                    From = from,
-                    To = managerEmail,
-                    EmailSubject = subject,
-                    EmailBody = emailBody,
-                    IsSent = false,
-                    IsError = true,
-                    ErrorDescription = ex.Message,
-                    CreatedBy = staff.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-                _context.EmailLogs.Add(log);
-                await _context.SaveChangesAsync();
-            }
         }
 
         public async Task<string> UpdateStaffCreationAsync(UpdateStaff updatedStaff)
@@ -634,7 +508,6 @@ namespace AttendanceManagement.Services
             {
                 existingStaff.DrivingLicenseFilePath = await SaveFileAsync(updatedStaff.DrivingLicenseFilePath, "DrivingLicenses");
             }
-
             existingStaff.CardCode = updatedStaff.CardCode;
             existingStaff.StaffId = updatedStaff.StaffId;
             existingStaff.Title = updatedStaff.Title;
@@ -713,9 +586,9 @@ namespace AttendanceManagement.Services
 
             _context.StaffCreations.Update(existingStaff);
             await _context.SaveChangesAsync();
-
             return message;
         }
+
         private async Task<string> SaveFileAsync(IFormFile file, string folderName)
         {
             string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", folderName);
@@ -731,6 +604,7 @@ namespace AttendanceManagement.Services
             }
             return $"/{folderName}/{fileName}";
         }
+
         public async Task<IEnumerable<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1)
         {
             var approver = await _context.StaffCreations
@@ -853,6 +727,7 @@ namespace AttendanceManagement.Services
             }
             return records;
         }
+
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
             var approver = await _context.StaffCreations
@@ -974,6 +849,7 @@ namespace AttendanceManagement.Services
             }
             return records;
         }
+
         public async Task<string> ApprovePendingStaffs(ApprovePendingStaff approvePendingStaff)
         {
             var message = "";
@@ -1042,6 +918,7 @@ namespace AttendanceManagement.Services
             }
             return message;
         }
+
         public async Task<string> CreateDropDownMaster(DropDownRequest dropDownRequest)
         {
             var message = "Dropdown master created successfully";
@@ -1135,15 +1012,15 @@ namespace AttendanceManagement.Services
                 {1031, new DivisionMaster() },
                 {1032, new LeaveGroup() },
                 {1033, new HolidayCalendarConfiguration() },
-                {1034, new WorkstationMaster() }
-
+                {1034, new WorkstationMaster() },
+                {1035, new PrefixLeaveType() },
+                {1036, new SuffixLeaveType() },
+                {1037, new HolidayType() }
             };
-
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
             {
                 throw new MessageNotFoundException("Dropdown details not found");
             }
-
             dynamic newEntity = entity;
             newEntity.Name = dropDownDetailsRequest.Name;
             newEntity.IsActive = true;
@@ -1152,7 +1029,6 @@ namespace AttendanceManagement.Services
 
             _context.Add(newEntity);
             await _context.SaveChangesAsync();
-
             return $"{newEntity.GetType().Name} created successfully";
         }
 
@@ -1203,21 +1079,21 @@ namespace AttendanceManagement.Services
                 { 1031, _context.DivisionMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1032, _context.LeaveGroups.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1033, _context.HolidayCalendarConfigurations.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1034, _context.WorkstationMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1034, _context.WorkstationMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1035, _context.PrefixLeaveTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1036, _context.SuffixLeaveTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1037, _context.HolidayTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
             {
                 throw new MessageNotFoundException("Dropdown master not found");
             }
-
             var dropDown = await query.ToListAsync();
-
             if (!dropDown.Any())
             {
                 throw new MessageNotFoundException("No data found for the given dropdown master");
             }
-
             return dropDown;
         }
 
@@ -1268,20 +1144,21 @@ namespace AttendanceManagement.Services
                 { 1031, async () => await _context.DivisionMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1032, async () => await _context.LeaveGroups.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1033, async () => await _context.HolidayCalendarConfigurations.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1034, async () => await _context.WorkstationMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1034, async () => await _context.WorkstationMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1035, async () => await _context.PrefixLeaveTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1036, async () => await _context.SuffixLeaveTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1037, async () => await _context.HolidayTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))
             {
                 throw new MessageNotFoundException("Dropdown details not found.");
             }
-
             var entity = await getEntity();
             if (entity == null)
             {
                 throw new MessageNotFoundException("Requested entity not found.");
             }
-
             var entityType = entity.GetType();
             entityType.GetProperty("Name")?.SetValue(entity, dropDownDetailsRequest.Name);
             entityType.GetProperty("UpdatedBy")?.SetValue(entity, dropDownDetailsRequest.UpdatedBy);
@@ -1289,7 +1166,6 @@ namespace AttendanceManagement.Services
 
             _context.Update(entity);
             await _context.SaveChangesAsync();
-
             return $"{entityType.Name.Replace("Proxy", "").Replace("_", " ")} updated successfully";
         }
     }

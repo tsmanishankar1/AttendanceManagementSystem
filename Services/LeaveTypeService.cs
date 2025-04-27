@@ -41,7 +41,6 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateLeaveTypeAsync(LeaveTypeRequest leaveTypeRequest)
         {
             var message = "Leave type added successfully";
-
             var leaveType = new LeaveType
             {
                 Name = leaveTypeRequest.Name,
@@ -64,10 +63,8 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateLeaveTypeAsync(UpdateLeaveType leaveType)
         {
             var message = "Leave type updated successfully";
-
             var existingLeaveType = await _context.LeaveTypes.FirstOrDefaultAsync(s => s.Id == leaveType.LeaveTypeId);
-            if (existingLeaveType == null)
-                throw new MessageNotFoundException("Leave type not found");
+            if (existingLeaveType == null) throw new MessageNotFoundException("Leave type not found");
 
             existingLeaveType.Name = leaveType.Name;
             existingLeaveType.ShortName = leaveType.ShortName;
@@ -86,4 +83,3 @@ namespace AttendanceManagement.Services
         }
     }
 }
-

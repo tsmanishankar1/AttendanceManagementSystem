@@ -106,7 +106,6 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateConfigurations(LeaveGroupConfigurationRequest configurationRequeset)
         {
             var message = "Leave group configuration added successfully";
-
             var configuration = new LeaveGroupConfiguration
             {
                 LeaveGroupConfigurationName = configurationRequeset.LeaveGroupConfigurationName,
@@ -135,7 +134,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = configurationRequeset.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.LeaveGroupConfigurations.Add(configuration);
             await _context.SaveChangesAsync();
             return message;
@@ -181,4 +179,3 @@ namespace AttendanceManagement.Services
         }
     }
 }
-

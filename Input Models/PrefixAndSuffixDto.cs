@@ -41,6 +41,7 @@
     public class SuffixLeaveRequest
     {
         public string SuffixLeaveTypeName { get; set; } = null!;
+        public int CreatedBy { get; set; }
     }
 
     public class SuffixLeaveResponse
@@ -53,6 +54,7 @@
     public class PrefixLeaveRequest
     {
         public string PrefixLeaveTypeName { get; set; } = null!;
+        public int CreatedBy { get; set; }
     }
 
     public class PrefixLeaveResponse

@@ -1933,9 +1933,11 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.ToTable("HolidayType");
 
-            entity.Property(e => e.HolidayName)
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<HolidayZoneConfiguration>(entity =>
@@ -2972,9 +2974,11 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.ToTable("PrefixLeaveType");
 
-            entity.Property(e => e.PrefixLeaveTypeName)
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<PreviousEmployment>(entity =>
@@ -4185,9 +4189,11 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.ToTable("SuffixLeaveType");
 
-            entity.Property(e => e.SuffixLeaveTypeName)
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<TeamApplication>(entity =>

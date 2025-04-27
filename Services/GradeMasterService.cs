@@ -29,7 +29,6 @@ public class GradeMasterService
         {
             throw new MessageNotFoundException("No grades found");
         }
-
         return allGrade;
     }
 
@@ -37,7 +36,6 @@ public class GradeMasterService
     public async Task<string> CreateGrade(GradeMasterRequest gradeMasterRequest)
     {
         var message = "Grade added successfully";
-
         var gradeMaster = new GradeMaster
         {
             Name = gradeMasterRequest.FullName,
@@ -46,7 +44,6 @@ public class GradeMasterService
             CreatedBy = gradeMasterRequest.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-
         _context.GradeMasters.Add(gradeMaster);
         await _context.SaveChangesAsync();
         return message;
@@ -55,13 +52,11 @@ public class GradeMasterService
     public async Task<string> UpdateGrade(UpdateGradeMaster gradeMaster)
     {
         var message = "Grade updated successfully";
-
         var existingGrade = _context.GradeMasters.FirstOrDefault(g => g.Id == gradeMaster.GradeMasterId);
         if (existingGrade == null)
         {
             throw new MessageNotFoundException("Grade not found");
         }
-
         existingGrade.Name = gradeMaster.FullName;
         existingGrade.ScreenOption = gradeMaster.ScreenOption;
         existingGrade.IsActive = gradeMaster.IsActive;
@@ -72,4 +67,3 @@ public class GradeMasterService
         return message;
     }
 }
-

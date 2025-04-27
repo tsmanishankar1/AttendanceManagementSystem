@@ -33,11 +33,6 @@ public class CategoryMasterService
     public async Task<string> CreateCategoryAsync(CategoryMasterRequest request)
     {
         var message = "Category Master added successfully";
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request), "Branch details cannot be null.");
-        }
-
         var newCategory = new CategoryMaster
         {
             Name = request.FullName,
@@ -51,16 +46,10 @@ public class CategoryMasterService
         return message;
     }
 
-    public async Task<string?> UpdateCategoryAsync(UpdateCategory request)
+    public async Task<string> UpdateCategoryAsync(UpdateCategory request)
     {
         var message = "Category Master Updated Successfully";
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request), "Branch details cannot be null.");
-        }
-        var existingCategory = await _context.CategoryMasters
-            .FirstOrDefaultAsync(c => c.Id == request.CategoryMasterId);
-
+        var existingCategory = await _context.CategoryMasters.FirstOrDefaultAsync(c => c.Id == request.CategoryMasterId);
         if (existingCategory == null)
         {
             throw new MessageNotFoundException("Category not found");
@@ -72,7 +61,6 @@ public class CategoryMasterService
         existingCategory.UpdatedUtc = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-
         return message;
     }
 }

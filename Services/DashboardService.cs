@@ -37,12 +37,10 @@ namespace AttendanceManagement.Services
                     )
                 )
                 .ToListAsync();
-
             if (!staffWithAnniversaries.Any())
             {
                 throw new MessageNotFoundException("No records found for the selected event type.");
             }
-
             if (eventTypeId == 1) 
             {
                 var birthday = staffWithAnniversaries.Select(staff => new StaffBirthDayDto
@@ -137,7 +135,6 @@ namespace AttendanceManagement.Services
                 }
                 result = threeYearStaff;
             }
-
             return result;
         }
 
@@ -152,7 +149,6 @@ namespace AttendanceManagement.Services
                 case 13:
                     return "th";
             }
-
             switch (number % 10)
             {
                 case 1:
@@ -189,7 +185,6 @@ namespace AttendanceManagement.Services
                                         JoiningDate = staff.JoiningDate.ToString("MMMM dd")
                                     })
                                     .ToListAsync();
-
             if (newJoinees.Count == 0) throw new MessageNotFoundException("No New Joiners recently!");
             return newJoinees;
         }
@@ -238,17 +233,13 @@ namespace AttendanceManagement.Services
                     AvailableBalance = record?.AvailableBalance ?? 0
                 };
             }).ToList();
-
             return leaveDetails.Cast<object>().ToList();
         }
+
         public async Task<List<object>> GetHeadCountByDepartmentAsync()
         {
             var today = DateTime.Today;
-
-            var attendanceData = await _atrakContext.SmaxTransactions
-                .Where(st => st.TrDate == today)
-                .ToListAsync();
-
+            var attendanceData = await _atrakContext.SmaxTransactions.Where(st => st.TrDate == today).ToListAsync();
             var result = await (from sc in _context.StaffCreations
                                 join dm in _context.DepartmentMasters on sc.DepartmentId equals dm.Id
                                 select new
@@ -256,7 +247,6 @@ namespace AttendanceManagement.Services
                                     sc.StaffId,
                                     DepartmentName = dm.Name
                                 }).ToListAsync();
-
             var groupedData = result.GroupBy(r => r.DepartmentName)
                 .Select(g => {
                     int headCount = g.Count();
@@ -264,7 +254,6 @@ namespace AttendanceManagement.Services
                     int absentCount = headCount - presentCount;
                     double presentPercentage = headCount > 0 ? Math.Round(presentCount * 100.0 / headCount, 2) : 0;
                     double absentPercentage = headCount > 0 ? Math.Round(absentCount * 100.0 / headCount, 2) : 0;
-
                     return new
                     {
                         DepartmentName = g.Key,
@@ -275,26 +264,22 @@ namespace AttendanceManagement.Services
                         AbsentPercentage = absentPercentage
                     };
                 }).ToList();
-
             return groupedData.Cast<object>().ToList();
         }
+
         public async Task<List<object>> GetUpcomingShiftsForStaffAsync(int staffId)
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow); 
             var currentShift = await _context.AssignShifts
-                .Where(asg => asg.StaffId == staffId && asg.IsActive &&
-                              asg.FromDate <= today && asg.ToDate >= today)
+                .Where(asg => asg.StaffId == staffId && asg.IsActive && asg.FromDate <= today && asg.ToDate >= today)
                 .OrderBy(asg => asg.FromDate)
                 .Select(asg => new { asg.ToDate })
                 .FirstOrDefaultAsync();
-
             if (currentShift == null)
             {
                 return new List<object>(); 
             }
-
             DateOnly currentShiftEndDate = currentShift.ToDate;
-
             var upcomingShifts = await _context.AssignShifts
                 .Where(asg => asg.IsActive && asg.FromDate > currentShiftEndDate && asg.StaffId == staffId) 
                 .OrderBy(asg => asg.FromDate)
@@ -308,7 +293,7 @@ namespace AttendanceManagement.Services
                     asg.ToDate
                 })
                 .ToListAsync();
-
+            if (upcomingShifts.Count == 0) throw new MessageNotFoundException("No upcoming shifts found");
             return upcomingShifts.Cast<object>().ToList();
         }
     }

@@ -37,7 +37,6 @@ public class DepartmentMasterService
     public async Task<string> CreateDepartment(DepartmentRequest departmentRequest)
     {
         var message = "Department added successfully";
-
         DepartmentMaster department = new DepartmentMaster();
         department.Name = departmentRequest.FullName;
         department.ShortName = departmentRequest.ShortName;
@@ -50,7 +49,6 @@ public class DepartmentMasterService
 
         _context.DepartmentMasters.Add(department);
         await _context.SaveChangesAsync();
-
         return message;
     }
 
@@ -58,9 +56,7 @@ public class DepartmentMasterService
     {
         var message = "Department updated successfully";
         var existingDepartment = _context.DepartmentMasters.FirstOrDefault(d => d.Id == department.DepartmentMasterId);
-
-        if (existingDepartment == null)
-            throw new MessageNotFoundException("Department not found");
+        if (existingDepartment == null) throw new MessageNotFoundException("Department not found");
 
         existingDepartment.Name = department.FullName;
         existingDepartment.ShortName = department.ShortName;

@@ -34,21 +34,16 @@ namespace AttendanceManagement.Services
                     CreatedBy = q.CreatedBy
                 })
                 .ToListAsync();
-
             if (qualifications.Count == 0)
             {
                 throw new MessageNotFoundException("No educational qualifications found");
             }
             return qualifications;
         }
+
         public async Task<string> CreateEducationalQualification(EducationalQualificationDto qualificationDto)
         {
             var message = "Educational qualification added successfully.";
-            if (qualificationDto == null)
-            {
-                throw new ArgumentNullException(nameof(qualificationDto), "Educational qualification details cannot be null.");
-            }
-
             var qualification = new EducationalQualification
             {
                 StaffCreationId = qualificationDto.StaffCreationId,
@@ -66,7 +61,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = qualificationDto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.EducationalQualifications.Add(qualification);
             await _context.SaveChangesAsync();
 
@@ -76,17 +70,11 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateEducationalQualification(UpdateEducationalQualification qualificationDto)
         {
             var message = "Educational qualification updated successfully.";
-            if (qualificationDto == null)
-            {
-                throw new ArgumentNullException(nameof(qualificationDto), "Educational qualification details cannot be null.");
-            }
-
             var existingQualification = await _context.EducationalQualifications.FirstOrDefaultAsync(q => q.Id == qualificationDto.EducationalQualificationId);
             if (existingQualification == null)
             {
                 throw new MessageNotFoundException("Educational qualification not found");
             }
-
             existingQualification.StaffCreationId = qualificationDto.StaffCreationId;
             existingQualification.Qualification = qualificationDto.Qualification;
             existingQualification.Specilization = qualificationDto.Specilization;
@@ -103,7 +91,6 @@ namespace AttendanceManagement.Services
 
             _context.Update(existingQualification);
             await _context.SaveChangesAsync();
-
             return message;
         }
     }

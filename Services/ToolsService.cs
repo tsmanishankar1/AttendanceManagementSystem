@@ -25,9 +25,9 @@ namespace AttendanceManagement.Services
                     DepartmentName = s.Department.Name
                 })
                 .ToListAsync();
-
             return staffInfo;
         }
+
         public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(List<int> staffIds)
         {
             var organizationTypeIds = await _context.StaffCreations
@@ -35,12 +35,10 @@ namespace AttendanceManagement.Services
                 .Select(staff => staff.OrganizationTypeId)
                 .Distinct()
                 .ToListAsync();
-
             if (organizationTypeIds.Count > 1)
             {
                 throw new Exception("The given employees belong to different organizations.");
             }
-
             var staffInfo = await (
                 from staff in _context.StaffCreations
                 join assignLeaveGroup in _context.AssignLeaveTypes
@@ -69,8 +67,7 @@ namespace AttendanceManagement.Services
                     AvailableBalance = latestCredit ?? 0
                 }
             ).ToListAsync();
-            if (staffInfo.Count == 0)
-                throw new MessageNotFoundException("Staff Information not found.");
+            if (staffInfo.Count == 0) throw new MessageNotFoundException("Staff Information not found.");
 
 #pragma warning disable CS8629 // Nullable value type may be null.
             var result = staffInfo
@@ -119,7 +116,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = dto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.AssignLeaveTypes.Add(newAssignLeaveType);
             await _context.SaveChangesAsync();
 
@@ -129,29 +125,26 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateAssignLeaveType(UpdateAssignLeaveTypeDTO dto)
         {
             var assignLeaveType = await _context.AssignLeaveTypes.FindAsync(dto.Id);
-            if (assignLeaveType == null)
-                throw new MessageNotFoundException("AssignLeaveType not found.");
+            if (assignLeaveType == null) throw new MessageNotFoundException("AssignLeaveType not found.");
 
             assignLeaveType.LeaveTypeId = dto.LeaveTypeId;
             assignLeaveType.OrganizationTypeId = dto.OrganizationTypeId;
             assignLeaveType.IsActive = true;
             assignLeaveType.UpdatedBy = dto.UpdatedBy;
             assignLeaveType.UpdatedUtc = DateTime.UtcNow;
-
             _context.AssignLeaveTypes.Update(assignLeaveType);
             await _context.SaveChangesAsync();
 
             return "Assign LeaveType Updated Successfully";
         }
+
         public async Task<string> AddLeaveCreditDebitForMultipleStaffAsync(LeaveCreditDebitRequest leaveCreditDebitRequest)
         {
             var message = "";
             var selectedRows = leaveCreditDebitRequest.SelectedRows;
-
             foreach (var item in selectedRows)
             {
                 var leaveCreditDebit = new IndividualLeaveCreditDebit();
-
                 var lastRecord = await _context.IndividualLeaveCreditDebits
                     .Where(r => r.StaffCreationId == item.StaffId &&
                                 r.LeaveTypeId == leaveCreditDebitRequest.LeaveTypeId && r.IsActive)
@@ -160,19 +153,17 @@ namespace AttendanceManagement.Services
 
                 decimal lastActualBalance = lastRecord?.ActualBalance ?? 0;
                 decimal lastAvailableBalance = lastRecord?.AvailableBalance ?? 0;
-
-                var staff = await _context.StaffCreations
-                    .Where(s => s.Id == item.StaffId && s.IsActive == true)
-                    .FirstOrDefaultAsync();
-
-                var leaveTypeExists = await _context.LeaveTypes
-                    .AnyAsync(lt => lt.Id == leaveCreditDebitRequest.LeaveTypeId && lt.IsActive);
-
+                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.StaffId && s.IsActive == true);
+                var leaveTypeExists = await _context.LeaveTypes.AnyAsync(lt => lt.Id == leaveCreditDebitRequest.LeaveTypeId && lt.IsActive);
                 if (staff == null || !leaveTypeExists)
                 {
                     continue;
                 }
-
+                if (lastRecord != null)
+                {
+                    lastRecord.IsActive = false;
+                    _context.IndividualLeaveCreditDebits.Update(lastRecord);
+                }
                 if (leaveCreditDebitRequest.TransactionFlag)
                 {
                     leaveCreditDebit.ActualBalance = lastActualBalance + leaveCreditDebitRequest.LeaveCount;
@@ -192,7 +183,6 @@ namespace AttendanceManagement.Services
                         continue;
                     }
                 }
-
                 leaveCreditDebit.LeaveTypeId = leaveCreditDebitRequest.LeaveTypeId;
                 leaveCreditDebit.StaffCreationId = item.StaffId;
                 leaveCreditDebit.TransactionFlag = leaveCreditDebitRequest.TransactionFlag;
@@ -209,82 +199,6 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return message;
         }
-        //public async Task<string> AddLeaveCreditDebitAsync(IndividualLeaveRequest leaveCreditDebitRequest)
-        //{
-        //    try
-        //    {
-        //        var message = "";
-        //        var leaveCreditDebit = new IndividualLeaveCreditDebit();
-        //        // Fetch the last record for the specified StaffCreationId and LeaveTypeId
-        //        var lastRecord = await _context.IndividualLeaveCreditDebits
-        //            .Where(r => r.StaffCreationId == leaveCreditDebitRequest.StaffCreationId &&
-        //                        r.LeaveTypeId == leaveCreditDebitRequest.LeaveTypeId && r.IsActive)
-        //            .OrderByDescending(r => r.Id)
-        //            .FirstOrDefaultAsync();
-
-        //        decimal lastActualBalance = lastRecord?.ActualBalance ?? 0;
-        //        decimal lastAvailableBalance = lastRecord?.AvailableBalance ?? 0;
-
-        //        // Check if the StaffCreation and LeaveType are active (assuming IsActive exists)
-        //        var staffCreationActive = await _context.StaffCreations
-        //            .Where(sc => sc.Id == leaveCreditDebitRequest.StaffCreationId && sc.IsActive==true)
-        //            .AnyAsync();
-
-        //        var leaveTypeActive = await _context.LeaveTypes
-        //            .Where(lt => lt.Id == leaveCreditDebitRequest.LeaveTypeId && lt.IsActive)
-        //            .AnyAsync();
-
-        //        if (!staffCreationActive || !leaveTypeActive)
-        //        {
-        //            throw new MessageNotFoundException("Staff or Leave type does not exist");
-        //        }
-
-        //        // If TransactionFlag is true, it's a credit (leave addition)
-        //        if (leaveCreditDebitRequest.TransactionFlag)
-        //        {
-        //            leaveCreditDebit.ActualBalance = lastActualBalance + leaveCreditDebitRequest.LeaveCount;
-        //            leaveCreditDebit.AvailableBalance = lastAvailableBalance + leaveCreditDebitRequest.LeaveCount;
-        //            message = "Leave credited successfully";
-        //        }
-        //        else
-        //        {
-        //            // If it's a debit (leave deduction), update the available balance
-        //            leaveCreditDebit.ActualBalance = lastActualBalance;
-        //            if (lastAvailableBalance >= leaveCreditDebitRequest.LeaveCount)
-        //            {
-        //                leaveCreditDebit.AvailableBalance = lastAvailableBalance - leaveCreditDebitRequest.LeaveCount;
-        //                message = "Leave debited successfully";
-        //            }
-        //            else
-        //            {
-        //                throw new MessageNotFoundException("No available balance");
-        //            }
-        //        }
-
-        //        // Set IsActive to true for the new credit/debit record
-        //        leaveCreditDebit.LeaveTypeId = leaveCreditDebitRequest.LeaveTypeId;
-        //        leaveCreditDebit.StaffCreationId = leaveCreditDebitRequest.StaffCreationId;
-        //        leaveCreditDebit.TransactionFlag = leaveCreditDebitRequest.TransactionFlag;
-        //        leaveCreditDebit.LeaveReason = leaveCreditDebitRequest.LeaveReason;
-        //        leaveCreditDebit.Month = leaveCreditDebitRequest.Month;
-        //        leaveCreditDebit.Year = leaveCreditDebitRequest.Year;
-        //        leaveCreditDebit.LeaveCount = leaveCreditDebitRequest.LeaveCount;
-        //        leaveCreditDebit.Remarks = leaveCreditDebitRequest.Remarks;
-        //        leaveCreditDebit.CreatedBy = leaveCreditDebitRequest.CreatedBy;
-        //        leaveCreditDebit.CreatedUtc = DateTime.UtcNow;
-        //        leaveCreditDebit.IsActive = leaveCreditDebitRequest.Isactive;
-
-        //        // Add the record to the database and save changes
-        //        await _context.IndividualLeaveCreditDebits.AddAsync(leaveCreditDebit);
-        //        await _context.SaveChangesAsync();
-
-        //        return message;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception(ex.Message);
-        //    }
-        //}
 
         public async Task<string> AddReaderConfigurationAsync(ReaderConfigurationRequest request)
         {
@@ -299,16 +213,16 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow,
                 ReaderTypeId = request.ReaderTypeId
             };
-
             await _context.ReaderConfigurations.AddAsync(readerConfiguration);
             await _context.SaveChangesAsync();
 
             return "Reader Configuration added successfully";
         }
+
         public async Task<List<ReaderConfigurationResponse>> GetReaderConfigurationsAsync()
         {
             var result = await _context.ReaderConfigurations
-                .Include(r => r.ReaderType) // Join with ReaderType table
+                .Include(r => r.ReaderType)
                 .Select(r => new ReaderConfigurationResponse
                 {
                     Id = r.Id,
@@ -323,36 +237,27 @@ namespace AttendanceManagement.Services
                     ReaderTypeName = r.ReaderType.Name 
                 })
                 .ToListAsync();
-
             return result;
         }
+
         public async Task<string> UpdateAttendanceStatusAsync(UpdateAttendanceStatusRequest request)
         {
-            if (request.StaffIds == null || !request.StaffIds.Any())
-            {
-                return "StaffIds cannot be empty.";
-            }
-
             var newRecords = new List<AttendanceStatus>();
-
             foreach (var staffId in request.StaffIds)
             {
                 var attendanceRecords = await _context.AttendanceRecords
-            .Where(a => a.StaffId == staffId && a.FirstIn.HasValue && a.FirstIn.Value.Date == request.FromDate.Date)
-            .ToListAsync();
-
+                    .Where(a => a.StaffId == staffId && a.FirstIn.HasValue && a.FirstIn.Value.Date == request.FromDate.Date)
+                    .ToListAsync();
                 if (attendanceRecords.Any())
                 {
                     foreach (var record in attendanceRecords)
                     {
-                        record.StatusId = request.StatusId; // Update status
-                        record.IsRegularized = true; // Set as regularized
+                        record.StatusId = request.StatusId;
+                        record.IsRegularized = true;
                         record.UpdatedBy = request.CreatedBy;
                         record.UpdatedUtc = DateTime.UtcNow;
                     }
                 }
-
-                // Add new attendance status record
                 newRecords.Add(new AttendanceStatus
                 {
                     StaffId = staffId,
@@ -366,18 +271,12 @@ namespace AttendanceManagement.Services
                     CreatedUtc = DateTime.UtcNow
                 });
             }
-
-            // Update attendance records
             await _context.SaveChangesAsync();
-
-            // Insert new attendance status records
             await _context.AttendanceStatuses.AddRangeAsync(newRecords);
             await _context.SaveChangesAsync();
 
             return "Attendance status updated successfully.";
         }
-
-
 
         public async Task<string> CreateAttendanceStatusColorAsync(AttendanceStatusColorDto dto)
         {
@@ -391,7 +290,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = dto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.AttendanceStatusColors.Add(attendanceStatus);
             await _context.SaveChangesAsync();
             return message;
@@ -409,12 +307,10 @@ namespace AttendanceManagement.Services
                     ColourCode = color.ColourCode
                 })
                 .ToListAsync();
-
             if (response.Count == 0)
             {
                 throw new MessageNotFoundException("No attendance status color found");
             }
-
             return response;
         }
 
@@ -437,6 +333,4 @@ namespace AttendanceManagement.Services
             return message;
         }
     }
-
 }
-

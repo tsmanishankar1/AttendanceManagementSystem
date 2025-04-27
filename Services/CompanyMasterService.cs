@@ -35,7 +35,6 @@ namespace AttendanceManagement.Services
                                   CreatedBy = company.CreatedBy
                               })
                               .ToListAsync();
-
             if (allCompany.Count == 0)
             {
                 throw new MessageNotFoundException("No company found");
@@ -43,6 +42,7 @@ namespace AttendanceManagement.Services
 
             return allCompany;
         }
+
         public async Task<string> Add(CompanyMasterRequest companyMasterRequest)
         {
             var message = "Company added successfully";

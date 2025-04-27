@@ -18,7 +18,6 @@ namespace AttendanceManagement.Services
         public async Task<string> UploadPaySlip(IFormFile file, int createdBy)
         {
             var message = "Payslip uploaded successfully";
-
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var stream = new MemoryStream())
             {
@@ -26,12 +25,8 @@ namespace AttendanceManagement.Services
                 using (var package = new ExcelPackage(stream))
                 {
                     var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                    if (worksheet == null)
-                        throw new Exception("Worksheet not found in the uploaded file.");
-
-                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns]
-                                            .Select(cell => cell.Text.Trim()).ToList();
-
+                    if (worksheet == null) throw new Exception("Worksheet not found in the uploaded file.");
+                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                     var requiredHeaders = new List<string>
                     {
                         "StaffId", "Basic", "HRA", "DA", "OtherAllowance", "SpecialAllowance", "Conveyance",
@@ -45,24 +40,18 @@ namespace AttendanceManagement.Services
                     {
                         throw new Exception($"Invalid Excel file. Missing headers: {string.Join(", ", missingHeaders)}");
                     }
-
                     var columnIndexes = requiredHeaders.ToDictionary(
                         header => header,
                         header => headerRow.IndexOf(header) + 1
                     );
-
-                    var staffExists = await _context.StaffCreations
-                        .AnyAsync(s => s.Id == createdBy && s.IsActive == true);
-
+                    var staffExists = await _context.StaffCreations.AnyAsync(s => s.Id == createdBy && s.IsActive == true);
                     if (!staffExists)
                     {
                         throw new Exception($"StaffId {createdBy} not found in the database.");
                     }
-
                     var rowCount = worksheet.Dimension.Rows;
                     var paySlips = new List<PaySlip>();
                     var paySlipComponents = new List<PaySlipComponent>();
-
                     using (var transaction = await _context.Database.BeginTransactionAsync())
                     {
                         try
@@ -70,32 +59,21 @@ namespace AttendanceManagement.Services
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr))
-                                    throw new Exception($"Invalid or missing StaffId at row {row}.");
-
+                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
                                 var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success)
-                                    throw new Exception($"Invalid StaffId format at row {row}.");
-
+                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
                                 var shortName = match.Groups[1].Value;
                                 var staffId = int.Parse(match.Groups[2].Value);
-
                                 var organizationId = _context.OrganizationTypes
                                     .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
-
-                                if (organizationId == 0)
-                                    throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
-
+                                if (organizationId == 0) throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
                                 var staffCreationId = _context.StaffCreations
                                     .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
-
-                                if (staffCreationId == 0)
-                                    throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
-
+                                if (staffCreationId == 0) throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
                                 var paySlip = new PaySlip
                                 {
                                     StaffId = staffId,
@@ -133,43 +111,29 @@ namespace AttendanceManagement.Services
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr))
-                                    throw new Exception($"Invalid or missing StaffId at row {row}.");
-
+                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
                                 var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success)
-                                    throw new Exception($"Invalid StaffId format at row {row}.");
-
+                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
                                 var shortName = match.Groups[1].Value;
                                 var staffId = int.Parse(match.Groups[2].Value);
-
                                 var organizationId = _context.OrganizationTypes
                                     .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
-
-                                if (organizationId == 0)
-                                    throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
-
+                                if (organizationId == 0) throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
                                 var staffCreationId = _context.StaffCreations
                                     .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
-
-                                if (staffCreationId == 0)
-                                    throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
-
+                                if (staffCreationId == 0) throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
                                 var paySlip = paySlips.FirstOrDefault(ps => ps.StaffId == staffCreationId && ps.IsActive);
                                 if (paySlip == null) continue;
-
                                 var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
                                 var componentName = worksheet.Cells[row, columnIndexes["ComponentName"]]?.Text.Trim();
                                 var amount = worksheet.Cells[row, columnIndexes["Amount"]]?.Text.Trim();
                                 var isTaxableStr = worksheet.Cells[row, columnIndexes["IsTaxable"]]?.Text.Trim();
                                 var remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text.Trim();
-                                if (isTaxableStr == null)
-                                    throw new Exception($"Invalid or missing IsTaxable value at row {row}.");
-
+                                if (isTaxableStr == null) throw new Exception($"Invalid or missing IsTaxable value at row {row}.");
                                 if (!string.IsNullOrEmpty(componentType) && !string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(amount))
                                 {
                                     var paySlipComponent = new PaySlipComponent
@@ -185,11 +149,9 @@ namespace AttendanceManagement.Services
                                         CreatedBy = createdBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
-
                                     paySlipComponents.Add(paySlipComponent);
                                 }
                             }
-
                             if (paySlipComponents.Any())
                             {
                                 await _context.PaySlipComponents.AddRangeAsync(paySlipComponents);
@@ -205,7 +167,6 @@ namespace AttendanceManagement.Services
                     }
                 }
             }
-
             return message;
         }
 
@@ -218,7 +179,7 @@ namespace AttendanceManagement.Services
                                  {
                                      Id = payslip.Id,
                                      StaffId = payslip.StaffId,
-                                     StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
+                                     StaffCreationId = $"{_context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId && o.IsActive).Select(o => o.ShortName).FirstOrDefault()}{s.Id}",
                                      Basic = payslip.Basic,
                                      Hra = payslip.Hra,
                                      Da = payslip.Da,
@@ -316,7 +277,6 @@ namespace AttendanceManagement.Services
         public async Task<string> UploadSalaryStructure(IFormFile file, int createdBy)
         {
             var message = "Salary structure uploaded successfully";
-
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var stream = new MemoryStream())
             {
@@ -324,12 +284,8 @@ namespace AttendanceManagement.Services
                 using (var package = new ExcelPackage(stream))
                 {
                     var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                    if (worksheet == null)
-                        throw new Exception("Worksheet not found in the uploaded file.");
-
-                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns]
-                                            .Select(cell => cell.Text.Trim()).ToList();
-
+                    if (worksheet == null) throw new Exception("Worksheet not found in the uploaded file.");
+                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                     var requiredHeaders = new List<string>
                     {
                         "StaffId", "Basic", "HRA", "DA", "OtherAllowance", "SpecialAllowance", "Conveyance",
@@ -338,30 +294,23 @@ namespace AttendanceManagement.Services
                         "LOP", "IsLOPFixed", "IsPFFloating", "IsESICFloating", "IsPTFloating", "SalaryStructureYear",
                         "ComponentType", "ComponentName", "Amount", "IsTaxable", "Remarks"
                     };
-
                     var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                     if (missingHeaders.Any())
                     {
                         throw new Exception($"Invalid Excel file. Missing headers: {string.Join(", ", missingHeaders)}");
                     }
-
                     var columnIndexes = requiredHeaders.ToDictionary(
                         header => header,
                         header => headerRow.IndexOf(header) + 1
                     );
-
-                    var staffExists = await _context.StaffCreations
-                        .AnyAsync(s => s.Id == createdBy && s.IsActive == true);
-
+                    var staffExists = await _context.StaffCreations.AnyAsync(s => s.Id == createdBy && s.IsActive == true);
                     if (!staffExists)
                     {
                         throw new Exception($"StaffId {createdBy} not found in the database.");
                     }
-
                     var rowCount = worksheet.Dimension.Rows;
                     var salaryStructures = new List<SalaryStructure>();
                     var salaryComponents = new List<SalaryComponent>();
-
                     using (var transaction = await _context.Database.BeginTransactionAsync())
                     {
                         try
@@ -369,32 +318,21 @@ namespace AttendanceManagement.Services
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr))
-                                    throw new Exception($"Invalid or missing StaffId at row {row}.");
-
+                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
                                 var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success)
-                                    throw new Exception($"Invalid StaffId format at row {row}.");
-
+                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
                                 var shortName = match.Groups[1].Value;
                                 var staffId = int.Parse(match.Groups[2].Value);
-
                                 var organizationId = _context.OrganizationTypes
                                     .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
-
-                                if (organizationId == 0)
-                                    throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
-
+                                if (organizationId == 0) throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
                                 var staffCreationId = _context.StaffCreations
                                     .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
-
-                                if (staffCreationId == 0)
-                                    throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
-
+                                if (staffCreationId == 0) throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
                                 var salaryStructure = new SalaryStructure
                                 {
                                     StaffId = staffId,
@@ -435,43 +373,29 @@ namespace AttendanceManagement.Services
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr))
-                                    throw new Exception($"Invalid or missing StaffId at row {row}.");
-
+                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
                                 var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success)
-                                    throw new Exception($"Invalid StaffId format at row {row}.");
-
+                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
                                 var shortName = match.Groups[1].Value;
                                 var staffId = int.Parse(match.Groups[2].Value);
-
                                 var organizationId = _context.OrganizationTypes
                                     .Where(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive)
                                     .Select(o => o.Id)
                                     .FirstOrDefault();
-
-                                if (organizationId == 0)
-                                    throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
-
+                                if (organizationId == 0) throw new Exception($"Organization with short name '{shortName}' not found at row {row}.");
                                 var staffCreationId = _context.StaffCreations
                                     .Where(s => (s.OrganizationTypeId == organizationId || s.Id == organizationId) && s.Id == staffId && s.IsActive == true)
                                     .Select(s => s.Id)
                                     .FirstOrDefault();
-
-                                if (staffCreationId == 0)
-                                    throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
-
+                                if (staffCreationId == 0) throw new Exception($"Staff with ID '{staffId}' not found at row {row}.");
                                 var salaryStructure = salaryStructures.FirstOrDefault(ps => ps.StaffId == staffCreationId);
                                 if (salaryStructure == null) continue;
-
                                 var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
                                 var componentName = worksheet.Cells[row, columnIndexes["ComponentName"]]?.Text.Trim();
                                 var amount = worksheet.Cells[row, columnIndexes["Amount"]]?.Text.Trim();
                                 var isTaxableStr = worksheet.Cells[row, columnIndexes["IsTaxable"]]?.Text.Trim();
                                 var remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text.Trim();
-                                if (isTaxableStr == null)
-                                    throw new Exception($"Invalid or missing IsTaxable value at row {row}.");
-
+                                if (isTaxableStr == null) throw new Exception($"Invalid or missing IsTaxable value at row {row}.");
                                 if (!string.IsNullOrEmpty(componentType) && !string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(amount))
                                 {
                                     var salaryComponent = new SalaryComponent
@@ -487,11 +411,9 @@ namespace AttendanceManagement.Services
                                         CreatedBy = createdBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
-
                                     salaryComponents.Add(salaryComponent);
                                 }
                             }
-
                             if (salaryComponents.Any())
                             {
                                 await _context.SalaryComponents.AddRangeAsync(salaryComponents);
@@ -507,7 +429,6 @@ namespace AttendanceManagement.Services
                     }
                 }
             }
-
             return message;
         }
 

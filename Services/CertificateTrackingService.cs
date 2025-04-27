@@ -40,10 +40,6 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateCertificate(CertificateTrackingDto dto)
         {
             var message = "certificate Added Successfully";
-            if (dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto), "Certificate details cannot be null.");
-            }
             var certificate = new CertificateTracking
             {
                 StaffCreationId = dto.StaffCreationId,
@@ -57,7 +53,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = dto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.CertificateTrackings.Add(certificate);
             await _context.SaveChangesAsync();
             return message;
@@ -66,17 +61,11 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateCertificate(UpdateCertificateTracking dto)
         {
             var message = "certificate Updated Successfully";
-            if (dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto), "Certificate details cannot be null.");
-            }
-
             var certificate = await _context.CertificateTrackings.FirstOrDefaultAsync(f => f.Id == dto.CertificateId);
             if (certificate == null)
             {
                 throw new MessageNotFoundException("Family detail not found");
             }
-
             certificate.StaffCreationId = dto.StaffCreationId;
             certificate.CertificationCourseApplication = dto.CertificationCourseApplication;
             certificate.CertificationCourse = dto.CertificationCourse;

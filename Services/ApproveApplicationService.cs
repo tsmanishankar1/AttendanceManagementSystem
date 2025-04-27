@@ -22,7 +22,10 @@ namespace AttendanceManagement.Services
         {
             var message = "";
             var selectedRows = approveLeaveRequest.SelectedRows;
-            var approverName = _context.StaffCreations.Where(s => s.Id == approveLeaveRequest.ApprovedBy && s.IsActive == true).Select(s => $"{s.FirstName}{s.LastName}").FirstOrDefault();
+            var approverName = _context.StaffCreations
+                .Where(s => s.Id == approveLeaveRequest.ApprovedBy && s.IsActive == true)
+                .Select(s => $"{s.FirstName}{s.LastName}")
+                .FirstOrDefault();
             //string approvedDateTime = DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
             var applicationType = await _context.ApplicationTypes.Where(a => a.Id == approveLeaveRequest.ApplicationTypeId && a.IsActive).Select(a => a.Name).FirstOrDefaultAsync();
             foreach (var item in selectedRows)
@@ -53,7 +56,6 @@ namespace AttendanceManagement.Services
                                                 && l.IsActive == true)
                                     .OrderByDescending(l => l.Id)
                                     .FirstOrDefaultAsync();
-
                                 if (individualLeave != null && individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance >= leave.TotalDays)
                                 {
                                     individualLeave.AvailableBalance = decimal.Subtract(individualLeave.AvailableBalance, leave.TotalDays);
@@ -62,14 +64,8 @@ namespace AttendanceManagement.Services
                                 }
                                 else
                                 {
-                                    if (leave.StaffId != null)
-                                    {
-                                        throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
-                                    }
-                                    else
-                                    {
-                                        throw new MessageNotFoundException("Insufficient leave balance found");
-                                    }
+                                    if (leave.StaffId != null) throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
+                                    else throw new MessageNotFoundException("Insufficient leave balance found");
                                 }
                                 leave.Status1 = true;
                                 leave.IsActive = false;
@@ -95,7 +91,6 @@ namespace AttendanceManagement.Services
                                                 && l.IsActive == true)
                                     .OrderByDescending(l => l.Id)
                                     .FirstOrDefaultAsync();
-
                                 if (individualLeave != null && individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance >= leave.TotalDays)
                                 {
                                     //individualLeave.AvailableBalance = decimal.Subtract(individualLeave.AvailableBalance, leave.TotalDays);
@@ -104,14 +99,8 @@ namespace AttendanceManagement.Services
                                 }
                                 else
                                 {
-                                    if (leave.StaffId != null)
-                                    {
-                                        throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
-                                    }
-                                    else
-                                    {
-                                        throw new MessageNotFoundException("Insufficient leave balance found");
-                                    }
+                                    if (leave.StaffId != null) throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
+                                    else throw new MessageNotFoundException("Insufficient leave balance found");
                                 }
                                 leave.Status1 = true;
                                 leave.UpdatedBy = approveLeaveRequest.ApprovedBy;
@@ -230,7 +219,6 @@ namespace AttendanceManagement.Services
                             {
                                 throw new InvalidOperationException("Leave request has already been approved");
                             }
-
                             if (leave.Status1 != null && leave.Status1 == false && leave.UpdatedBy == approveLeaveRequest.ApprovedBy && !leave.IsActive)
                             {
                                 throw new InvalidOperationException("Leave request has already been rejected");
@@ -280,7 +268,6 @@ namespace AttendanceManagement.Services
 
                         string requestedTime = leave.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                         string approvedTime = leave.UpdatedUtc.HasValue ? leave.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                         var notification = new ApprovalNotification
                         {
                             StaffId = leave.CreatedBy,
@@ -310,7 +297,6 @@ namespace AttendanceManagement.Services
                                 approverName: approverName,
                                 approvedTime: approvedTime
                             );
-
                             /*                        if (approver2 != null && (!leave.IsEmailSent.HasValue || leave.IsEmailSent == false))
                                                     {
                                                         await _emailService.SendLeaveRequestEmail(
@@ -349,13 +335,13 @@ namespace AttendanceManagement.Services
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
                     {
-                        var permissionRequest1 = await _context.CommonPermissions
-                            .FirstOrDefaultAsync(l => l.Id == item.Id && l.UpdatedBy == approveLeaveRequest.ApprovedBy && l.IsActive == false);
+                        var permissionRequest1 = await _context.CommonPermissions.FirstOrDefaultAsync(l => l.Id == item.Id && l.UpdatedBy == approveLeaveRequest.ApprovedBy && l.IsActive == false);
                         if (permissionRequest1 != null)
                         {
                             if (permissionRequest1.Status1.HasValue && permissionRequest1.Status1 != null)
                             {
-                                string statusMessage = permissionRequest.Status1 == true ? "Common Permission request has already been approved." : "Common Permission request has already been rejected.";
+                                string statusMessage = permissionRequest.Status1 == true
+                                       ? "Common Permission request has already been approved." : "Common Permission request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -375,7 +361,8 @@ namespace AttendanceManagement.Services
                         {
                             if (permissionRequest1.Status1.HasValue && permissionRequest1.Status1 != null)
                             {
-                                string statusMessage = permissionRequest.Status1 == true ? "Common Permission request has already been approved." : "Common Permission request has already been rejected.";
+                                string statusMessage = permissionRequest.Status1 == true
+                                       ? "Common Permission request has already been approved." : "Common Permission request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -385,7 +372,8 @@ namespace AttendanceManagement.Services
                         {
                             if (permissionRequest2.Status2.HasValue && permissionRequest2.Status2 != null)
                             {
-                                string statusMessage = permissionRequest.Status2 == true ? "Common Permission request has already been approved." : "Common Permission request has already been rejected.";
+                                string statusMessage = permissionRequest.Status2 == true 
+                                       ? "Common Permission request has already been approved." : "Common Permission request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -415,7 +403,6 @@ namespace AttendanceManagement.Services
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your common permission request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your common permission request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = permissionRequest.CreatedBy,
@@ -426,7 +413,6 @@ namespace AttendanceManagement.Services
                     };
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     permissionRequest.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -483,7 +469,6 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var manualPunchRequest1 = await _context.ManualPunchRequistions
@@ -492,7 +477,8 @@ namespace AttendanceManagement.Services
                         {
                             if (manualPunchRequest1.Status1.HasValue && manualPunchRequest1.Status1 != null)
                             {
-                                string statusMessage = manualPunch.Status1 == true ? "Manual Punch request has already been approved." : "Manual Punch request has already been rejected.";
+                                string statusMessage = manualPunch.Status1 == true 
+                                       ? "Manual Punch request has already been approved." : "Manual Punch request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -512,7 +498,8 @@ namespace AttendanceManagement.Services
                         {
                             if (manualPunchRequest1.Status1.HasValue && manualPunchRequest1.Status1 != null)
                             {
-                                string statusMessage = manualPunch.Status1 == true ? "Manual Punch request has already been approved." : "Manual Punch request has already been rejected.";
+                                string statusMessage = manualPunch.Status1 == true
+                                       ? "Manual Punch request has already been approved." : "Manual Punch request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -522,7 +509,8 @@ namespace AttendanceManagement.Services
                         {
                             if (manualPunchRequest2.Status2.HasValue && manualPunchRequest2.Status2 != null)
                             {
-                                string statusMessage = manualPunch.Status2 == true ? "Manual Punch request has already been approved." : "Manual Punch request has already been rejected.";
+                                string statusMessage = manualPunch.Status2 == true
+                                       ? "Manual Punch request has already been approved." : "Manual Punch request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -548,12 +536,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = manualPunch.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = manualPunch.UpdatedUtc.HasValue ? manualPunch.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Manual punch request approved successfully" : "Manual punch request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your manual punch request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your manual punch request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = manualPunch.CreatedBy,
@@ -562,10 +548,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     manualPunch.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -613,7 +597,6 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var onDutyRequest1 = await _context.OnDutyRequisitions
@@ -678,13 +661,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = onDuty.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = onDuty.UpdatedUtc.HasValue ? onDuty.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "On-duty request approved successfully" : "On-duty request rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your on-duty request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your on-duty request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = onDuty.CreatedBy,
@@ -693,10 +673,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     onDuty.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -753,7 +731,6 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var businessTravelRequest1 = await _context.BusinessTravels
@@ -762,7 +739,8 @@ namespace AttendanceManagement.Services
                         {
                             if (businessTravelRequest1.Status1.HasValue && businessTravelRequest1.Status1 != null)
                             {
-                                string statusMessage = businessTravel.Status1 == true ? "Business Travel request has already been approved." : "Business Travel request has already been rejected.";
+                                string statusMessage = businessTravel.Status1 == true
+                                       ? "Business Travel request has already been approved." : "Business Travel request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -782,7 +760,8 @@ namespace AttendanceManagement.Services
                         {
                             if (businessTravelRequest1.Status1.HasValue && businessTravelRequest1.Status1 != null)
                             {
-                                string statusMessage = businessTravel.Status1 == true ? "Business Travel request has already been approved." : "Business Travel request has already been rejected.";
+                                string statusMessage = businessTravel.Status1 == true
+                                       ? "Business Travel request has already been approved." : "Business Travel request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -792,7 +771,8 @@ namespace AttendanceManagement.Services
                         {
                             if (businessTravelRequest2.Status2.HasValue && businessTravelRequest2.Status2 != null)
                             {
-                                string statusMessage = businessTravel.Status2 == true ? "Business Travel request has already been approved." : "Business Travel request has already been rejected.";
+                                string statusMessage = businessTravel.Status2 == true
+                                       ? "Business Travel request has already been approved." : "Business Travel request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -818,13 +798,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = businessTravel.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = businessTravel.UpdatedUtc.HasValue ? businessTravel.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Business travel request approved successfully" : "Business travel request rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your business travel request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your business travel request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = businessTravel.CreatedBy,
@@ -833,10 +810,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     businessTravel.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -893,7 +868,6 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var workFromHomeRequest1 = await _context.WorkFromHomes
@@ -902,7 +876,8 @@ namespace AttendanceManagement.Services
                         {
                             if (workFromHomeRequest1.Status1.HasValue && workFromHomeRequest1.Status1 != null)
                             {
-                                string statusMessage = workFromHome.Status1 == true ? "Work From Home request has already been approved." : "Work From Home request has already been rejected.";
+                                string statusMessage = workFromHome.Status1 == true
+                                       ? "Work From Home request has already been approved." : "Work From Home request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -922,18 +897,19 @@ namespace AttendanceManagement.Services
                         {
                             if (workFromHomeRequest1.Status1.HasValue && workFromHomeRequest1.Status1 != null)
                             {
-                                string statusMessage = workFromHome.Status1 == true ? "Work From Home request has already been approved." : "Work From Home request has already been rejected.";
+                                string statusMessage = workFromHome.Status1 == true 
+                                       ? "Work From Home request has already been approved." : "Work From Home request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
-
                         var workFromHomeRequest2 = await _context.WorkFromHomes
                             .FirstOrDefaultAsync(l => l.Id == item.Id && l.Status1 != null && l.Status2 != null && l.ApprovedBy == approveLeaveRequest.ApprovedBy);
                         if (workFromHomeRequest2 != null)
                         {
                             if (workFromHomeRequest2.Status2.HasValue && workFromHomeRequest2.Status2 != null)
                             {
-                                string statusMessage = workFromHome.Status2 == true ? "Work From Home request has already been approved." : "Work From Home request has already been rejected.";
+                                string statusMessage = workFromHome.Status2 == true
+                                       ? "Work From Home request has already been approved." : "Work From Home request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -955,18 +931,14 @@ namespace AttendanceManagement.Services
                             workFromHome.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-
                     await _context.SaveChangesAsync();
 
                     string requestedTime = workFromHome.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = workFromHome.UpdatedUtc.HasValue ? workFromHome.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Work from home request approved successfully" : "Work from home request rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your work from home request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your work from home request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = workFromHome.CreatedBy,
@@ -975,10 +947,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     workFromHome.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -1036,7 +1006,6 @@ namespace AttendanceManagement.Services
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     var shiftName = await _context.Shifts.Where(s => s.Id == shiftChange.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
-
                     if (approver2 == null)
                     {
                         var shiftChangeRequest1 = await _context.ShiftChanges
@@ -1045,7 +1014,8 @@ namespace AttendanceManagement.Services
                         {
                             if (shiftChangeRequest1.Status1.HasValue && shiftChangeRequest1.Status1 != null)
                             {
-                                string statusMessage = shiftChange.Status1 == true ? "Shift Change request has already been approved." : "Shift Change request has already been rejected.";
+                                string statusMessage = shiftChange.Status1 == true
+                                       ? "Shift Change request has already been approved." : "Shift Change request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1065,7 +1035,8 @@ namespace AttendanceManagement.Services
                         {
                             if (shiftChangeRequest1.Status1.HasValue && shiftChangeRequest1.Status1 != null)
                             {
-                                string statusMessage = shiftChange.Status1 == true ? "Shift Change request has already been approved." : "Shift Change request has already been rejected.";
+                                string statusMessage = shiftChange.Status1 == true
+                                       ? "Shift Change request has already been approved." : "Shift Change request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1075,7 +1046,8 @@ namespace AttendanceManagement.Services
                         {
                             if (shiftChangeRequest2.Status2.HasValue && shiftChangeRequest2.Status2 != null)
                             {
-                                string statusMessage = shiftChange.Status2 == true ? "Shift Change request has already been approved." : "Shift Change request has already been rejected.";
+                                string statusMessage = shiftChange.Status2 == true
+                                       ? "Shift Change request has already been approved." : "Shift Change request has already been rejected.";
 
                                 throw new InvalidOperationException(statusMessage);
                             }
@@ -1098,18 +1070,14 @@ namespace AttendanceManagement.Services
                             shiftChange.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-
                     await _context.SaveChangesAsync();
 
                     string requestedTime = shiftChange.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = shiftChange.UpdatedUtc.HasValue ? shiftChange.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Shift change request approved successfully" : "Shift change request rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your shift change request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your shift change request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = shiftChange.CreatedBy,
@@ -1118,10 +1086,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     shiftChange.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -1172,7 +1138,6 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var shiftExtensionReques1 = await _context.ShiftExtensions
@@ -1181,7 +1146,8 @@ namespace AttendanceManagement.Services
                         {
                             if (shiftExtensionReques1.Status1.HasValue && shiftExtensionReques1.Status1 != null)
                             {
-                                string statusMessage = shiftExtension.Status1 == true ? "Shift Extension request has already been approved." : "Shift Extension request has already been rejected.";
+                                string statusMessage = shiftExtension.Status1 == true
+                                       ? "Shift Extension request has already been approved." : "Shift Extension request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1201,7 +1167,8 @@ namespace AttendanceManagement.Services
                         {
                             if (shiftExtensionReques1.Status1.HasValue && shiftExtensionReques1.Status1 != null)
                             {
-                                string statusMessage = shiftExtension.Status1 == true ? "Shift Extension request has already been approved." : "Shift Extension request has already been rejected.";
+                                string statusMessage = shiftExtension.Status1 == true
+                                       ? "Shift Extension request has already been approved." : "Shift Extension request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1211,7 +1178,8 @@ namespace AttendanceManagement.Services
                         {
                             if (shiftExtensionReques2.Status2.HasValue && shiftExtensionReques2.Status2 != null)
                             {
-                                string statusMessage = shiftExtension.Status2 == true ? "Shift Extension request has already been approved." : "Shift Extension request has already been rejected.";
+                                string statusMessage = shiftExtension.Status2 == true
+                                       ? "Shift Extension request has already been approved." : "Shift Extension request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1233,18 +1201,14 @@ namespace AttendanceManagement.Services
                             shiftExtension.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-
                     await _context.SaveChangesAsync();
 
                     string requestedTime = shiftExtension.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = shiftExtension.UpdatedUtc.HasValue ? shiftExtension.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Shift extension request approved successfully" : "Shift extension request rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your shift extension request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your shift extension request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = shiftExtension.CreatedBy,
@@ -1253,10 +1217,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     shiftExtension.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -1309,7 +1271,6 @@ namespace AttendanceManagement.Services
                     var shiftName = await _context.Shifts.Where(s => s.Id == weeklyOffHoliday.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var weeklyOffHolidayRequest1 = await _context.WeeklyOffHolidayWorkings
@@ -1318,7 +1279,8 @@ namespace AttendanceManagement.Services
                         {
                             if (weeklyOffHolidayRequest1.Status1.HasValue && weeklyOffHolidayRequest1.Status1 != null)
                             {
-                                string statusMessage = weeklyOffHoliday.Status1 == true ? "Weekly Off Holiday Working request has already been approved." : "Weekly Off Holiday Working request has already been rejected.";
+                                string statusMessage = weeklyOffHoliday.Status1 == true
+                                       ? "Weekly Off Holiday Working request has already been approved." : "Weekly Off Holiday Working request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1338,7 +1300,8 @@ namespace AttendanceManagement.Services
                         {
                             if (weeklyOffHolidayRequest1.Status1.HasValue && weeklyOffHolidayRequest1.Status1 != null)
                             {
-                                string statusMessage = weeklyOffHoliday.Status1 == true ? "Weekly Off Holiday Working request has already been approved." : "Weekly Off Holiday Working request has already been rejected.";
+                                string statusMessage = weeklyOffHoliday.Status1 == true
+                                       ? "Weekly Off Holiday Working request has already been approved." : "Weekly Off Holiday Working request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1348,7 +1311,8 @@ namespace AttendanceManagement.Services
                         {
                             if (weeklyOffHolidayRequest2.Status2.HasValue && weeklyOffHolidayRequest2.Status2 != null)
                             {
-                                string statusMessage = weeklyOffHoliday.Status2 == true ? "Weekly Off Holiday Working request has already been approved." : "Weekly Off Holiday Working request has already been rejected.";
+                                string statusMessage = weeklyOffHoliday.Status2 == true
+                                       ? "Weekly Off Holiday Working request has already been approved." : "Weekly Off Holiday Working request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1370,18 +1334,14 @@ namespace AttendanceManagement.Services
                             weeklyOffHoliday.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-
                     await _context.SaveChangesAsync();
 
                     string requestedTime = weeklyOffHoliday.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = weeklyOffHoliday.UpdatedUtc.HasValue ? weeklyOffHoliday.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Weekly off/holiday working request approved successfully" : "Weekly off/holiday working request rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your weekly off/holiday working request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your weekly off/holiday working request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = weeklyOffHoliday.CreatedBy,
@@ -1390,10 +1350,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     weeklyOffHoliday.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -1445,7 +1403,6 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var compOffAvailRequest1 = await _context.CompOffAvails
@@ -1454,7 +1411,8 @@ namespace AttendanceManagement.Services
                         {
                             if (compOffAvailRequest1.Status1.HasValue && compOffAvailRequest1.Status1 != null)
                             {
-                                string statusMessage = compOffAvail.Status1 == true ? "CompOff Avail request has already been approved." : "CompOff Avail request has already been rejected.";
+                                string statusMessage = compOffAvail.Status1 == true
+                                       ? "CompOff Avail request has already been approved." : "CompOff Avail request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1474,7 +1432,8 @@ namespace AttendanceManagement.Services
                         {
                             if (compOffAvailRequest1.Status1.HasValue && compOffAvailRequest1.Status1 != null)
                             {
-                                string statusMessage = compOffAvail.Status1 == true ? "CompOff Avail request has already been approved." : "CompOff Avail request has already been rejected.";
+                                string statusMessage = compOffAvail.Status1 == true ?
+                                    "CompOff Avail request has already been approved." : "CompOff Avail request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1484,7 +1443,8 @@ namespace AttendanceManagement.Services
                         {
                             if (compOffAvailRequest2.Status2.HasValue && compOffAvailRequest2.Status2 != null)
                             {
-                                string statusMessage = compOffAvail.Status2 == true ? "CompOff Avail request has already been approved." : "CompOff Avail request has already been rejected.";
+                                string statusMessage = compOffAvail.Status2 == true ?
+                                    "CompOff Avail request has already been approved." : "CompOff Avail request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1547,13 +1507,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = compOffAvail.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = compOffAvail.UpdatedUtc.HasValue ? compOffAvail.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Comp-Off Avail request approved successfully" : "Comp-Off Avail request rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Comp-Off avail request has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your Comp-Off avail request has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = compOffAvail.CreatedBy,
@@ -1562,10 +1519,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     compOffAvail.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -1618,7 +1573,6 @@ namespace AttendanceManagement.Services
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var compOffCreditRequest1 = await _context.CompOffCredits
@@ -1627,7 +1581,8 @@ namespace AttendanceManagement.Services
                         {
                             if (compOffCreditRequest1.Status1.HasValue && compOffCreditRequest1.Status1 != null)
                             {
-                                string statusMessage = compOffCredit.Status1 == true ? "CompOff Credit request has already been approved." : "CompOff Credit request has already been rejected.";
+                                string statusMessage = compOffCredit.Status1 == true
+                                       ? "CompOff Credit request has already been approved." : "CompOff Credit request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1647,7 +1602,8 @@ namespace AttendanceManagement.Services
                         {
                             if (compOffCreditRequest1.Status1.HasValue && compOffCreditRequest1.Status1 != null)
                             {
-                                string statusMessage = compOffCredit.Status1 == true ? "CompOff Credit request has already been approved." : "CompOff Credit request has already been rejected.";
+                                string statusMessage = compOffCredit.Status1 == true
+                                       ? "CompOff Credit request has already been approved." : "CompOff Credit request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1657,7 +1613,8 @@ namespace AttendanceManagement.Services
                         {
                             if (compOffCreditRequest2.Status2.HasValue && compOffCreditRequest2.Status2 != null)
                             {
-                                string statusMessage = compOffCredit.Status2 == true ? "CompOff Credit request has already been approved." : "CompOff Credit request has already been rejected.";
+                                string statusMessage = compOffCredit.Status2 == true
+                                       ? "CompOff Credit request has already been approved." : "CompOff Credit request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1679,7 +1636,6 @@ namespace AttendanceManagement.Services
                             compOffCredit.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-
                     if (approveLeaveRequest.IsApproved)
                     {
                         if (approver2 == null)
@@ -1701,13 +1657,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = compOffCredit.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = compOffCredit.UpdatedUtc.HasValue ? compOffCredit.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Comp-Off Credit request approved successfully" : "Comp-Off request Credit rejected successfully";
-
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Comp-Off credit has been approved. Approved by - {approverName} on {approvedTime}"
                         : $"Your Comp-Off credit has been rejected. Rejected by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = compOffCredit.CreatedBy,
@@ -1767,11 +1720,9 @@ namespace AttendanceManagement.Services
                     var staffOrCreatorId = reimbursementRequest.StaffId ?? reimbursementRequest.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-
                     var staffName = $"{staff.FirstName} {staff.LastName}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
-
                     if (approver2 == null)
                     {
                         var reimbursementRequest1 = await _context.Reimbursements
@@ -1780,7 +1731,8 @@ namespace AttendanceManagement.Services
                         {
                             if (reimbursementRequest1.Status1.HasValue && reimbursementRequest1.Status1 != null)
                             {
-                                string statusMessage = reimbursementRequest.Status1 == true ? "Reimbursement request has already been approved." : "Reimbursement request has already been rejected.";
+                                string statusMessage = reimbursementRequest.Status1 == true
+                                       ? "Reimbursement request has already been approved." : "Reimbursement request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1800,7 +1752,8 @@ namespace AttendanceManagement.Services
                         {
                             if (reimbursementRequest1.Status1.HasValue && reimbursementRequest1.Status1 != null)
                             {
-                                string statusMessage = reimbursementRequest.Status1 == true ? "Reimbursement request has already been approved." : "Reimbursement request has already been rejected.";
+                                string statusMessage = reimbursementRequest.Status1 == true
+                                       ? "Reimbursement request has already been approved." : "Reimbursement request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1810,7 +1763,8 @@ namespace AttendanceManagement.Services
                         {
                             if (reimbursementRequest2.Status2.HasValue && reimbursementRequest2.Status2 != null)
                             {
-                                string statusMessage = reimbursementRequest.Status2 == true ? "Reimbursement request has already been approved." : "Reimbursement request has already been rejected.";
+                                string statusMessage = reimbursementRequest.Status2 == true
+                                       ? "Reimbursement request has already been approved." : "Reimbursement request has already been rejected.";
                                 throw new InvalidOperationException(statusMessage);
                             }
                         }
@@ -1832,15 +1786,12 @@ namespace AttendanceManagement.Services
                             reimbursementRequest.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-
                     await _context.SaveChangesAsync();
 
                     string requestedTime = reimbursementRequest.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = reimbursementRequest.UpdatedUtc.HasValue ? reimbursementRequest.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
                     message = approveLeaveRequest.IsApproved ? "Reimbursement request approved successfully" : "Reimbursement request rejected successfully";
                     var notificationMessage = $"Your reimbursement request has been approved. Approved by - {approverName} on {approvedTime}";
-
                     var notification = new ApprovalNotification
                     {
                         StaffId = reimbursementRequest.CreatedBy,
@@ -1849,10 +1800,8 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-
                     _context.ApprovalNotifications.Add(notification);
                     await _context.SaveChangesAsync();
-
                     reimbursementRequest.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
 
@@ -1872,7 +1821,6 @@ namespace AttendanceManagement.Services
                             approverName: approverName,
                             approvedTime: approvedTime
                         );
-
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!reimbursementRequest.IsEmailSent.HasValue || reimbursementRequest.IsEmailSent == false))
                         {
                             await _emailService.SendReimbursementRequestEmail(
@@ -1896,7 +1844,6 @@ namespace AttendanceManagement.Services
                     }
                 }
             }
-
             return message;
         }
     }

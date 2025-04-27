@@ -27,24 +27,18 @@ namespace AttendanceManagement.Services
             var userId = request.CreatedBy;
             var userName = $"{user.FirstName} {user.LastName}";
             var userCreationId = user.StaffId;
-            // Split staff ID handling: one for SQL, one for LINQ
             var staffIdList = request.StaffIds ?? new List<int>();
             var staffIdParam = staffIdList.Any() ? string.Join(",", staffIdList) : (object)DBNull.Value;
-
             var parameters = new[]
             {
                 new SqlParameter("@StaffIds", staffIdParam),
                 new SqlParameter("@FromDate", request.FromDate),
                 new SqlParameter("@ToDate", request.ToDate)
             };
-
-            // Execute stored procedure
             var reportList = await _storedProcedureDbContext.statutoryReportResponses
                 .FromSqlRaw("EXEC usp_GenerateStatutoryReport @StaffIds, @FromDate, @ToDate", parameters)
                 .ToListAsync();
-
             if (reportList.Count == 0) throw new MessageNotFoundException("Record not found");
-
             var summaries = reportList.Select(report => new StatutoryReportResponse
             {
                 StaffId = report.StaffId,
@@ -57,16 +51,11 @@ namespace AttendanceManagement.Services
                 ReportFromDate = report.ReportFromDate,
                 ReportToDate = report.ReportToDate
             }).ToList();
-
             var fromDate = request.FromDate;
             var toDate = request.ToDate;
-
-            // Load attendance records in bulk
             var attendanceRecords = await _context.AttendanceRecords
                 .Where(ar => staffIdList.Contains(ar.StaffId) && ar.AttendanceDate >= fromDate && ar.AttendanceDate <= toDate)
                 .ToListAsync();
-
-            // Get staff details
             var staffDetailsList = await (from staff in _context.StaffCreations
                                           join dept in _context.DepartmentMasters on staff.DepartmentId equals dept.Id
                                           join desig in _context.DesignationMasters on staff.DesignationId equals desig.Id
@@ -79,23 +68,16 @@ namespace AttendanceManagement.Services
                                               Department = dept.Name,
                                               Designation = desig.Name
                                           }).ToListAsync();
-
-            // Get all status short names
-            var statusDict = await _context.StatusDropdowns
-                .ToDictionaryAsync(s => s.Id, s => s.ShortName);
-
-            // Default absent short name (e.g. "AB")
+            var statusDict = await _context.StatusDropdowns.ToDictionaryAsync(s => s.Id, s => s.ShortName);
             var defaultAbsentShortName = await _context.StatusDropdowns
                 .Where(s => s.Id == 37)
                 .Select(s => s.ShortName)
                 .FirstOrDefaultAsync() ?? "AB";
 
-            // Date range list
             var dateRange = Enumerable.Range(0, toDate.DayNumber - fromDate.DayNumber + 1)
                 .Select(offset => fromDate.AddDays(offset))
                 .ToList();
 
-            // Build final report
             var reports = (from staff in staffDetailsList
                            let summary = summaries.FirstOrDefault(s => s.StaffId == staff.Id)
                            where summary != null
@@ -124,9 +106,7 @@ namespace AttendanceManagement.Services
                                IsAttendanceBonus = summary.IsAttendanceBonus,
                                AttendanceBonusMonths = summary.AttendanceBonusMonths
                            }).ToList();
-
             if (reports.Count == 0) throw new MessageNotFoundException("No records found");
-
             var response = new
             {
                 FromDate = fromDate1,
@@ -137,7 +117,6 @@ namespace AttendanceManagement.Services
                 UserName = userName,
                 Records = reports
             };
-
             return response;
         }
     }

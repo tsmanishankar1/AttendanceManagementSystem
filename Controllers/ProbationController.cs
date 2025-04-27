@@ -146,6 +146,7 @@ public class ProbationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpGet("GetFeedbackByApproverLevel1")]
     public async Task<IActionResult> GetFeedbackByApproverLevel1(int approverLevel1Id)
     {
@@ -184,6 +185,11 @@ public class ProbationController : ControllerBase
             return Ok(response);
         }
         catch(MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
             return ErrorClass.NotFoundResponse(ex.Message);

@@ -31,14 +31,17 @@ public class AttendanceController : ControllerBase
                 Success = true,
                 Message = checkinRecord
             };
+            await _loggingService.AuditLog("Biometric Punch", "GET", "/api/Attendance/AttendanceDetails", "Biometric punch captured successfully", staffId, staffId);
             return Ok(response);
         }
         catch(MessageNotFoundException ex)
         {
+            await _loggingService.LogError("Biometric Punch", "GET", "/api/Attendance/AttendanceDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffId, staffId);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Biometric Punch", "GET", "/api/Attendance/AttendanceDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffId, staffId);
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -208,4 +211,3 @@ public class AttendanceController : ControllerBase
         }
     }
 }
-

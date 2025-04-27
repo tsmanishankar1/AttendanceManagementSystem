@@ -36,9 +36,9 @@ namespace AttendanceManagement.Services
                                     .FirstOrDefault() ?? "Unknown"
                 })
                 .ToListAsync();
-
             return staffList;
         }
+
         public async Task<IEnumerable<ShiftResponse>> GetAllShiftsAsync()
         {
             var allShift = await (from shift in _context.Shifts
@@ -58,7 +58,6 @@ namespace AttendanceManagement.Services
                                       CreatedBy = shift.CreatedBy
                                   })
                                   .ToListAsync();
-
             if (allShift.Count == 0)
             {
                 throw new MessageNotFoundException("No shifts found");
@@ -69,7 +68,6 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateShiftAsync(ShiftRequest newShift)
         {
             var message = "Shift added successfully";
-
             var shift = new Shift
             {
                 Name = newShift.ShiftName,
@@ -81,7 +79,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = newShift.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.Shifts.Add(shift);
             await _context.SaveChangesAsync();
             return message;
@@ -90,11 +87,8 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateShiftAsync(UpdateShift updatedShift)
         {
             var message = "Shift updated successfully";
-
             var existingShift = await _context.Shifts.FirstOrDefaultAsync(s => s.Id == updatedShift.ShiftId);
-            if (existingShift == null)
-                throw new MessageNotFoundException("Shift not found");
-
+            if (existingShift == null) throw new MessageNotFoundException("Shift not found");
             existingShift.Name = updatedShift.ShiftName;
             existingShift.ShortName = updatedShift.ShortName;
             existingShift.ShiftTypeId = updatedShift.ShiftTypeId;
@@ -110,7 +104,6 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateRegularShiftAsync(RegularShiftRequest regularShift)
         {
             var message = "Regular shifts added successfully";
-
             var shifts = regularShift.StaffIds.Select(staffId => new RegularShift
             {
                 ShiftType = regularShift.ShiftType,
@@ -151,7 +144,6 @@ namespace AttendanceManagement.Services
                 var existingAssignments = await _context.AssignShifts
                            .Where(a => a.StaffId == item.Id && a.IsActive)
                            .ToListAsync();
-
                 foreach (var existingShift in existingAssignments)
                 {
                     if (existingShift.ToDate >= assignShift.FromDate)
@@ -181,26 +173,22 @@ namespace AttendanceManagement.Services
                 _context.AssignShifts.Add(shiftAssign);
                 await _context.SaveChangesAsync();
             }
-
             await MarkExpiredShiftsInactive(assignShift.CreatedBy);
-
             return message;
         }
+
         private async Task MarkExpiredShiftsInactive(int updatedBy)
         {
             DateTime date = DateTime.Now;
-
             var expiredShifts = await _context.AssignShifts
                 .Where(s => s.IsActive && s.ToDate < DateOnly.FromDateTime(date))
                 .ToListAsync();
-
             foreach (var shift in expiredShifts)
             {
                 shift.IsActive = false;
                 shift.UpdatedBy = updatedBy;
                 shift.UpdatedUtc = DateTime.UtcNow;
             }
-
             await _context.SaveChangesAsync();
         }
 

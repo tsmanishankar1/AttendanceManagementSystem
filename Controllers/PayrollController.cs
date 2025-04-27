@@ -162,6 +162,5 @@ namespace AttendanceManagement.Controllers
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
-
     }
 }

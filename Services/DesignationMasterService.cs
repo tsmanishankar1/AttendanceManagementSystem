@@ -32,14 +32,12 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No designations found");
             }
-
             return allDesignation;
         }
 
         public async Task<string> AddDesignation(DesignationRequest designationRequest)
         {
             var message = "Designation added successfully";
-
             DesignationMaster designation = new DesignationMaster
             {
                 Name = designationRequest.FullName,
@@ -48,7 +46,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = designationRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.DesignationMasters.Add(designation);
             await _context.SaveChangesAsync();
             return message;
@@ -57,16 +54,11 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateDesignation(UpdateDesignation designation)
         {
             var message = "Designation updated successfully";
-
-            // Find the existing designation by DesignationMasterId and check if it's active
-            var existingDesignation = _context.DesignationMasters
-                .FirstOrDefault(d => d.Id == designation.DesignationMasterId);
-
+            var existingDesignation = _context.DesignationMasters.FirstOrDefault(d => d.Id == designation.DesignationMasterId);
             if(existingDesignation == null)
             {
                 throw new MessageNotFoundException("Designation not found");
             }
-
             existingDesignation.Name = designation.FullName;
             existingDesignation.ShortName = designation.ShortName;
             existingDesignation.IsActive = designation.IsActive;

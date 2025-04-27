@@ -70,6 +70,7 @@ public class ApplicationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("CreateCompOffAvail")]
     public async Task<IActionResult> Create(CompOffAvailRequest request)
     {
@@ -96,6 +97,7 @@ public class ApplicationController : ControllerBase
                     return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("CancelAppliedLeave")]
     public async Task<IActionResult> CancelAppliedLeave(CancelAppliedLeave cancel)
     {
@@ -176,6 +178,7 @@ public class ApplicationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("GetMonthlyCalendarDetails")]
     public async Task<IActionResult> GetMonthlyDetails(MonthlyCalendar calendar)
     {
@@ -198,6 +201,7 @@ public class ApplicationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpGet("GetShifts")]
     public IActionResult GetShiftsByStaffAndDateRange(int staffId, DateOnly fromDate, DateOnly toDate)
     {
@@ -636,6 +640,7 @@ public class ApplicationController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("AddReimbursement")]
     public async Task<IActionResult> CreateReimbursement(ReimbursementRequestModel request)
     {
@@ -647,44 +652,22 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-
-            await _loggingService.AuditLog(
-                "Reimbursement",
-                "POST",
-                "/api/Application/AddReimbursement",
-                "Reimbursement request submitted successfully",
-                request.CreatedBy,
-                JsonSerializer.Serialize(request)
-            );
-
+            await _loggingService.AuditLog("Reimbursement", "POST", "/api/Application/AddReimbursement", "Reimbursement request submitted successfully", request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError(
-                "Reimbursement",
-                "POST",
-                "/api/Application/AddReimbursement",
-                ex.Message,
-                ex.StackTrace ?? string.Empty,
-                ex.InnerException?.ToString() ?? string.Empty,
-                request.CreatedBy,
-                JsonSerializer.Serialize(request)
-            );
+            await _loggingService.LogError("Reimbursement", "POST", "/api/Application/AddReimbursement", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Reimbursement", "POST", "/api/Application/AddReimbursement", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError(
-                "Reimbursement",
-                "POST",
-                "/api/Application/AddReimbursement",
-                ex.Message,
-                ex.StackTrace ?? string.Empty,
-                ex.InnerException?.ToString() ?? string.Empty,
-                request.CreatedBy,
-                JsonSerializer.Serialize(request)
-            );
+            await _loggingService.LogError("Reimbursement", "POST", "/api/Application/AddReimbursement", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

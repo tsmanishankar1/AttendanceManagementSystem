@@ -46,14 +46,10 @@ public class BranchMasterService
         }
         return allBranch;
     }
+
     public async Task<string> CreateBranch(BranchMasterRequest branchMasterRequest)
     {
         var message = "Branch master added successfully.";
-        if (branchMasterRequest == null)
-        {
-            throw new ArgumentNullException(nameof(branchMasterRequest), "Branch details cannot be null.");
-        }
-
         var branchMaster = new BranchMaster
         {
             Name = branchMasterRequest.FullName,
@@ -73,26 +69,19 @@ public class BranchMasterService
             CreatedUtc = DateTime.UtcNow,
             CompanyMasterId = branchMasterRequest.CompanyMasterId
         };
-
         _context.BranchMasters.Add(branchMaster);
         await _context.SaveChangesAsync();
-
         return message;
     }
+
     public async Task<string> UpdateBranch(UpdateBranch branchMasterRequest)
     {
         var message = "Branch master updated successfully.";
-        if (branchMasterRequest == null)
-        {
-            throw new ArgumentNullException(nameof(branchMasterRequest), "Branch details cannot be null.");
-        }
-
         var existingBranch = _context.BranchMasters.FirstOrDefault(b => b.Id == branchMasterRequest.BranchMasterId);
         if (existingBranch == null)
         {
             throw new MessageNotFoundException("Branch not found");
         }
-
         existingBranch.Name = branchMasterRequest.FullName ?? existingBranch.Name;
         existingBranch.ShortName = branchMasterRequest.ShortName ?? existingBranch.ShortName;
         existingBranch.Address = branchMasterRequest.Address ?? existingBranch.Address;
@@ -114,63 +103,4 @@ public class BranchMasterService
         await _context.SaveChangesAsync();
         return message;
     }
-
-/*    public async Task<List<AttendanceDatum>> GetStaffAttendance(string staffId)
-    {
-        var staffAttendance = await _atrakContext.AttendanceData.Where(s => s.StaffId == staffId).ToListAsync();
-        if (staffAttendance.Count == 0)
-        {
-            throw new MessageNotFoundException("No attendance found for the staff");
-        }
-        return staffAttendance;
-    }
-
-    public async Task<string> UpdateStaffAttendance(AttendanceDatum attendanceDatum)
-    {
-        if (attendanceDatum == null)
-        {
-            throw new ArgumentNullException(nameof(attendanceDatum), "Attendance details cannot be null.");
-        }
-
-        var existingAttendance = await _atrakContext.AttendanceData
-            .FirstOrDefaultAsync(a => a.Id == attendanceDatum.Id);
-
-        if (existingAttendance == null)
-        {
-            throw new MessageNotFoundException("Attendance not found");
-        }
-
-        // Check if shift dates match actual dates
-        if (existingAttendance.ShiftInDate.Date != attendanceDatum.ActualInDate.Date ||
-            existingAttendance.ShiftOutDate.Date != attendanceDatum.ActualOutDate.Date)
-        {
-            throw new InvalidOperationException("Shift timing does not match actual attendance timing.");
-        }
-
-        // Calculate actual worked hours
-        if (attendanceDatum.ActualInTime.HasValue && attendanceDatum.ActualOutTime.HasValue)
-        {
-            attendanceDatum.ActualWorkedHours = attendanceDatum.ActualOutTime.Value - attendanceDatum.ActualInTime.Value;
-        }
-        else
-        {
-            throw new InvalidOperationException("Actual in time or actual out time is missing.");
-        }
-
-        // Update existing attendance record
-        existingAttendance.StaffId = attendanceDatum.StaffId ?? existingAttendance.StaffId;
-        existingAttendance.AttendanceDate = attendanceDatum.AttendanceDate;
-        existingAttendance.InTime = attendanceDatum.InTime;
-        existingAttendance.OutTime = attendanceDatum.OutTime;
-        existingAttendance.TotalHours = attendanceDatum.TotalHours;
-        existingAttendance.Status = attendanceDatum.Status;
-        existingAttendance.UpdatedBy = attendanceDatum.UpdatedBy;
-        existingAttendance.UpdatedUtc = DateTime.UtcNow;
-        existingAttendance.ActualWorkedHours = attendanceDatum.ActualWorkedHours;
-
-        _atrakContext.Update(existingAttendance);
-        await _atrakContext.SaveChangesAsync();
-
-        return "Staff attendance updated successfully.";
-    }
-*/}
+}

@@ -81,15 +81,17 @@ public class UserManagementController : ControllerBase
                 Success = true,
                 Message = result
             };
-
+            await _loggingService.AuditLog("Password Change", "POST", "/api/UserManagement/ChangePassword", result, model.UserId, JsonSerializer.Serialize(model));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
+            await _loggingService.LogError("Password Change", "POST", "/api/UserManagement/ChangePassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UserId, JsonSerializer.Serialize(model));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Password Change", "POST", "/api/UserManagement/ChangePassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UserId, JsonSerializer.Serialize(model));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -105,7 +107,6 @@ public class UserManagementController : ControllerBase
                 Success = true,
                 Message = result
             };
-
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -129,14 +130,17 @@ public class UserManagementController : ControllerBase
                 Success = true,
                 Message = result
             };
+            await _loggingService.AuditLog("Reset Password", "POST", "/api/UserManagement/ResetPassword", result, model.CreatedBy, JsonSerializer.Serialize(model));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
+            await _loggingService.LogError("Reset Password", "POST", "/api/UserManagement/ResetPassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Reset Password", "POST", "/api/UserManagement/ResetPassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -163,6 +167,7 @@ public class UserManagementController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpPost("RemoveUser")]
     public async Task<IActionResult> DeactivateStaff(int staffId, int deletedBy)
     {
@@ -188,6 +193,7 @@ public class UserManagementController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
     [HttpGet("GetMenusByRoleId")]
     public async Task<IActionResult> GetMenusByRoleId(int roleId)
     {

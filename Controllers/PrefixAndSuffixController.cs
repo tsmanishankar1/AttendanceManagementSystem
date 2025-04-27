@@ -52,10 +52,12 @@ public class PrefixAndSuffixController : ControllerBase
                 Success = true,
                 Message = createdSuffixLeaveType
             };
+            await _loggingService.AuditLog("Suffix Leave Type", "POST", "/api/PrefixAndSuffix/AddSuffixLeaveType", createdSuffixLeaveType, suffixLeaveType.CreatedBy, JsonSerializer.Serialize(suffixLeaveType));
             return Ok(response);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Suffix Leave Type", "POST", "/api/PrefixAndSuffix/AddSuffixLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, suffixLeaveType.CreatedBy, JsonSerializer.Serialize(suffixLeaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -94,10 +96,12 @@ public class PrefixAndSuffixController : ControllerBase
                 Success = true,
                 Message = message
             };
+            await _loggingService.AuditLog("Prefix Leave Type", "POST", "/api/PrefixAndSuffix/CreatePrefixLeaveType", message, prefixLeaveType.CreatedBy, JsonSerializer.Serialize(prefixLeaveType));
             return Ok(response);
         }
         catch (Exception ex)
         {
+            await _loggingService.LogError("Suffix Leave Type", "POST", "/api/PrefixAndSuffix/CreatePrefixLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, prefixLeaveType.CreatedBy, JsonSerializer.Serialize(prefixLeaveType));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

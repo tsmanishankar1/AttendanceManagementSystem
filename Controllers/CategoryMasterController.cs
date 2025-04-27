@@ -75,7 +75,7 @@ public class CategoryMasterController : ControllerBase
                 Success = true,
                 Message = success
             };
-            await _loggingService.AuditLog("Category Master", "POST", "/api/CategoryMaster/UpdateCategory", success ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
+            await _loggingService.AuditLog("Category Master", "POST", "/api/CategoryMaster/UpdateCategory", success, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)

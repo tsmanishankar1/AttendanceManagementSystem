@@ -17,6 +17,7 @@ public class ExcelImportController : ControllerBase
         _excelImportService = excelImportService;
         _loggingService = loggingService;
     }
+
     [HttpGet("DownloadExcelTemplates")]
     public async Task<IActionResult> DownloadExcelTemplates(int excelImportId)
     {

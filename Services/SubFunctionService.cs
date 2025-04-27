@@ -56,11 +56,9 @@ public class SubFunctionMasterService
         {
             throw new MessageNotFoundException("Sub function not found");
         }
-
         existingSubFunction.FullName = subFunctionMaster.FullName;
         existingSubFunction.ShortName = subFunctionMaster.ShortName;
         existingSubFunction.IsActive = subFunctionMaster.IsActive;
-
         existingSubFunction.UpdatedBy = subFunctionMaster.UpdatedBy;
         existingSubFunction.UpdatedUtc = DateTime.UtcNow;
 

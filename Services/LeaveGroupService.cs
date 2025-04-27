@@ -27,12 +27,10 @@ namespace AttendanceManagement.Services
                                          leave.CreatedBy
                                      })
                                    .ToListAsync();
-
             if (leaveGroups.Count == 0)
             {
                 throw new MessageNotFoundException("No leave groups found");
             }
-
             var leaveGroupResponses = leaveGroups.Select(leave => new LeaveGroupResponse
             {
                 LeaveGroupId = leave.Id,
@@ -44,9 +42,9 @@ namespace AttendanceManagement.Services
                                        .Select(transaction => transaction.LeaveTypeId)
                                        .ToList()
             }).ToList();
-
             return leaveGroupResponses;
         }
+
         public async Task<string> AddLeaveGroupWithTransactionsAsync(AddLeaveGroupDto addLeaveGroupDto)
         {
             var message = "Leave group added successfully";
@@ -57,7 +55,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = addLeaveGroupDto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.LeaveGroups.Add(leaveGroup);
             await _context.SaveChangesAsync();
 
@@ -74,7 +71,6 @@ namespace AttendanceManagement.Services
 
                 _context.LeaveGroupTransactions.Add(leaveGroupTransaction);
             }
-
             await _context.SaveChangesAsync();
             return message;
         }
@@ -83,15 +79,11 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateLeaveGroup(UpdateLeaveGroup leaveGroup)
         {
             var message = "Leave group updated successfully";
-
-            var existingLeaveGroup = await _context.LeaveGroups
-                .FirstOrDefaultAsync(lg => lg.Id == leaveGroup.LeaveGroupId);
-
+            var existingLeaveGroup = await _context.LeaveGroups.FirstOrDefaultAsync(lg => lg.Id == leaveGroup.LeaveGroupId);
             if (existingLeaveGroup == null)
             {
                 throw new MessageNotFoundException("Leave group not found");
             }
-
             existingLeaveGroup.Name = leaveGroup.LeaveGroupName ?? existingLeaveGroup.Name;
             existingLeaveGroup.IsActive = leaveGroup.IsActive;
             existingLeaveGroup.UpdatedBy = leaveGroup.UpdatedBy;
@@ -101,9 +93,7 @@ namespace AttendanceManagement.Services
 
             if (leaveGroup.LeaveTypeIds != null)
             {
-                var existingLeaveGroupTransactions = await _context.LeaveGroupTransactions
-                    .Where(lgt => lgt.LeaveGroupId == leaveGroup.LeaveGroupId).ToListAsync();
-
+                var existingLeaveGroupTransactions = await _context.LeaveGroupTransactions.Where(lgt => lgt.LeaveGroupId == leaveGroup.LeaveGroupId && lgt.IsActive).ToListAsync();
                 foreach (var transaction in existingLeaveGroupTransactions)
                 {
                     transaction.IsActive = false;
@@ -111,7 +101,6 @@ namespace AttendanceManagement.Services
                     transaction.UpdatedUtc = DateTime.UtcNow;
                 }
                 await _context.SaveChangesAsync(); 
-
                 var newLeaveGroupTransactions = leaveGroup.LeaveTypeIds.Select(leaveTypeId => new LeaveGroupTransaction
                 {
                     LeaveGroupId = leaveGroup.LeaveGroupId,
@@ -124,9 +113,7 @@ namespace AttendanceManagement.Services
                 await _context.LeaveGroupTransactions.AddRangeAsync(newLeaveGroupTransactions);
                 await _context.SaveChangesAsync();
             }
-
             return message;
         }
     }
 }
-

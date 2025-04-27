@@ -65,9 +65,9 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No Probations found");
             }
-
             return allProbation;
         }
+
         public async Task<ProbationResponse> GetProbationByIdAsync(int probationId)
         {
             var probation = await (from p in _context.Probations
@@ -88,12 +88,10 @@ namespace AttendanceManagement.Services
                                           CreatedBy = p.CreatedBy,
                                           ProbationReport = report,
                                       }).FirstOrDefaultAsync();
-
             if (probation == null)
             {
                 throw new MessageNotFoundException("Probation not found");
             }
-
             return probation;
         }
 
@@ -117,6 +115,7 @@ namespace AttendanceManagement.Services
             await _emailService.AssignManager(manager.OfficialEmail, manager.Id, $"{manager.FirstName} {manager.LastName}", $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, effectiveEndDate, assignManagerRequest.CreatedBy);
             return message;
         }
+
         public async Task<string> CreateProbationAsync(ProbationRequest probationRequest)
         {
             var message = "Probation created successfully.";
@@ -135,7 +134,6 @@ namespace AttendanceManagement.Services
                 CreatedBy = probationRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.Probations.Add(probation);
             await _context.SaveChangesAsync();
             return message;
@@ -179,14 +177,13 @@ namespace AttendanceManagement.Services
                                           CreatedBy = p.CreatedBy,
                                           ProbationReport = report
                                       }).ToListAsync();
-
             if (!matchingProbations.Any())
             {
                 throw new MessageNotFoundException("No Probations found");
             }
-
             return matchingProbations;
         }
+
         public async Task<List<FeedbackResponse>> GetFeedbackDetailsByApproverLevel1(int approverId)
         {
             var approver = await _context.StaffCreations
@@ -216,7 +213,6 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("Feedback not found");
             }
-
             return feedbackWithJoins;
         }
 
@@ -330,26 +326,23 @@ namespace AttendanceManagement.Services
                     IsApproved = f.IsApproved,
                     CreatedBy = f.CreatedBy
                 }).ToListAsync();
-
             if (feedbackList.Count == 0)
             {
                 throw new MessageNotFoundException("No Feedbacks found");
             }
             return feedbackList;
         }
+
         public async Task<string> UpdateFeedbackAsync(UpdateFeedback updatedFeedback)
         {
             var message = "Feedback updated successfully.";
             var feedback = _context.Feedbacks.FirstOrDefault(f => f.Id == updatedFeedback.FeedbackId && f.IsActive);
-            if (feedback == null || !feedback.IsActive)
-                throw new MessageNotFoundException("Feedback not found");
-
+            if (feedback == null || !feedback.IsActive) throw new MessageNotFoundException("Feedback not found");
             feedback.Id = updatedFeedback.ProbationId;
             feedback.FeedbackText = updatedFeedback.FeedbackText;
             feedback.UpdatedBy = updatedFeedback.UpdatedBy;
             feedback.UpdatedUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-
             return message;
         }
 
@@ -361,13 +354,13 @@ namespace AttendanceManagement.Services
             if (probation == null) throw new MessageNotFoundException("Probation not found");
             var feedback = await _context.Feedbacks.Where(f => f.ProbationId == hrConfirmation.ProbationId && f.IsActive).OrderByDescending(f => f.Id).FirstOrDefaultAsync();
             if (feedback == null) throw new MessageNotFoundException("Manager feedback not found");
+            if (probation.IsCompleted == true) throw new InvalidOperationException("Probation process has been already completed");
             probation.IsCompleted = hrConfirmation.IsCompleted;
             probation.IsActive = false;
             probation.UpdatedBy = hrConfirmation.CreatedBy;
             probation.UpdatedUtc = DateTime.UtcNow;
             feedback.IsActive = false;
             await _context.SaveChangesAsync();
-
             var notification = new ApprovalNotification
             {
                 StaffId = probation.StaffCreationId,
@@ -376,20 +369,15 @@ namespace AttendanceManagement.Services
                 CreatedBy = hrConfirmation.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-
             _context.ApprovalNotifications.Add(notification);
             await _context.SaveChangesAsync();
-
             probation.ApprovalNotificationId = notification.Id;
             await _context.SaveChangesAsync();
 
             var staffCreationId = probation.StaffCreationId;
-
             var pdfPath = GeneratePdf(staffCreationId);
-
             byte[] pdfBytes = System.IO.File.ReadAllBytes(pdfPath);
             string base64Pdf = Convert.ToBase64String(pdfBytes);
-
             var letterGeneration = new LetterGeneration
             {
                 LetterPath = pdfPath,
@@ -399,12 +387,11 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow,
                 IsActive = true
             };
-
             _context.LetterGenerations.Add(letterGeneration);
             await _context.SaveChangesAsync();
-
             return pdfPath;
         }
+
         private string GeneratePdf(int staffCreationId)
         {
             var staff = _context.StaffCreations.Find(staffCreationId);
@@ -412,69 +399,53 @@ namespace AttendanceManagement.Services
             {
                 throw new Exception($"Staff with ID {staffCreationId} not found.");
             }
-
             var fileName = $"Letter_{staff.FirstName} {staff.LastName}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
             var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
-
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-
             var filePath = Path.Combine(directoryPath, fileName);
-
             using (var pdfDoc = new Document(PageSize.A4))
             {
                 iTextSharp.text.pdf.PdfWriter.GetInstance(pdfDoc, new FileStream(filePath, FileMode.Create));
-
                 pdfDoc.Open();
-
                 pdfDoc.Add(new Paragraph($"Employee Confirmation Letter"));
                 pdfDoc.Add(new Paragraph($"Name: {staff.FirstName} {staff.LastName}"));
                 pdfDoc.Add(new Paragraph($"Congratulations! Your employment has been confirmed."));
                 pdfDoc.Add(new Paragraph($"Effective Date: {DateTime.UtcNow.ToShortDateString()}"));
-
                 pdfDoc.Close();
             }
-
             return filePath;
         }
+
         public async Task<string> GetPdfFilePath(int staffCreationId)
         {
-            var letterGeneration = await _context.LetterGenerations
-                .FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
-
+            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
             if (letterGeneration == null)
             {
                 throw new Exception("Letter generation record not found.");
             }
-
             var filePath = letterGeneration.LetterPath;
-
             if (!File.Exists(filePath))
             {
                 throw new Exception("PDF file not found.");
             }
-
             return filePath;
         }
+
         public async Task<string> GetPdfContent(int staffCreationId)
         {
-            var letterGeneration = await _context.LetterGenerations
-                .FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
-
+            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
             if (letterGeneration == null)
             {
                 throw new Exception("Letter generation record not found for the provided StaffCreationId.");
             }
-
             var filePath = letterGeneration.LetterPath;
-
             if (!File.Exists(filePath))
             {
                 throw new Exception("Generated PDF file not found.");
             }
-
             using (var pdfReader = new iText.Kernel.Pdf.PdfReader(filePath))
             using (var pdfDoc = new iText.Kernel.Pdf.PdfDocument(pdfReader))
             {
@@ -484,32 +455,25 @@ namespace AttendanceManagement.Services
                     var pageContent = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(page));
                     textContent.WriteLine(pageContent);
                 }
-
                 return textContent.ToString();
             }
         }
 
         public async Task<(byte[] fileBytes, string fileName, string contentType)> DownloadPdf(int staffCreationId)
         {
-            var letterGeneration = await _context.LetterGenerations
-                .FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
-
+            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
             if (letterGeneration == null)
             {
                 throw new Exception("Letter generation record not found for the provided StaffCreationId.");
             }
-
             var filePath = letterGeneration.LetterPath;
-
             if (!File.Exists(filePath))
             {
                 throw new Exception("Generated PDF file not found.");
             }
-
             var fileBytes = File.ReadAllBytes(filePath);
             var fileName = Path.GetFileName(filePath);
             const string contentType = "application/pdf";
-
             return (fileBytes, fileName, contentType);
         }
     }

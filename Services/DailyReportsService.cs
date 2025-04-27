@@ -31,10 +31,7 @@ public class DailyReportsService
     public async Task<List<TypesOfReport>> GetReportType()
     {
         var reportType = await _context.TypesOfReports.ToListAsync();
-        if (reportType.Count == 0)
-        {
-            throw new MessageNotFoundException("No report type found");
-        }
+        if (reportType.Count == 0) throw new MessageNotFoundException("No report type found");
         return reportType;
     }
 
@@ -45,12 +42,9 @@ public class DailyReportsService
         {
             throw new MessageNotFoundException("User not found");
         }
-
         var staffIds = request.StaffIds != null && request.StaffIds.Any() ? string.Join(",", request.StaffIds) : (object)DBNull.Value;
-
         DateOnly fromDate = default, toDate = default;
         DateTime fromDateTime = default, toDateTime = default;
-
         if (request.FromDate.HasValue && request.ToDate.HasValue)
         {
             fromDate = request.FromDate.Value;
@@ -103,7 +97,7 @@ public class DailyReportsService
         if (request.DailyReportsId == 1)
         {
             var parameters = new[]
-                        {
+            {
                 new SqlParameter("@DailyReportsId", request.DailyReportsId),
                 new SqlParameter("@StaffIds", staffIds),
                 new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
@@ -118,11 +112,9 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.AbsentListResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
@@ -142,7 +134,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -174,18 +165,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.AttendanceResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<AttendanceResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new AttendanceResponse
@@ -204,7 +191,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -216,7 +202,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 3)
@@ -237,18 +222,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.CompOffAvailResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<CompOffAvailResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new CompOffAvailResponse
@@ -276,7 +257,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -288,7 +268,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 4)
@@ -309,18 +288,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.CompOffCreditResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<CompOffCreditResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new CompOffCreditResponse
@@ -346,7 +321,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -358,13 +332,12 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 5)
         {
             var parameters = new[]
-                        {
+            {
                 new SqlParameter("@DailyReportsId", request.DailyReportsId),
                 new SqlParameter("@StaffIds", staffIds),
                 new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
@@ -379,11 +352,9 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.ContinuousAbsentListResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
@@ -404,7 +375,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -421,7 +391,7 @@ public class DailyReportsService
         else if (request.DailyReportsId == 6)
         {
             var parameters = new[]
-                        {
+            {
                 new SqlParameter("@DailyReportsId", request.DailyReportsId),
                 new SqlParameter("@StaffIds", staffIds),
                 new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
@@ -436,11 +406,9 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.CurrentDaySwipeInResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
@@ -461,7 +429,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -477,80 +444,72 @@ public class DailyReportsService
         }
         else if (request.DailyReportsId == 7)
         {
+            var parameters = new[]
             {
-                var parameters = new[]
-                {
-                new SqlParameter("@DailyReportsId", request.DailyReportsId),
-                new SqlParameter("@StaffIds", staffIds),
-                new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
-                new SqlParameter("@ToDate", request.ToDate ?? (object)DBNull.Value),
-                new SqlParameter("@CurrentMonth", request.CurrentMonth ?? (object)DBNull.Value),
-                new SqlParameter("@PreviousMonth", request.PreviousMonth ?? (object)DBNull.Value),
-                new SqlParameter("@FromMonth", request.FromMonth ?? (object)DBNull.Value),
-                new SqlParameter("@ToMonth", request.ToMonth ?? (object)DBNull.Value),
-                new SqlParameter("@FromDateTime", request.FromDateTime ?? (object)DBNull.Value),
-                new SqlParameter("@ToDateTime", request.ToDateTime ?? (object)DBNull.Value),
-                new SqlParameter("@IncludeTerminated", request.IncludeTerminated ?? (object)DBNull.Value),
-                new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
-                new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
+                    new SqlParameter("@DailyReportsId", request.DailyReportsId),
+                    new SqlParameter("@StaffIds", staffIds),
+                    new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
+                    new SqlParameter("@ToDate", request.ToDate ?? (object)DBNull.Value),
+                    new SqlParameter("@CurrentMonth", request.CurrentMonth ?? (object)DBNull.Value),
+                    new SqlParameter("@PreviousMonth", request.PreviousMonth ?? (object)DBNull.Value),
+                    new SqlParameter("@FromMonth", request.FromMonth ?? (object)DBNull.Value),
+                    new SqlParameter("@ToMonth", request.ToMonth ?? (object)DBNull.Value),
+                    new SqlParameter("@FromDateTime", request.FromDateTime ?? (object)DBNull.Value),
+                    new SqlParameter("@ToDateTime", request.ToDateTime ?? (object)DBNull.Value),
+                    new SqlParameter("@IncludeTerminated", request.IncludeTerminated ?? (object)DBNull.Value),
+                    new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
+                    new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
-                var reportList = await _storedProcedureDbContext.DailyPerformanceResponses
-                    .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
-                    .ToListAsync();
-
-                if (!reportList.Any())
-                {
-                    throw new MessageNotFoundException("No records found");
-                }
-
-                var result = new List<DailyPerformanceResponse>();
-
-                foreach (var report in reportList)
-                {
-                    var responseItem = new DailyPerformanceResponse
-                    {
-                        StaffId = report.StaffId,
-                        StaffCreationId = report.StaffCreationId,
-                        Name = report.Name,
-                        DepartmentId = report.DepartmentId,
-                        DesignationId = report.DesignationId,
-                        Date = report.Date,
-                        ShiftName = report.ShiftName,
-                        InTime = report.InTime,
-                        OutTime = report.OutTime,
-                        TotalHoursWorked = report.TotalHoursWorked,
-                        EarlyEntry = report.EarlyEntry,
-                        LateEntry = report.LateEntry,
-                        EarlyExit = report.EarlyExit,
-                        BreakHours = report.BreakHours,
-                        IsBreakHoursExceeded = report.IsBreakHoursExceeded,
-                        ExtraHoursWorked = report.ExtraHoursWorked,
-                        ProductiveHours = report.ProductiveHours,
-                        AttendanceStatus = report.AttendanceStatus
-                    };
-                    result.Add(responseItem);
-                }
-
-                var finalResponse = new
-                {
-                    ReportName = reportName1,
-                    FromDate = fromDate1,
-                    ToDate = toDate1,
-                    ReportDate = reportDate,
-                    UserId = userId,
-                    UserCreationId = userCreationId,
-                    UserName = userName,
-                    Records = result
-                };
-
-                return finalResponse;
+            var reportList = await _storedProcedureDbContext.DailyPerformanceResponses
+                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
+                .ToListAsync();
+            if (!reportList.Any())
+            {
+                throw new MessageNotFoundException("No records found");
             }
+            var result = new List<DailyPerformanceResponse>();
+            foreach (var report in reportList)
+            {
+                var responseItem = new DailyPerformanceResponse
+                {
+                    StaffId = report.StaffId,
+                    StaffCreationId = report.StaffCreationId,
+                    Name = report.Name,
+                    DepartmentId = report.DepartmentId,
+                    DesignationId = report.DesignationId,
+                    Date = report.Date,
+                    ShiftName = report.ShiftName,
+                    InTime = report.InTime,
+                    OutTime = report.OutTime,
+                    TotalHoursWorked = report.TotalHoursWorked,
+                    EarlyEntry = report.EarlyEntry,
+                    LateEntry = report.LateEntry,
+                    EarlyExit = report.EarlyExit,
+                    BreakHours = report.BreakHours,
+                    IsBreakHoursExceeded = report.IsBreakHoursExceeded,
+                    ExtraHoursWorked = report.ExtraHoursWorked,
+                    ProductiveHours = report.ProductiveHours,
+                    AttendanceStatus = report.AttendanceStatus
+                };
+                result.Add(responseItem);
+            }
+            var finalResponse = new
+            {
+                ReportName = reportName1,
+                FromDate = fromDate1,
+                ToDate = toDate1,
+                ReportDate = reportDate,
+                UserId = userId,
+                UserCreationId = userCreationId,
+                UserName = userName,
+                Records = result
+            };
+            return finalResponse;
         }
         else if (request.DailyReportsId == 8)
         {
             var parameters = new[]
-                        {
+            {
                 new SqlParameter("@DailyReportsId", request.DailyReportsId),
                 new SqlParameter("@StaffIds", staffIds),
                 new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
@@ -565,11 +524,9 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.FirstInLastOutResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
@@ -592,7 +549,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -624,18 +580,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value)
             };
-
             var reportList = await _storedProcedureDbContext.LeaveTakenResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<LeaveTakenResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new LeaveTakenResponse
@@ -653,7 +605,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -661,7 +612,6 @@ public class DailyReportsService
                 ToDate = toDate1,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 10)
@@ -682,19 +632,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.LeaveRequisitionResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<LeaveRequisitionResponse>();
-
-
             foreach (var report in reportList)
             {
                 var responseItem = new LeaveRequisitionResponse
@@ -724,7 +669,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -736,13 +680,12 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 11)
         {
             var parameters = new[]
-                         {
+            {
                 new SqlParameter("@DailyReportsId", request.DailyReportsId),
                 new SqlParameter("@StaffIds", staffIds),
                 new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
@@ -757,11 +700,9 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.NightShiftCountResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
@@ -783,7 +724,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -818,14 +758,11 @@ public class DailyReportsService
             var reportList = await _storedProcedureDbContext.ManualPunchResponse
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<ManualPunchResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new ManualPunchResponse
@@ -851,7 +788,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -863,7 +799,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 13)
@@ -884,19 +819,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.OnDutyRequisitionResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<OnDutyRequisitionResponse>();
-
-
             foreach (var report in reportList)
             {
                 var responseItem = new OnDutyRequisitionResponse
@@ -926,7 +856,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -938,7 +867,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 14)
@@ -959,11 +887,9 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.PresentListResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
@@ -983,7 +909,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1000,7 +925,7 @@ public class DailyReportsService
         else if (request.DailyReportsId == 15)
         {
             var parameters = new[]
-             {
+            {
                 new SqlParameter("@DailyReportsId", request.DailyReportsId),
                 new SqlParameter("@StaffIds", staffIds),
                 new SqlParameter("@FromDate", request.FromDate ?? (object)DBNull.Value),
@@ -1018,14 +943,11 @@ public class DailyReportsService
             var reportList = await _storedProcedureDbContext.RawPunchResponses
                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<RawPunchResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new RawPunchResponse
@@ -1041,7 +963,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1053,7 +974,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 16)
@@ -1077,14 +997,11 @@ public class DailyReportsService
             var reportList = await _storedProcedureDbContext.workFromHomeResponses
                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<WorkFromHomeResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new WorkFromHomeResponse
@@ -1114,7 +1031,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1126,7 +1042,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 17)
@@ -1150,14 +1065,11 @@ public class DailyReportsService
             var reportList = await _storedProcedureDbContext.BusinessTravelResponses
                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<BusinessTravelResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new BusinessTravelResponse
@@ -1187,7 +1099,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1199,7 +1110,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 18)
@@ -1220,19 +1130,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.PermissionRequisitionResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<PermissionRequisitionResponse>();
-
-
             foreach (var report in reportList)
             {
                 var responseItem = new PermissionRequisitionResponse
@@ -1261,7 +1166,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1273,7 +1177,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 19)
@@ -1297,14 +1200,11 @@ public class DailyReportsService
             var reportList = await _storedProcedureDbContext.LeaveBalanceResponses
                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<LeaveBalanceResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new LeaveBalanceResponse
@@ -1320,7 +1220,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1332,7 +1231,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 20)
@@ -1353,18 +1251,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.MonthlyReportResponse
                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<MonthlyReportResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new MonthlyReportResponse
@@ -1386,7 +1280,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1398,7 +1291,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 21)
@@ -1422,14 +1314,11 @@ public class DailyReportsService
             var reportList = await _storedProcedureDbContext.shiftExtensionResponses
                .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<ShiftExtensionResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new ShiftExtensionResponse
@@ -1458,7 +1347,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1470,7 +1358,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 22)
@@ -1491,18 +1378,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.WeeklyOffHolidayWorkingResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @FromDateTime, @ToDateTime, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<WeeklyOffHolidayWorkingResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new WeeklyOffHolidayWorkingResponse
@@ -1528,7 +1411,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1540,7 +1422,6 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
         else if (request.DailyReportsId == 23)
@@ -1559,18 +1440,14 @@ public class DailyReportsService
                 new SqlParameter("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value),
                 new SqlParameter("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value),
             };
-
             var reportList = await _storedProcedureDbContext.VaccinationReportResponses
                 .FromSqlRaw("EXEC DailyReport @DailyReportsId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", parameters)
                 .ToListAsync();
-
             if (!reportList.Any())
             {
                 throw new MessageNotFoundException("No records found");
             }
-
             var result = new List<VaccinationReportResponse>();
-
             foreach (var report in reportList)
             {
                 var responseItem = new VaccinationReportResponse
@@ -1591,7 +1468,6 @@ public class DailyReportsService
                 };
                 result.Add(responseItem);
             }
-
             var finalResponse = new
             {
                 ReportName = reportName1,
@@ -1603,10 +1479,8 @@ public class DailyReportsService
                 UserName = userName,
                 Records = result
             };
-
             return finalResponse;
         }
-
         throw new MessageNotFoundException("Report type not found");
     }
 }

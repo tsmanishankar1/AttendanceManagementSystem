@@ -28,9 +28,9 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No locations found");
             }
-
             return allLocation;
         }
+
         public async Task<string> CreateLocationMasterAsync(LocationRequest locationMaster)
         {
             var message = "Location added successfully";
@@ -49,9 +49,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateLocationMasterAsync(UpdateLocation locationMaster)
         {
             var message = "Location updated successfully";
-            var existingLocation = await _context.LocationMasters
-                .FirstOrDefaultAsync(l => l.Id == locationMaster.LocationMasterId);
-
+            var existingLocation = await _context.LocationMasters.FirstOrDefaultAsync(l => l.Id == locationMaster.LocationMasterId);
             if (existingLocation == null)
             {
                 throw new MessageNotFoundException("Location not found");
@@ -66,4 +64,3 @@ namespace AttendanceManagement.Services
         }
     }
 }
-

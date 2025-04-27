@@ -1106,16 +1106,6 @@
 			<response code="404">If no holiday types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.GetHolidayById(System.Int32)">
-			<summary>
-				Retrieves a holiday by its ID.
-			</summary>
-			<param name="holidayMasterId">The ID of the holiday.</param>
-			<returns>The holiday with the specified ID.</returns>
-			<response code="200">Returns the holiday</response>
-			<response code="404">If the holiday is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="M:AttendanceManagement.Controllers.HolidayController.CreateHoliday(AttendanceManagement.Input_Models.HolidayRequest)">
 			<summary>
 				Creates a new holiday.
@@ -1170,16 +1160,6 @@
 			<returns>All holiday zones.</returns>
 			<response code="200">Returns the list of holiday zones</response>
 			<response code="404">If no holiday zones are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.GetHolidayZone(System.Int32)">
-			<summary>
-				Retrieves a holiday zone by its ID.
-			</summary>
-			<param name="holidayZoneId">The ID of the holiday zone.</param>
-			<returns>The holiday zone with the specified ID.</returns>
-			<response code="200">Returns the holiday zone</response>
-			<response code="404">If the holiday zone is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.HolidayController.PostHolidayZone(AttendanceManagement.Input_Models.HolidayZoneRequest)">
@@ -1627,6 +1607,8 @@
 			<param name="approval">The approval request details.</param>
 			<returns>The generated PDF in base64 format.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">If the specified staff or approval details are not found</response>
+			<response code="409">If there is a conflict in the approval process (e.g., already processed or conflicting data)</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ProbationController.AddFeedback(AttendanceManagement.Input_Models.FeedbackRequest)">

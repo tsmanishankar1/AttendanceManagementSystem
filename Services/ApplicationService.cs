@@ -252,7 +252,6 @@ public class ApplicationService
                          Id = tempWithSc.bt.Id,
                          ApplicationTypeId = tempWithSc.bt.ApplicationTypeId,
                          ApplicationTypeName = tempWithSc.bt.ApplicationType.Name,
-
                          Status1 = tempWithSc.bt.IsCancelled == true ? "Cancelled" :
                              (sc != null)
                                  ? (tempWithSc.bt.Status1.HasValue
@@ -266,7 +265,6 @@ public class ApplicationService
                                      ? (tempWithSc.bt.Status2.Value ? "Approved" : "Rejected")
                                      : "Pending")
                                  : null,
-
                          StartDuration = tempWithSc.bt.StartDuration,
                          EndDuration = tempWithSc.bt.EndDuration,
                          FromTime = tempWithSc.bt.FromTime,
@@ -286,21 +284,18 @@ public class ApplicationService
                            Id = tempWithSc.wfh.Id,
                            ApplicationTypeId = tempWithSc.wfh.ApplicationTypeId,
                            ApplicationTypeName = tempWithSc.wfh.ApplicationType.Name,
-
                            Status1 = tempWithSc.wfh.IsCancelled == true ? "Cancelled" :
                                (sc != null)
                                    ? (tempWithSc.wfh.Status1.HasValue
                                        ? (tempWithSc.wfh.Status1.Value ? "Approved" : "Rejected")
                                        : "Pending")
                                    : (tempWithSc.wfh.StaffId == null ? "Pending" : null),
-
                            Status2 = tempWithSc.wfh.IsCancelled == true ? "Cancelled" :
                                (sc != null && sc.ApprovalLevel2 != null)
                                    ? (tempWithSc.wfh.Status2.HasValue
                                        ? (tempWithSc.wfh.Status2.Value ? "Approved" : "Rejected")
                                        : "Pending")
                                    : null,
-
                            StartDuration = tempWithSc.wfh.StartDuration,
                            EndDuration = tempWithSc.wfh.EndDuration,
                            FromTime = tempWithSc.wfh.FromTime,
@@ -329,14 +324,12 @@ public class ApplicationService
                           FromDate = tempWithSc.tempWithS.temp.sc.FromDate,
                           ToDate = tempWithSc.tempWithS.temp.sc.ToDate,
                           Reason = tempWithSc.tempWithS.temp.sc.Reason,
-
                           Status1 = tempWithSc.tempWithS.temp.sc.IsCancelled == true ? "Cancelled" :
                                     (sc != null)
                                         ? (tempWithSc.tempWithS.temp.sc.Status1.HasValue
                                             ? (tempWithSc.tempWithS.temp.sc.Status1.Value ? "Approved" : "Rejected")
                                             : "Pending")
                                         : (tempWithSc.tempWithS.temp.sc.StaffId == null ? "Pending" : null),
-
                           Status2 = tempWithSc.tempWithS.temp.sc.IsCancelled == true ? "Cancelled" :
                                     (sc != null && sc.ApprovalLevel2 != null)
                                         ? (tempWithSc.tempWithS.temp.sc.Status2.HasValue
@@ -361,7 +354,6 @@ public class ApplicationService
                          BeforeShiftHours = tempWithSc.se.BeforeShiftHours,
                          AfterShiftHours = tempWithSc.se.AfterShiftHours,
                          Remarks = tempWithSc.se.Remarks,
-
                          Status1 = tempWithSc.se.IsCancelled == true ? "Cancelled" :
                                    (sc != null)
                                        ? (tempWithSc.se.Status1.HasValue
@@ -403,7 +395,6 @@ public class ApplicationService
                                           ? (temp.wh.Status1.Value ? "Approved" : "Rejected")
                                           : "Pending")
                                       : (temp.wh.StaffId == null ? "Pending" : null),
-
                         Status2 = temp.wh.IsCancelled == true ? "Cancelled" :
                                   (temp.sc != null && temp.sc.ApprovalLevel2 != null)
                                       ? (temp.wh.Status2.HasValue
@@ -430,14 +421,12 @@ public class ApplicationService
                         ToDuration = tempWithSc.coa.ToDuration,
                         Reason = tempWithSc.coa.Reason,
                         TotalDays = tempWithSc.coa.TotalDays,
-
                         Status1 = tempWithSc.coa.IsCancelled == true ? "Cancelled" :
                                   (sc != null)
                                       ? (tempWithSc.coa.Status1.HasValue
                                           ? (tempWithSc.coa.Status1.Value ? "Approved" : "Rejected")
                                           : "Pending")
                                       : "Pending",
-
                         Status2 = tempWithSc.coa.IsCancelled == true ? "Cancelled" :
                                   (sc != null && sc.ApprovalLevel2 != null)
                                       ? (tempWithSc.coa.Status2.HasValue
@@ -460,14 +449,12 @@ public class ApplicationService
                         WorkedDate = tempWithSc.coc.WorkedDate,
                         TotalDays = tempWithSc.coc.TotalDays,
                         Reason = tempWithSc.coc.Reason,
-
                         Status1 = tempWithSc.coc.IsCancelled == true ? "Cancelled" :
                                   (sc != null)
                                       ? (tempWithSc.coc.Status1.HasValue
                                           ? (tempWithSc.coc.Status1.Value ? "Approved" : "Rejected")
                                           : "Pending")
                                       : "Pending",
-
                         Status2 = tempWithSc.coc.IsCancelled == true ? "Cancelled" :
                                   (sc != null && sc.ApprovalLevel2 != null)
                                       ? (tempWithSc.coc.Status2.HasValue
@@ -498,7 +485,6 @@ public class ApplicationService
                                           ? (tempWithSc.r.Status1.Value ? "Approved" : "Rejected")
                                           : "Pending")
                                       : "Pending",
-
                         Status2 = tempWithSc.r.CancelledOn.HasValue ? "Cancelled" :
                                   (sc != null && sc.ApprovalLevel2 != null)
                                       ? (tempWithSc.r.Status2.HasValue
@@ -511,6 +497,7 @@ public class ApplicationService
         };
         return application;
     }
+
     public async Task<object> GetMonthlyDetailsAsync(int staffId, int month, int year)
     {
         var staff = await _context.StaffCreations
@@ -665,7 +652,6 @@ public class ApplicationService
             else if (statusName != null)
             {
                 string name = statusName;
-
                 // Handle grouped types for consistent color mapping
                 if (new[]
                 {   "Casual Leave", "First Half Casual Leave", "Second Half Casual Leave", "Sick Leave", "First Half Sick Leave", "Second Half Sick Leave",
@@ -735,7 +721,6 @@ public class ApplicationService
                 holidayName = holiday?.HolidayName
             };
         }).ToList();
-
         return new
         {
             staff.Id,
@@ -746,6 +731,7 @@ public class ApplicationService
             Details = result
         };
     }
+
     public async Task<IEnumerable<CompOffCreditResponseDto>> GetCompOffCreditAllAsync()
     {
         var compOffCredits = await _context.CompOffCredits.ToListAsync();
@@ -757,6 +743,7 @@ public class ApplicationService
             Reason = c.Reason,
         }).ToList();
     }
+
     public async Task<string> CreateAsync(CompOffCreditDto compOffCreditDto)
     {
         var message = "CompOff Credit Successfully";
@@ -805,6 +792,7 @@ public class ApplicationService
         }
         return message;
     }
+
     public async Task<string> CreateAsync(CompOffAvailRequest request)
     {
         var message = "CompOff Avail Successfully";
@@ -843,7 +831,6 @@ public class ApplicationService
             CreatedUtc = DateTime.UtcNow,
             IsActive = true,
         };
-
         _context.CompOffAvails.Add(compOff);
         await _context.SaveChangesAsync();
 
@@ -873,6 +860,7 @@ public class ApplicationService
         }
         return message;
     }
+
     public async Task<List<CompOffAvailDto>> GetAllAsync()
     {
         var compOffs = await (from compOff in _context.CompOffAvails
@@ -896,6 +884,7 @@ public class ApplicationService
         }
         return compOffs;
     }
+
     public async Task<List<object>> GetApplicationRequisition(int approverId, List<int>? staffIds, int? applicationTypeId, DateOnly? fromDate, DateOnly? toDate)
     {
         var approver = await _context.StaffCreations
@@ -903,7 +892,6 @@ public class ApplicationService
             .Select(x => new { x.AccessLevel })
             .FirstOrDefaultAsync();
         bool isSuperAdmin = approver?.AccessLevel == "SUPER ADMIN";
-
         List<object> result = new List<object>();
         if (applicationTypeId.HasValue && applicationTypeId == 1)
         {
@@ -923,9 +911,7 @@ public class ApplicationService
                                          && (!toDate.HasValue || leave.ToDate <= toDate)
                                          && _context.AttendanceRecords.Any(att =>
                                          (att.IsFreezed == null || att.IsFreezed == false))
-                                         &&
-                                         (isSuperAdmin ||
-                                         approverId < 0 || 
+                                         && (isSuperAdmin || approverId < 0 || 
                                              ((
                                                      leave.StaffId.HasValue &&
                                                      leaveStaff.ApprovalLevel1 == approverId &&
@@ -998,11 +984,8 @@ public class ApplicationService
                                              && permission.IsCancelled == null
                                              && _context.AttendanceRecords.Any(att =>
                                               (att.IsFreezed == null || att.IsFreezed == false))
-                                             &&
-                                             (isSuperAdmin ||
-                                             approverId < 0 ||
-                                                        (
-                                                            (
+                                             && (isSuperAdmin || approverId < 0 ||
+                                                        ((
                                                                 permission.StaffId.HasValue &&
                                                                 staff.ApprovalLevel1 == approverId &&
                                                                 permission.Status1 == null &&
@@ -1031,9 +1014,7 @@ public class ApplicationService
                                                                 permission.Status2 == null &&
                                                                 permission.ApplicationTypeId == 2 &&
                                                                 permission.Status1 != false
-                                                            )
-                                                        )
-                                                    )
+                                                            ) ) )
                                                     && (
                                                         staffIds == null || !staffIds.Any() ||
                                                         (
@@ -1079,11 +1060,8 @@ public class ApplicationService
                                               && punch.IsCancelled == null
                                               && _context.AttendanceRecords.Any(att =>
                                               (att.IsFreezed == null || att.IsFreezed == false))
-                                              &&
-                                              (isSuperAdmin ||
-                                                  approverId < 0 ||
-                                                  (
-                                                      (
+                                              && (isSuperAdmin || approverId < 0 ||
+                                                  ((
                                                           punch.StaffId.HasValue &&
                                                           staff.ApprovalLevel1 == approverId &&
                                                           punch.Status1 == null &&
@@ -1112,9 +1090,7 @@ public class ApplicationService
                                                           punch.Status2 == null &&
                                                           punch.ApplicationTypeId == 3 &&
                                                           punch.Status1 != false
-                                                      )
-                                                  )
-                                              )
+                                                      ) ) )
                                               && (
                                                   staffIds == null || !staffIds.Any() ||
                                                   (
@@ -1147,7 +1123,6 @@ public class ApplicationService
             }
             result.AddRange(getManualPunch.Cast<object>());
         }
-
         else if (applicationTypeId.HasValue && applicationTypeId == 4)
         {
             var getOnDutyRequisitions = await (from duty in _context.OnDutyRequisitions
@@ -1165,11 +1140,8 @@ public class ApplicationService
                                                      && (!toDate.HasValue || duty.EndDate <= toDate)
                                                      && _context.AttendanceRecords.Any(att =>
                                                         (att.IsFreezed == null || att.IsFreezed == false))
-                                                     &&
-                                                     (isSuperAdmin ||
-                                                         approverId < 0 ||
-                                                         (
-                                                         (
+                                                     && (isSuperAdmin || approverId < 0 ||
+                                                         ((
                                                              (duty.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                               duty.Status1 == null && duty.ApplicationTypeId == 4) ||
                                                              (!duty.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
@@ -1182,9 +1154,7 @@ public class ApplicationService
                                                              (!duty.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                               duty.Status1 == true && duty.Status2 == null &&
                                                               duty.Status1 != false && duty.ApplicationTypeId == 4)
-                                                         )
-                                                         )
-                                                     )
+                                                         )))
                                                      && (
                                                          staffIds == null || !staffIds.Any() ||
                                                          (duty.StaffId.HasValue && staffIds.Contains(duty.StaffId.Value)) ||
@@ -1215,7 +1185,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No on-duty requisition found");
             }
-
             result.AddRange(getOnDutyRequisitions.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 5)
@@ -1235,9 +1204,7 @@ public class ApplicationService
                                                   && (!toDate.HasValue || travel.ToDate <= toDate)
                                                   && _context.AttendanceRecords.Any(att =>
                                                     (att.IsFreezed == null || att.IsFreezed == false))
-                                                  &&
-                                                  (isSuperAdmin ||
-                                                      (approverId < 0 ||
+                                                  && (isSuperAdmin || (approverId < 0 ||
                                                       (
                                                           (travel.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                            travel.Status1 == null && travel.ApplicationTypeId == 5) ||
@@ -1251,9 +1218,7 @@ public class ApplicationService
                                                           (!travel.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                            travel.Status1 == true && travel.Status2 == null &&
                                                            travel.Status1 != false && travel.ApplicationTypeId == 5)
-                                                      )
-                                                  )
-                                                  )
+                                                      )))
                                                   && (
                                                       staffIds == null || !staffIds.Any() ||
                                                       (travel.StaffId.HasValue && staffIds.Contains(travel.StaffId.Value)) ||
@@ -1284,7 +1249,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No business travel found");
             }
-
             result.AddRange(getBusinessTravels.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 6)
@@ -1304,11 +1268,8 @@ public class ApplicationService
                                                 && (!toDate.HasValue || workFromHome.ToDate <= toDate)
                                                 && _context.AttendanceRecords.Any(att =>
                                                 (att.IsFreezed == null || att.IsFreezed == false))
-                                                &&
-                                                (isSuperAdmin ||
-                                                    approverId < 0 ||
-                                                    (
-                                                    (
+                                                && (isSuperAdmin || approverId < 0 ||
+                                                ((
                                                         (workFromHome.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                          workFromHome.Status1 == null && workFromHome.ApplicationTypeId == 6) ||
                                                         (!workFromHome.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
@@ -1321,9 +1282,7 @@ public class ApplicationService
                                                         (!workFromHome.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                          workFromHome.Status1 == true && workFromHome.Status2 == null &&
                                                          workFromHome.Status1 != false && workFromHome.ApplicationTypeId == 6)
-                                                    )
-                                                    )
-                                                )
+                                                    ) ) )
                                                 && (
                                                     staffIds == null || !staffIds.Any() ||
                                                     (workFromHome.StaffId.HasValue && staffIds.Contains(workFromHome.StaffId.Value)) ||
@@ -1354,7 +1313,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No work from home found");
             }
-
             result.AddRange(getWorkFromHomes.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 7)
@@ -1375,11 +1333,8 @@ public class ApplicationService
                                                && (!toDate.HasValue || shiftChange.ToDate <= toDate)
                                                && _context.AttendanceRecords.Any(att =>
                                                 (att.IsFreezed == null || att.IsFreezed == false))
-                                               &&
-                                               (isSuperAdmin ||
-                                                   approverId < 0 ||
-                                                   (
-                                                   (
+                                               && (isSuperAdmin || approverId < 0 ||
+                                               ( (
                                                        (shiftChange.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                         shiftChange.Status1 == null && shiftChange.ApplicationTypeId == 7) ||
                                                        (!shiftChange.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
@@ -1392,9 +1347,7 @@ public class ApplicationService
                                                        (!shiftChange.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                         shiftChange.Status1 == true && shiftChange.Status2 == null &&
                                                         shiftChange.Status1 != false && shiftChange.ApplicationTypeId == 7)
-                                                   )
-                                               )
-                                               )
+                                                   ) ) )
                                                && (
                                                    staffIds == null || !staffIds.Any() ||
                                                    (shiftChange.StaffId.HasValue && staffIds.Contains(shiftChange.StaffId.Value)) ||
@@ -1422,7 +1375,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No shift change found");
             }
-
             result.AddRange(getShiftChanges.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 8)
@@ -1444,11 +1396,8 @@ public class ApplicationService
                                                           : staffIds.Contains(shiftExtension.CreatedBy)))
                                                   && _context.AttendanceRecords.Any(att =>
                                                     (att.IsFreezed == null || att.IsFreezed == false))
-                                                  &&
-                                                  (isSuperAdmin ||
-                                                      approverId < 0 ||
-                                                      (
-                                                      (
+                                                  && (isSuperAdmin || approverId < 0 ||
+                                                      ( (
                                                           (shiftExtension.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                            shiftExtension.Status1 == null && shiftExtension.ApplicationTypeId == 8) ||
                                                           (!shiftExtension.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
@@ -1461,9 +1410,7 @@ public class ApplicationService
                                                           (!shiftExtension.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                            shiftExtension.Status1 == true && shiftExtension.Status2 == null &&
                                                            shiftExtension.Status1 != false && shiftExtension.ApplicationTypeId == 8)
-                                                      )
-                                                      )
-                                                  )
+                                                      ) ) )
                                                   && (!fromDate.HasValue || shiftExtension.TransactionDate >= fromDate)
                                                   && (!toDate.HasValue || shiftExtension.TransactionDate <= toDate)
                                             select new
@@ -1489,7 +1436,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No shift extension found");
             }
-
             result.AddRange(getShiftExtensions.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 9)
@@ -1505,32 +1451,27 @@ public class ApplicationService
                                                           && (holidayWorking.StaffId == null || staff.IsActive == true)
                                                           && creatorStaff.IsActive == true
                                                           && holidayWorking.IsCancelled == null
-                                                          && (staffIds == null || !staffIds.Any() ||
-                                                              (holidayWorking.StaffId.HasValue
+                                                          && (staffIds == null || !staffIds.Any()
+                                                          || (holidayWorking.StaffId.HasValue
                                                                   ? staffIds.Contains(holidayWorking.StaffId.Value)
                                                                   : staffIds.Contains(holidayWorking.CreatedBy)))
                                                           && _context.AttendanceRecords.Any(att =>
                                                             (att.IsFreezed == null || att.IsFreezed == false))
-                                                          &&
-                                                          (isSuperAdmin ||
-                                                              approverId < 0 ||
-                                                              (
-                                                              (
+                                                          && (isSuperAdmin || approverId < 0
+                                                          || ((
                                                                   (holidayWorking.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                                    holidayWorking.Status1 == null && holidayWorking.ApplicationTypeId == 9) ||
                                                                   (!holidayWorking.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
                                                                    holidayWorking.Status1 == null && holidayWorking.ApplicationTypeId == 9)
-                                                              ) ||
-                                                              (
+                                                              )
+                                                              || (
                                                                   (holidayWorking.StaffId.HasValue && staff.ApprovalLevel2 == approverId &&
                                                                    holidayWorking.Status1 == true && holidayWorking.Status2 == null &&
                                                                    holidayWorking.Status1 != false && holidayWorking.ApplicationTypeId == 9) ||
                                                                   (!holidayWorking.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                                    holidayWorking.Status1 == true && holidayWorking.Status2 == null &&
                                                                    holidayWorking.Status1 != false && holidayWorking.ApplicationTypeId == 9)
-                                                              )
-                                                              )
-                                                          )                                                       
+                                                              )))                                                       
                                                           && (!fromDate.HasValue || holidayWorking.TxnDate >= fromDate)
                                                           && (!toDate.HasValue || holidayWorking.TxnDate <= toDate)
                                                     select new
@@ -1556,7 +1497,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No weekly off holiday working found");
             }
-
             result.AddRange(getWeeklyOffHolidayWorking.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 10)
@@ -1577,11 +1517,8 @@ public class ApplicationService
                                                    (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
                                                && _context.AttendanceRecords.Any(att =>
                                                 (att.IsFreezed == null || att.IsFreezed == false))
-                                               &&
-                                               (isSuperAdmin ||
-                                                   approverId < 0 ||
-                                                   (
-                                                   (
+                                               && (isSuperAdmin || approverId < 0 ||
+                                                   ((
                                                        (compOff.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                         compOff.Status1 == null && compOff.ApplicationTypeId == 10) ||
                                                        (!compOff.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
@@ -1594,9 +1531,7 @@ public class ApplicationService
                                                        (!compOff.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                         compOff.Status1 == true && compOff.Status2 == null &&
                                                         compOff.Status1 != false && compOff.ApplicationTypeId == 10)
-                                                   )
-                                                   )
-                                               )
+                                                   ) ) )
                                                && (!fromDate.HasValue || compOff.FromDate >= fromDate)
                                                && (!toDate.HasValue || compOff.ToDate <= toDate)
                                          select new
@@ -1624,7 +1559,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No Comp Off Avail found");
             }
-
             result.AddRange(getCompOffAvail.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 11)
@@ -1645,11 +1579,8 @@ public class ApplicationService
                                                     (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
                                                 && _context.AttendanceRecords.Any(att =>
                                                 (att.IsFreezed == null || att.IsFreezed == false))
-                                                &&
-                                                (isSuperAdmin ||
-                                                    approverId < 0 ||
-                                                    (
-                                                    (
+                                                && (isSuperAdmin || approverId < 0 ||
+                                                    ( (
                                                         (compOff.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                          compOff.Status1 == null && compOff.ApplicationTypeId == 11) ||
                                                         (!compOff.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
@@ -1662,10 +1593,7 @@ public class ApplicationService
                                                         (!compOff.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                          compOff.Status1 == true && compOff.Status2 == null &&
                                                          compOff.ApplicationTypeId == 11)
-                                                    )
-                                                    )
-                                                )
-
+                                                    ) ) )
                                           select new
                                           {
                                               compOff.Id,
@@ -1687,7 +1615,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No Comp Off Credit found");
             }
-
             result.AddRange(getCompOffCredit.Cast<object>());
         }
         else if (applicationTypeId.HasValue && applicationTypeId == 18)
@@ -1709,11 +1636,8 @@ public class ApplicationService
                                                  )
                                                  && _context.AttendanceRecords.Any(att =>
                                                     (att.IsFreezed == null || att.IsFreezed == false))
-                                                 &&
-                                                 (isSuperAdmin ||
-                                                     approverId < 0 ||
-                                                     (
-                                                     (
+                                                 && (isSuperAdmin || approverId < 0 ||
+                                                     ((
                                                          (reimbursement.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
                                                           reimbursement.Status1 == null && reimbursement.ApplicationTypeId == 18) ||
                                                          (!reimbursement.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
@@ -1726,9 +1650,7 @@ public class ApplicationService
                                                          (!reimbursement.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
                                                           reimbursement.Status1 == true && reimbursement.Status2 == null &&
                                                           reimbursement.ApplicationTypeId == 18)
-                                                     )
-                                                     )
-                                                 )
+                                                     ) ) )
                                            select new
                                            {
                                                reimbursement.Id,
@@ -1755,7 +1677,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No reimbursements found");
             }
-
             result.AddRange(getReimbursements.Cast<object>());
         }
         return result;
@@ -1784,9 +1705,7 @@ public class ApplicationService
     public async Task<string> UpdateApprovalNotifications(int staffId, int notificationId)
     {
         var message = "";
-        var notification = await _context.ApprovalNotifications
-            .Where(n => n.StaffId == staffId && n.Id == notificationId && n.IsActive)
-            .FirstOrDefaultAsync();
+        var notification = await _context.ApprovalNotifications.FirstOrDefaultAsync(n => n.StaffId == staffId && n.Id == notificationId && n.IsActive);
         if (notification != null)
         {
             notification.UpdatedBy = staffId;
@@ -1814,14 +1733,8 @@ public class ApplicationService
 
         if (individualLeave == null || individualLeave.AvailableBalance == 0 || (individualLeave != null && (individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance < leaveRequisitionRequest.TotalDays)))
         {
-            if (leaveRequisitionRequest.StaffId != null)
-            {
-                throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
-            }
-            else
-            {
-                throw new MessageNotFoundException("Insufficient leave balance found");
-            }
+            if (leaveRequisitionRequest.StaffId != null) throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
+            else throw new MessageNotFoundException("Insufficient leave balance found");
         }
 
         var existingLeaves = await _context.LeaveRequisitions
@@ -1873,7 +1786,6 @@ public class ApplicationService
                 throw new InvalidOperationException("Leave request already exists");
             }
         }
-
         LeaveRequisition leaveRequisition = new LeaveRequisition
         {
             ApplicationTypeId = leaveRequisitionRequest.ApplicationTypeId,
@@ -1889,9 +1801,9 @@ public class ApplicationService
             CreatedBy = leaveRequisitionRequest.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-
         _context.LeaveRequisitions.Add(leaveRequisition);
         await _context.SaveChangesAsync();
+
         string requestDateTime = leaveRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if(approver1 != null)
@@ -1925,11 +1837,7 @@ public class ApplicationService
             CommonPermission commonPermission = new CommonPermission();
             var permissionDate = commonPermissionRequest.PermissionDate;
             var dayOfWeek = permissionDate.DayOfWeek;
-
-            if (dayOfWeek == DayOfWeek.Saturday)
-            {
-                throw new InvalidOperationException("Permission is not allowed on Saturdays.");
-            }
+            if (dayOfWeek == DayOfWeek.Saturday) throw new InvalidOperationException("Permission is not allowed on Saturdays.");
             var hasLeaveOnDate = await _context.LeaveRequisitions
             .AnyAsync(l =>((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
                 (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
@@ -1937,10 +1845,7 @@ public class ApplicationService
                 (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
                 permissionDate >= l.FromDate && permissionDate <= l.ToDate && (l.Status1 == null || l.Status1 == true) &&
                 l.IsActive == true && (l.IsCancelled == false || l.IsCancelled == null));
-            if (hasLeaveOnDate)
-            {
-                throw new InvalidOperationException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
-            }
+            if (hasLeaveOnDate) throw new InvalidOperationException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
             var startOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month, 1);
             var endOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month,
                 DateTime.DaysInMonth(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month));
@@ -1952,10 +1857,7 @@ public class ApplicationService
                 (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
                 (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
                 l.PermissionDate == commonPermissionRequest.PermissionDate);
-            if (existingPermissionOnDate)
-            {
-                throw new InvalidOperationException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
-            }
+            if (existingPermissionOnDate) throw new InvalidOperationException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
             var permissionsThisMonth = await _context.CommonPermissions
                 .Where(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
                     (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
@@ -1964,22 +1866,12 @@ public class ApplicationService
                                     l.PermissionDate >= startOfMonth &&
                                     l.PermissionDate <= endOfMonth)
                 .ToListAsync();
-            if (permissionsThisMonth.Count >= 2)
-            {
-                throw new InvalidOperationException($"You cannot apply for permission more than twice in {monthName}.");
-            }
+            if (permissionsThisMonth.Count >= 2) throw new InvalidOperationException($"You cannot apply for permission more than twice in {monthName}.");
             var duration = commonPermissionRequest.EndTime - commonPermissionRequest.StartTime;
-            if (duration.TotalMinutes <= 0)
-                throw new InvalidOperationException("End time must be greater than start time.");
-            if (duration.TotalMinutes > 120)
-            {
-                throw new InvalidOperationException("Permission duration cannot exceed 2 hours.");
-            }
+            if (duration.TotalMinutes <= 0) throw new InvalidOperationException("End time must be greater than start time.");
+            if (duration.TotalMinutes > 120) throw new InvalidOperationException("Permission duration cannot exceed 2 hours.");
             var totalMinutesThisMonth = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
-            if (totalMinutesThisMonth + duration.TotalMinutes > 120)
-            {
-                throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
-            }
+            if (totalMinutesThisMonth + duration.TotalMinutes > 120) throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
             var formattedDuration = $"{duration.Hours:D2}:{duration.Minutes:D2}";
             commonPermission.StaffId = commonPermissionRequest.CreatedBy;
             commonPermission.StaffId = commonPermissionRequest.StaffId;
@@ -2054,9 +1946,7 @@ public class ApplicationService
                                 })
                                 .ToListAsync();
 
-        if (!permission.Any())
-            throw new MessageNotFoundException("No staff permissions found");
-
+        if (!permission.Any()) throw new MessageNotFoundException("No staff permissions found");
         return permission;
     }
 
@@ -2075,7 +1965,6 @@ public class ApplicationService
             new SqlParameter("@LocationName", string.IsNullOrWhiteSpace(getStaff.LocationName) ? (object)DBNull.Value : getStaff.LocationName),
             new SqlParameter("@GradeName", string.IsNullOrWhiteSpace(getStaff.GradeName) ? (object)DBNull.Value : getStaff.GradeName),
         };
-
         var permissionList = await _storedProcedureDbContext.CommonPermissionResponses
             .FromSqlRaw("EXEC GetStaffPermissions @CompanyName, @CategoryName, @CostCentreName, @OrganizationTypeName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName", parameters)
             .ToListAsync();
@@ -2099,7 +1988,6 @@ public class ApplicationService
                 AvailableBalance = g.OrderByDescending(l => l.UpdatedUtc).First().AvailableBalance
             })
             .ToListAsync();
-
         var leaveDetails = allLeaveTypes.Select(lt =>
         {
             var record = userLeaveRecords.FirstOrDefault(r => r.LeaveTypeId == lt.Id);
@@ -2111,11 +1999,7 @@ public class ApplicationService
                 AvailableBalance = record?.AvailableBalance ?? 0
             };
         }).ToList();
-        if (leaveDetails.Count == 0)
-        {
-            throw new MessageNotFoundException("No leave details found for the given user.");
-        }
-
+        if (leaveDetails.Count == 0) throw new MessageNotFoundException("No leave details found for the given user.");
         return leaveDetails.Cast<object>().ToList();
     }
     public async Task<ManualPunchRequistion> CreateManualPunchAsync(ManualPunchRequestDto request)
@@ -2132,7 +2016,6 @@ public class ApplicationService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-
         _context.ManualPunchRequistions.Add(manualPunch);
         await _context.SaveChangesAsync();
 
@@ -2210,7 +2093,6 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-
         return onDutyRequisition;
     }
 
@@ -2474,37 +2356,26 @@ public class ApplicationService
     public async Task<string> AddReimbursement(ReimbursementRequestModel request)
     {
         bool reimbursementExists = await _context.Reimbursements.AnyAsync(r => r.BillNo == request.BillNo);
-        if (reimbursementExists)
-        {
-            return $"Reimbursement with Bill No {request.BillNo} already exists.";
-        }
-
+        if (reimbursementExists) throw new InvalidOperationException($"Reimbursement with Bill No {request.BillNo} already exists.");
         string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         string fileUploadPath = string.Empty;
-
         async Task<string> SaveFile(IFormFile file, string folderName)
         {
             if (file == null || file.Length == 0) return null;
-
             string directoryPath = Path.Combine(baseDirectory, folderName);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-
             string fileName = $"{Guid.NewGuid()}_{file.FileName}";
             string filePath = Path.Combine(directoryPath, fileName);
-
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
             }
-
             return $"/{folderName}/{fileName}";
         }
-
         fileUploadPath = await SaveFile(request.File, "Reimbursement");
-
         var reimbursement = new Reimbursement
         {
             BillDate = request.BillDate,
@@ -2520,7 +2391,6 @@ public class ApplicationService
             StaffId = request.StaffId,
             ReimbursementTypeId = request.ReimbursementTypeId
         };
-
         _context.Reimbursements.Add(reimbursement);
         await _context.SaveChangesAsync();
 
@@ -2549,7 +2419,6 @@ public class ApplicationService
                 createdBy: staffOrCreatorId
             );
         }
-
         return "Reimbursement submitted successfully.";
     }
 }

@@ -18,5 +18,6 @@
         public string ConfirmPassword { get; set; } = null!;
 
         public int UserId { get; set; }
+        public int CreatedBy { get; set; }
     }
 }
