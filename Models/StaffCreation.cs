@@ -435,6 +435,10 @@ public partial class StaffCreation
 
     public virtual ICollection<HolidayMaster> HolidayMasterUpdatedByNavigations { get; set; } = new List<HolidayMaster>();
 
+    public virtual ICollection<HolidayType> HolidayTypeCreatedByNavigations { get; set; } = new List<HolidayType>();
+
+    public virtual ICollection<HolidayType> HolidayTypeUpdatedByNavigations { get; set; } = new List<HolidayType>();
+
     public virtual ICollection<HolidayZoneConfiguration> HolidayZoneConfigurationCreatedByNavigations { get; set; } = new List<HolidayZoneConfiguration>();
 
     public virtual ICollection<HolidayZoneConfiguration> HolidayZoneConfigurationUpdatedByNavigations { get; set; } = new List<HolidayZoneConfiguration>();
@@ -587,6 +591,10 @@ public partial class StaffCreation
 
     public virtual ICollection<PrefixAndSuffix> PrefixAndSuffixUpdatedByNavigations { get; set; } = new List<PrefixAndSuffix>();
 
+    public virtual ICollection<PrefixLeaveType> PrefixLeaveTypeCreatedByNavigations { get; set; } = new List<PrefixLeaveType>();
+
+    public virtual ICollection<PrefixLeaveType> PrefixLeaveTypeUpdatedByNavigations { get; set; } = new List<PrefixLeaveType>();
+
     public virtual ICollection<PreviousEmployment> PreviousEmploymentCreatedByNavigations { get; set; } = new List<PreviousEmployment>();
 
     public virtual ICollection<PreviousEmployment> PreviousEmploymentStaffs { get; set; } = new List<PreviousEmployment>();
@@ -729,6 +737,10 @@ public partial class StaffCreation
 
     public virtual ICollection<SubFunctionMaster> SubFunctionMasterUpdatedByNavigations { get; set; } = new List<SubFunctionMaster>();
 
+    public virtual ICollection<SuffixLeaveType> SuffixLeaveTypeCreatedByNavigations { get; set; } = new List<SuffixLeaveType>();
+
+    public virtual ICollection<SuffixLeaveType> SuffixLeaveTypeUpdatedByNavigations { get; set; } = new List<SuffixLeaveType>();
+
     public virtual ICollection<TeamApplication> TeamApplicationCreatedByNavigations { get; set; } = new List<TeamApplication>();
 
     public virtual ICollection<TeamApplication> TeamApplicationUpdatedByNavigations { get; set; } = new List<TeamApplication>();
@@ -736,6 +748,10 @@ public partial class StaffCreation
     public virtual ICollection<Title> TitleCreatedByNavigations { get; set; } = new List<Title>();
 
     public virtual ICollection<Title> TitleUpdatedByNavigations { get; set; } = new List<Title>();
+
+    public virtual ICollection<TypesOfReport> TypesOfReportCreatedByNavigations { get; set; } = new List<TypesOfReport>();
+
+    public virtual ICollection<TypesOfReport> TypesOfReportUpdatedByNavigations { get; set; } = new List<TypesOfReport>();
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 
@@ -790,6 +806,14 @@ public partial class StaffCreation
     public virtual ICollection<WorkingStatus> WorkingStatusCreatedByNavigations { get; set; } = new List<WorkingStatus>();
 
     public virtual ICollection<WorkingStatus> WorkingStatusUpdatedByNavigations { get; set; } = new List<WorkingStatus>();
+
+    public virtual ICollection<WorkingTypeAmount> WorkingTypeAmountCreatedByNavigations { get; set; } = new List<WorkingTypeAmount>();
+
+    public virtual ICollection<WorkingTypeAmount> WorkingTypeAmountUpdatedByNavigations { get; set; } = new List<WorkingTypeAmount>();
+
+    public virtual ICollection<WorkingType> WorkingTypeCreatedByNavigations { get; set; } = new List<WorkingType>();
+
+    public virtual ICollection<WorkingType> WorkingTypeUpdatedByNavigations { get; set; } = new List<WorkingType>();
 
     public virtual ICollection<WorkstationMaster> WorkstationMasterCreatedByNavigations { get; set; } = new List<WorkstationMaster>();
 

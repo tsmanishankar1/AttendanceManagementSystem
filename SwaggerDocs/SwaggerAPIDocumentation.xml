@@ -324,6 +324,7 @@
 			<param name="request">The request model containing details for grace and break time calculations.</param>
 			<returns>The result of adding grace and break time.</returns>
 			<response code="200">Returns the success message and details.</response>
+			<response code="404">If the requested data is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceController.GetGraceTimeAndBreakTime">
@@ -480,46 +481,6 @@
 			<response code="404">If the category is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="T:AttendanceManagement.Controllers.CertificateTrackingController">
-			<summary>
-				Controller for handling certificate tracking-related operations.
-			</summary>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.CertificateTrackingController.#ctor(AttendanceManagement.Services.CertificateTrackingService,AttendanceManagement.Services.LoggingService)">
-			<summary>
-				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.CertificateTrackingController"/> class.
-			</summary>
-			<param name="service">The certificate tracking service.</param>
-			<param name="loggingService">The logging service for capturing logs.</param>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.CertificateTrackingController.GetAllCertificates">
-			<summary>
-				Retrieves all certificates.
-			</summary>
-			<returns>All certificates.</returns>
-			<response code="200">Returns the list of certificates</response>
-			<response code="404">If no certificates are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.CertificateTrackingController.CreateCertificate(AttendanceManagement.Input_Models.CertificateTrackingDto)">
-			<summary>
-				Creates a new certificate.
-			</summary>
-			<param name="certificate">The certificate details to create.</param>
-			<returns>The created certificate.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.CertificateTrackingController.UpdateCertificate(AttendanceManagement.Input_Models.UpdateCertificateTracking)">
-			<summary>
-				Updates an existing certificate.
-			</summary>
-			<param name="updatedCertificate">The certificate details to update.</param>
-			<returns>The updated certificate.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="404">If the certificate is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="T:AttendanceManagement.Controllers.CompanyMasterController">
 			<summary>
 				Controller for handling company-related operations.
@@ -599,33 +560,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="404">If the cost centre is not found</response>
 			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.DailyReportsController.#ctor(AttendanceManagement.Services.DailyReportsService,AttendanceManagement.Services.LoggingService)">
-			<summary>
-				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.DailyReportsController"/> class.
-			</summary>
-			<param name="dailyReportsService">The daily report service.</param>
-			<param name="loggingService">The logging service for capturing logs.</param>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.DailyReportsController.GetReportType">
-			<summary>
-				Retrieves the available report types.
-			</summary>
-			<returns>A list of report types.</returns>
-			<response code="200">Returns the available report types.</response>
-			<response code="404">If no report types are found.</response>
-			<response code="500">If there is an internal server error.</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.DailyReportsController.GetDailyReport(AttendanceManagement.Input_Models.DailyReportRequest)">
-			<summary>
-				Retrieves the daily report based on the provided request data.
-			</summary>
-			<param name="request">The daily report request containing filters and criteria.</param>
-			<returns>An object indicating success and the resulting report data.</returns>
-			<response code="200">Returns the daily report data successfully.</response>
-			<response code="404">If no report data is found matching the criteria.</response>
-			<response code="500">If an internal server error occurs.</response>
-		</member>
+		</member>	
 		<member name="T:DailyReportsController">
 			<summary>
 				Controller for managing daily reports.
@@ -655,6 +590,35 @@
 			<returns>A list of report types.</returns>
 			<response code="200">Returns the success message and the list of report types.</response>
 			<response code="404">If the report types are not found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:DailyReportsController.AddWorkingTypeAmount(AttendanceManagement.Input_Models.WorkingTypeAmountRequest)">
+			<summary>
+				Adds a new working type amount for holiday or night shift working.
+			</summary>
+			<param name="request">The request model containing WorkingTypeId, Amount, and CreatedBy.</param>
+			<returns>A success message if the amount is added successfully.</returns>
+			<response code="200">Returns a success message and response details.</response>
+			<response code="404">If the working type or related data is not found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:DailyReportsController.GetWorkingTypeAmount">
+			<summary>
+				Retrieves all working type amounts (e.g., holiday or night shift working).
+			</summary>
+			<returns>A list of working type amount entries.</returns>
+			<response code="200">Returns the list of working type amounts.</response>
+			<response code="404">If no records are found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:DailyReportsController.UpdateWorkingTypeAmount(AttendanceManagement.Input_Models.UpdateWorkingTypeAmount)">
+			<summary>
+				Updates an existing working type amount for holiday or night shift working.
+			</summary>
+			<param name="request">The update request containing Id, WorkingTypeId, Amount, and UpdatedBy.</param>
+			<returns>A success message if the amount is updated successfully.</returns>
+			<response code="200">Returns a success message after updating the record.</response>
+			<response code="404">If the specified working type amount is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.DashboardController.#ctor(AttendanceManagement.Services.DashboardService,AttendanceManagement.Services.LoggingService)">
@@ -845,126 +809,6 @@
 			<response code="404">If the division is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="T:AttendanceManagement.Controllers.EducationalQualificationController">
-			<summary>
-				Controller for handling educational qualification-related operations.
-			</summary>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EducationalQualificationController.#ctor(AttendanceManagement.Services.EducationalQualificationService,AttendanceManagement.Services.LoggingService)">
-			<summary>
-				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.EducationalQualificationController"/> class.
-			</summary>
-			<param name="service">The educational qualification service.</param>
-			<param name="loggingService">The logging service for capturing logs.</param>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EducationalQualificationController.GetAll">
-			<summary>
-				Retrieves all educational qualifications.
-			</summary>
-			<returns>All educational qualifications.</returns>
-			<response code="200">Returns the list of educational qualifications</response>
-			<response code="404">If no educational qualifications are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EducationalQualificationController.Create(AttendanceManagement.Input_Models.EducationalQualificationDto)">
-			<summary>
-				Creates a new educational qualification.
-			</summary>
-			<param name="qualificationDto">The educational qualification details to create.</param>
-			<returns>The created educational qualification.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EducationalQualificationController.Update(AttendanceManagement.Input_Models.UpdateEducationalQualification)">
-			<summary>
-				Updates an existing educational qualification.
-			</summary>
-			<param name="qualificationDto">The educational qualification details to update.</param>
-			<returns>The updated educational qualification.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="404">If the educational qualification is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="T:AttendanceManagement.Controllers.EmergencyContactController">
-			<summary>
-				Controller for handling emergency contact-related operations.
-			</summary>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmergencyContactController.#ctor(AttendanceManagement.Services.EmergencyContactService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
-			<summary>
-				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.EmergencyContactController"/> class.
-			</summary>
-			<param name="emergencyContactService">The emergency contact service.</param>
-			<param name="context">The attendance management system context.</param>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmergencyContactController.GetAll">
-			<summary>
-				Retrieves all emergency contacts.
-			</summary>
-			<returns>All emergency contacts.</returns>
-			<response code="200">Returns the list of emergency contacts</response>
-			<response code="404">If no emergency contacts are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmergencyContactController.Create(AttendanceManagement.Input_Models.AttendanceManagement.Models.EmergencyContactRequestModel)">
-			<summary>
-				Creates a new emergency contact.
-			</summary>
-			<param name="model">The emergency contact details to create.</param>
-			<returns>The created emergency contact.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmergencyContactController.Update(AttendanceManagement.Input_Models.AttendanceManagement.Models.EmergencyContactUpdateModel)">
-			<summary>
-				Updates an existing emergency contact.
-			</summary>
-			<param name="model">The emergency contact details to update.</param>
-			<returns>The updated emergency contact.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="404">If the emergency contact is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="T:AttendanceManagement.Controllers.EmploymentHistoryController">
-			<summary>
-				Controller for handling employment history-related operations.
-			</summary>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmploymentHistoryController.#ctor(AttendanceManagement.Services.EmploymentHistoryService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
-			<summary>
-				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.EmploymentHistoryController"/> class.
-			</summary>
-			<param name="employmentHistoryService">The employment history service.</param>
-			<param name="context">The attendance management system context.</param>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmploymentHistoryController.GetAllAsync">
-			<summary>
-				Retrieves all employment histories.
-			</summary>
-			<returns>All employment histories.</returns>
-			<response code="200">Returns the list of employment histories</response>
-			<response code="404">If no employment histories are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmploymentHistoryController.CreateAsync(AttendanceManagement.Input_Models.EmploymentHistoryRequestModel)">
-			<summary>
-				Creates a new employment history.
-			</summary>
-			<param name="model">The employment history details to create.</param>
-			<returns>The created employment history.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.EmploymentHistoryController.UpdateAsync(AttendanceManagement.Input_Models.EmploymentHistoryUpdateModel)">
-			<summary>
-				Updates an existing employment history.
-			</summary>
-			<param name="model">The employment history details to update.</param>
-			<returns>The updated employment history.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="404">If the employment history is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
 		<member name="T:AttendanceManagement.Controllers.ExcelImportController">
 			<summary>
 				Controller for handling excel import-related operations.
@@ -995,46 +839,6 @@
 			<response code="200">Returns the Excel file successfully.</response>
 			<response code="404">If the specified template is not found.</response>
 			<response code="500">If there is an internal server error.</response>
-		</member>
-		<member name="T:AttendanceManagement.Controllers.FamilyDetailsController">
-			<summary>
-				Controller for handling family details-related operations.
-			</summary>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.FamilyDetailsController.#ctor(AttendanceManagement.Services.FamilyDetailsService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
-			<summary>
-				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.FamilyDetailsController"/> class.
-			</summary>
-			<param name="service">The family details service.</param>
-			<param name="context">The attendance management system context.</param>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.FamilyDetailsController.GetAll">
-			<summary>
-				Retrieves all family details.
-			</summary>
-			<returns>All family details.</returns>
-			<response code="200">Returns the list of family details</response>
-			<response code="404">If no family details are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.FamilyDetailsController.Create(AttendanceManagement.Input_Models.FamilyDetailsDTO)">
-			<summary>
-				Creates a new family detail.
-			</summary>
-			<param name="familyDetailsDTO">The family detail details to create.</param>
-			<returns>The created family detail.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.FamilyDetailsController.Update(AttendanceManagement.Input_Models.UpdateFamilyDetails)">
-			<summary>
-				Updates an existing family detail.
-			</summary>
-			<param name="familyDetailsDTO">The family detail details to update.</param>
-			<returns>The updated family detail.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="404">If the family detail is not found</response>
-			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.GradeMasterController">
 			<summary>
@@ -1746,46 +1550,6 @@
 			<returns>A list of assigned shifts under the approver, or all shifts if the approver is a super admin.</returns>
 			<response code="200">Returns the list of assigned shifts</response>
 			<response code="404">If no assigned shifts are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="T:AttendanceManagement.Controllers.SkillInventoryController">
-			<summary>
-				Controller for handling skill inventory-related operations.
-			</summary>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.SkillInventoryController.#ctor(AttendanceManagement.Services.SkillInventoryService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
-			<summary>
-				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.SkillInventoryController"/> class.
-			</summary>
-			<param name="skillInventoryService">The skill inventory service.</param>
-			<param name="context">The attendance management system context.</param>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.SkillInventoryController.GetAllAsync">
-			<summary>
-				Retrieves all skills.
-			</summary>
-			<returns>All skills.</returns>
-			<response code="200">Returns the list of skills</response>
-			<response code="404">If no skills are found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.SkillInventoryController.CreateAsync(AttendanceManagement.Input_Models.SkillInventoryRequestModel)">
-			<summary>
-				Creates a new skill.
-			</summary>
-			<param name="model">The skill details to create.</param>
-			<returns>The created skill.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.SkillInventoryController.UpdateAsync(AttendanceManagement.Input_Models.SkillInventoryUpdateModel)">
-			<summary>
-				Updates an existing skill.
-			</summary>
-			<param name="model">The skill details to update.</param>
-			<returns>The updated skill.</returns>
-			<response code="200">Returns the success message</response>
-			<response code="404">If the skill is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.StaffCreationController">

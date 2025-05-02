@@ -43,7 +43,7 @@ namespace AttendanceManagement.Services
             return message;
         }
 
-        public async Task<IEnumerable<WeeklyOffResponse>> GetAllWeeklyOffsAsync()
+        public async Task<List<WeeklyOffResponse>> GetAllWeeklyOffsAsync()
         {
             var weeklyOffs = await _context.WeeklyOffMasters
                 .Select(w => new WeeklyOffResponse

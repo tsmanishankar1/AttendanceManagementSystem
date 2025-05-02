@@ -35,8 +35,8 @@
     {
         public List<int> StaffIds { get; set; } = new List<int>(); 
         public int StatusId { get; set; }
-        public DateTime FromDate { get; set; }
-        public DateTime ToDate { get; set; }
+        public DateOnly FromDate { get; set; }
+        public DateOnly ToDate { get; set; }
         public string? Remarks { get; set; }
         public int? DurationId { get; set; }
         public int CreatedBy { get; set; } 

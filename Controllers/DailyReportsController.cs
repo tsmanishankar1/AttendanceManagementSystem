@@ -69,4 +69,79 @@ public class DailyReportsController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
+    [HttpPost("AddWorkingTypeAmount")]
+    public async Task<IActionResult> AddWorkingTypeAmount(WorkingTypeAmountRequest request)
+    {
+        try
+        {
+            var result = await _dailyReportsService.AddWorkingTypeAmount(request);
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            await _loggingService.AuditLog("Working Type Amount", "POST", "/api/Attendance/AddWorkingTypeAmount", result, request.CreatedBy, JsonSerializer.Serialize(request));
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Working Type Amount", "POST", "/api/Attendance/AddWorkingTypeAmount", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Working Type Amount", "POST", "/api/Attendance/AddWorkingTypeAmount", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpGet("GetWorkingTypeAmount")]
+    public async Task<IActionResult> GetWorkingTypeAmount()
+    {
+        try
+        {
+            var result = await _dailyReportsService.GetWorkingTypeAmount();
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpPost("UpdateWorkingTypeAmount")]
+    public async Task<IActionResult> UpdateWorkingTypeAmount(UpdateWorkingTypeAmount request)
+    {
+        try
+        {
+            var result = await _dailyReportsService.UpdateWorkingTypeAmount(request);
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            await _loggingService.AuditLog("Working Type Amount", "POST", "/api/Attendance/UpdateWorkingTypeAmount", result, request.UpdatedBy, JsonSerializer.Serialize(request));
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Working Type Amount", "POST", "/api/Attendance/UpdateWorkingTypeAmount", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Working Type Amount", "POST", "/api/Attendance/UpdateWorkingTypeAmount", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
 }

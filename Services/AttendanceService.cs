@@ -88,10 +88,13 @@ public class AttendanceService
 
     public async Task<string> AddGraceTimeAndBreakTime(AttendanceGraceTimeCalcRequest request)
     {
-        var message = "";
-        if (request.GraceTimeId == 1) message = "Grace time added successfully";
-        else if (request.GraceTimeId == 2) message = "Extra break time added successfully";
-        var existingActiveEntries = _attendanceContext.AttendanceGraceTimeCalcs.Where(x => x.GraceTimeId == request.GraceTimeId && x.IsActive).ToList();
+        var typeName = await _attendanceContext.GraceTimeDropdowns
+            .Where(w => w.Id == request.GraceTimeId && w.IsActive)
+            .Select(w => w.Name)
+            .FirstOrDefaultAsync();
+        if (typeName == null) throw new MessageNotFoundException("Grace time type not found");
+        var message = $"{typeName} added successfully";
+        var existingActiveEntries = await _attendanceContext.AttendanceGraceTimeCalcs.Where(x => x.GraceTimeId == request.GraceTimeId && x.IsActive).ToListAsync();
         foreach (var entry in existingActiveEntries)
         {
             entry.IsActive = false;
@@ -106,7 +109,7 @@ public class AttendanceService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _attendanceContext.AttendanceGraceTimeCalcs.Add(graceTime);
+        await _attendanceContext.AttendanceGraceTimeCalcs.AddAsync(graceTime);
         await _attendanceContext.SaveChangesAsync();
         return message;
     }
@@ -114,23 +117,27 @@ public class AttendanceService
     public async Task<List<AttendanceGraceTimeCalcResponse>> GetGraceTimeAndBreakTime()
     {
         var graceTime = await (from g in _attendanceContext.AttendanceGraceTimeCalcs
+                               where g.IsActive
                                select new AttendanceGraceTimeCalcResponse
                                {
                                    Id = g.Id,
                                    GraceTimeId = g.GraceTimeId,
                                    Value = g.Value
                                }).ToListAsync();
-        if (graceTime.Count == 0) throw new MessageNotFoundException("No grace time and extra break time found");
+        if (graceTime.Count == 0) throw new MessageNotFoundException("No grace time types found");
         return graceTime;
     }
 
     public async Task<string> UpdateGraceTimeAndBreakTime(UpdateAttendanceGraceTimeCalc request)
     {
-        var message = "Grace time and extra break time updated successfully";
-        if (request.GraceTimeId == 2) message = "Extra break time updated successfully";
-        else if (request.GraceTimeId == 1) message = "Grace time updated successfully";
+        var typeName = await _attendanceContext.GraceTimeDropdowns
+            .Where(w => w.Id == request.GraceTimeId && w.IsActive)
+            .Select(w => w.Name)
+            .FirstOrDefaultAsync();
+        if (typeName == null) throw new MessageNotFoundException("Grace time type not found");
+        var message = $"{typeName} updated successfully";
         var graceTime = await _attendanceContext.AttendanceGraceTimeCalcs.FirstOrDefaultAsync(g => g.Id == request.Id && g.IsActive);
-        if (graceTime == null) throw new MessageNotFoundException("Grace time and extra break time not found");
+        if (graceTime == null) throw new MessageNotFoundException($"Grace time not found");
         graceTime.GraceTimeId = request.GraceTimeId;
         graceTime.Value = request.Value;
         graceTime.UpdatedBy = request.UpdatedBy;

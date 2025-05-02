@@ -32,7 +32,7 @@ namespace AttendanceManagement.Services
         public async Task<List<ProbationResponse>> GetAllProbationsAsync(int approverId)
         {
             var approver = await _context.StaffCreations
-                .Where(x => x.Id == approverId)
+                .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
             bool isSuperAdmin = approver == "SUPER ADMIN";
@@ -134,7 +134,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = probationRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.Probations.Add(probation);
+            await _context.Probations.AddAsync(probation);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -142,7 +142,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateProbationAsync(UpdateProbation probation)
         {
             var message = "Probation updated successfully.";
-            var existingProbation = _context.Probations.FirstOrDefault(b => b.Id == probation.ProbationId && b.IsActive);
+            var existingProbation = await _context.Probations.FirstOrDefaultAsync(b => b.Id == probation.ProbationId && b.IsActive);
             if (existingProbation == null)
             {
                 throw new MessageNotFoundException("Probation not found");
@@ -152,7 +152,7 @@ namespace AttendanceManagement.Services
             existingProbation.ProbationEndDate = probation.ProbationEndDate;
             existingProbation.UpdatedBy = probation.UpdatedBy;
             existingProbation.UpdatedUtc = DateTime.UtcNow;
-            _context.Entry(existingProbation).State = EntityState.Modified;
+
             await _context.SaveChangesAsync();
             return message;
         }
@@ -164,7 +164,7 @@ namespace AttendanceManagement.Services
                                       join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
                                       join r in _context.ProbationReports on s.StaffId equals r.EmpId into reportGroup
                                       from report in reportGroup.DefaultIfEmpty()
-                                      where p.IsActive && (s.ApprovalLevel1 == approverLevelId || s.ApprovalLevel2 == approverLevelId || s.AccessLevel == "SUPER ADMIN")
+                                      where p.IsActive && s.IsActive == true && (s.ApprovalLevel1 == approverLevelId || s.ApprovalLevel2 == approverLevelId || s.AccessLevel == "SUPER ADMIN")
                                       select new ProbationResponse
                                       {
                                           ProbationId = p.Id,
@@ -187,7 +187,7 @@ namespace AttendanceManagement.Services
         public async Task<List<FeedbackResponse>> GetFeedbackDetailsByApproverLevel1(int approverId)
         {
             var approver = await _context.StaffCreations
-                .Where(x => x.Id == approverId)
+                .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
             bool isSuperAdmin = approver == "SUPER ADMIN";
@@ -244,7 +244,7 @@ namespace AttendanceManagement.Services
                     CreatedBy = feedbackRequest.CreatedBy,
                     CreatedUtc = DateTime.UtcNow
                 };
-                _context.Feedbacks.Add(feedback);
+                await _context.Feedbacks.AddAsync(feedback);
                 string approvedTime = feedback.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                 await _emailService.SendProbationConfirmationNotificationToHrAsync(approver.Id, $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, probation.ProbationEndDate, null, feedbackRequest.IsApproved, $"{approver.FirstName} {approver.LastName}", approvedTime, feedbackRequest.CreatedBy);
             }
@@ -275,7 +275,7 @@ namespace AttendanceManagement.Services
                     CreatedBy = feedbackRequest.CreatedBy,
                     CreatedUtc = DateTime.UtcNow
                 };
-                _context.Feedbacks.Add(feedback);
+                await _context.Feedbacks.AddAsync(feedback);
                 string approvedTime = feedback.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                 await _emailService.SendProbationConfirmationNotificationToHrAsync(approver.Id, $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, effectiveEndDate, feedbackRequest.ExtensionPeriod, feedbackRequest.IsApproved, $"{approver.FirstName} {approver.LastName}", approvedTime, feedbackRequest.CreatedBy);
             }
@@ -308,13 +308,13 @@ namespace AttendanceManagement.Services
             return feedbackWithJoins;
         }
 
-        public async Task<IEnumerable<FeedbackResponse>> GetAllFeedbacksAsync()
+        public async Task<List<FeedbackResponse>> GetAllFeedbacksAsync()
         {
             var feedbackList = await (
                 from f in _context.Feedbacks
                 join p in _context.Probations on f.Id equals p.Id
                 join s in _context.StaffCreations on p.StaffCreationId equals s.Id
-                where f.IsActive
+                where f.IsActive && p.IsActive && s.IsActive == true
                 select new FeedbackResponse
                 {
                     FeedbackId = f.Id,
@@ -335,8 +335,8 @@ namespace AttendanceManagement.Services
 
         public async Task<string> UpdateFeedbackAsync(UpdateFeedback updatedFeedback)
         {
-            var message = "Feedback updated successfully.";
-            var feedback = _context.Feedbacks.FirstOrDefault(f => f.Id == updatedFeedback.FeedbackId && f.IsActive);
+            var message = "Feedback updated successfully";
+            var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f => f.Id == updatedFeedback.FeedbackId && f.IsActive);
             if (feedback == null || !feedback.IsActive) throw new MessageNotFoundException("Feedback not found");
             feedback.Id = updatedFeedback.ProbationId;
             feedback.FeedbackText = updatedFeedback.FeedbackText;
@@ -348,7 +348,7 @@ namespace AttendanceManagement.Services
 
         public async Task<string> ProcessApprovalAsync(HrConfirmation hrConfirmation)
         {
-            var staff = _context.StaffCreations.Where(s => s.Id == hrConfirmation.CreatedBy && s.IsActive == true).Select(s => $"{s.FirstName}{s.LastName}").FirstOrDefault();
+            var staff = await _context.StaffCreations.Where(s => s.Id == hrConfirmation.CreatedBy && s.IsActive == true).Select(s => $"{s.FirstName}{s.LastName}").FirstOrDefaultAsync();
             string approvedDateTime = DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
             var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == hrConfirmation.ProbationId && p.IsActive);
             if (probation == null) throw new MessageNotFoundException("Probation not found");
@@ -369,7 +369,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = hrConfirmation.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.ApprovalNotifications.Add(notification);
+            await _context.ApprovalNotifications.AddAsync(notification);
             await _context.SaveChangesAsync();
             probation.ApprovalNotificationId = notification.Id;
             await _context.SaveChangesAsync();
@@ -387,14 +387,14 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow,
                 IsActive = true
             };
-            _context.LetterGenerations.Add(letterGeneration);
+            await _context.LetterGenerations.AddAsync(letterGeneration);
             await _context.SaveChangesAsync();
             return pdfPath;
         }
 
         private string GeneratePdf(int staffCreationId)
         {
-            var staff = _context.StaffCreations.Find(staffCreationId);
+            var staff = _context.StaffCreations.FirstOrDefault(s => s.Id == staffCreationId && s.IsActive == true);
             if (staff == null)
             {
                 throw new Exception($"Staff with ID {staffCreationId} not found.");

@@ -18,7 +18,7 @@ namespace AttendanceManagement.Services
         public async Task<List<StaffsDto>> GetStaffByDivisionIdAsync(int divisionId)
         {
             var staffList = await _context.StaffCreations
-                .Where(s => s.DivisionId == divisionId)
+                .Where(s => s.DivisionId == divisionId && s.IsActive == true)
                 .Select(s => new StaffsDto
                 {
                     StaffId=s.Id,
@@ -26,12 +26,12 @@ namespace AttendanceManagement.Services
                     FullName = $"{s.FirstName} {s.LastName ?? ""}".Trim(),
                     DepartmentId = s.DepartmentId,
                     DepartmentName = _context.DepartmentMasters
-                                    .Where(d => d.Id == s.DepartmentId)
+                                    .Where(d => d.Id == s.DepartmentId && d.IsActive)
                                     .Select(d => d.Name)
                                     .FirstOrDefault() ?? "Unknown",
                     DesignationId = s.DesignationId,
                     DesignationName = _context.DesignationMasters
-                                    .Where(des => des.Id == s.DesignationId)
+                                    .Where(des => des.Id == s.DesignationId && des.IsActive)
                                     .Select(des => des.Name)
                                     .FirstOrDefault() ?? "Unknown"
                 })
@@ -39,7 +39,7 @@ namespace AttendanceManagement.Services
             return staffList;
         }
 
-        public async Task<IEnumerable<ShiftResponse>> GetAllShiftsAsync()
+        public async Task<List<ShiftResponse>> GetAllShiftsAsync()
         {
             var allShift = await (from shift in _context.Shifts
                                   join shiftType in _context.ShiftTypeDropDowns
@@ -67,7 +67,7 @@ namespace AttendanceManagement.Services
 
         public async Task<string> CreateShiftAsync(ShiftRequest newShift)
         {
-            var message = "Shift added successfully";
+            var message = "Shift created successfully";
             var shift = new Shift
             {
                 Name = newShift.ShiftName,
@@ -79,7 +79,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = newShift.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.Shifts.Add(shift);
+            await _context.Shifts.AddAsync(shift);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -119,7 +119,7 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow
             })
             .ToList();
-            _context.RegularShifts.AddRange(shifts);
+            await _context.RegularShifts.AddRangeAsync(shifts);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -135,11 +135,11 @@ namespace AttendanceManagement.Services
                 if (staff == null) throw new MessageNotFoundException("Staff not found");
                 var staffName = staff.FirstName + " " + staff.LastName;
                 var existingAssignedShift = await _context.AssignShifts
-                    .Where(a => a.FromDate == assignShift.FromDate && a.ToDate == assignShift.ToDate && a.IsActive)
+                    .Where(a => a.FromDate == assignShift.FromDate && a.ToDate == assignShift.ToDate && a.StaffId == item.Id && a.IsActive)
                     .ToListAsync();
                 if(existingAssignedShift.Count > 0)
                 {
-                    throw new MessageNotFoundException($"Shift already assigned for staff {staffName}");
+                    throw new InvalidOperationException($"Shift already assigned for staff {staffName}");
                 }
                 var existingAssignments = await _context.AssignShifts
                            .Where(a => a.StaffId == item.Id && a.IsActive)
@@ -170,7 +170,7 @@ namespace AttendanceManagement.Services
                     CreatedBy = assignShift.CreatedBy,
                     CreatedUtc = DateTime.UtcNow
                 };
-                _context.AssignShifts.Add(shiftAssign);
+                await _context.AssignShifts.AddAsync(shiftAssign);
                 await _context.SaveChangesAsync();
             }
             await MarkExpiredShiftsInactive(assignShift.CreatedBy);
@@ -195,7 +195,7 @@ namespace AttendanceManagement.Services
         public async Task<List<AssignedShiftResponse>> GetAllAssignedShifts(int approverId)
         {
             var approver = await _context.StaffCreations
-                .Where(x => x.Id == approverId)
+                .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
             bool isSuperAdmin = approver == "SUPER ADMIN";

@@ -13,7 +13,7 @@ public class SubFunctionMasterService
         _context = context;
     }
 
-    public async Task<IEnumerable<SubFunctionResponse>> GetAllSubFunctionsAsync()
+    public async Task<List<SubFunctionResponse>> GetAllSubFunctionsAsync()
     {
         var allSubFunctions = await (from subFunction in _context.SubFunctionMasters
                                      select new SubFunctionResponse
@@ -43,7 +43,7 @@ public class SubFunctionMasterService
             CreatedBy = subFunctionMaster.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.SubFunctionMasters.Add(subFunction);
+        await _context.SubFunctionMasters.AddAsync(subFunction);
         await _context.SaveChangesAsync();
         return message;
     }

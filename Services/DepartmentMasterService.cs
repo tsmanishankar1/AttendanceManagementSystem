@@ -13,7 +13,7 @@ public class DepartmentMasterService
         _context = context;
     }
 
-    public async Task<IEnumerable<DepartmentResponse>> GetAllDepartments()
+    public async Task<List<DepartmentResponse>> GetAllDepartments()
     {
         var allDepartment = await (from department in _context.DepartmentMasters
                              select new DepartmentResponse
@@ -36,7 +36,7 @@ public class DepartmentMasterService
     }
     public async Task<string> CreateDepartment(DepartmentRequest departmentRequest)
     {
-        var message = "Department added successfully";
+        var message = "Department created successfully";
         DepartmentMaster department = new DepartmentMaster();
         department.Name = departmentRequest.FullName;
         department.ShortName = departmentRequest.ShortName;
@@ -47,7 +47,7 @@ public class DepartmentMasterService
         department.CreatedUtc = DateTime.UtcNow;
         department.IsActive = departmentRequest.IsActive;
 
-        _context.DepartmentMasters.Add(department);
+        await _context.DepartmentMasters.AddAsync(department);
         await _context.SaveChangesAsync();
         return message;
     }
@@ -55,9 +55,8 @@ public class DepartmentMasterService
     public async Task<string> UpdateDepartment(UpdateDepartment department)
     {
         var message = "Department updated successfully";
-        var existingDepartment = _context.DepartmentMasters.FirstOrDefault(d => d.Id == department.DepartmentMasterId);
+        var existingDepartment = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Id == department.DepartmentMasterId);
         if (existingDepartment == null) throw new MessageNotFoundException("Department not found");
-
         existingDepartment.Name = department.FullName;
         existingDepartment.ShortName = department.ShortName;
         existingDepartment.Phone = department.Phone;

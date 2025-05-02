@@ -501,7 +501,7 @@ public class ApplicationService
     public async Task<object> GetMonthlyDetailsAsync(int staffId, int month, int year)
     {
         var staff = await _context.StaffCreations
-            .Where(s => s.Id == staffId)
+            .Where(s => s.Id == staffId && s.IsActive == true)
             .Select(s => new
             {
                 s.Id,
@@ -509,10 +509,7 @@ public class ApplicationService
                 StaffName = $"{s.FirstName} {s.LastName}"
             })
             .FirstOrDefaultAsync();
-        if (staff == null)
-        {
-            throw new ArgumentException("Staff not found.");
-        }
+        if (staff == null) throw new MessageNotFoundException("Staff not found.");
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
         var allDates = Enumerable.Range(0, (endDate - startDate).Days + 1)
@@ -521,7 +518,7 @@ public class ApplicationService
         var attendanceRecords = await (from a in _context.AttendanceRecords
                                        join s in _context.Shifts on a.ShiftId equals s.Id into shiftGroup
                                        from shift in shiftGroup.DefaultIfEmpty()
-                                       where a.StaffId == staffId && a.FirstIn.HasValue &&
+                                       where a.StaffId == staffId && a.FirstIn.HasValue && !a.IsDeleted &&
                                              a.FirstIn.Value.Month == month && a.FirstIn.Value.Year == year
                                        select new
                                        {
@@ -617,15 +614,15 @@ public class ApplicationService
                     .ToList()
             })
             .ToListAsync();
-        var result = allDates.Select(date =>
+        var result = allDates.Select(async date =>
         {
             var dateOnly = DateOnly.FromDateTime(date);
             var attendance = attendanceRecords.FirstOrDefault(a => a.LoginTime.HasValue && a.LogoutTime.HasValue && a.LoginTime.Value.Date == date);
             var todayDateOnly = DateOnly.FromDateTime(DateTime.Today);
-            var statusId = _context.AttendanceRecords.Where(a => !a.IsDeleted && a.AttendanceDate == dateOnly).Select(a => a.StatusId).FirstOrDefault();
-            string statusName = _context.StatusDropdowns.Where(s => s.Id == statusId).Select(s => s.Name).FirstOrDefault();
+            var statusId = await _context.AttendanceRecords.Where(a => !a.IsDeleted && a.AttendanceDate == dateOnly).Select(a => a.StatusId).FirstOrDefaultAsync();
+            string statusName = await _context.StatusDropdowns.Where(s => s.Id == statusId).Select(s => s.Name).FirstOrDefaultAsync();
             // Load all colors once for mapping
-            var statusColors = _context.AttendanceStatusColors.Where(c => c.IsActive).Select(c => new { c.Id, c.StatusName }).ToList();
+            var statusColors = await _context.AttendanceStatusColors.Where(c => c.IsActive).Select(c => new { c.Id, c.StatusName }).ToListAsync();
             int? color = null;
             color = statusColors
             .Where(c => c.StatusName == "Absent")
@@ -732,23 +729,28 @@ public class ApplicationService
         };
     }
 
-    public async Task<IEnumerable<CompOffCreditResponseDto>> GetCompOffCreditAllAsync()
+    public async Task<List<CompOffCreditResponseDto>> GetCompOffCreditAllAsync()
     {
-        var compOffCredits = await _context.CompOffCredits.ToListAsync();
-        return compOffCredits.Select(c => new CompOffCreditResponseDto
-        {
-            Id = c.Id,
-            WorkedDate = c.WorkedDate,
-            TotalDays = c.TotalDays,
-            Reason = c.Reason,
-        }).ToList();
+        var compOffCredits = await ( from c in _context.CompOffCredits
+                                     where c.IsActive
+                                     select new CompOffCreditResponseDto
+                                     {
+                                         Id = c.Id,
+                                         ApplicationTypeId = c.ApplicationTypeId,
+                                         WorkedDate = c.WorkedDate,
+                                         TotalDays = c.TotalDays,
+                                         Reason = c.Reason,
+                                     }).ToListAsync();
+        if (compOffCredits.Count == 0) throw new MessageNotFoundException("No CompOff Credits found");
+        return compOffCredits;
     }
 
     public async Task<string> CreateAsync(CompOffCreditDto compOffCreditDto)
     {
-        var message = "CompOff Credit Successfully";
+        var message = "CompOff Credit request submitted successfully";
+        var staffOrCreatorId = compOffCreditDto.StaffId ?? compOffCreditDto.CreatedBy;
         var lastBalance = await _context.CompOffCredits
-            .Where(c => c.CreatedBy == compOffCreditDto.CreatedBy)
+            .Where(c => (c.StaffId ?? c.CreatedBy) == staffOrCreatorId)
             .OrderByDescending(c => c.Id)
             .Select(c => c.Balance)
             .FirstOrDefaultAsync();
@@ -764,10 +766,9 @@ public class ApplicationService
             CreatedUtc = DateTime.UtcNow,
             Balance = lastBalance
         };
-        _context.CompOffCredits.Add(compOffCredit);
+        await _context.CompOffCredits.AddAsync(compOffCredit);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = compOffCreditDto.StaffId ?? compOffCreditDto.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
@@ -795,26 +796,25 @@ public class ApplicationService
 
     public async Task<string> CreateAsync(CompOffAvailRequest request)
     {
-        var message = "CompOff Avail Successfully";
-        var isHolidayWorkingExists = await _context.CompOffCredits
-          .AnyAsync(h => h.WorkedDate == request.WorkedDate
-          && (h.StaffId != null ? h.StaffId == request.StaffId : h.CreatedBy == request.StaffId)
-          && h.Status1 == true);
+        var message = "CompOff Avail request submitted successfully";
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var isHolidayWorkingExists = await _context.CompOffCredits.AnyAsync(h => h.WorkedDate == request.WorkedDate
+          && (h.StaffId ?? h.CreatedBy) == staffOrCreatorId && !h.IsActive);
         if (!isHolidayWorkingExists)
         {
-            throw new Exception("WorkedDate does not match the date in CompOffCredit or the record is not active.");
+            throw new InvalidOperationException("WorkedDate does not match the date in CompOffCredit or the record is not active.");
         }
         var lastCompOffCredit = await _context.CompOffCredits
-            .Where(c => (c.StaffId != null ? c.StaffId == request.StaffId : c.CreatedBy == request.StaffId))
+            .Where(c => (c.StaffId ?? c.CreatedBy) == staffOrCreatorId)
             .OrderByDescending(c => c.CreatedUtc)
             .FirstOrDefaultAsync();
         if (lastCompOffCredit == null)
         {
-            throw new Exception("No previous Comp-Off Credit record found for this user.");
+            throw new MessageNotFoundException("No Comp-Off Credit record found");
         }
         if (lastCompOffCredit.Balance == 0)
         {
-            throw new Exception("Insufficient balance. Cannot create Comp-Off Avail.");
+            throw new InvalidOperationException("No Comp-Off Credit balance found");
         }
         var compOff = new CompOffAvail
         {
@@ -831,10 +831,9 @@ public class ApplicationService
             CreatedUtc = DateTime.UtcNow,
             IsActive = true,
         };
-        _context.CompOffAvails.Add(compOff);
+        await _context.CompOffAvails.AddAsync(compOff);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
@@ -864,6 +863,7 @@ public class ApplicationService
     public async Task<List<CompOffAvailDto>> GetAllAsync()
     {
         var compOffs = await (from compOff in _context.CompOffAvails
+                              where compOff.IsActive
                               select new CompOffAvailDto
                               {
                                   Id = compOff.Id,
@@ -888,7 +888,7 @@ public class ApplicationService
     public async Task<List<object>> GetApplicationRequisition(int approverId, List<int>? staffIds, int? applicationTypeId, DateOnly? fromDate, DateOnly? toDate)
     {
         var approver = await _context.StaffCreations
-            .Where(x => x.Id == approverId)
+            .Where(x => x.Id == approverId && x.IsActive == true)
             .Select(x => new { x.AccessLevel })
             .FirstOrDefaultAsync();
         bool isSuperAdmin = approver?.AccessLevel == "SUPER ADMIN";
@@ -967,7 +967,7 @@ public class ApplicationService
 
             if (!getLeaves.Any())
             {
-                throw new MessageNotFoundException("No leave requisition found");
+                throw new MessageNotFoundException("No Leave requisitions found");
             }
             result.AddRange(getLeaves.Cast<object>());
         }
@@ -1041,7 +1041,7 @@ public class ApplicationService
 
             if (!getCommonPermissions.Any())
             {
-                throw new MessageNotFoundException("No common permission found");
+                throw new MessageNotFoundException("No Common Permission requisitions found");
             }
             result.AddRange(getCommonPermissions.Cast<object>());
         }
@@ -1119,7 +1119,7 @@ public class ApplicationService
 
             if (!getManualPunch.Any())
             {
-                throw new MessageNotFoundException("No manual punch requisition found");
+                throw new MessageNotFoundException("No Manual Punch requisitions found");
             }
             result.AddRange(getManualPunch.Cast<object>());
         }
@@ -1183,7 +1183,7 @@ public class ApplicationService
 
             if (!getOnDutyRequisitions.Any())
             {
-                throw new MessageNotFoundException("No on-duty requisition found");
+                throw new MessageNotFoundException("No On Duty requisitions found");
             }
             result.AddRange(getOnDutyRequisitions.Cast<object>());
         }
@@ -1247,7 +1247,7 @@ public class ApplicationService
 
             if (!getBusinessTravels.Any())
             {
-                throw new MessageNotFoundException("No business travel found");
+                throw new MessageNotFoundException("No Business Travel requisitions found");
             }
             result.AddRange(getBusinessTravels.Cast<object>());
         }
@@ -1311,7 +1311,7 @@ public class ApplicationService
 
             if (!getWorkFromHomes.Any())
             {
-                throw new MessageNotFoundException("No work from home found");
+                throw new MessageNotFoundException("No Work From Home requisitions found");
             }
             result.AddRange(getWorkFromHomes.Cast<object>());
         }
@@ -1373,7 +1373,7 @@ public class ApplicationService
 
             if (!getShiftChanges.Any())
             {
-                throw new MessageNotFoundException("No shift change found");
+                throw new MessageNotFoundException("No Shift Change requisitions found");
             }
             result.AddRange(getShiftChanges.Cast<object>());
         }
@@ -1434,7 +1434,7 @@ public class ApplicationService
 
             if (!getShiftExtensions.Any())
             {
-                throw new MessageNotFoundException("No shift extension found");
+                throw new MessageNotFoundException("No Shift Extension requisitions found");
             }
             result.AddRange(getShiftExtensions.Cast<object>());
         }
@@ -1495,7 +1495,7 @@ public class ApplicationService
 
             if (!getWeeklyOffHolidayWorking.Any())
             {
-                throw new MessageNotFoundException("No weekly off holiday working found");
+                throw new MessageNotFoundException("No Weekly Off/Holiday Working requisitions found");
             }
             result.AddRange(getWeeklyOffHolidayWorking.Cast<object>());
         }
@@ -1557,7 +1557,7 @@ public class ApplicationService
 
             if (!getCompOffAvail.Any())
             {
-                throw new MessageNotFoundException("No Comp Off Avail found");
+                throw new MessageNotFoundException("No Comp Off Avail requisitions found");
             }
             result.AddRange(getCompOffAvail.Cast<object>());
         }
@@ -1613,7 +1613,7 @@ public class ApplicationService
 
             if (!getCompOffCredit.Any())
             {
-                throw new MessageNotFoundException("No Comp Off Credit found");
+                throw new MessageNotFoundException("No Comp Off Credit requisitions found");
             }
             result.AddRange(getCompOffCredit.Cast<object>());
         }
@@ -1675,7 +1675,7 @@ public class ApplicationService
 
             if (!getReimbursements.Any())
             {
-                throw new MessageNotFoundException("No reimbursements found");
+                throw new MessageNotFoundException("No Reimbursement requisitions found");
             }
             result.AddRange(getReimbursements.Cast<object>());
         }
@@ -1684,9 +1684,15 @@ public class ApplicationService
 
     public async Task<List<ApprovalNotificationResponse>> GetApprovalNotifications(int staffId)
     {
-        var profile = await _context.StaffCreations.Where(s => s.Id == staffId && s.IsActive == true).Select(s => s.ProfilePhoto).FirstOrDefaultAsync();
+        var profile = await _context.StaffCreations
+            .Where(s => s.Id == staffId && s.IsActive == true)
+            .Select(s => s.ProfilePhoto)
+            .FirstOrDefaultAsync();
+        var tenDaysAgo = DateTime.UtcNow.AddDays(-10);
         var notifications = await (from notification in _context.ApprovalNotifications
-                                   where notification.StaffId == staffId && notification.IsActive
+                                   where notification.StaffId == staffId
+                                         && notification.IsActive
+                                         && notification.CreatedUtc >= tenDaysAgo
                                    select new ApprovalNotificationResponse
                                    {
                                        Id = notification.Id,
@@ -1697,7 +1703,7 @@ public class ApplicationService
                                    }).ToListAsync();
         if (notifications.Count == 0)
         {
-            throw new MessageNotFoundException("No notifications found");
+            throw new MessageNotFoundException("No approval notifications found");
         }
         return notifications;
     }
@@ -1719,6 +1725,7 @@ public class ApplicationService
 
     public async Task<string> CreateLeaveRequisitionAsync(LeaveRequisitionRequest leaveRequisitionRequest)
     {
+        var message = "Leave request submitted successfully.";
         var staffOrCreatorId = leaveRequisitionRequest.StaffId ?? leaveRequisitionRequest.CreatedBy;
         var individualLeave = await _context.IndividualLeaveCreditDebits
         .Where(l => l.StaffCreationId == staffOrCreatorId
@@ -1731,12 +1738,16 @@ public class ApplicationService
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var leaveType = await _context.LeaveTypes.Where(l => l.Id == leaveRequisitionRequest.LeaveTypeId && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
 
-        if (individualLeave == null || individualLeave.AvailableBalance == 0 || (individualLeave != null && (individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance < leaveRequisitionRequest.TotalDays)))
+        if(individualLeave == null || individualLeave.AvailableBalance == 0)
         {
-            if (leaveRequisitionRequest.StaffId != null) throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
-            else throw new MessageNotFoundException("Insufficient leave balance found");
+            if (leaveRequisitionRequest.StaffId != null) throw new MessageNotFoundException($"No leave balance found for Staff {staffName}");
+            else throw new MessageNotFoundException("No leave balance found");
         }
-
+        if (individualLeave != null && (individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance < leaveRequisitionRequest.TotalDays))
+        {
+            if (leaveRequisitionRequest.StaffId != null) throw new InvalidOperationException($"Insufficient leave balance found for Staff {staffName}");
+            else throw new InvalidOperationException("Insufficient leave balance found");
+        }
         var existingLeaves = await _context.LeaveRequisitions
                 .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                              (lr.FromDate <= leaveRequisitionRequest.ToDate &&
@@ -1756,36 +1767,33 @@ public class ApplicationService
             }
 
             // Allow complementary half-day leave on the same start date
-            if (isSameStartDate &&
-                ((existingLeave.StartDuration == "First Half" && leaveRequisitionRequest.StartDuration == "Second Half") ||
-                 (existingLeave.StartDuration == "Second Half" && leaveRequisitionRequest.StartDuration == "First Half")))
+            if (isSameStartDate && ((existingLeave.StartDuration == "First Half" && leaveRequisitionRequest.StartDuration == "Second Half")
+                || (existingLeave.StartDuration == "Second Half" && leaveRequisitionRequest.StartDuration == "First Half")))
             {
                 continue; // Allow request
             }
 
             // Allow complementary half-day leave on the same end date
-            if (isSameEndDate &&
-                ((existingLeave.EndDuration == "First Half" && leaveRequisitionRequest.EndDuration == "Second Half") ||
-                 (existingLeave.EndDuration == "Second Half" && leaveRequisitionRequest.EndDuration == "First Half")))
+            if (isSameEndDate && ((existingLeave.EndDuration == "First Half" && leaveRequisitionRequest.EndDuration == "Second Half")
+                || (existingLeave.EndDuration == "Second Half" && leaveRequisitionRequest.EndDuration == "First Half")))
             {
                 continue; // Allow request
             }
 
             // Prevent duplicate leave for the same half-day slot
-            if (isSameStartDate && isSameEndDate &&
-                ((existingLeave.StartDuration == leaveRequisitionRequest.StartDuration) ||
-                 (existingLeave.EndDuration == leaveRequisitionRequest.EndDuration)))
+            if (isSameStartDate && isSameEndDate && ((existingLeave.StartDuration == leaveRequisitionRequest.StartDuration)
+                || (existingLeave.EndDuration == leaveRequisitionRequest.EndDuration)))
             {
                 throw new InvalidOperationException("Leave request already exists");
             }
 
             // Prevent overlapping leave
-            if (existingLeave.FromDate <= leaveRequisitionRequest.ToDate &&
-                existingLeave.ToDate >= leaveRequisitionRequest.FromDate)
+            if (existingLeave.FromDate <= leaveRequisitionRequest.ToDate && existingLeave.ToDate >= leaveRequisitionRequest.FromDate)
             {
                 throw new InvalidOperationException("Leave request already exists");
             }
         }
+
         LeaveRequisition leaveRequisition = new LeaveRequisition
         {
             ApplicationTypeId = leaveRequisitionRequest.ApplicationTypeId,
@@ -1801,7 +1809,7 @@ public class ApplicationService
             CreatedBy = leaveRequisitionRequest.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.LeaveRequisitions.Add(leaveRequisition);
+        await _context.LeaveRequisitions.AddAsync(leaveRequisition);
         await _context.SaveChangesAsync();
 
         string requestDateTime = leaveRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
@@ -1826,99 +1834,91 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-        return "Leave request submitted successfully.";
+        return message;
     }
 
     public async Task<string> AddCommonPermissionAsync(CommonPermissionRequest commonPermissionRequest)
     {
-        try
-        {
-            var message = "Common permission added successfully.";
-            CommonPermission commonPermission = new CommonPermission();
-            var permissionDate = commonPermissionRequest.PermissionDate;
-            var dayOfWeek = permissionDate.DayOfWeek;
-            if (dayOfWeek == DayOfWeek.Saturday) throw new InvalidOperationException("Permission is not allowed on Saturdays.");
-            var hasLeaveOnDate = await _context.LeaveRequisitions
-            .AnyAsync(l =>((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
+        var message = "Common Permission request submitted successfully.";
+        CommonPermission commonPermission = new CommonPermission();
+        var permissionDate = commonPermissionRequest.PermissionDate;
+        var dayOfWeek = permissionDate.DayOfWeek;
+        if (dayOfWeek == DayOfWeek.Saturday) throw new InvalidOperationException("Permission is not allowed on Saturdays.");
+        var hasLeaveOnDate = await _context.LeaveRequisitions.AnyAsync(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
+            (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
+            (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
+            (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
+            permissionDate >= l.FromDate && permissionDate <= l.ToDate && (l.Status1 == null || l.Status1 == true) &&
+            l.IsActive == true && (l.IsCancelled == false || l.IsCancelled == null));
+        if (hasLeaveOnDate) throw new InvalidOperationException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
+        var startOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month, 1);
+        var endOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month,
+            DateTime.DaysInMonth(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month));
+        var monthName = commonPermissionRequest.PermissionDate.ToString("MMMM");
+        var list = await _context.CommonPermissions.ToListAsync();
+        var existingPermissionOnDate = await _context.CommonPermissions
+        .AnyAsync(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
+            (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
+            (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
+            (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
+            l.PermissionDate == commonPermissionRequest.PermissionDate);
+        if (existingPermissionOnDate) throw new InvalidOperationException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
+        var permissionsThisMonth = await _context.CommonPermissions
+            .Where(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
                 (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
                 (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
                 (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
-                permissionDate >= l.FromDate && permissionDate <= l.ToDate && (l.Status1 == null || l.Status1 == true) &&
-                l.IsActive == true && (l.IsCancelled == false || l.IsCancelled == null));
-            if (hasLeaveOnDate) throw new InvalidOperationException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
-            var startOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month, 1);
-            var endOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month,
-                DateTime.DaysInMonth(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month));
-            var monthName = commonPermissionRequest.PermissionDate.ToString("MMMM");
-            var list = _context.CommonPermissions.ToList();
-            var existingPermissionOnDate = await _context.CommonPermissions
-            .AnyAsync(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
-                (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
-                (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
-                (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
-                l.PermissionDate == commonPermissionRequest.PermissionDate);
-            if (existingPermissionOnDate) throw new InvalidOperationException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
-            var permissionsThisMonth = await _context.CommonPermissions
-                .Where(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
-                    (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
-                    (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
-                    (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
-                                    l.PermissionDate >= startOfMonth &&
-                                    l.PermissionDate <= endOfMonth)
-                .ToListAsync();
-            if (permissionsThisMonth.Count >= 2) throw new InvalidOperationException($"You cannot apply for permission more than twice in {monthName}.");
-            var duration = commonPermissionRequest.EndTime - commonPermissionRequest.StartTime;
-            if (duration.TotalMinutes <= 0) throw new InvalidOperationException("End time must be greater than start time.");
-            if (duration.TotalMinutes > 120) throw new InvalidOperationException("Permission duration cannot exceed 2 hours.");
-            var totalMinutesThisMonth = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
-            if (totalMinutesThisMonth + duration.TotalMinutes > 120) throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
-            var formattedDuration = $"{duration.Hours:D2}:{duration.Minutes:D2}";
-            commonPermission.StaffId = commonPermissionRequest.CreatedBy;
-            commonPermission.StaffId = commonPermissionRequest.StaffId;
-            commonPermission.ApplicationTypeId = commonPermissionRequest.ApplicationTypeId;
-            commonPermission.PermissionType = commonPermissionRequest.PermissionType;
-            commonPermission.StartTime = commonPermissionRequest.StartTime;
-            commonPermission.EndTime = commonPermissionRequest.EndTime;
-            commonPermission.PermissionDate = commonPermissionRequest.PermissionDate;
-            commonPermission.TotalHours = formattedDuration;
-            commonPermission.Remarks = commonPermissionRequest.Remarks;
-            commonPermission.CreatedBy = commonPermissionRequest.CreatedBy;
-            commonPermission.CreatedUtc = DateTime.UtcNow;
-            commonPermission.IsActive = true;
-            _context.CommonPermissions.Add(commonPermission);
-            await _context.SaveChangesAsync();
+                                l.PermissionDate >= startOfMonth &&
+                                l.PermissionDate <= endOfMonth)
+            .ToListAsync();
+        if (permissionsThisMonth.Count >= 2) throw new InvalidOperationException($"You cannot apply for permission more than twice in {monthName}.");
+        var duration = commonPermissionRequest.EndTime - commonPermissionRequest.StartTime;
+        if (duration.TotalMinutes <= 0) throw new InvalidOperationException("End time must be greater than start time.");
+        if (duration.TotalMinutes > 120) throw new InvalidOperationException("Permission duration cannot exceed 2 hours.");
+        var totalMinutesThisMonth = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
+        if (totalMinutesThisMonth + duration.TotalMinutes > 120) throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
+        var formattedDuration = $"{duration.Hours:D2}:{duration.Minutes:D2}";
+        commonPermission.StaffId = commonPermissionRequest.CreatedBy;
+        commonPermission.StaffId = commonPermissionRequest.StaffId;
+        commonPermission.ApplicationTypeId = commonPermissionRequest.ApplicationTypeId;
+        commonPermission.PermissionType = commonPermissionRequest.PermissionType;
+        commonPermission.StartTime = commonPermissionRequest.StartTime;
+        commonPermission.EndTime = commonPermissionRequest.EndTime;
+        commonPermission.PermissionDate = commonPermissionRequest.PermissionDate;
+        commonPermission.TotalHours = formattedDuration;
+        commonPermission.Remarks = commonPermissionRequest.Remarks;
+        commonPermission.CreatedBy = commonPermissionRequest.CreatedBy;
+        commonPermission.CreatedUtc = DateTime.UtcNow;
+        commonPermission.IsActive = true;
+        await _context.CommonPermissions.AddAsync(commonPermission);
+        await _context.SaveChangesAsync();
 
-            var staffOrCreatorId = commonPermissionRequest.StaffId ?? commonPermissionRequest.CreatedBy;
-            var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-            if (staffId == null) throw new MessageNotFoundException("Staff not found");
-            var staffName = $"{staffId.FirstName} {staffId.LastName}";
-            string requestDateTime = commonPermission.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-            var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
-            if(approver1 != null)
-            {
-                await _emailService.SendCommonPermissionRequestEmail(
-                    recipientEmail: approver1.OfficialEmail,
-                    recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                    applicationTypeId: commonPermissionRequest.ApplicationTypeId,
-                    id: commonPermission.Id,
-                    permissionType: commonPermissionRequest.PermissionType,
-                    permissionDate: commonPermissionRequest.PermissionDate,
-                    startTime: commonPermissionRequest.StartTime,
-                    endTime: commonPermissionRequest.EndTime,
-                    duration: formattedDuration,
-                    remarks: commonPermissionRequest.Remarks,
-                    createdBy: staffOrCreatorId,
-                    creatorName: staffName,
-                    requestDate: requestDateTime
-                );
-            }
-            return message;
-        }
-        catch (Exception ex)
+        var staffOrCreatorId = commonPermissionRequest.StaffId ?? commonPermissionRequest.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        string requestDateTime = commonPermission.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+        var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 != null)
         {
-            throw new InvalidOperationException($"Error: {ex.Message}", ex);
+            await _emailService.SendCommonPermissionRequestEmail(
+                recipientEmail: approver1.OfficialEmail,
+                recipientId: approver1.Id,
+                recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                applicationTypeId: commonPermissionRequest.ApplicationTypeId,
+                id: commonPermission.Id,
+                permissionType: commonPermissionRequest.PermissionType,
+                permissionDate: commonPermissionRequest.PermissionDate,
+                startTime: commonPermissionRequest.StartTime,
+                endTime: commonPermissionRequest.EndTime,
+                duration: formattedDuration,
+                remarks: commonPermissionRequest.Remarks,
+                createdBy: staffOrCreatorId,
+                creatorName: staffName,
+                requestDate: requestDateTime
+            );
         }
+        return message;
     }
 
     public async Task<List<StaffPermissionResponse>> GetStaffCommonPermission(int? staffId)
@@ -2002,8 +2002,10 @@ public class ApplicationService
         if (leaveDetails.Count == 0) throw new MessageNotFoundException("No leave details found for the given user.");
         return leaveDetails.Cast<object>().ToList();
     }
-    public async Task<ManualPunchRequistion> CreateManualPunchAsync(ManualPunchRequestDto request)
+
+    public async Task<string> CreateManualPunchAsync(ManualPunchRequestDto request)
     {
+        var message = "Manual Punch request submitted successfully";
         var manualPunch = new ManualPunchRequistion
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2016,7 +2018,7 @@ public class ApplicationService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.ManualPunchRequistions.Add(manualPunch);
+        await _context.ManualPunchRequistions.AddAsync(manualPunch);
         await _context.SaveChangesAsync();
 
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2042,11 +2044,12 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-        return manualPunch;
+        return message;
     }
 
-    public async Task<OnDutyRequisition> CreateOnDutyRequisitionAsync(OnDutyRequisitionRequest request)
+    public async Task<string> CreateOnDutyRequisitionAsync(OnDutyRequisitionRequest request)
     {
+        var message = "On Duty request submitted successfully";
         var onDutyRequisition = new OnDutyRequisition
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2064,7 +2067,7 @@ public class ApplicationService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.OnDutyRequisitions.Add(onDutyRequisition);
+        await _context.OnDutyRequisitions.AddAsync(onDutyRequisition);
         await _context.SaveChangesAsync();
 
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2093,11 +2096,12 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-        return onDutyRequisition;
+        return message;
     }
 
-    public async Task<BusinessTravel> CreateBusinessTravelAsync(BusinessTravelRequestDto request)
+    public async Task<string> CreateBusinessTravelAsync(BusinessTravelRequestDto request)
     {
+        var message = "Business Travel request submitted successfully";
         var businessTravel = new BusinessTravel
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2144,11 +2148,12 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-        return businessTravel;
+        return message;
     }
 
-    public async Task<WorkFromHome> CreateWorkFromHomeAsync(WorkFromHomeDto request)
+    public async Task<string> CreateWorkFromHomeAsync(WorkFromHomeDto request)
     {
+        var message = "Work From Home request submitted successfully";
         var workFromHome = new WorkFromHome
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2166,7 +2171,7 @@ public class ApplicationService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.WorkFromHomes.Add(workFromHome);
+        await _context.WorkFromHomes.AddAsync(workFromHome);
         await _context.SaveChangesAsync();
 
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2195,12 +2200,12 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-        return workFromHome;
+        return message;
     }
 
-    public List<object> GetShiftsByStaffAndDateRange(int staffId, DateOnly fromDate, DateOnly toDate)
+    public async Task<List<object>> GetShiftsByStaffAndDateRange(int staffId, DateOnly fromDate, DateOnly toDate)
     {
-        var shifts = _context.AssignShifts
+        var shifts = await _context.AssignShifts
             .Include(a => a.Shift)
             .Where(a => a.StaffId == staffId &&
                         a.FromDate >= fromDate &&
@@ -2214,12 +2219,13 @@ public class ApplicationService
                 StartTime = a.Shift.StartTime,
                 EndTime = a.Shift.EndTime
             })
-            .ToList<object>();
+            .ToListAsync<object>();
         if (shifts.Count == 0) throw new MessageNotFoundException("Shifts not found between the date range for the staff");
         return shifts;
     }
-    public async Task<ShiftChange> CreateShiftChangeAsync(ShiftChangeDto request)
+    public async Task<string> CreateShiftChangeAsync(ShiftChangeDto request)
     {
+        var message = "Shift Change request submitted successfully";
         var shiftChange = new ShiftChange
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2232,7 +2238,7 @@ public class ApplicationService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.ShiftChanges.Add(shiftChange);
+        await _context.ShiftChanges.AddAsync(shiftChange);
         await _context.SaveChangesAsync();
 
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2240,6 +2246,7 @@ public class ApplicationService
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
+        if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         string requestDateTime = shiftChange.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 != null)
@@ -2259,11 +2266,12 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-        return shiftChange;
+        return message;
     }
 
-    public async Task<ShiftExtension> CreateShiftExtensionAsync(ShiftExtensionDto request)
+    public async Task<string> CreateShiftExtensionAsync(ShiftExtensionDto request)
     {
+        var message = "Shift Extension request submitted successfully";
         var shiftExtension = new ShiftExtension
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2277,7 +2285,7 @@ public class ApplicationService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.ShiftExtensions.Add(shiftExtension);
+        await _context.ShiftExtensions.AddAsync(shiftExtension);
         await _context.SaveChangesAsync();
 
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2304,11 +2312,12 @@ public class ApplicationService
                 requestDate: requestDateTime
             );
         }
-        return shiftExtension;
+        return message;
     }
 
-    public async Task<WeeklyOffHolidayWorking> CreateWeeklyOffHolidayWorkingAsync(WeeklyOffHolidayWorkingDto request)
+    public async Task<string> CreateWeeklyOffHolidayWorkingAsync(WeeklyOffHolidayWorkingDto request)
     {
+        var message = "Weekly Off/Holiday Working request submitted successfully";
         var weeklyOffHolidayWorking = new WeeklyOffHolidayWorking
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2322,7 +2331,7 @@ public class ApplicationService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.WeeklyOffHolidayWorkings.Add(weeklyOffHolidayWorking);
+        await _context.WeeklyOffHolidayWorkings.AddAsync(weeklyOffHolidayWorking);
         await _context.SaveChangesAsync();
 
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2331,6 +2340,7 @@ public class ApplicationService
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = weeklyOffHolidayWorking.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
+        if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 != null)
         {
@@ -2350,11 +2360,12 @@ public class ApplicationService
                 createdBy: staffOrCreatorId
             );
         }
-        return weeklyOffHolidayWorking;
+        return message;
     }
 
     public async Task<string> AddReimbursement(ReimbursementRequestModel request)
     {
+        var message = "Reimbursement request submitted successfully";
         bool reimbursementExists = await _context.Reimbursements.AnyAsync(r => r.BillNo == request.BillNo);
         if (reimbursementExists) throw new InvalidOperationException($"Reimbursement with Bill No {request.BillNo} already exists.");
         string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
@@ -2391,7 +2402,7 @@ public class ApplicationService
             StaffId = request.StaffId,
             ReimbursementTypeId = request.ReimbursementTypeId
         };
-        _context.Reimbursements.Add(reimbursement);
+        await _context.Reimbursements.AddAsync(reimbursement);
         await _context.SaveChangesAsync();
 
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2419,6 +2430,6 @@ public class ApplicationService
                 createdBy: staffOrCreatorId
             );
         }
-        return "Reimbursement submitted successfully.";
+        return message;
     }
 }

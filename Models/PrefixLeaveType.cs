@@ -19,5 +19,9 @@ public partial class PrefixLeaveType
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
     public virtual ICollection<PrefixAndSuffix> PrefixAndSuffixes { get; set; } = new List<PrefixAndSuffix>();
+
+    public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

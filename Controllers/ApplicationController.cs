@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace AttendanceManagement.Controllers;
 
@@ -82,7 +83,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("CompOff Availability","POST","/api/Application/CreateCompOffAvail","CompOff request submitted successfully",request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.AuditLog("CompOff Availability","POST","/api/Application/CreateCompOffAvail",result,request.CreatedBy,JsonSerializer.Serialize(request));
 
             return Ok(response);
         }
@@ -91,10 +92,15 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("CompOff Availability","POST","/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
                     return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("CompOff Availability", "POST", "/api/Application/CreateCompOffAvail", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("CompOff Availability","POST","/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
-                    return ErrorClass.ErrorResponse(ex.Message);
+            return ErrorClass.ErrorResponse(ex.Message);
         }
     }
 
@@ -107,7 +113,7 @@ public class ApplicationController : ControllerBase
             var response = new
             {
                 Success = true,
-                Message = "Application request successfully cancelled"
+                Message = "Application request cancelled successfully"
             };
             await _loggingService.AuditLog("Application Cancellation","POST","/api/Application/CancelAppliedLeave","Application request cancelled successfully",cancel.UpdatedBy,JsonSerializer.Serialize(cancel));
             return Ok(response);
@@ -164,7 +170,7 @@ public class ApplicationController : ControllerBase
                 Message = result
             };
 
-            await _loggingService.AuditLog("CompOff Credit","POST","/api/Application/CreateCompOffCredit","CompOffCredit request submitted successfully",request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.AuditLog("CompOff Credit","POST","/api/Application/CreateCompOffCredit",result,request.CreatedBy,JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -203,11 +209,11 @@ public class ApplicationController : ControllerBase
     }
 
     [HttpGet("GetShifts")]
-    public IActionResult GetShiftsByStaffAndDateRange(int staffId, DateOnly fromDate, DateOnly toDate)
+    public async Task<IActionResult> GetShiftsByStaffAndDateRange(int staffId, DateOnly fromDate, DateOnly toDate)
     {
         try
         {
-            var shifts = _service.GetShiftsByStaffAndDateRange(staffId, fromDate, toDate);
+            var shifts = await _service.GetShiftsByStaffAndDateRange(staffId, fromDate, toDate);
             var response = new
             {
                 Success = true,
@@ -468,7 +474,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Manual Punch", "POST", "/api/Application/CreateManualPunch", "Manual punch updated successfully", createManualPunch.CreatedBy, JsonSerializer.Serialize(createManualPunch));
+            await _loggingService.AuditLog("Manual Punch", "POST", "/api/Application/CreateManualPunch", result, createManualPunch.CreatedBy, JsonSerializer.Serialize(createManualPunch));
             return Ok(response);
 
         }
@@ -495,7 +501,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("On Duty Request", "POST", "/api/Application/CreateOnDutyRequistion", "On duty request created successfully", onDutyRequisitionRequest.CreatedBy, JsonSerializer.Serialize(onDutyRequisitionRequest));
+            await _loggingService.AuditLog("On Duty Request", "POST", "/api/Application/CreateOnDutyRequistion", result, onDutyRequisitionRequest.CreatedBy, JsonSerializer.Serialize(onDutyRequisitionRequest));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -521,7 +527,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Business Travel", "POST", "/api/Application/CreateBusinessTravel", "Business travel created successfully", createBusinessTravel.CreatedBy, JsonSerializer.Serialize(createBusinessTravel));
+            await _loggingService.AuditLog("Business Travel", "POST", "/api/Application/CreateBusinessTravel", result, createBusinessTravel.CreatedBy, JsonSerializer.Serialize(createBusinessTravel));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -547,7 +553,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Work From Home", "POST", "/api/Application/CreateWorkFromHome", "Work From Home created successfully", createWorkFromHome.CreatedBy, JsonSerializer.Serialize(createWorkFromHome));
+            await _loggingService.AuditLog("Work From Home", "POST", "/api/Application/CreateWorkFromHome", result, createWorkFromHome.CreatedBy, JsonSerializer.Serialize(createWorkFromHome));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -573,7 +579,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Shift Change", "POST", "/api/Application/CreateShiftChange", "Shift change request submitted successfully", createShiftChange.CreatedBy, JsonSerializer.Serialize(createShiftChange));
+            await _loggingService.AuditLog("Shift Change", "POST", "/api/Application/CreateShiftChange", result, createShiftChange.CreatedBy, JsonSerializer.Serialize(createShiftChange));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -586,7 +592,6 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Shift Change", "POST", "/api/Application/CreateShiftChange", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftChange.CreatedBy, JsonSerializer.Serialize(createShiftChange));
             return ErrorClass.ErrorResponse(ex.Message);
         }
-
     }
 
     [HttpPost("CreateShiftExtension")]
@@ -600,7 +605,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Shift Extension", "POST", "/api/Application/CreateShiftExtension", "Shift extension request submitted successfully", createShiftExtension.CreatedBy, JsonSerializer.Serialize(createShiftExtension));
+            await _loggingService.AuditLog("Shift Extension", "POST", "/api/Application/CreateShiftExtension", result, createShiftExtension.CreatedBy, JsonSerializer.Serialize(createShiftExtension));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -626,7 +631,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Weekly Off/Holiday Working", "POST", "/api/Application/CreateWeeklyOff/HolidayWorking", "Weekly off request submitted successfully", createWeeklyoffHolidayWorking.CreatedBy, JsonSerializer.Serialize(createWeeklyoffHolidayWorking));
+            await _loggingService.AuditLog("Weekly Off/Holiday Working", "POST", "/api/Application/CreateWeeklyOff/HolidayWorking", result, createWeeklyoffHolidayWorking.CreatedBy, JsonSerializer.Serialize(createWeeklyoffHolidayWorking));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -652,7 +657,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Reimbursement", "POST", "/api/Application/AddReimbursement", "Reimbursement request submitted successfully", request.CreatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.AuditLog("Reimbursement", "POST", "/api/Application/AddReimbursement", result, request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)

@@ -16,7 +16,7 @@ namespace AttendanceManagement.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<LeaveGroupConfigurationDto>> GetAllConfigurations()
+        public async Task<List<LeaveGroupConfigurationDto>> GetAllConfigurations()
         {
             var allLeave = await (from leaveGroup in _context.LeaveGroupConfigurations
                                   join leaveType in _context.LeaveTypes
@@ -55,7 +55,6 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No leave group configurations found");
             }
-
             return allLeave;
         }
 
@@ -134,7 +133,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = configurationRequeset.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.LeaveGroupConfigurations.Add(configuration);
+            await _context.LeaveGroupConfigurations.AddAsync(configuration);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -142,7 +141,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateConfigurations(UpdateLeaveGroupConfiguration configuration)
         {
             var message = "Leave group configuration updated successfully";
-            var existingTransaction = _context.LeaveGroupConfigurations.FirstOrDefault(t => t.Id == configuration.LeaveGroupConfigurationId);
+            var existingTransaction = await _context.LeaveGroupConfigurations.FirstOrDefaultAsync(t => t.Id == configuration.LeaveGroupConfigurationId);
             if (existingTransaction == null)
             {
                 throw new MessageNotFoundException("Leave configuration group not found");

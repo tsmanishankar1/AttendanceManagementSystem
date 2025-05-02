@@ -59,7 +59,7 @@ namespace AttendanceManagement.Services
             var staffDetailsList = await (from staff in _context.StaffCreations
                                           join dept in _context.DepartmentMasters on staff.DepartmentId equals dept.Id
                                           join desig in _context.DesignationMasters on staff.DesignationId equals desig.Id
-                                          where staffIdList.Contains(staff.Id)
+                                          where staffIdList.Contains(staff.Id) && staff.IsActive == true && dept.IsActive && desig.IsActive
                                           select new
                                           {
                                               staff.Id,
@@ -70,7 +70,7 @@ namespace AttendanceManagement.Services
                                           }).ToListAsync();
             var statusDict = await _context.StatusDropdowns.ToDictionaryAsync(s => s.Id, s => s.ShortName);
             var defaultAbsentShortName = await _context.StatusDropdowns
-                .Where(s => s.Id == 37)
+                .Where(s => s.Id == 37 && s.IsActive)
                 .Select(s => s.ShortName)
                 .FirstOrDefaultAsync() ?? "AB";
 

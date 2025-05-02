@@ -29,7 +29,7 @@ public class UserManagementService
         var userExists = await _context.UserManagements.AnyAsync(u => u.StaffCreationId == userRequest.StaffCreationId && u.IsActive);
         if (userExists)
         {
-            throw new InvalidOperationException("User with the given StaffCreationId already exists.");
+            throw new InvalidOperationException("User is already exists.");
         }
         var user = new UserManagement
         {
@@ -40,7 +40,7 @@ public class UserManagementService
             CreatedUtc = DateTime.UtcNow,
             StaffCreationId = userRequest.StaffCreationId
         };
-        _context.UserManagements.Add(user);
+        await _context.UserManagements.AddAsync(user);
         await _context.SaveChangesAsync();
 
         return "User registered successfully";
@@ -49,7 +49,7 @@ public class UserManagementService
     public async Task<object> GetUserByUserId(int StaffId)
     {
         var user = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == StaffId && u.IsActive == true);
-        if (user == null) throw new MessageNotFoundException("User with the given StaffId not found.");
+        if (user == null) throw new MessageNotFoundException("User not found.");
         return new
         {
             StaffCreationId = user.Id,
@@ -106,7 +106,6 @@ public class UserManagementService
         user.Password = model.NewPassword;
         user.UpdatedUtc = DateTime.UtcNow;
         user.UpdatedBy = user.StaffCreationId; 
-        _context.UserManagements.Update(user);
         await _context.SaveChangesAsync();
         return message;
     }
@@ -124,7 +123,7 @@ public class UserManagementService
                              DepartmentName = department.Name,
                              CreatedBy = staff.CreatedBy
                          }).FirstOrDefaultAsync();
-        if (user == null) throw new MessageNotFoundException("Staff member with the given name not found.");
+        if (user == null) throw new MessageNotFoundException("Staff not found.");
         return user;
     }
 
@@ -152,7 +151,7 @@ public class UserManagementService
         var user = await (from staff in _context.StaffCreations
                           join department in _context.DepartmentMasters
                           on staff.DepartmentId equals department.Id
-                          where staff.Id == StaffCreationId && staff.IsActive==true
+                          where staff.Id == StaffCreationId && staff.IsActive==true && department.IsActive
                           select new UserManagementResponse
                           {
                               UserManagementId = staff.Id,
@@ -160,7 +159,7 @@ public class UserManagementService
                               DepartmentName = department.Name,
                               CreatedBy = staff.CreatedBy
                           }).FirstOrDefaultAsync();
-        if (user == null) throw new MessageNotFoundException("User with the given StaffId not found.");
+        if (user == null) throw new MessageNotFoundException("User not found.");
         return user;
     }
 
@@ -175,7 +174,6 @@ public class UserManagementService
         staff.IsActive = false;
         staff.UpdatedUtc = DateTime.UtcNow;
         staff.UpdatedBy = deletedBy;
-        _context.StaffCreations.Update(staff);
         await _context.SaveChangesAsync();
         return message;
     }

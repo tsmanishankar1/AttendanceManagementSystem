@@ -10,13 +10,12 @@ namespace AttendanceManagement.Services
     public class LeaveGroupService
     {
         private readonly AttendanceManagementSystemContext _context;
-
         public LeaveGroupService(AttendanceManagementSystemContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<LeaveGroupResponse>> GetAllLeaveGroups()
+        public async Task<List<LeaveGroupResponse>> GetAllLeaveGroups()
         {
             var leaveGroups = await (from leave in _context.LeaveGroups
                                      select new
@@ -55,7 +54,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = addLeaveGroupDto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.LeaveGroups.Add(leaveGroup);
+            await _context.LeaveGroups.AddAsync(leaveGroup);
             await _context.SaveChangesAsync();
 
             foreach (var leaveTypeId in addLeaveGroupDto.LeaveTypeIds)
@@ -69,7 +68,7 @@ namespace AttendanceManagement.Services
                     CreatedUtc = DateTime.UtcNow
                 };
 
-                _context.LeaveGroupTransactions.Add(leaveGroupTransaction);
+               await _context.LeaveGroupTransactions.AddAsync(leaveGroupTransaction);
             }
             await _context.SaveChangesAsync();
             return message;

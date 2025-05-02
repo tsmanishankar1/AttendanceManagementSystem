@@ -14,7 +14,7 @@ namespace AttendanceManagement.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<DivisionResponse>> GetAllDivisions()
+        public async Task<List<DivisionResponse>> GetAllDivisions()
         {
             var allDivision = await (from division in _context.DivisionMasters
                                select new DivisionResponse
@@ -35,7 +35,7 @@ namespace AttendanceManagement.Services
 
         public async Task<string> AddDivision(DivisionRequest divisionRequest)
         {
-            var message = "Division added successfully";
+            var message = "Division created successfully";
             DivisionMaster division = new DivisionMaster
             {
                 Name = divisionRequest.FullName,
@@ -44,7 +44,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = divisionRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.DivisionMasters.Add(division);
+            await _context.DivisionMasters.AddAsync(division);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -52,7 +52,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateDivision(UpdateDivision division)
         {
             var message = "Division updated successfully";
-            var existingDivision = _context.DivisionMasters.FirstOrDefault(d => d.Id == division.DivisionMasterId);
+            var existingDivision = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Id == division.DivisionMasterId);
             if (existingDivision == null)
             {
                 throw new MessageNotFoundException("Division not found");

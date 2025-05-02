@@ -29,5 +29,9 @@ public partial class EmailLog
 
     public DateTime CreatedUtc { get; set; }
 
+    public string? ErrorStackTrace { get; set; }
+
+    public string? ErrorInnerException { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 }

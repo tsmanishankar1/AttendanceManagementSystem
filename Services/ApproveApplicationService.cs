@@ -22,10 +22,10 @@ namespace AttendanceManagement.Services
         {
             var message = "";
             var selectedRows = approveLeaveRequest.SelectedRows;
-            var approverName = _context.StaffCreations
+            var approverName = await _context.StaffCreations
                 .Where(s => s.Id == approveLeaveRequest.ApprovedBy && s.IsActive == true)
                 .Select(s => $"{s.FirstName}{s.LastName}")
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
             //string approvedDateTime = DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
             var applicationType = await _context.ApplicationTypes.Where(a => a.Id == approveLeaveRequest.ApplicationTypeId && a.IsActive).Select(a => a.Name).FirstOrDefaultAsync();
             foreach (var item in selectedRows)
@@ -64,8 +64,8 @@ namespace AttendanceManagement.Services
                                 }
                                 else
                                 {
-                                    if (leave.StaffId != null) throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
-                                    else throw new MessageNotFoundException("Insufficient leave balance found");
+                                    if (leave.StaffId != null) throw new InvalidOperationException($"Insufficient leave balance found for Staff {staffName}");
+                                    else throw new InvalidOperationException("Insufficient leave balance found");
                                 }
                                 leave.Status1 = true;
                                 leave.IsActive = false;
@@ -99,8 +99,8 @@ namespace AttendanceManagement.Services
                                 }
                                 else
                                 {
-                                    if (leave.StaffId != null) throw new MessageNotFoundException($"Insufficient leave balance found for Staff {staffName}");
-                                    else throw new MessageNotFoundException("Insufficient leave balance found");
+                                    if (leave.StaffId != null) throw new InvalidOperationException($"Insufficient leave balance found for Staff {staffName}");
+                                    else throw new InvalidOperationException("Insufficient leave balance found");
                                 }
                                 leave.Status1 = true;
                                 leave.UpdatedBy = approveLeaveRequest.ApprovedBy;
@@ -166,7 +166,7 @@ namespace AttendanceManagement.Services
                             CreatedBy = approveLeaveRequest.ApprovedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
-                        _context.ApprovalNotifications.Add(notification);
+                        await _context.ApprovalNotifications.AddAsync(notification);
                         await _context.SaveChangesAsync();
                         leave.ApprovalNotificationId = notification.Id;
                         await _context.SaveChangesAsync();
@@ -276,7 +276,7 @@ namespace AttendanceManagement.Services
                             CreatedBy = approveLeaveRequest.ApprovedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
-                        _context.ApprovalNotifications.Add(notification);
+                        await _context.ApprovalNotifications.AddAsync(notification);
                         await _context.SaveChangesAsync();
                         leave.ApprovalNotificationId = notification.Id;
                         await _context.SaveChangesAsync();
@@ -411,7 +411,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     permissionRequest.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -548,7 +548,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     manualPunch.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -673,7 +673,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     onDuty.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -810,7 +810,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     businessTravel.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -947,7 +947,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     workFromHome.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -1086,7 +1086,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     shiftChange.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -1217,7 +1217,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     shiftExtension.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -1350,7 +1350,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     weeklyOffHoliday.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -1519,7 +1519,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     compOffAvail.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -1669,7 +1669,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     compOffCredit.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();
@@ -1713,7 +1713,6 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 18)
                 {
                     var reimbursementRequest = await _context.Reimbursements.FirstOrDefaultAsync(r => r.Id == item.Id);
-
                     /*                if (reimbursementRequest == null)
                                         throw new MessageNotFoundException("Reimbursement request not found");
                     */
@@ -1800,7 +1799,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = approveLeaveRequest.ApprovedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.ApprovalNotifications.Add(notification);
+                    await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
                     reimbursementRequest.ApprovalNotificationId = notification.Id;
                     await _context.SaveChangesAsync();

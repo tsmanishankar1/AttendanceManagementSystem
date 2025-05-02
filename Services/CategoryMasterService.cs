@@ -21,8 +21,7 @@ public class CategoryMasterService
                 FullName = category.Name,
                 ShortName = category.ShortName,
                 IsActive = category.IsActive
-            })
-            .ToListAsync();
+            }).ToListAsync();
         if (allCategory.Count == 0)
         {
             throw new MessageNotFoundException("No Categories found");
@@ -32,7 +31,7 @@ public class CategoryMasterService
 
     public async Task<string> CreateCategoryAsync(CategoryMasterRequest request)
     {
-        var message = "Category Master added successfully";
+        var message = "Category created successfully";
         var newCategory = new CategoryMaster
         {
             Name = request.FullName,
@@ -41,14 +40,14 @@ public class CategoryMasterService
             CreatedBy = request.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.CategoryMasters.Add(newCategory);
+        await _context.CategoryMasters.AddAsync(newCategory);
         await _context.SaveChangesAsync();
         return message;
     }
 
     public async Task<string> UpdateCategoryAsync(UpdateCategory request)
     {
-        var message = "Category Master Updated Successfully";
+        var message = "Category created successfully";
         var existingCategory = await _context.CategoryMasters.FirstOrDefaultAsync(c => c.Id == request.CategoryMasterId);
         if (existingCategory == null)
         {

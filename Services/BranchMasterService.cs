@@ -13,7 +13,7 @@ public class BranchMasterService
         _context = context;
     }
 
-    public async Task<IEnumerable<BranchMasterResponse>> GetAllBranches()
+    public async Task<List<BranchMasterResponse>> GetAllBranches()
     {
         var allBranch = await (from b in _context.BranchMasters
                                join c in _context.CompanyMasters
@@ -49,7 +49,7 @@ public class BranchMasterService
 
     public async Task<string> CreateBranch(BranchMasterRequest branchMasterRequest)
     {
-        var message = "Branch master added successfully.";
+        var message = "Branch created successfully.";
         var branchMaster = new BranchMaster
         {
             Name = branchMasterRequest.FullName,
@@ -69,15 +69,15 @@ public class BranchMasterService
             CreatedUtc = DateTime.UtcNow,
             CompanyMasterId = branchMasterRequest.CompanyMasterId
         };
-        _context.BranchMasters.Add(branchMaster);
+        await _context.BranchMasters.AddAsync(branchMaster);
         await _context.SaveChangesAsync();
         return message;
     }
 
     public async Task<string> UpdateBranch(UpdateBranch branchMasterRequest)
     {
-        var message = "Branch master updated successfully.";
-        var existingBranch = _context.BranchMasters.FirstOrDefault(b => b.Id == branchMasterRequest.BranchMasterId);
+        var message = "Branch updated successfully.";
+        var existingBranch = await _context.BranchMasters.FirstOrDefaultAsync(b => b.Id == branchMasterRequest.BranchMasterId);
         if (existingBranch == null)
         {
             throw new MessageNotFoundException("Branch not found");
@@ -99,7 +99,6 @@ public class BranchMasterService
         existingBranch.UpdatedUtc = DateTime.UtcNow;
         existingBranch.CompanyMasterId = branchMasterRequest.CompanyMasterId;
 
-        _context.Update(existingBranch);
         await _context.SaveChangesAsync();
         return message;
     }

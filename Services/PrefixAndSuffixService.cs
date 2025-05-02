@@ -10,7 +10,7 @@ public class PrefixAndSuffixService
     {
         _context = context;
     }
-    public async Task<IEnumerable<PrefixLeaveResponse>> GetAllPrefixLeaveType()
+    public async Task<List<PrefixLeaveResponse>> GetAllPrefixLeaveType()
     {
         var getPrefix = await (from prefix in _context.PrefixLeaveTypes
                          select new PrefixLeaveResponse
@@ -36,12 +36,12 @@ public class PrefixAndSuffixService
             CreatedBy = prefixLeaveType.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.PrefixLeaveTypes.Add(prefixLeave);
+        await _context.PrefixLeaveTypes.AddAsync(prefixLeave);
         await _context.SaveChangesAsync();
         return message;
     }
 
-    public async Task<IEnumerable<SuffixLeaveResponse>> GetAllSuffixLeaveType()
+    public async Task<List<SuffixLeaveResponse>> GetAllSuffixLeaveType()
     {
         var getSuffix = await (from suffix in _context.SuffixLeaveTypes
                          select new SuffixLeaveResponse
@@ -67,12 +67,12 @@ public class PrefixAndSuffixService
             CreatedBy = suffixLeaveType.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.SuffixLeaveTypes.Add(suffixLeave);
+        await _context.SuffixLeaveTypes.AddAsync(suffixLeave);
         await _context.SaveChangesAsync();
         return message;
     }
 
-    public async Task<IEnumerable<PrefixAndSuffixDto>> GetAllPrefixAndSuffixAsync()
+    public async Task<List<PrefixAndSuffixDto>> GetAllPrefixAndSuffixAsync()
     {
         var allPrefix = await (from prefix in _context.PrefixAndSuffixes
                                join leaveType in _context.LeaveTypes
@@ -113,7 +113,7 @@ public class PrefixAndSuffixService
             CreatedBy = prefixAndSuffixRequest.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.PrefixAndSuffixes.Add(prefixAndSuffix);
+        await _context.PrefixAndSuffixes.AddAsync(prefixAndSuffix);
         await _context.SaveChangesAsync();
         return message;
     }

@@ -1,5 +1,34 @@
 ﻿namespace AttendanceManagement.Input_Models
 {
+    public class ReportTypeResponse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public int CreatedBy { get; set; }
+    }
+
+    public class WorkingTypeAmountRequest
+    {
+        public int WorkingTypeId { get; set; }
+        public decimal Amount { get; set; }
+        public int CreatedBy { get; set; }
+    }
+
+    public class WorkingTypeAmountResponse
+    {
+        public int Id { get; set; }
+        public int WorkingTypeId { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public class UpdateWorkingTypeAmount
+    {
+        public int Id { get; set; }
+        public int WorkingTypeId { get; set; }
+        public decimal Amount { get; set; }
+        public int UpdatedBy { get; set; }
+    }
+
     public class DailyReportRequest
     {
         public int DailyReportsId { get; set; }

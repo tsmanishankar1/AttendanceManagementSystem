@@ -19,5 +19,9 @@ public partial class HolidayType
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
     public virtual ICollection<HolidayMaster> HolidayMasters { get; set; } = new List<HolidayMaster>();
+
+    public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

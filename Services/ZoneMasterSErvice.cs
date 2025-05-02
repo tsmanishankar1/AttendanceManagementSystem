@@ -13,7 +13,7 @@ public class ZoneMasterService
         _context = context;
     }
 
-    public async Task<IEnumerable<ZoneMasterResponse>> GetAllZonesAsync()
+    public async Task<List<ZoneMasterResponse>> GetAllZonesAsync()
     {
         var allZones = await (from zone in _context.ZoneMasters
                               select new ZoneMasterResponse
@@ -43,7 +43,7 @@ public class ZoneMasterService
             CreatedBy = zoneMaster.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.ZoneMasters.Add(zone);
+        await _context.ZoneMasters.AddAsync(zone);
         await _context.SaveChangesAsync();
         return message;
     }

@@ -16,7 +16,7 @@ namespace AttendanceManagement.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<DesignationResponse>> GetAllDesignations()
+        public async Task<List<DesignationResponse>> GetAllDesignations()
         {
             var allDesignation = await (from designation in _context.DesignationMasters
                                   select new DesignationResponse
@@ -37,7 +37,7 @@ namespace AttendanceManagement.Services
 
         public async Task<string> AddDesignation(DesignationRequest designationRequest)
         {
-            var message = "Designation added successfully";
+            var message = "Designation created successfully";
             DesignationMaster designation = new DesignationMaster
             {
                 Name = designationRequest.FullName,
@@ -46,7 +46,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = designationRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.DesignationMasters.Add(designation);
+            await _context.DesignationMasters.AddAsync(designation);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -54,7 +54,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateDesignation(UpdateDesignation designation)
         {
             var message = "Designation updated successfully";
-            var existingDesignation = _context.DesignationMasters.FirstOrDefault(d => d.Id == designation.DesignationMasterId);
+            var existingDesignation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == designation.DesignationMasterId);
             if(existingDesignation == null)
             {
                 throw new MessageNotFoundException("Designation not found");

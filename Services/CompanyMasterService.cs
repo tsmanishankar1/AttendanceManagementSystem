@@ -13,7 +13,7 @@ namespace AttendanceManagement.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<CompanyMasterResponse>> GetAll()
+        public async Task<List<CompanyMasterResponse>> GetAll()
         {
             var allCompany = await (from company in _context.CompanyMasters
                               select new CompanyMasterResponse
@@ -39,13 +39,12 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No company found");
             }
-
             return allCompany;
         }
 
         public async Task<string> Add(CompanyMasterRequest companyMasterRequest)
         {
-            var message = "Company added successfully";
+            var message = "Company created successfully";
             CompanyMaster company = new CompanyMaster();
             company.Name = companyMasterRequest.FullName;
             company.ShortName = companyMasterRequest.ShortName;
@@ -63,7 +62,7 @@ namespace AttendanceManagement.Services
             company.CreatedBy = companyMasterRequest.CreatedBy;
             company.CreatedUtc = DateTime.UtcNow;
 
-            _context.CompanyMasters.Add(company);
+            await _context.CompanyMasters.AddAsync(company);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -71,7 +70,7 @@ namespace AttendanceManagement.Services
         public async Task<string> Update(CompanyMasterDto companyMaster)
         {
             var message = "Company updated successfully";
-            var existingCompany = _context.CompanyMasters.FirstOrDefault(d => d.Id == companyMaster.CompanyMasterId);
+            var existingCompany = await _context.CompanyMasters.FirstOrDefaultAsync(d => d.Id == companyMaster.CompanyMasterId);
             if (existingCompany == null)
             {
                 throw new MessageNotFoundException("Category not found");

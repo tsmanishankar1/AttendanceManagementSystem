@@ -28,9 +28,16 @@ public class DailyReportsService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<TypesOfReport>> GetReportType()
+    public async Task<List<ReportTypeResponse>> GetReportType()
     {
-        var reportType = await _context.TypesOfReports.ToListAsync();
+        var reportType = await (from report in _context.TypesOfReports
+                                where report.IsActive
+                                select new ReportTypeResponse
+                                {
+                                    Id = report.Id,
+                                    Name = report.Name,
+                                    CreatedBy = report.CreatedBy
+                                }).ToListAsync();
         if (reportType.Count == 0) throw new MessageNotFoundException("No report type found");
         return reportType;
     }
@@ -73,7 +80,7 @@ public class DailyReportsService
             fromDateTime = request.FromDateTime.Value;
             toDateTime = request.ToDateTime.Value;
         }
-        var reportName = await _context.TypesOfReports.Where(r => r.Id == request.DailyReportsId).Select(r => r.ReportName).FirstOrDefaultAsync();
+        var reportName = await _context.TypesOfReports.Where(r => r.Id == request.DailyReportsId).Select(r => r.Name).FirstOrDefaultAsync();
         if (reportName == null)
         {
             throw new MessageNotFoundException("Report type not found");
@@ -1481,6 +1488,114 @@ public class DailyReportsService
             };
             return finalResponse;
         }
+        else if (request.DailyReportsId == 24)
+        {
+            var finalResponse = new object();
+            using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
+            {
+                await connection.OpenAsync();
+
+                using (var command = new SqlCommand("EXEC DailyReport @DailyReportId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", connection))
+                {
+                    command.Parameters.AddWithValue("@DailyReportId", request.DailyReportsId);
+                    command.Parameters.AddWithValue("@StaffIds", staffIds);
+                    command.Parameters.AddWithValue("@FromDate", request.FromDate ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@ToDate", request.ToDate ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@CurrentMonth", request.CurrentMonth ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@PreviousMonth", request.PreviousMonth ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@FromMonth", request.FromMonth ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@ToMonth", request.ToMonth ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@IncludeTerminated", request.IncludeTerminated ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value);
+
+                    var reader = await command.ExecuteReaderAsync();
+                    var result = new List<Dictionary<string, object>>();
+                    while (await reader.ReadAsync())
+                    {
+                        var row = new Dictionary<string, object>();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
+                        }
+                        result.Add(row);
+                    }
+                    if (result.Count == 0) throw new MessageNotFoundException("No records found");
+                    finalResponse = new
+                    {
+                        ReportName = reportName1,
+                        FromDate = fromDate1,
+                        ToDate = toDate1,
+                        ReportDate = reportDate,
+                        UserId = userId,
+                        UserCreationId = userCreationId,
+                        UserName = userName,
+                        Records = result
+                    };
+                }
+            }
+            return finalResponse;
+        }
         throw new MessageNotFoundException("Report type not found");
+    }
+
+    public async Task<string> AddWorkingTypeAmount(WorkingTypeAmountRequest request)
+    {
+        var typeName = await _context.WorkingTypes
+            .Where(w => w.Id == request.WorkingTypeId && w.IsActive)
+            .Select(w => w.Name)
+            .FirstOrDefaultAsync();
+        if (typeName == null) throw new MessageNotFoundException("Working type not found");
+        var message = $"{typeName} amount added successfully";
+        var existingActiveEntries = await _context.WorkingTypeAmounts.Where(x => x.WorkingTypeId == request.WorkingTypeId && x.IsActive).ToListAsync();
+        foreach (var entry in existingActiveEntries)
+        {
+            entry.IsActive = false;
+            entry.UpdatedBy = request.CreatedBy;
+            entry.UpdatedUtc = DateTime.UtcNow;
+        }
+        var workingTypeAmount = new WorkingTypeAmount
+        {
+            WorkingTypeId = request.WorkingTypeId,
+            Amount = request.Amount,
+            IsActive = true,
+            CreatedBy = request.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.WorkingTypeAmounts.AddAsync(workingTypeAmount);
+        await _context.SaveChangesAsync();
+        return message;
+    }
+
+    public async Task<List<WorkingTypeAmountResponse>> GetWorkingTypeAmount()
+    {
+        var workingTypeAmount = await (from wta in _context.WorkingTypeAmounts
+                                       where wta.IsActive
+                                       select new WorkingTypeAmountResponse
+                                       {
+                                           Id = wta.Id,
+                                           WorkingTypeId = wta.WorkingTypeId,
+                                           Amount = wta.Amount
+                                       }).ToListAsync();
+        if (workingTypeAmount.Count == 0) throw new MessageNotFoundException("No working type amounts found");
+        return workingTypeAmount;
+    }
+
+    public async Task<string> UpdateWorkingTypeAmount(UpdateWorkingTypeAmount request)
+    {
+        var typeName = await _context.WorkingTypes
+            .Where(w => w.Id == request.WorkingTypeId && w.IsActive)
+            .Select(w => w.Name)
+            .FirstOrDefaultAsync();
+        if (typeName == null) throw new MessageNotFoundException("Working type not found");
+        var message = $"{typeName} amount updated successfully";
+        var workingTypeAmount = await _context.WorkingTypeAmounts.FirstOrDefaultAsync(g => g.Id == request.Id && g.IsActive);
+        if (workingTypeAmount == null) throw new MessageNotFoundException("Working type amount not found");
+        workingTypeAmount.WorkingTypeId = request.WorkingTypeId;
+        workingTypeAmount.Amount = request.Amount;
+        workingTypeAmount.UpdatedBy = request.UpdatedBy;
+        workingTypeAmount.UpdatedUtc = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return message;
     }
 }

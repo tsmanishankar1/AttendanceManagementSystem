@@ -12,7 +12,7 @@ namespace AttendanceManagement.Services
         {
             _context = context;
         }
-        public async Task<IEnumerable<LocationResponse>> GetAllLocationMastersAsync()
+        public async Task<List<LocationResponse>> GetAllLocationMastersAsync()
         {
             var allLocation = await (from location in _context.LocationMasters
                                      select new LocationResponse
@@ -42,7 +42,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = locationMaster.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.LocationMasters.Add(location);
+            await _context.LocationMasters.AddAsync(location);
             await _context.SaveChangesAsync();
             return message;
         }

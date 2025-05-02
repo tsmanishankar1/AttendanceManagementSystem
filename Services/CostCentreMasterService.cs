@@ -13,7 +13,7 @@ public class CostCentreMasterService
         _context = context;
     }
 
-    public async Task<IEnumerable<CostMasterResponse>> GetAllCostCentres()
+    public async Task<List<CostMasterResponse>> GetAllCostCentres()
     {
         var allCostMaster = await (from cost in _context.CostCentreMasters
                              select new CostMasterResponse
@@ -29,13 +29,12 @@ public class CostCentreMasterService
         {
             throw new MessageNotFoundException("No cost centre found");
         }
-
         return allCostMaster;
     }
+
     public async Task<string> CreateCostCentre(CostMasterRequest costCentreMaster)
     {
-        var message = "Cost centre added successfully";
-
+        var message = "Cost centre created successfully";
         CostCentreMaster costMaster = new CostCentreMaster();
         costMaster.Name = costCentreMaster.FullName;
         costMaster.ShortName = costCentreMaster.ShortName;
@@ -43,7 +42,7 @@ public class CostCentreMasterService
         costMaster.CreatedBy = costCentreMaster.CreatedBy;
         costMaster.CreatedUtc = DateTime.UtcNow;
 
-        _context.CostCentreMasters.Add(costMaster);
+        await _context.CostCentreMasters.AddAsync(costMaster);
         await _context.SaveChangesAsync();
         return message;
     }
@@ -51,7 +50,7 @@ public class CostCentreMasterService
     public async Task<string> UpdateCostCentre(UpdateCostMaster costCentreMaster)
     {
         var message = "Cost centre updated successfully";
-        var existingCostCentre = _context.CostCentreMasters.FirstOrDefault(c => c.Id == costCentreMaster.CostCentreMasterId);
+        var existingCostCentre = await _context.CostCentreMasters.FirstOrDefaultAsync(c => c.Id == costCentreMaster.CostCentreMasterId);
         if (existingCostCentre == null)
         {
             throw new MessageNotFoundException("Cost centre not found");

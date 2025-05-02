@@ -60,6 +60,11 @@ public class AttendanceController : ControllerBase
             await _loggingService.AuditLog("Grace and Extra Breack Time", "POST", "/api/Attendance/AddGraceTimeAndBreakTime", result, request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
         }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Grace and Extra Breack Time", "POST", "/api/Attendance/AddGraceTimeAndBreakTime", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Grace and Extra Breack Time", "POST", "/api/Attendance/AddGraceTimeAndBreakTime", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));

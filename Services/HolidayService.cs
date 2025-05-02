@@ -24,7 +24,7 @@ namespace AttendanceManagement.Services
                 CreatedUtc = DateTime.UtcNow,
                 IsActive = holidayRequest.IsActive
             };
-            _context.HolidayMasters.Add(holiday);
+            await _context.HolidayMasters.AddAsync(holiday);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -41,7 +41,7 @@ namespace AttendanceManagement.Services
             return holidayType;
         }
 
-        public async Task<IEnumerable<HolidayResponse>> GetAllHolidaysAsync()
+        public async Task<List<HolidayResponse>> GetAllHolidaysAsync()
         {
             var allHoliday = await (from holiday in _context.HolidayMasters
                               join holidayType in _context.HolidayTypes
@@ -66,7 +66,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateHoliday(UpdateHoliday updatedHoliday)
         {
             var message = "Holiday updated successfully";
-            var existingHoliday = _context.HolidayMasters.FirstOrDefault(h => h.Id == updatedHoliday.HolidayMasterId);
+            var existingHoliday = await _context.HolidayMasters.FirstOrDefaultAsync(h => h.Id == updatedHoliday.HolidayMasterId);
             if (existingHoliday == null) throw new MessageNotFoundException("Holiday not found");
 
             existingHoliday.HolidayName = updatedHoliday.HolidayName;
@@ -75,7 +75,6 @@ namespace AttendanceManagement.Services
             existingHoliday.UpdatedBy = updatedHoliday.UpdatedBy;
             existingHoliday.UpdatedUtc = DateTime.UtcNow;
 
-            _context.Update(existingHoliday);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -108,12 +107,12 @@ namespace AttendanceManagement.Services
                     holidayCalendar.HolidayCalendarTransactions.Add(transaction);
                 }
             }
-            _context.HolidayCalendarConfigurations.Add(holidayCalendar);
+            await _context.HolidayCalendarConfigurations.AddAsync(holidayCalendar);
             await _context.SaveChangesAsync();
             return message;
         }
 
-        public async Task<IEnumerable<HolidayConfigurationResponse>> GetAllHolidayCalendarsAsync()
+        public async Task<List<HolidayConfigurationResponse>> GetAllHolidayCalendarsAsync()
         {
             var allHolidays = await (from holiday in _context.HolidayCalendarConfigurations
                                      select new
@@ -230,7 +229,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = holidayZoneRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.HolidayZoneConfigurations.Add(holidayZone);
+            await _context.HolidayZoneConfigurations.AddAsync(holidayZone);
             await _context.SaveChangesAsync();
             return message;
         }

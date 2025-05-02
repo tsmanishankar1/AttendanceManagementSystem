@@ -149,9 +149,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateAsync(ListCertificationCourseUpdateRequest certificationCourseRequests)
         {
             var ids = certificationCourseRequests.CertificationCourses.Select(c => c.Id).ToList();
-            var existingCourses = await _context.CertificationCourses
-                .Where(c => ids.Contains(c.Id))
-                .ToListAsync();
+            var existingCourses = await _context.CertificationCourses.Where(c => ids.Contains(c.Id)).ToListAsync();
             foreach (var courseRequest in certificationCourseRequests.CertificationCourses)
             {
                 var existing = existingCourses.FirstOrDefault(c => c.Id == courseRequest.Id);

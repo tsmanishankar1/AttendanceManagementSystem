@@ -37,15 +37,15 @@ namespace AttendanceManagement.Services
             var staffList = await _context.StaffCreations.Where(s => staffIds.Contains(s.Id)).ToListAsync();
             if (staffList == null || !staffList.Any())
             {
-                return "No valid staff members found.";
+                throw new MessageNotFoundException("No valid staff members found");
             }
             if (approverId1.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId1.Value))
             {
-                return $"ApproverId1 ({approverId1}) does not exist.";
+                throw new MessageNotFoundException($"ApproverId1 ({approverId1}) does not exist");
             }
             if (approverId2.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId2.Value))
             {
-                return $"ApproverId2 ({approverId2}) does not exist.";
+                throw new MessageNotFoundException($"ApproverId2 ({approverId2}) does not exist");
             }
             foreach (var staff in staffList)
             {
@@ -255,7 +255,6 @@ namespace AttendanceManagement.Services
             staff.UpdatedBy = individualStaffUpdate.UpdatedBy;
             staff.UpdatedUtc = DateTime.UtcNow;
 
-            _context.StaffCreations.Update(staff);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -274,7 +273,8 @@ namespace AttendanceManagement.Services
                                  join org in _context.OrganizationTypes on s.OrganizationTypeId equals org.Id
                                  join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
                                  join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
-                                 where s.Id == staffId && s.IsActive == true
+                                 where s.Id == staffId && s.IsActive == true && division.IsActive && department.IsActive && grade.IsActive 
+                                 && org.IsActive && workingStatus.IsActive && maritalStatus.IsActive
                                  select new IndividualStaffResponse
                                  {
                                      StaffCreationId = s.StaffId,
@@ -466,7 +466,7 @@ namespace AttendanceManagement.Services
                 PanCardFilePath = panCardPath,
                 DrivingLicenseFilePath = drivingLicensePath,
             };
-            _context.StaffCreations.Add(staff);
+            await _context.StaffCreations.AddAsync(staff);
             await _context.SaveChangesAsync();
 
             var reportingManager = await _context.StaffCreations
@@ -584,7 +584,6 @@ namespace AttendanceManagement.Services
             existingStaff.UpdatedBy = updatedStaff.UpdatedBy;
             existingStaff.UpdatedUtc = DateTime.UtcNow;
 
-            _context.StaffCreations.Update(existingStaff);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -605,10 +604,10 @@ namespace AttendanceManagement.Services
             return $"/{folderName}/{fileName}";
         }
 
-        public async Task<IEnumerable<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1)
+        public async Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1)
         {
             var approver = await _context.StaffCreations
-                .Where(x => x.Id == currentApprovar1)
+                .Where(x => x.Id == currentApprovar1 && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
             bool isSuperAdmin = approver == "SUPER ADMIN";
@@ -731,7 +730,7 @@ namespace AttendanceManagement.Services
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
             var approver = await _context.StaffCreations
-                .Where(x => x.Id == approverId)
+                .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
             bool isSuperAdmin = approver == "SUPER ADMIN";
@@ -895,7 +894,7 @@ namespace AttendanceManagement.Services
                         CreatedBy = staffApprove.CreatedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
-                    _context.Probations.Add(probation);
+                    await _context.Probations.AddAsync(probation);
                     await _context.SaveChangesAsync();
                 }
 
@@ -929,7 +928,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = dropDownRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.DropDownMasters.Add(dropDown);
+            await _context.DropDownMasters.AddAsync(dropDown);
             await _context.SaveChangesAsync();
             return message;
         }
@@ -1015,7 +1014,9 @@ namespace AttendanceManagement.Services
                 {1034, new WorkstationMaster() },
                 {1035, new PrefixLeaveType() },
                 {1036, new SuffixLeaveType() },
-                {1037, new HolidayType() }
+                {1037, new HolidayType() },
+                {1038, new TypesOfReport() },
+                {1039, new WorkingType() }
             };
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
             {
@@ -1027,7 +1028,7 @@ namespace AttendanceManagement.Services
             newEntity.CreatedBy = dropDownDetailsRequest.CreatedBy;
             newEntity.CreatedUtc = DateTime.UtcNow;
 
-            _context.Add(newEntity);
+            await _context.AddAsync(newEntity);
             await _context.SaveChangesAsync();
             return $"{newEntity.GetType().Name} created successfully";
         }
@@ -1082,7 +1083,9 @@ namespace AttendanceManagement.Services
                 { 1034, _context.WorkstationMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1035, _context.PrefixLeaveTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1036, _context.SuffixLeaveTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1037, _context.HolidayTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1037, _context.HolidayTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1038, _context.TypesOfReports.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1039, _context.WorkingTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -1147,7 +1150,9 @@ namespace AttendanceManagement.Services
                 { 1034, async () => await _context.WorkstationMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1035, async () => await _context.PrefixLeaveTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1036, async () => await _context.SuffixLeaveTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1037, async () => await _context.HolidayTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1037, async () => await _context.HolidayTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1038, async () => await _context.TypesOfReports.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1039, async () => await _context.WorkingTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

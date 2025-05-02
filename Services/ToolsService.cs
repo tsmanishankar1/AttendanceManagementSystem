@@ -16,7 +16,7 @@ namespace AttendanceManagement.Services
         public async Task<List<StaffInfoDto>> GetStaffInfoByOrganizationTypeAsync(int organizationTypeId)
         {
             var staffInfo = await _context.StaffCreations
-                .Where(s => s.OrganizationTypeId == organizationTypeId)
+                .Where(s => s.OrganizationTypeId == organizationTypeId && s.IsActive == true)
                 .Include(s => s.Department)
                 .Select(s => new StaffInfoDto
                 {
@@ -31,7 +31,7 @@ namespace AttendanceManagement.Services
         public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(List<int> staffIds)
         {
             var organizationTypeIds = await _context.StaffCreations
-                .Where(staff => staffIds.Contains(staff.Id))
+                .Where(staff => staffIds.Contains(staff.Id) && staff.IsActive == true)
                 .Select(staff => staff.OrganizationTypeId)
                 .Distinct()
                 .ToListAsync();
@@ -92,8 +92,9 @@ namespace AttendanceManagement.Services
         }
         public async Task<List<AssignLeaveTypeDTO>> GetAllAssignLeaveTypes()
         {
-            return await _context.AssignLeaveTypes
-                .Join(_context.LeaveTypes,
+            var result = await _context.AssignLeaveTypes
+                .Where(l => l.IsActive)
+                .Join(_context.LeaveTypes.Where(leave => leave.IsActive),
                     assign => assign.LeaveTypeId,
                     leave => leave.Id,
                     (assign, leave) => new AssignLeaveTypeDTO
@@ -104,6 +105,8 @@ namespace AttendanceManagement.Services
                         OrganizationTypeId = assign.OrganizationTypeId
                     })
                 .ToListAsync();
+            if (result.Count == 0) throw new MessageNotFoundException("No assigned leave types found");
+            return result;
         }
 
         public async Task<string> CreateAssignLeaveType(CreateAssignLeaveTypeDTO dto)
@@ -116,7 +119,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = dto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.AssignLeaveTypes.Add(newAssignLeaveType);
+            await _context.AssignLeaveTypes.AddAsync(newAssignLeaveType);
             await _context.SaveChangesAsync();
 
             return "Assign LeaveType Created Successfully";
@@ -132,7 +135,6 @@ namespace AttendanceManagement.Services
             assignLeaveType.IsActive = true;
             assignLeaveType.UpdatedBy = dto.UpdatedBy;
             assignLeaveType.UpdatedUtc = DateTime.UtcNow;
-            _context.AssignLeaveTypes.Update(assignLeaveType);
             await _context.SaveChangesAsync();
 
             return "Assign LeaveType Updated Successfully";
@@ -162,7 +164,6 @@ namespace AttendanceManagement.Services
                 if (lastRecord != null)
                 {
                     lastRecord.IsActive = false;
-                    _context.IndividualLeaveCreditDebits.Update(lastRecord);
                 }
                 if (leaveCreditDebitRequest.TransactionFlag)
                 {
@@ -246,7 +247,7 @@ namespace AttendanceManagement.Services
             foreach (var staffId in request.StaffIds)
             {
                 var attendanceRecords = await _context.AttendanceRecords
-                    .Where(a => a.StaffId == staffId && a.FirstIn.HasValue && a.FirstIn.Value.Date == request.FromDate.Date)
+                    .Where(a => a.StaffId == staffId && (a.AttendanceDate >= request.FromDate && a.AttendanceDate <= request.ToDate) && (a.IsFreezed == null || a.IsFreezed == false))
                     .ToListAsync();
                 if (attendanceRecords.Any())
                 {
@@ -290,7 +291,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = dto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.AttendanceStatusColors.Add(attendanceStatus);
+            await _context.AttendanceStatusColors.AddAsync(attendanceStatus);
             await _context.SaveChangesAsync();
             return message;
         }

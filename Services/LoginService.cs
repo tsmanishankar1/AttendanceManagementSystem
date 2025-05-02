@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 public class LoginService
 {
@@ -34,12 +35,12 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Invalid password");
             }
-            var staff = _context.StaffCreations.AsEnumerable().FirstOrDefault(s => s.Id == user.StaffCreationId && s.IsActive.GetValueOrDefault());
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == user.StaffCreationId && s.IsActive == true);
             if (staff == null)
             {
                 throw new MessageNotFoundException("Staff not found");
             }
-            var designation = _context.DesignationMasters.AsEnumerable().FirstOrDefault(d => d.Id == staff.DesignationId && d.IsActive);
+            var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == staff.DesignationId && d.IsActive);
             if (designation == null)
             {
                 throw new MessageNotFoundException("Designation not found");

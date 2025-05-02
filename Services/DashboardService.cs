@@ -48,7 +48,7 @@ namespace AttendanceManagement.Services
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
                     StaffName = $"{staff.FirstName} {staff.LastName}",
-                    Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
+                    Location =  _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                     BirthDate = staff.Dob.ToString("MMMM dd"),
                     ProfilePhoto = staff.ProfilePhoto
@@ -110,12 +110,10 @@ namespace AttendanceManagement.Services
                         JoiningAnniversaryYear = $"{(today.Year - staff.JoiningDate.Year + 1)}{GetOrdinalSuffix(today.Year - staff.JoiningDate.Year + 1)} Year",
                         ProfilePhoto = staff.ProfilePhoto
                     }).ToList<object>();
-
                 if (joiningAnniversaries.Count == 0)
                 {
                     throw new MessageNotFoundException("No joining anniversaries today");
                 }
-
                 result = joiningAnniversaries;
             }
             else if (eventTypeId == 5) 

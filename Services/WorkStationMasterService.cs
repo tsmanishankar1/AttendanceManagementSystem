@@ -43,7 +43,7 @@ public class WorkstationMasterService
             CreatedBy = workstationRequest.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.WorkstationMasters.Add(workstation);      
+        await _context.WorkstationMasters.AddAsync(workstation);      
         await _context.SaveChangesAsync();
         return message;
     }
@@ -59,7 +59,6 @@ public class WorkstationMasterService
         workstation.ShortName = updatedWorkstation.ShortName;
         workstation.UpdatedBy = updatedWorkstation.UpdatedBy;
         workstation.UpdatedUtc = DateTime.UtcNow;
-        _context.WorkstationMasters.Update(workstation);
         await _context.SaveChangesAsync();
         return message;
     }

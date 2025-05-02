@@ -7,13 +7,12 @@ namespace AttendanceManagement.Services
     public class LeaveTypeService
     {
         private readonly AttendanceManagementSystemContext _context;
-
         public LeaveTypeService(AttendanceManagementSystemContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<LeaveTypeResponse>> GetAllLeaveTypesAsync()
+        public async Task<List<LeaveTypeResponse>> GetAllLeaveTypesAsync()
         {
             var allLeaveType = await (from leaveType in _context.LeaveTypes
                                       select new LeaveTypeResponse
@@ -55,7 +54,7 @@ namespace AttendanceManagement.Services
                 CreatedBy = leaveTypeRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
-            _context.LeaveTypes.Add(leaveType);
+            await _context.LeaveTypes.AddAsync(leaveType);
             await _context.SaveChangesAsync();
             return message;
         }

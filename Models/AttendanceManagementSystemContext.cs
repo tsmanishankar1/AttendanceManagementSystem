@@ -259,6 +259,10 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<WorkingStatus> WorkingStatuses { get; set; }
 
+    public virtual DbSet<WorkingType> WorkingTypes { get; set; }
+
+    public virtual DbSet<WorkingTypeAmount> WorkingTypeAmounts { get; set; }
+
     public virtual DbSet<WorkstationMaster> WorkstationMasters { get; set; }
 
     public virtual DbSet<ZoneMaster> ZoneMasters { get; set; }
@@ -670,11 +674,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FromDate).HasColumnType("datetime");
             entity.Property(e => e.Remarks)
                 .HasMaxLength(255)
                 .IsUnicode(false);
-            entity.Property(e => e.ToDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("UpdatedUTC");
@@ -1491,6 +1493,8 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.ErrorDescription)
                 .HasMaxLength(1000)
                 .IsUnicode(false);
+            entity.Property(e => e.ErrorInnerException).IsUnicode(false);
+            entity.Property(e => e.ErrorStackTrace).IsUnicode(false);
             entity.Property(e => e.From)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -1938,6 +1942,15 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.HolidayTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_HTCR");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.HolidayTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_HTUP");
         });
 
         modelBuilder.Entity<HolidayZoneConfiguration>(entity =>
@@ -2979,6 +2992,15 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PrefixLeaveTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PRLTCR");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PrefixLeaveTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_PRLTUP");
         });
 
         modelBuilder.Entity<PreviousEmployment>(entity =>
@@ -4194,6 +4216,15 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SuffixLeaveTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SLTCR");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SuffixLeaveTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_SLTUP");
         });
 
         modelBuilder.Entity<TeamApplication>(entity =>
@@ -4253,9 +4284,20 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__ReportType__869767EADE6795EB");
 
-            entity.Property(e => e.ReportName)
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.TypesOfReportCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TORCR");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.TypesOfReportUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_TORUP");
         });
 
         modelBuilder.Entity<UserManagement>(entity =>
@@ -4553,6 +4595,53 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.WorkingStatusUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_WSUPId");
+        });
+
+        modelBuilder.Entity<WorkingType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__WorkingT__3214EC07F9AFF4FA");
+
+            entity.ToTable("WorkingType");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.WorkingTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRWT");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.WorkingTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPWT");
+        });
+
+        modelBuilder.Entity<WorkingTypeAmount>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__WorkingT__3214EC0792BE9C07");
+
+            entity.ToTable("WorkingTypeAmount");
+
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.WorkingTypeAmountCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRWTA");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.WorkingTypeAmountUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPWTA");
+
+            entity.HasOne(d => d.WorkingType).WithMany(p => p.WorkingTypeAmounts)
+                .HasForeignKey(d => d.WorkingTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRWTAID");
         });
 
         modelBuilder.Entity<WorkstationMaster>(entity =>

@@ -13,7 +13,7 @@ public class GradeMasterService
         _context = context;
     }
 
-    public async Task<IEnumerable<GradeMasterResponse>> GetAllGrades()
+    public async Task<List<GradeMasterResponse>> GetAllGrades()
     {
         var allGrade = await (from grade in _context.GradeMasters
                         select new GradeMasterResponse
@@ -44,7 +44,7 @@ public class GradeMasterService
             CreatedBy = gradeMasterRequest.CreatedBy,
             CreatedUtc = DateTime.UtcNow
         };
-        _context.GradeMasters.Add(gradeMaster);
+        await _context.GradeMasters.AddAsync(gradeMaster);
         await _context.SaveChangesAsync();
         return message;
     }
@@ -52,7 +52,7 @@ public class GradeMasterService
     public async Task<string> UpdateGrade(UpdateGradeMaster gradeMaster)
     {
         var message = "Grade updated successfully";
-        var existingGrade = _context.GradeMasters.FirstOrDefault(g => g.Id == gradeMaster.GradeMasterId);
+        var existingGrade = await _context.GradeMasters.FirstOrDefaultAsync(g => g.Id == gradeMaster.GradeMasterId);
         if (existingGrade == null)
         {
             throw new MessageNotFoundException("Grade not found");
