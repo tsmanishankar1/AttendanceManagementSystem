@@ -28,11 +28,8 @@
     public class AttendanceStatusColorResponse
     {
         public int Id { get; set; }
-
         public string StatusName { get; set; } = null!;
-
         public string ShortName { get; set; } = null!;
-
         public string? ColourCode { get; set; }
 
     }
@@ -40,14 +37,10 @@
     public class UpdateAttendanceStatusColor
     {
         public int Id { get; set; }
-
         public string StatusName { get; set; } = null!;
-
         public string ShortName { get; set; } = null!;
-
         public string ColourCode { get; set; } = null!;
         public bool IsActive { get; set; }
-
         public int UpdatedBy { get; set; }
     }
 }

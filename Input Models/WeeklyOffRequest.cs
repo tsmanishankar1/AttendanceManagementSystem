@@ -23,15 +23,11 @@
         public string MarkWeeklyOff { get; set; } = null!;
     }
 
-
     public class UpdateWeeklyOff
     {
         public int WeeklyOffId { get; set; }
-
         public string WeeklyOffName { get; set; } = null!;
-
         public List<int> MarkWeeklyOff { get; set; } = new List<int>();
-
         public bool IsActive { get; set; }
         public int UpdatedBy { get; set; }
     }

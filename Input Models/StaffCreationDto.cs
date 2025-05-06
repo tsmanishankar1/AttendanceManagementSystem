@@ -27,34 +27,19 @@ namespace AttendanceManagement.Input_Models
         public string? City { get; set; }
         public string? AccessLevel { get; set; }
         public string? MiddleName { get; set; }
-
         public long? OfficialPhone { get; set; }
-
         public string? OfficialLocation { get; set; }
         public string? PolicyGroup { get; set; }
-
         public string? WorkingDayPattern { get; set; }
-
         public string? Tenure { get; set; }
-
         public string? Uannumber { get; set; }
-
         public string? EsiNumber { get; set; }
-
         public bool? IsMobileAppEligible { get; set; }
-
         public string? GeoStatus { get; set; }
-
         public string? District { get; set; }
-
         public string? State { get; set; }
-
         public string? Country { get; set; }
-
         public bool? Oteligible { get; set; }
-
-
-        // Replace IDs with Names
         public string? BranchName { get; set; }
         public string? DepartmentName { get; set; }
         public string? DivisionName { get; set; }
@@ -70,6 +55,7 @@ namespace AttendanceManagement.Input_Models
         public string? LocationMasterName { get; set; }
         public int CreatedBy { get; set; }
     }
+
     public class StaffBirthDayDto
     {
         public int StaffId { get; set; }
@@ -105,5 +91,3 @@ namespace AttendanceManagement.Input_Models
         public string DepartmentName { get; set; } = null!;
     }
 }
-
-

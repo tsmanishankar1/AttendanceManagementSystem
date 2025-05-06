@@ -33,5 +33,17 @@ namespace AttendanceManagement.Input_Models
                 Message = message
             });
         }
+
+        public static IActionResult BadResponse(string message)
+        {
+            return new BadRequestObjectResult(new
+            {
+                Success = false,
+                Message = message
+            })
+            {
+                StatusCode = 400
+            };
+        }
     }
 }

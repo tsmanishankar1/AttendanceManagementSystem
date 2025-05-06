@@ -19,7 +19,7 @@ public partial class ErrorLog
 
     public string? InnerException { get; set; }
 
-    public int StaffId { get; set; }
+    public int CreatedBy { get; set; }
 
     public string? Payload { get; set; }
 

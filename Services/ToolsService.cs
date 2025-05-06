@@ -17,7 +17,6 @@ namespace AttendanceManagement.Services
         {
             var staffInfo = await _context.StaffCreations
                 .Where(s => s.OrganizationTypeId == organizationTypeId && s.IsActive == true)
-                .Include(s => s.Department)
                 .Select(s => new StaffInfoDto
                 {
                     StaffId = s.Id,
@@ -25,6 +24,7 @@ namespace AttendanceManagement.Services
                     DepartmentName = s.Department.Name
                 })
                 .ToListAsync();
+            if (staffInfo.Count == 0) throw new MessageNotFoundException("No staffs found");
             return staffInfo;
         }
 
@@ -37,7 +37,7 @@ namespace AttendanceManagement.Services
                 .ToListAsync();
             if (organizationTypeIds.Count > 1)
             {
-                throw new Exception("The given employees belong to different organizations.");
+                throw new InvalidOperationException("The given employees belong to different organizations.");
             }
             var staffInfo = await (
                 from staff in _context.StaffCreations
@@ -111,6 +111,10 @@ namespace AttendanceManagement.Services
 
         public async Task<string> CreateAssignLeaveType(CreateAssignLeaveTypeDTO dto)
         {
+            var leave = await _context.LeaveTypes.AnyAsync(p => p.Id == dto.LeaveTypeId && p.IsActive == true);
+            if (!leave) throw new MessageNotFoundException("Leave type not found");
+            var org = await _context.OrganizationTypes.AnyAsync(p => p.Id == dto.OrganizationTypeId && p.IsActive == true);
+            if (!org) throw new MessageNotFoundException("Organization type not found");
             var newAssignLeaveType = new AssignLeaveType
             {
                 LeaveTypeId = dto.LeaveTypeId,
@@ -122,13 +126,18 @@ namespace AttendanceManagement.Services
             await _context.AssignLeaveTypes.AddAsync(newAssignLeaveType);
             await _context.SaveChangesAsync();
 
-            return "Assign LeaveType Created Successfully";
+            return "LeaveType assigned successfully";
         }
 
         public async Task<string> UpdateAssignLeaveType(UpdateAssignLeaveTypeDTO dto)
         {
             var assignLeaveType = await _context.AssignLeaveTypes.FindAsync(dto.Id);
-            if (assignLeaveType == null) throw new MessageNotFoundException("AssignLeaveType not found.");
+            if (assignLeaveType == null) throw new MessageNotFoundException("Assigned leave type not found");
+
+            var leave = await _context.LeaveTypes.AnyAsync(p => p.Id == dto.LeaveTypeId && p.IsActive == true);
+            if (!leave) throw new MessageNotFoundException("Leave type not found");
+            var org = await _context.OrganizationTypes.AnyAsync(p => p.Id == dto.OrganizationTypeId && p.IsActive == true);
+            if (!org) throw new MessageNotFoundException("Organization type not found");
 
             assignLeaveType.LeaveTypeId = dto.LeaveTypeId;
             assignLeaveType.OrganizationTypeId = dto.OrganizationTypeId;
@@ -137,7 +146,7 @@ namespace AttendanceManagement.Services
             assignLeaveType.UpdatedUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return "Assign LeaveType Updated Successfully";
+            return "Assigned leave type updated successfully";
         }
 
         public async Task<string> AddLeaveCreditDebitForMultipleStaffAsync(LeaveCreditDebitRequest leaveCreditDebitRequest)
@@ -203,6 +212,8 @@ namespace AttendanceManagement.Services
 
         public async Task<string> AddReaderConfigurationAsync(ReaderConfigurationRequest request)
         {
+            var leave = await _context.ReaderTypes.AnyAsync(p => p.Id == request.ReaderTypeId && p.IsActive == true);
+            if (!leave) throw new MessageNotFoundException("Reader type not found");
             var readerConfiguration = new ReaderConfiguration
             {
                 ReaderName = request.ReaderName,

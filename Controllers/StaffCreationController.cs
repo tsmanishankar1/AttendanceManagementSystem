@@ -39,7 +39,6 @@ public class StaffCreationController : ControllerBase
         {
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-
         catch (Exception ex)
         {
             return ErrorClass.ErrorResponse(ex.Message);
@@ -89,6 +88,16 @@ public class StaffCreationController : ControllerBase
             await _loggingService.LogError("Update Staff", "POST", "/api/StaffCreation/UpdateStaffCreation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ArgumentNullException ex)
+        {
+            await _loggingService.LogError("Update Staff", "POST", "/api/StaffCreation/UpdateStaffCreation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
+            return ErrorClass.BadResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Update Staff", "POST", "/api/StaffCreation/UpdateStaffCreation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Update Staff", "POST", "/api/StaffCreation/UpdateStaffCreation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
@@ -115,10 +124,20 @@ public class StaffCreationController : ControllerBase
             await _loggingService.LogError("Create Staff", "POST", "/api/StaffCreation/AddStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Create Staff", "POST", "/api/StaffCreation/AddStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (ArgumentNullException ex)
+        {
+            await _loggingService.LogError("Create Staff", "POST", "/api/StaffCreation/AddStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
+            return ErrorClass.BadResponse(ex.Message);
+        }
         catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Create Staff", "POST", "/api/StaffCreation/AddStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffInput.CreatedBy, JsonSerializer.Serialize(staffInput));
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -263,10 +282,10 @@ public class StaffCreationController : ControllerBase
             await _loggingService.LogError("Approve Pending Staffs", "POST", "/api/StaffCreation/ApprovePendingStaffs", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch (InvalidOperationException ex)
+        catch (ConflictException ex)
         {
             await _loggingService.LogError("Approve Pending Staffs", "POST", "/api/StaffCreation/ApprovePendingStaffs", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approvePendingStaff.ApprovedBy, JsonSerializer.Serialize(approvePendingStaff));
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

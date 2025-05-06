@@ -16,6 +16,8 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateHoliday(HolidayRequest holidayRequest)
         {
             var message = "Holiday added successfully";
+            var holidayType = await _context.HolidayTypes.AnyAsync(h => h.Id == holidayRequest.HolidayTypeId && h.IsActive);
+            if (!holidayType) throw new MessageNotFoundException("Holiday type not found");
             var holiday = new HolidayMaster
             {
                 HolidayName = holidayRequest.HolidayName,
@@ -66,6 +68,8 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateHoliday(UpdateHoliday updatedHoliday)
         {
             var message = "Holiday updated successfully";
+            var holidayType = await _context.HolidayTypes.AnyAsync(h => h.Id == updatedHoliday.HolidayTypeId && h.IsActive);
+            if (!holidayType) throw new MessageNotFoundException("Holiday type not found");
             var existingHoliday = await _context.HolidayMasters.FirstOrDefaultAsync(h => h.Id == updatedHoliday.HolidayMasterId);
             if (existingHoliday == null) throw new MessageNotFoundException("Holiday not found");
 
@@ -155,6 +159,7 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateHolidayCalendar(UpdateHolidayCalanderDto request)
         {
             var message = "Holiday calendar updated successfully";
+
             var existingCalendar = await _context.HolidayCalendarConfigurations
                 .Include(h => h.HolidayCalendarTransactions)
                 .FirstOrDefaultAsync(h => h.Id == request.Id);
@@ -170,9 +175,11 @@ namespace AttendanceManagement.Services
             existingCalendar.UpdatedUtc = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
-            if (request.Transactions != null)
+            if (request.Transactions != null && request.Transactions.Any())
             {
-                var existingTransactions = await _context.HolidayCalendarTransactions.Where(hct => hct.Id == request.Id && hct.IsActive).ToListAsync();
+                var existingTransactions = await _context.HolidayCalendarTransactions
+                    .Where(hct => hct.HolidayCalendarId == request.Id && hct.IsActive)
+                    .ToListAsync();
                 foreach (var transaction in existingTransactions)
                 {
                     transaction.IsActive = false;
@@ -182,7 +189,7 @@ namespace AttendanceManagement.Services
                 await _context.SaveChangesAsync();
                 var newTransactions = request.Transactions.Select(t => new HolidayCalendarTransaction
                 {
-                    Id = request.Id,
+                    HolidayCalendarId = request.Id,
                     HolidayMasterId = t.HolidayMasterId,
                     FromDate = t.FromDate,
                     ToDate = t.ToDate,
@@ -221,6 +228,8 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateHolidayZoneAsync(HolidayZoneRequest holidayZoneRequest)
         {
             var message = "Holiday zone added successfully";
+            var holidayCalander = await _context.HolidayCalendarConfigurations.AnyAsync(h => h.Id == holidayZoneRequest.HolidayCalendarId && h.IsActive);
+            if (!holidayCalander) throw new MessageNotFoundException("Holiday calander not found");
             var holidayZone = new HolidayZoneConfiguration
             {
                 HolidayZoneName = holidayZoneRequest.HolidayZoneName,
@@ -237,6 +246,8 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateHolidayZoneAsync(UpdateHolidayZone holidayZone)
         {
             var message = "Holiday zone updated successfully";
+            var holidayCalander = await _context.HolidayCalendarConfigurations.AnyAsync(h => h.Id == holidayZone.HolidayCalendarId && h.IsActive);
+            if (!holidayCalander) throw new MessageNotFoundException("Holiday calander not found");
             var existingHolidayZone = await _context.HolidayZoneConfigurations.FirstOrDefaultAsync(h => h.Id == holidayZone.HolidayZoneId);
             if (existingHolidayZone == null) throw new MessageNotFoundException("Holiday zone not found");
 

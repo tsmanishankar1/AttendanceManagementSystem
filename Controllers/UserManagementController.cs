@@ -35,7 +35,7 @@ public class UserManagementController : ControllerBase
             await _loggingService.LogError("Register User", "POST", "/api/UserManagement/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return ErrorClass.ErrorResponse(ex.Message);
         }
-        catch(InvalidOperationException ex)
+        catch(ConflictException ex)
         {
             await _loggingService.LogError("Register User", "POST", "/api/UserManagement/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
             return ErrorClass.ConflictResponse(ex.Message);

@@ -16,7 +16,7 @@ public class UserManagementService
         var userName = await _context.UserManagements.AnyAsync(u => u.Username == userRequest.Username && u.IsActive);
         if (userName)
         {
-            throw new InvalidOperationException("User name already exists");
+            throw new ConflictException("User name already exists");
         }
         var staffWithOrgType = await (from s in _context.StaffCreations
                                       join o in _context.OrganizationTypes on s.OrganizationTypeId equals o.Id
@@ -29,7 +29,7 @@ public class UserManagementService
         var userExists = await _context.UserManagements.AnyAsync(u => u.StaffCreationId == userRequest.StaffCreationId && u.IsActive);
         if (userExists)
         {
-            throw new InvalidOperationException("User is already exists.");
+            throw new ConflictException("User is already exists.");
         }
         var user = new UserManagement
         {
@@ -200,7 +200,7 @@ public class UserManagementService
         {
             if (menu.ParentMenuId.HasValue && menuDict.ContainsKey(menu.ParentMenuId.Value))
             {
-                menuDict[menu.ParentMenuId.Value].Children.Add(menu);
+                menuDict[menu.ParentMenuId.Value].Children?.Add(menu);
             }
             else
             {

@@ -19,13 +19,13 @@ public partial class CommonPermission
 
     public bool? Status1 { get; set; }
 
-    public string? Remarks { get; set; }
+    public string Remarks { get; set; } = null!;
 
     public bool IsActive { get; set; }
 
     public int CreatedBy { get; set; }
 
-    public DateTime? CreatedUtc { get; set; }
+    public DateTime CreatedUtc { get; set; }
 
     public int? UpdatedBy { get; set; }
 

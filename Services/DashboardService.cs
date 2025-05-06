@@ -5,7 +5,6 @@ using AttendanceManagement.AtrakModels;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AttendanceManagement.Services
 {
@@ -22,6 +21,8 @@ namespace AttendanceManagement.Services
 
         public async Task<List<object>> GetTodaysAnniversaries(int eventTypeId)
         {
+            var eventType = await _context.EventTypes.AnyAsync(e => e.Id == eventTypeId && e.IsActive);
+            if (!eventType) throw new MessageNotFoundException("Event type not found");
             var today = DateOnly.FromDateTime(DateTime.Now);
             var tenDaysAgo = today.AddDays(-10);
             var currentYear = today.Year;
@@ -212,6 +213,7 @@ namespace AttendanceManagement.Services
                 .Where(lt => lt.IsActive)
                 .Select(lt => new { lt.Id, lt.Name })
                 .ToListAsync();
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             var userLeaveRecords = await _context.IndividualLeaveCreditDebits
                 .Where(l => l.StaffCreationId == StaffCreationId && l.IsActive)
                 .GroupBy(l => l.LeaveTypeId)

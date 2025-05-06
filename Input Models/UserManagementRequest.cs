@@ -3,11 +3,8 @@
     public class UserManagementRequest
     {
         public string Username { get; set; } = null!;
-
         public string Password { get; set; } = null!;
-
         public int CreatedBy { get; set; }
-
         public int StaffCreationId { get; set; }
     }
 

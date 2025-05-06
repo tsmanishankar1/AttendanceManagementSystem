@@ -3,29 +3,22 @@
     public class AttendanceGraceTimeCalcRequest
     {
         public int GraceTimeId { get; set; }
-
         public int Value { get; set; }
-
         public int CreatedBy { get; set; }
     }
 
     public class AttendanceGraceTimeCalcResponse
     {
         public int Id { get; set; }
-
         public int GraceTimeId { get; set; }
-
         public int Value { get; set; }
     }
 
     public class UpdateAttendanceGraceTimeCalc
     {
         public int Id { get; set; }
-
         public int GraceTimeId { get; set; }
-
         public int Value { get; set; }
-
         public int UpdatedBy { get; set; }
     }
 
@@ -45,6 +38,7 @@
         public int? DepartmentId { get; set; }
         public int? DivisionId { get; set; }
     }
+
     public class AttendanceFreezeRequest
     {
         public bool IsFreezed { get; set; }

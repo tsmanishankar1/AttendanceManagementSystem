@@ -41,7 +41,7 @@ public class ToolsController : ControllerBase
     }
 
     [HttpPost("GetStaffInfo")]
-    public async Task<IActionResult> GetStaffInfoByStaffId([FromBody] List<int> staffIds)
+    public async Task<IActionResult> GetStaffInfoByStaffId(List<int> staffIds)
     {
         try
         {
@@ -54,6 +54,10 @@ public class ToolsController : ControllerBase
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             return ErrorClass.NotFoundResponse(ex.Message);
         }
@@ -99,6 +103,11 @@ public class ToolsController : ControllerBase
             };
             await _loggingService.AuditLog("Assign Leave Type", "POST", "/api/Tools/CreateAssignLeaveType", createdAssignLeaveType, assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
             return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Assign Leave Type", "POST", "/api/Tools/CreateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
+            return ErrorClass.ErrorResponse(ex.Message);
         }
         catch (Exception ex)
         {

@@ -575,6 +575,10 @@ public partial class StaffCreation
 
     public virtual ICollection<PaySlip> PaySlipUpdatedByNavigations { get; set; } = new List<PaySlip>();
 
+    public virtual ICollection<PerformanceRatingScale> PerformanceRatingScaleCreatedByNavigations { get; set; } = new List<PerformanceRatingScale>();
+
+    public virtual ICollection<PerformanceRatingScale> PerformanceRatingScaleUpdatedByNavigations { get; set; } = new List<PerformanceRatingScale>();
+
     public virtual ICollection<PermissionRequistion> PermissionRequistionCreatedByNavigations { get; set; } = new List<PermissionRequistion>();
 
     public virtual ICollection<PermissionRequistion> PermissionRequistionUpdatedByNavigations { get; set; } = new List<PermissionRequistion>();

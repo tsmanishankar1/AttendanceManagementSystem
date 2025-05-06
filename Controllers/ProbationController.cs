@@ -55,7 +55,7 @@ public class ProbationController : ControllerBase
             await _loggingService.AuditLog("Assign Probation Manager", "POST", "/api/Probation/AssignManagerForProbationReview", probation, assignManagerRequest.CreatedBy, JsonSerializer.Serialize(assignManagerRequest));
             return Ok(response);
         }
-        catch (InvalidOperationException ex)
+        catch (ConflictException ex)
         {
             await _loggingService.LogError("Assign Probation Manager", "POST", "/api/Probation/AssignManagerForProbationReview", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignManagerRequest.CreatedBy, JsonSerializer.Serialize(assignManagerRequest));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -86,7 +86,7 @@ public class ProbationController : ControllerBase
             await _loggingService.AuditLog("Probation", "POST", "/api/Probation/AddProbation", createdProbation, probation.CreatedBy, JsonSerializer.Serialize(probation));
             return Ok(response);
         }
-        catch(InvalidOperationException ex)
+        catch(ConflictException ex)
         {
             await _loggingService.LogError("Probation", "POST", "/api/Probation/AddProbation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, probation.CreatedBy, JsonSerializer.Serialize(probation));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -189,10 +189,10 @@ public class ProbationController : ControllerBase
             await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch (InvalidOperationException ex)
+        catch (ConflictException ex)
         {
             await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -220,10 +220,10 @@ public class ProbationController : ControllerBase
             await _loggingService.LogError("Feedback Manager", "POST", "/api/Probation/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch (InvalidOperationException ex)
+        catch (ConflictException ex)
         {
             await _loggingService.LogError("Feedback Manager", "POST", "/api/Probation/AddFeedbackbyManager", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, feedback.CreatedBy, JsonSerializer.Serialize(feedback));
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

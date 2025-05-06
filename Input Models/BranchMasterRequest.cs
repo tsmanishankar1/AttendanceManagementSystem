@@ -3,30 +3,18 @@
     public class BranchMasterRequest
     {
         public int CompanyMasterId { get; set; }
-
         public string FullName { get; set; } = null!;
-
         public string ShortName { get; set; } = null!;
         public string Address { get; set; } = null!;
-
         public string City { get; set; } = null!;
-
         public string District { get; set; } = null!;
-
         public string State { get; set; } = null!;
-
         public string Country { get; set; } = null!;
-
         public int PostalCode { get; set; }
-
         public long PhoneNumber { get; set; }
-
         public string? Fax { get; set; }
-
         public string? Email { get; set; }
-
         public bool IsHeadOffice { get; set; }
-
         public int CreatedBy { get; set; }
         public bool IsActive { get; set; }
     }
@@ -55,32 +43,19 @@
     public class UpdateBranch
     {
         public int BranchMasterId { get; set; }
-
         public int CompanyMasterId { get; set; }
-
         public string FullName { get; set; } = null!;       
-
         public string ShortName { get; set; } = null!;
         public string Address { get; set; } = null!;
-
         public string City { get; set; } = null!;
-
         public string District { get; set; } = null!;
-
         public string State { get; set; } = null!;
-
         public string Country { get; set; } = null!;
-
         public int PostalCode { get; set; }
-
         public long PhoneNumber { get; set; }
-
         public string? Fax { get; set; }
-
         public string? Email { get; set; } 
-
         public bool IsHeadOffice { get; set; }
-
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }
     }

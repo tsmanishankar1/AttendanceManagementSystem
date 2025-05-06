@@ -24,6 +24,7 @@ namespace AttendanceManagement.Services
             var toDate1 = request.ToDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
             var reportDate = DateTime.Now.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
             var user = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == request.CreatedBy && s.IsActive == true);
+            if (user == null) throw new MessageNotFoundException("User not found");
             var userId = request.CreatedBy;
             var userName = $"{user.FirstName} {user.LastName}";
             var userCreationId = user.StaffId;

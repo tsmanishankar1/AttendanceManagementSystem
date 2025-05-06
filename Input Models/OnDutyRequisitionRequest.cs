@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class OnDutyRequisitionRequest
     {
@@ -10,6 +12,7 @@
         public DateOnly? EndDate { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
+        [MaxLength(255)]
         public string Reason { get; set; } = null!;
         public string? TotalHours { get; set; }
         public decimal? TotalDays { get; set; }

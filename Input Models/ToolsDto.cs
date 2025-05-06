@@ -10,6 +10,7 @@
         public int CreatedBy { get; set; }
         public int ReaderTypeId { get; set; }
     }
+
     public class ReaderConfigurationResponse
     {
         public int Id { get; set; }
@@ -23,6 +24,7 @@
         public int ReaderTypeId { get; set; }
         public string ReaderTypeName { get; set; } = null!;
     }
+
     public class AttendanceStatusColorDto
     {
         public string StatusName { get; set; } = null!;
@@ -31,6 +33,7 @@
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
     }
+
     public class UpdateAttendanceStatusRequest
     {
         public List<int> StaffIds { get; set; } = new List<int>(); 

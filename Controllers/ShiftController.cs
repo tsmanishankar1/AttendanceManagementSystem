@@ -156,10 +156,10 @@ public class ShiftController : ControllerBase
             await _loggingService.LogError("Shift", "POST", "/api/Shift/AssignShiftToStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch (InvalidOperationException ex)
+        catch (ConflictException ex)
         {
             await _loggingService.LogError("Shift", "POST", "/api/Shift/AssignShiftToStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignShift.CreatedBy, assignShift);
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

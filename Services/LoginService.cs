@@ -85,7 +85,8 @@ public class LoginService
                 throw new MessageNotFoundException("Designation not found");
             }
 
-            var approver = _context.StaffCreations.FirstOrDefault(e => e.Id == staff.ApprovalLevel1&& e.IsActive == true);
+            var approver = _context.StaffCreations.FirstOrDefault(e => e.Id == staff.ApprovalLevel1 && e.IsActive == true);
+            if (approver == null) throw new MessageNotFoundException("Approver not found");
             string approverFullName = approver != null ? $"{approver.FirstName} {approver.LastName}" : "N/A";
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = new byte[32];

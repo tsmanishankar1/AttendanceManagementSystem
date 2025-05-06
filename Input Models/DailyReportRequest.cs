@@ -46,6 +46,7 @@
         public DateOnly? TerminatedToDate { get; set; }
         public int CreatedBy { get; set; }
     }
+
     public class AbsentListResponse
     {
         public int StaffId { get; set; }
@@ -56,6 +57,7 @@
         public DateOnly? TransactionDate { get; set; }
         public int AttendanceStatus { get; set; }
     }
+
     public class ContinuousAbsentListResponse
     {
         public int StaffId { get; set; }
@@ -67,6 +69,7 @@
         public DateOnly? ToDate { get; set; }
         public int TotalDays { get; set; }
     }
+
     public class CompOffAvailResponse
     {
         public int StaffId { get; set; }
@@ -90,6 +93,7 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class CompOffCreditResponse
     {
         public int StaffId { get; set; }
@@ -111,6 +115,7 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class AttendanceResponse
     {
         public int StaffId { get; set; }
@@ -125,6 +130,7 @@
         public TimeOnly? TotalHoursWorked { get; set; }
         public int AttendanceStatus { get; set; }
     }
+
     public class DailyPerformanceResponse
     {
         public int StaffId { get; set; }
@@ -146,6 +152,7 @@
         public string EarlyExit { get; set; } = null!;
         public string ExtraHoursWorked { get; set; } = null!;
     }
+
     public class ManualPunchResponse
     {
         public int StaffId { get; set; }
@@ -167,6 +174,7 @@
         public DateTime? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class FirstInLastOutResponse
     {
         public int StaffId { get; set; }
@@ -180,6 +188,7 @@
         public TimeOnly? SwipeOut { get; set; }
         public TimeOnly? TotalHoursWorked { get; set; }
     }
+
     public class CurrentDaySwipeInResponse
     {
         public int StaffId { get; set; }
@@ -191,6 +200,7 @@
         public string Shift { get; set; } = null!;
         public TimeOnly? InTime { get; set; }
     }
+
     public class RawPunchResponse
     {
         public int StaffId { get; set; }
@@ -202,6 +212,7 @@
         public string PunchType { get; set; } = null!;
         public int SwipeLocation { get; set; }
     }
+
     public class NightShiftCountResponse
     {
         public int StaffId { get; set; }
@@ -214,6 +225,7 @@
         public DateOnly? Date { get; set; }
         public int NightShiftCount { get; set; }
     }
+
     public class MonthlyReportResponse
     {
         public int StaffId { get; set; }
@@ -231,6 +243,7 @@
         public decimal PLClosingBalance { get; set; }
         public decimal SLClosingBalance { get; set; }
     }
+
     public class BusinessTravelResponse
     {
         public int? StaffId { get; set; }
@@ -256,6 +269,7 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class VaccinationReportResponse
     {
         public int? StaffId { get; set; }
@@ -272,6 +286,7 @@
         public int? AppliedBy { get; set; }
         public int? ApprovedBy { get; set; }
     }
+
     public class WeeklyOffHolidayWorkingResponse
     {
         public int? StaffId { get; set; }  
@@ -293,6 +308,7 @@
         public DateTime? CancelledOn { get; set; }  
         public int? CancelledBy { get; set; }
     }
+
     public class PresentListResponse
     {
         public int StaffId { get; set; }
@@ -303,6 +319,7 @@
         public DateOnly? Date { get; set; }
         public int AttendanceStatus { get;set; }
     }
+
     public class OnDutyRequisitionResponse
     {
         public int StaffId { get; set; }
@@ -328,6 +345,7 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class LeaveRequisitionResponse
     {
         public int StaffId { get; set; }
@@ -353,6 +371,7 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class LeaveTakenResponse
     {
         public int StaffId { get; set; }
@@ -366,6 +385,7 @@
         public decimal PTLTaken { get; set; }
         public decimal MGLTaken { get; set; }
     }
+
     public class PermissionRequisitionResponse
     {
         public int StaffId { get; set; }
@@ -390,6 +410,7 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class WorkFromHomeResponse
     {
         public int StaffId { get; set; }
@@ -415,6 +436,7 @@
         public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
+
     public class LeaveBalanceResponse
     {
         public int StaffId { get; set; }

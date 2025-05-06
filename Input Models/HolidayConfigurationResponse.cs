@@ -16,7 +16,6 @@ namespace AttendanceManagement.Input_Models
     public class HolidayZoneResponse
     {
         public int HolidayZoneId { get; set; }
-
         public string HolidayZoneName { get; set; } = null!;
         public int HolidayCalanderId { get; set; }
         public string HolidayCalendarName { get; set; } = null!;
@@ -36,9 +35,7 @@ namespace AttendanceManagement.Input_Models
     {
         public int HolidayZoneId { get; set; }
         public int HolidayCalendarId {  get; set; }
-
         public string HolidayZoneName { get; set; } = null!;
-
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }
     }

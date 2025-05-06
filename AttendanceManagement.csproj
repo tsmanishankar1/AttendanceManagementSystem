@@ -17,6 +17,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Services\ApplicationService.cs~RF34d24962.TMP" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="SwaggerDocs\SwaggerAPIDocumentation.xml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

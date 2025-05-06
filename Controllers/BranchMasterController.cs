@@ -56,6 +56,11 @@ public class BranchMasterController : ControllerBase
             await _loggingService.AuditLog("Branch Master", "POST", "/api/BranchMaster/CreateBranch", createdBranch, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
             return Ok(response);
         }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));

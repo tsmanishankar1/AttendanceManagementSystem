@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class ShiftChangeDto
     {
@@ -7,6 +9,7 @@
         public int ShiftId { get; set; }
         public DateOnly FromDate { get; set; }
         public DateOnly ToDate { get; set; }
+        [MaxLength(255)]
         public string Reason { get; set; } = null!;
         public int CreatedBy { get; set; }
     }

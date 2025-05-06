@@ -15,7 +15,7 @@ namespace AttendanceManagement.Services
             _configuration = configuration;
         }
 
-        public async Task LogError(string module, string httpMethod, string apiEndpoint, string errorMessage, string stackTrace, string innerException, int staffId, object? payload)
+        public async Task LogError(string module, string httpMethod, string apiEndpoint, string errorMessage, string stackTrace, string innerException, int createdBy, object? payload)
         {
             using (var logContext = CreateDbContext())
             {
@@ -27,7 +27,7 @@ namespace AttendanceManagement.Services
                     ErrorMessage = errorMessage,
                     StackTrace = stackTrace,
                     InnerException = innerException?.ToString(),
-                    StaffId = staffId,
+                    CreatedBy = createdBy,
                     Payload = payload?.ToString(),
                     CreatedUtc = DateTime.UtcNow
                 };
@@ -36,7 +36,7 @@ namespace AttendanceManagement.Services
             }
         }
 
-        public async Task AuditLog(string module, string httpMethod, string apiEndpoint, string successMessage, int staffId, object? payload)
+        public async Task AuditLog(string module, string httpMethod, string apiEndpoint, string successMessage, int createdBy, object? payload)
         {
             using (var logContext = CreateDbContext())
             {
@@ -46,7 +46,7 @@ namespace AttendanceManagement.Services
                     HttpMethod = httpMethod,
                     ApiEndpoint = apiEndpoint,
                     SuccessMessage = successMessage,
-                    StaffId = staffId,
+                    CreatedBy = createdBy,
                     Payload = payload?.ToString(),
                     CreatedUtc = DateTime.UtcNow
                 };

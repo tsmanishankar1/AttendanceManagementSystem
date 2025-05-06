@@ -35,6 +35,7 @@ public class ApplicationService
     }
     public async Task<bool> CancelAppliedLeave(CancelAppliedLeave cancel)
     {
+        await NotFoundMethod(cancel.ApplicationTypeId);
         object? entity = null;
         switch (cancel.ApplicationTypeId)
         {
@@ -97,7 +98,7 @@ public class ApplicationService
         bool isAlreadyCancelled = (bool)(isCancelledProperty.GetValue(entity) ?? false);
         if (isAlreadyCancelled)
         {
-            throw new InvalidOperationException("Application already cancelled");
+            throw new ConflictException("Application already cancelled");
         }
         isCancelledProperty.SetValue(entity, cancel.IsCancelled);
         cancelledOnProperty?.SetValue(entity, DateTime.UtcNow);
@@ -110,11 +111,13 @@ public class ApplicationService
     }
     public async Task<IEnumerable<object>> GetApplicationDetails(int staffId, int applicationTypeId)
     {
+        await NotFoundMethod(applicationTypeId);
+        var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+        if (staff == null) throw new MessageNotFoundException("Staff not found");
         var application = applicationTypeId switch
         {
             1 => await _context.LeaveRequisitions
-                .Where(lr => lr.IsCancelled == null &&
-                    (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
+                .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                 .Join(_context.ApplicationTypes, lr => lr.ApplicationTypeId, at => at.Id,
                     (lr, at) => new { lr, at })
                 .Join(_context.LeaveTypes, temp => temp.lr.LeaveTypeId, lt => lt.Id,
@@ -149,8 +152,7 @@ public class ApplicationService
                     })
                 .ToListAsync(),
             2 => await _context.CommonPermissions
-                .Where(cp => cp.IsCancelled == null &&
-                    (cp.StaffId.HasValue ? cp.StaffId == staffId : cp.CreatedBy == staffId))
+                .Where(cp => (cp.StaffId.HasValue ? cp.StaffId == staffId : cp.CreatedBy == staffId))
                 .GroupJoin(_context.StaffCreations, cp => cp.StaffId ?? cp.CreatedBy, sc => sc.Id,
                     (cp, scGroup) => new { cp, scGroup })
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -183,7 +185,7 @@ public class ApplicationService
                     })
                 .ToListAsync(),
             3 => await _context.ManualPunchRequistions
-                 .Where(mp => mp.IsCancelled == null && (mp.StaffId.HasValue ? mp.StaffId == staffId : mp.CreatedBy == staffId))
+                 .Where(mp => (mp.StaffId.HasValue ? mp.StaffId == staffId : mp.CreatedBy == staffId))
                  .GroupJoin(_context.StaffCreations, mp => mp.StaffId ?? mp.CreatedBy, sc => sc.Id,
                      (mp, scGroup) => new { mp, scGroup })
                  .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -211,7 +213,7 @@ public class ApplicationService
                      })
                  .ToListAsync(),
             4 => await _context.OnDutyRequisitions
-                .Where(od => od.IsCancelled == null && (od.StaffId.HasValue ? od.StaffId == staffId : od.CreatedBy == staffId))
+                .Where(od => (od.StaffId.HasValue ? od.StaffId == staffId : od.CreatedBy == staffId))
                 .GroupJoin(_context.StaffCreations, od => od.StaffId ?? od.CreatedBy, sc => sc.Id,
                     (od, scGroup) => new { od, scGroup })
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -242,8 +244,7 @@ public class ApplicationService
                     })
                 .ToListAsync(),
             5 => await _context.BusinessTravels
-                 .Where(bt => bt.IsCancelled == null &&
-                     (bt.StaffId.HasValue ? bt.StaffId == staffId : bt.CreatedBy == staffId))
+                 .Where(bt => (bt.StaffId.HasValue ? bt.StaffId == staffId : bt.CreatedBy == staffId))
                  .GroupJoin(_context.StaffCreations, bt => bt.StaffId ?? bt.CreatedBy, sc => sc.Id,
                      (bt, scGroup) => new { bt, scGroup })
                  .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -275,7 +276,7 @@ public class ApplicationService
                      })
                  .ToListAsync(),
             6 => await _context.WorkFromHomes
-                   .Where(wfh => wfh.IsCancelled == null && (wfh.StaffId.HasValue ? wfh.StaffId == staffId : wfh.CreatedBy == staffId))
+                   .Where(wfh => (wfh.StaffId.HasValue ? wfh.StaffId == staffId : wfh.CreatedBy == staffId))
                    .GroupJoin(_context.StaffCreations, wfh => wfh.StaffId ?? wfh.CreatedBy, sc => sc.Id,
                        (wfh, scGroup) => new { wfh, scGroup })
                    .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -306,8 +307,7 @@ public class ApplicationService
                        })
                    .ToListAsync(),
             7 => await _context.ShiftChanges
-                  .Where(lr => lr.IsCancelled == null &&
-                        (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
+                  .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                   .Join(_context.ApplicationTypes, sc => sc.ApplicationTypeId, at => at.Id,
                         (sc, at) => new { sc, at })
                   .Join(_context.Shifts, temp => temp.sc.ShiftId, s => s.Id,
@@ -339,8 +339,7 @@ public class ApplicationService
                       })
                   .ToListAsync(),
             8 => await _context.ShiftExtensions
-                 .Where(lr => lr.IsCancelled == null &&
-                     (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
+                 .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                  .GroupJoin(_context.StaffCreations, se => se.StaffId ?? se.CreatedBy,
                      sc => sc.Id, (se, scGroup) => new { se, scGroup })
                  .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -370,8 +369,7 @@ public class ApplicationService
                      })
                  .ToListAsync(),
             9 => await _context.WeeklyOffHolidayWorkings
-                .Where(lr => lr.IsCancelled == null &&
-                    (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
+                .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                 .GroupJoin(_context.StaffCreations, wh => wh.StaffId ?? wh.CreatedBy,
                     sc => sc.Id, (wh, scGroup) => new { wh, scGroup })
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -404,8 +402,7 @@ public class ApplicationService
                     })
                 .ToListAsync(),
             10 => await _context.CompOffAvails
-                .Where(lr => lr.IsCancelled == null &&
-                    (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
+                .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                 .GroupJoin(_context.StaffCreations, coa => coa.StaffId ?? coa.CreatedBy,
                     sc => sc.Id, (coa, scGroup) => new { coa, scGroup })
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -436,8 +433,7 @@ public class ApplicationService
                     })
                 .ToListAsync(),
             11 => await _context.CompOffCredits
-                .Where(lr => lr.IsCancelled == null &&
-                    (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
+                .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
                 .GroupJoin(_context.StaffCreations, coc => coc.StaffId ?? coc.CreatedBy,
                     sc => sc.Id, (coc, scGroup) => new { coc, scGroup })
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -464,8 +460,7 @@ public class ApplicationService
                     })
                 .ToListAsync(),
             18 => await _context.Reimbursements
-                .Where(r => r.CancelledOn == null &&
-                    (r.StaffId.HasValue ? r.StaffId == staffId : r.CreatedBy == staffId))
+                .Where(r => (r.StaffId.HasValue ? r.StaffId == staffId : r.CreatedBy == staffId))
                 .GroupJoin(_context.StaffCreations, r => r.StaffId ?? r.CreatedBy,
                     sc => sc.Id, (r, scGroup) => new { r, scGroup })
                 .SelectMany(tempWithSc => tempWithSc.scGroup.DefaultIfEmpty(),
@@ -513,8 +508,8 @@ public class ApplicationService
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
         var allDates = Enumerable.Range(0, (endDate - startDate).Days + 1)
-                                 .Select(offset => startDate.AddDays(offset))
-                                 .ToList();
+                                  .Select(offset => startDate.AddDays(offset))
+                                  .ToList();
         var attendanceRecords = await (from a in _context.AttendanceRecords
                                        join s in _context.Shifts on a.ShiftId equals s.Id into shiftGroup
                                        from shift in shiftGroup.DefaultIfEmpty()
@@ -525,15 +520,15 @@ public class ApplicationService
                                            a.FirstIn,
                                            LoginTime = a.FirstIn,
                                            LogoutTime = a.LastOut,
-                                           ShiftId = a.ShiftId,
+                                           a.ShiftId,
                                            ShiftName = shift != null ? shift.Name : "No Shift Assigned",
                                            TotalHoursWorked = a.LastOut.HasValue && a.FirstIn.HasValue
                                                ? (a.LastOut.Value - a.FirstIn.Value).TotalHours
                                                : 0
                                        })
-                              .ToListAsync();
+                                   .ToListAsync();
         var leaveRecords = await _context.LeaveRequisitions
-            .Where(lr => (staffId == null ? lr.CreatedBy != null : lr.StaffId == staffId || lr.CreatedBy == staffId) &&
+            .Where(lr => (lr.StaffId != null ? lr.StaffId == staffId : lr.CreatedBy == staffId) &&
                          (lr.FromDate <= DateOnly.FromDateTime(endDate) &&
                           lr.ToDate >= DateOnly.FromDateTime(startDate)) && !lr.IsActive)
             .Select(lr => new
@@ -545,151 +540,99 @@ public class ApplicationService
             })
             .ToListAsync();
         var workFromHomeRecords = await _context.WorkFromHomes
-             .Where(wfh => (staffId == null ? wfh.CreatedBy != null : wfh.StaffId == staffId || wfh.CreatedBy == staffId) &&
-                           ((wfh.FromDate.HasValue && wfh.FromDate.Value <= DateOnly.FromDateTime(endDate)) &&
-                            (wfh.ToDate.HasValue && wfh.ToDate.Value >= DateOnly.FromDateTime(startDate))) && !wfh.IsActive)
-             .Select(wfh => new
-             {
-                 wfh.FromDate,
-                 wfh.ToDate,
-                 wfh.Reason
-             })
-             .ToListAsync();
+            .Where(wfh => (wfh.StaffId != null ? wfh.StaffId == staffId : wfh.CreatedBy == staffId) &&
+                          ((wfh.FromDate.HasValue && wfh.FromDate.Value <= DateOnly.FromDateTime(endDate)) &&
+                           (wfh.ToDate.HasValue && wfh.ToDate.Value >= DateOnly.FromDateTime(startDate))) && !wfh.IsActive)
+            .Select(wfh => new
+            {
+                wfh.FromDate,
+                wfh.ToDate,
+                wfh.Reason
+            })
+            .ToListAsync();
         var startDateOnly = DateOnly.FromDateTime(startDate);
         var endDateOnly = DateOnly.FromDateTime(endDate);
         var onDutyRecords = await _context.OnDutyRequisitions
-            .Where(od => (staffId == null ? od.CreatedBy != null : od.StaffId == staffId || od.CreatedBy == staffId) &&
+            .Where(od => (od.StaffId != null ? od.StaffId == staffId : od.CreatedBy == staffId) &&
                          (od.StartDate <= endDateOnly && od.EndDate >= startDateOnly) && !od.IsActive)
-            .Select(od => new
-            {
-                od.StartDate,
-                od.EndDate,
-                od.Reason
-            })
+            .Select(od => new { od.StartDate, od.EndDate, od.Reason })
             .ToListAsync();
         var businessTravelRecords = await _context.BusinessTravels
-            .Where(bt => (staffId == null ? bt.CreatedBy != null : bt.StaffId == staffId || bt.CreatedBy == staffId) &&
+            .Where(bt => (bt.StaffId != null ? bt.StaffId == staffId : bt.CreatedBy == staffId) &&
                          (bt.FromDate <= endDateOnly && bt.ToDate >= startDateOnly) && !bt.IsActive)
-            .Select(bt => new
-            {
-                bt.FromDate,
-                bt.ToDate,
-                bt.Reason
-            })
+            .Select(bt => new { bt.FromDate, bt.ToDate, bt.Reason })
             .ToListAsync();
         var compOffRecords = await _context.CompOffAvails
-            .Where(co => (staffId == null ? co.CreatedBy != null : co.StaffId == staffId || co.CreatedBy == staffId) &&
+            .Where(co => (co.StaffId != null ? co.StaffId == staffId : co.CreatedBy == staffId) &&
                          (co.FromDate <= endDateOnly && co.ToDate >= startDateOnly) && !co.IsActive)
-            .Select(co => new
-            {
-                co.FromDate,
-                co.ToDate
-            })
+            .Select(co => new { co.FromDate, co.ToDate })
             .ToListAsync();
         var weeklyOffRecords = await _context.WeeklyOffHolidayWorkings
-            .Where(wo => (staffId == null ? wo.CreatedBy != null : wo.StaffId == staffId || wo.CreatedBy == staffId) && wo.TxnDate.Month == month && wo.TxnDate.Year == year)
-            .Select(wo => new
-            {
-                wo.TxnDate,
-                wo.ShiftInTime,
-                wo.ShiftOutTime
-            })
+            .Where(wo => (wo.StaffId != null ? wo.StaffId == staffId : wo.CreatedBy == staffId) &&
+                         wo.TxnDate.Month == month && wo.TxnDate.Year == year)
+            .Select(wo => new { wo.TxnDate, wo.ShiftInTime, wo.ShiftOutTime })
             .ToListAsync();
         var holidayRecords = await _context.HolidayMasters
             .Include(hm => hm.HolidayCalendarTransactions)
-            .Where(hm => hm.HolidayCalendarTransactions
-                .Any(x => ((x.FromDate.Month == month && x.FromDate.Year == year) ||
-                           (x.ToDate.Month == month && x.ToDate.Year == year))))
+            .Where(hm => hm.HolidayCalendarTransactions.Any(x => ((x.FromDate.Month == month && x.FromDate.Year == year) || (x.ToDate.Month == month && x.ToDate.Year == year))))
             .Select(hm => new
             {
                 HolidayName = hm.HolidayName,
                 Transactions = hm.HolidayCalendarTransactions
-                    .Where(x => (x.FromDate.Month == month && x.FromDate.Year == year) ||
-                                (x.ToDate.Month == month && x.ToDate.Year == year))
-                    .Select(x => new
-                    {
-                        x.FromDate,
-                        x.ToDate
-                    })
+                    .Where(x => (x.FromDate.Month == month && x.FromDate.Year == year) || (x.ToDate.Month == month && x.ToDate.Year == year))
+                    .Select(x => new { x.FromDate, x.ToDate })
                     .ToList()
             })
             .ToListAsync();
-        var result = allDates.Select(async date =>
+        var statusColors = await _context.AttendanceStatusColors
+            .Where(c => c.IsActive)
+            .Select(c => new { c.Id, c.StatusName })
+            .ToListAsync();
+        var result = new List<object>();
+        foreach (var date in allDates)
         {
             var dateOnly = DateOnly.FromDateTime(date);
             var attendance = attendanceRecords.FirstOrDefault(a => a.LoginTime.HasValue && a.LogoutTime.HasValue && a.LoginTime.Value.Date == date);
             var todayDateOnly = DateOnly.FromDateTime(DateTime.Today);
-            var statusId = await _context.AttendanceRecords.Where(a => !a.IsDeleted && a.AttendanceDate == dateOnly).Select(a => a.StatusId).FirstOrDefaultAsync();
-            string statusName = await _context.StatusDropdowns.Where(s => s.Id == statusId).Select(s => s.Name).FirstOrDefaultAsync();
-            // Load all colors once for mapping
-            var statusColors = await _context.AttendanceStatusColors.Where(c => c.IsActive).Select(c => new { c.Id, c.StatusName }).ToListAsync();
+            var attendanceRecord = await _context.AttendanceRecords.FirstOrDefaultAsync(a => !a.IsDeleted && a.AttendanceDate == dateOnly && a.StaffId == staffId);
             int? color = null;
-            color = statusColors
-            .Where(c => c.StatusName == "Absent")
-            .Select(c => c.Id)
-            .FirstOrDefault();
-            if (dateOnly > todayDateOnly && statusName == null)
+            string statusName = "";
+            if (attendanceRecord != null)
             {
-                statusName = "Unprocessed";
-                // Future date – Unprocessed
-                color = statusColors
-                    .Where(c => c.StatusName == "Unprocessed")
-                    .Select(c => c.Id)
-                    .FirstOrDefault();
-            }
-            else if (dateOnly == todayDateOnly && statusName == null)
-            {
-                statusName = "Not Updated";
-                // Today and not updated – Not Updated
-                color = statusColors
-                    .Where(c => c.StatusName == "Not Updated")
-                    .Select(c => c.Id)
-                    .FirstOrDefault();
-            }
-            else if (statusName != null)
-            {
-                string name = statusName;
-                // Handle grouped types for consistent color mapping
-                if (new[]
-                {   "Casual Leave", "First Half Casual Leave", "Second Half Casual Leave", "Sick Leave", "First Half Sick Leave", "Second Half Sick Leave",
-                    "Paternity Leave", "Marriage Leave", "Non Confirmed Leave", "First Half Non Confirmed Leave", "Second Half Non Confirmed Leave",
-                    "Medical Leave", "Bereavement Leave", "Maternity Leave"
-                }.Contains(name))
+                var status = await _context.StatusDropdowns.FirstOrDefaultAsync(s => s.Id == attendanceRecord.StatusId && s.IsActive);
+                if (status == null)
                 {
-                    name = "Leave";
+                    if (dateOnly > todayDateOnly)
+                        statusName = "Unprocessed";
+                    else if (dateOnly == todayDateOnly)
+                        statusName = "Not Updated";
+                    else
+                        statusName = "Absent";
                 }
-                else if (new[]
+                else
                 {
-                    "Work From Home", "First Half Work From Home", "Second Half Work From Home"
-                }.Contains(name))
-                {
-                    name = "Work From Home";
+                    statusName = status.Name;
                 }
-                else if (new[]
+                if (!string.IsNullOrEmpty(statusName))
                 {
-                    "On Duty", "First Half On Duty", "Second Half On Duty"
-                }.Contains(name))
-                {
-                    name = "On Duty";
+                    var map = new Dictionary<string, string[]>
+                    {
+                        ["Leave"] = new[] { "Casual Leave", "Sick Leave", "Paternity Leave", "Marriage Leave", "Medical Leave", "Bereavement Leave", "Maternity Leave", "Non Confirmed Leave", "First Half Casual Leave", "Second Half Casual Leave", "First Half Sick Leave", "Second Half Sick Leave", "First Half Non Confirmed Leave", "Second Half Non Confirmed Leave" },
+                        ["Work From Home"] = new[] { "Work From Home", "First Half Work From Home", "Second Half Work From Home" },
+                        ["On Duty"] = new[] { "On Duty", "First Half On Duty", "Second Half On Duty" },
+                        ["Comp Off"] = new[] { "Comp-Off", "First Half Comp-Off", "Second Half Comp-Off" }
+                    };
+                    foreach (var group in map)
+                    {
+                        if (group.Value.Contains(statusName))
+                        {
+                            statusName = group.Key;
+                            break;
+                        }
+                    }
+
+                    color = statusColors.FirstOrDefault(c => c.StatusName == statusName)?.Id;
                 }
-                else if (new[]
-                {
-                    "Comp-Off", "First Half Comp-Off", "Second Half Comp-Off"
-                }.Contains(name))
-                {
-                    name = "Comp Off";
-                }
-                color = statusColors.Where(c => c.StatusName == name).Select(c => c.Id).FirstOrDefault();
-            }
-            else if(statusName == null)
-            {
-                statusName = "Absent";
-            }
-            else if (statusName != null)
-            {
-                // Valid status found
-                var matchedColor = statusColors.Where(c => c.StatusName == statusName).Select(c => c.Id).FirstOrDefault();
-                if (matchedColor != 0) color = matchedColor;
             }
             var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);
             var workFromHome = workFromHomeRecords.Any(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
@@ -698,34 +641,34 @@ public class ApplicationService
             var compOff = compOffRecords.Any(co => dateOnly >= co.FromDate && dateOnly <= co.ToDate);
             var weeklyOff = weeklyOffRecords.FirstOrDefault(wo => wo.TxnDate == dateOnly);
             var holiday = holidayRecords.FirstOrDefault(h => h.Transactions.Any(t => dateOnly >= t.FromDate && dateOnly <= t.ToDate));
-            return new
+
+            result.Add(new
             {
                 date = date.ToString("yyyy-MM-dd"),
                 day = date.DayOfWeek.ToString(),
                 status = statusName,
                 statusColorId = color,
-                login = attendance?.LoginTime.HasValue == true ? attendance.LoginTime.Value.ToString("hh:mm tt") : "00:00:000",
-                logout = attendance?.LogoutTime.HasValue == true ? attendance.LogoutTime.Value.ToString("hh:mm tt") : "00:00:000",
-                //totalHoursWorked = attendance?.TotalHoursWorked ?? 0,
+                login = attendance?.LoginTime?.ToString("hh:mm tt") ?? "00:00:000",
+                logout = attendance?.LogoutTime?.ToString("hh:mm tt") ?? "00:00:000",
                 totalHoursWorked = attendance?.TotalHoursWorked != null ? Math.Round(attendance.TotalHoursWorked, 2) : 0.00,
                 shiftName = attendance?.ShiftName,
-                workFromHome = workFromHome,
+                workFromHome,
                 leaveTypeName = leave?.LeaveTypeName,
-                onDuty = onDuty,
-                businessTravel = businessTravel,
-                compOff = compOff,
+                onDuty,
+                businessTravel,
+                compOff,
                 weeklyOff = weeklyOff != null,
                 holidayName = holiday?.HolidayName
-            };
-        }).ToList();
+            });
+        }
         return new
         {
             staff.Id,
-            StaffId = staff.StaffId,
+            staff.StaffId,
             staff.StaffName,
-            Month = startDate.ToString("MMMM"),
-            Year = year,
-            Details = result
+            startDate = startDate.ToString("yyyy-MM-dd"),
+            endDate = endDate.ToString("yyyy-MM-dd"),
+            records = result
         };
     }
 
@@ -748,7 +691,11 @@ public class ApplicationService
     public async Task<string> CreateAsync(CompOffCreditDto compOffCreditDto)
     {
         var message = "CompOff Credit request submitted successfully";
+        await NotFoundMethod(compOffCreditDto.ApplicationTypeId);
         var staffOrCreatorId = compOffCreditDto.StaffId ?? compOffCreditDto.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var lastBalance = await _context.CompOffCredits
             .Where(c => (c.StaffId ?? c.CreatedBy) == staffOrCreatorId)
             .OrderByDescending(c => c.Id)
@@ -769,27 +716,28 @@ public class ApplicationService
         await _context.CompOffCredits.AddAsync(compOffCredit);
         await _context.SaveChangesAsync();
 
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = compOffCredit.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendCompOffCreditRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                staffName: staffName,
-                id: compOffCredit.Id,
-                applicationTypeId: compOffCreditDto.ApplicationTypeId,
-                workedDate: compOffCreditDto.WorkedDate,
-                totalDays: compOffCreditDto.TotalDays,
-                balance: compOffCredit.Balance,
-                reason: compOffCreditDto.Reason,
-                requestDate: requestDateTime,
-                createdBy: staffOrCreatorId
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendCompOffCreditRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    staffName: staffName,
+                    id: compOffCredit.Id,
+                    applicationTypeId: compOffCreditDto.ApplicationTypeId,
+                    workedDate: compOffCreditDto.WorkedDate,
+                    totalDays: compOffCreditDto.TotalDays,
+                    balance: compOffCredit.Balance,
+                    reason: compOffCreditDto.Reason,
+                    requestDate: requestDateTime,
+                    createdBy: staffOrCreatorId
+                );
+            }
         }
         return message;
     }
@@ -797,12 +745,15 @@ public class ApplicationService
     public async Task<string> CreateAsync(CompOffAvailRequest request)
     {
         var message = "CompOff Avail request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var isHolidayWorkingExists = await _context.CompOffCredits.AnyAsync(h => h.WorkedDate == request.WorkedDate
-          && (h.StaffId ?? h.CreatedBy) == staffOrCreatorId && !h.IsActive);
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var isHolidayWorkingExists = await _context.CompOffCredits.AnyAsync(h => h.WorkedDate == request.WorkedDate && (h.StaffId ?? h.CreatedBy) == staffOrCreatorId && !h.IsActive);
         if (!isHolidayWorkingExists)
         {
-            throw new InvalidOperationException("WorkedDate does not match the date in CompOffCredit or the record is not active.");
+            throw new ConflictException("WorkedDate does not match the date in CompOffCredit");
         }
         var lastCompOffCredit = await _context.CompOffCredits
             .Where(c => (c.StaffId ?? c.CreatedBy) == staffOrCreatorId)
@@ -814,7 +765,7 @@ public class ApplicationService
         }
         if (lastCompOffCredit.Balance == 0)
         {
-            throw new InvalidOperationException("No Comp-Off Credit balance found");
+            throw new ConflictException("No Comp-Off Credit balance found");
         }
         var compOff = new CompOffAvail
         {
@@ -834,28 +785,29 @@ public class ApplicationService
         await _context.CompOffAvails.AddAsync(compOff);
         await _context.SaveChangesAsync();
 
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = compOff.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendCompOffApprovalRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                staffName: staffName,
-                id: compOff.Id,
-                applicationTypeId: compOff.ApplicationTypeId,
-                workedDate: request.WorkedDate,
-                fromDate: request.FromDate,
-                toDate: request.ToDate,
-                totalDays: request.TotalDays,
-                reason: request.Reason,
-                requestDate: requestDateTime,
-                createdBy: staffOrCreatorId
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendCompOffApprovalRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    staffName: staffName,
+                    id: compOff.Id,
+                    applicationTypeId: compOff.ApplicationTypeId,
+                    workedDate: request.WorkedDate,
+                    fromDate: request.FromDate,
+                    toDate: request.ToDate,
+                    totalDays: request.TotalDays,
+                    reason: request.Reason,
+                    requestDate: requestDateTime,
+                    createdBy: staffOrCreatorId
+                );
+            }
         }
         return message;
     }
@@ -877,7 +829,6 @@ public class ApplicationService
                                   Reason = compOff.Reason,
                                   TotalDays = compOff.TotalDays,
                               }).ToListAsync();
-
         if (compOffs.Count == 0)
         {
             throw new MessageNotFoundException("No CompOff records found");
@@ -885,15 +836,16 @@ public class ApplicationService
         return compOffs;
     }
 
-    public async Task<List<object>> GetApplicationRequisition(int approverId, List<int>? staffIds, int? applicationTypeId, DateOnly? fromDate, DateOnly? toDate)
+    public async Task<List<object>> GetApplicationRequisition(int approverId, List<int>? staffIds, int applicationTypeId, DateOnly? fromDate, DateOnly? toDate)
     {
+        await NotFoundMethod(applicationTypeId);
         var approver = await _context.StaffCreations
             .Where(x => x.Id == approverId && x.IsActive == true)
             .Select(x => new { x.AccessLevel })
             .FirstOrDefaultAsync();
         bool isSuperAdmin = approver?.AccessLevel == "SUPER ADMIN";
         List<object> result = new List<object>();
-        if (applicationTypeId.HasValue && applicationTypeId == 1)
+        if (applicationTypeId == 1)
         {
             var getLeaves = await (from leave in _context.LeaveRequisitions
                                    join leaveType in _context.LeaveTypes on leave.LeaveTypeId equals leaveType.Id
@@ -940,13 +892,7 @@ public class ApplicationService
                                                      leave.ApplicationTypeId == 1 &&
                                                      leave.Status1 != false
                                                  )))
-                                         && (
-                                             staffIds == null || !staffIds.Any() ||
-                                             (
-                                                 (leave.StaffId.HasValue && staffIds.Contains(leave.StaffId.Value)) ||
-                                                 (!leave.StaffId.HasValue && staffIds.Contains(leave.CreatedBy))
-                                             )
-                                         )
+                                         && (staffIds == null || !staffIds.Any() || (staffIds.Contains(leave.StaffId ?? leave.CreatedBy)))
                                    select new
                                    {
                                        leave.Id,
@@ -971,7 +917,7 @@ public class ApplicationService
             }
             result.AddRange(getLeaves.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 2)
+        else if (applicationTypeId == 2)
         {
             var getCommonPermissions = await (from permission in _context.CommonPermissions
                                              let staffIdToUse = permission.StaffId ?? permission.CreatedBy
@@ -1015,13 +961,7 @@ public class ApplicationService
                                                                 permission.ApplicationTypeId == 2 &&
                                                                 permission.Status1 != false
                                                             ) ) )
-                                                    && (
-                                                        staffIds == null || !staffIds.Any() ||
-                                                        (
-                                                            (permission.StaffId.HasValue && staffIds.Contains(permission.StaffId.Value)) ||
-                                                            (!permission.StaffId.HasValue && staffIds.Contains(permission.CreatedBy))
-                                                        )
-                                                    )
+                                             && (staffIds == null || !staffIds.Any() || (staffIds.Contains(permission.StaffId ?? permission.CreatedBy)))
                                               select new
                                               {
                                                   permission.Id,
@@ -1045,7 +985,7 @@ public class ApplicationService
             }
             result.AddRange(getCommonPermissions.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 3)
+        else if (applicationTypeId == 3)
         {
             var getManualPunch = await (from punch in _context.ManualPunchRequistions
                                         join application in _context.ApplicationTypes on punch.ApplicationTypeId equals application.Id
@@ -1091,13 +1031,7 @@ public class ApplicationService
                                                           punch.ApplicationTypeId == 3 &&
                                                           punch.Status1 != false
                                                       ) ) )
-                                              && (
-                                                  staffIds == null || !staffIds.Any() ||
-                                                  (
-                                                      (punch.StaffId.HasValue && staffIds.Contains(punch.StaffId.Value)) ||
-                                                      (!punch.StaffId.HasValue && staffIds.Contains(punch.CreatedBy))
-                                                  )
-                                              )
+                                         && (staffIds == null || !staffIds.Any() || (staffIds.Contains(punch.StaffId ?? punch.CreatedBy)))
                                         select new
                                         {
                                             punch.Id,
@@ -1123,7 +1057,7 @@ public class ApplicationService
             }
             result.AddRange(getManualPunch.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 4)
+        else if (applicationTypeId == 4)
         {
             var getOnDutyRequisitions = await (from duty in _context.OnDutyRequisitions
                                                join application in _context.ApplicationTypes on duty.ApplicationTypeId equals application.Id
@@ -1155,11 +1089,7 @@ public class ApplicationService
                                                               duty.Status1 == true && duty.Status2 == null &&
                                                               duty.Status1 != false && duty.ApplicationTypeId == 4)
                                                          )))
-                                                     && (
-                                                         staffIds == null || !staffIds.Any() ||
-                                                         (duty.StaffId.HasValue && staffIds.Contains(duty.StaffId.Value)) ||
-                                                         (!duty.StaffId.HasValue && staffIds.Contains(duty.CreatedBy))
-                                                     )
+                                             && (staffIds == null || !staffIds.Any() || (staffIds.Contains(duty.StaffId ?? duty.CreatedBy)))
                                                select new
                                                {
                                                    duty.Id,
@@ -1187,7 +1117,7 @@ public class ApplicationService
             }
             result.AddRange(getOnDutyRequisitions.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 5)
+        else if (applicationTypeId == 5)
         {
             var getBusinessTravels = await (from travel in _context.BusinessTravels
                                             join application in _context.ApplicationTypes on travel.ApplicationTypeId equals application.Id
@@ -1219,11 +1149,7 @@ public class ApplicationService
                                                            travel.Status1 == true && travel.Status2 == null &&
                                                            travel.Status1 != false && travel.ApplicationTypeId == 5)
                                                       )))
-                                                  && (
-                                                      staffIds == null || !staffIds.Any() ||
-                                                      (travel.StaffId.HasValue && staffIds.Contains(travel.StaffId.Value)) ||
-                                                      (!travel.StaffId.HasValue && staffIds.Contains(travel.CreatedBy))
-                                                  )
+                                             && (staffIds == null || !staffIds.Any() || (staffIds.Contains(travel.StaffId ?? travel.CreatedBy)))
                                             select new
                                             {
                                                 travel.Id,
@@ -1251,7 +1177,7 @@ public class ApplicationService
             }
             result.AddRange(getBusinessTravels.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 6)
+        else if (applicationTypeId == 6)
         {
             var getWorkFromHomes = await (from workFromHome in _context.WorkFromHomes
                                           join application in _context.ApplicationTypes on workFromHome.ApplicationTypeId equals application.Id
@@ -1283,11 +1209,7 @@ public class ApplicationService
                                                          workFromHome.Status1 == true && workFromHome.Status2 == null &&
                                                          workFromHome.Status1 != false && workFromHome.ApplicationTypeId == 6)
                                                     ) ) )
-                                                && (
-                                                    staffIds == null || !staffIds.Any() ||
-                                                    (workFromHome.StaffId.HasValue && staffIds.Contains(workFromHome.StaffId.Value)) ||
-                                                    (!workFromHome.StaffId.HasValue && staffIds.Contains(workFromHome.CreatedBy))
-                                                )
+                                         && (staffIds == null || !staffIds.Any() || (staffIds.Contains(workFromHome.StaffId ?? workFromHome.CreatedBy)))
                                           select new
                                           {
                                               workFromHome.Id,
@@ -1315,7 +1237,7 @@ public class ApplicationService
             }
             result.AddRange(getWorkFromHomes.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 7)
+        else if (applicationTypeId == 7)
         {
             var getShiftChanges = await (from shiftChange in _context.ShiftChanges
                                          join application in _context.ApplicationTypes on shiftChange.ApplicationTypeId equals application.Id
@@ -1348,11 +1270,7 @@ public class ApplicationService
                                                         shiftChange.Status1 == true && shiftChange.Status2 == null &&
                                                         shiftChange.Status1 != false && shiftChange.ApplicationTypeId == 7)
                                                    ) ) )
-                                               && (
-                                                   staffIds == null || !staffIds.Any() ||
-                                                   (shiftChange.StaffId.HasValue && staffIds.Contains(shiftChange.StaffId.Value)) ||
-                                                   (!shiftChange.StaffId.HasValue && staffIds.Contains(shiftChange.CreatedBy))
-                                               )
+                                         && (staffIds == null || !staffIds.Any() || (staffIds.Contains(shiftChange.StaffId ?? shiftChange.CreatedBy)))
                                          select new
                                          {
                                              shiftChange.Id,
@@ -1377,7 +1295,7 @@ public class ApplicationService
             }
             result.AddRange(getShiftChanges.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 8)
+        else if (applicationTypeId == 8)
         {
             var getShiftExtensions = await (from shiftExtension in _context.ShiftExtensions
                                             join staff in _context.StaffCreations on shiftExtension.StaffId equals staff.Id into staffJoin
@@ -1390,10 +1308,7 @@ public class ApplicationService
                                                   && (shiftExtension.StaffId == null || staff.IsActive == true)
                                                   && creatorStaff.IsActive == true
                                                   && shiftExtension.IsCancelled == null
-                                                  && (staffIds == null || !staffIds.Any() ||
-                                                      (shiftExtension.StaffId.HasValue
-                                                          ? staffIds.Contains(shiftExtension.StaffId.Value)
-                                                          : staffIds.Contains(shiftExtension.CreatedBy)))
+                                                 && (staffIds == null || !staffIds.Any() || (staffIds.Contains(shiftExtension.StaffId ?? shiftExtension.CreatedBy)))
                                                   && _context.AttendanceRecords.Any(att =>
                                                     (att.IsFreezed == null || att.IsFreezed == false))
                                                   && (isSuperAdmin || approverId < 0 ||
@@ -1438,7 +1353,7 @@ public class ApplicationService
             }
             result.AddRange(getShiftExtensions.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 9)
+        else if (applicationTypeId == 9)
         {
             var getWeeklyOffHolidayWorking = await (from holidayWorking in _context.WeeklyOffHolidayWorkings
                                                     join staff in _context.StaffCreations on holidayWorking.StaffId equals staff.Id into staffJoin
@@ -1451,10 +1366,7 @@ public class ApplicationService
                                                           && (holidayWorking.StaffId == null || staff.IsActive == true)
                                                           && creatorStaff.IsActive == true
                                                           && holidayWorking.IsCancelled == null
-                                                          && (staffIds == null || !staffIds.Any()
-                                                          || (holidayWorking.StaffId.HasValue
-                                                                  ? staffIds.Contains(holidayWorking.StaffId.Value)
-                                                                  : staffIds.Contains(holidayWorking.CreatedBy)))
+                                                         && (staffIds == null || !staffIds.Any() || (staffIds.Contains(holidayWorking.StaffId ?? holidayWorking.CreatedBy)))
                                                           && _context.AttendanceRecords.Any(att =>
                                                             (att.IsFreezed == null || att.IsFreezed == false))
                                                           && (isSuperAdmin || approverId < 0
@@ -1499,7 +1411,7 @@ public class ApplicationService
             }
             result.AddRange(getWeeklyOffHolidayWorking.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 10)
+        else if (applicationTypeId == 10)
         {
             var getCompOffAvail = await (from compOff in _context.CompOffAvails
                                          join staff in _context.StaffCreations on compOff.StaffId equals staff.Id into staffJoin
@@ -1512,9 +1424,7 @@ public class ApplicationService
                                                && (compOff.StaffId == null || staff.IsActive == true)
                                                && creatorStaff.IsActive == true
                                                && compOff.IsCancelled == null
-                                               && (staffIds == null || !staffIds.Any() ||
-                                                   (compOff.StaffId.HasValue && staffIds.Contains(compOff.StaffId.Value)) ||
-                                                   (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
+                                             && (staffIds == null || !staffIds.Any() || (staffIds.Contains(compOff.StaffId ?? compOff.CreatedBy)))
                                                && _context.AttendanceRecords.Any(att =>
                                                 (att.IsFreezed == null || att.IsFreezed == false))
                                                && (isSuperAdmin || approverId < 0 ||
@@ -1561,7 +1471,7 @@ public class ApplicationService
             }
             result.AddRange(getCompOffAvail.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 11)
+        else if (applicationTypeId == 11)
         {
             var getCompOffCredit = await (from compOff in _context.CompOffCredits
                                           join staff in _context.StaffCreations on compOff.StaffId equals staff.Id into staffJoin
@@ -1574,9 +1484,7 @@ public class ApplicationService
                                                 && (compOff.StaffId == null || staff.IsActive == true)
                                                 && creatorStaff.IsActive == true
                                                 && compOff.IsCancelled == null
-                                                && (staffIds == null || !staffIds.Any() ||
-                                                    (compOff.StaffId.HasValue && staffIds.Contains(compOff.StaffId.Value)) ||
-                                                    (!compOff.StaffId.HasValue && staffIds.Contains(compOff.CreatedBy)))
+                                             && (staffIds == null || !staffIds.Any() || (staffIds.Contains(compOff.StaffId ?? compOff.CreatedBy)))
                                                 && _context.AttendanceRecords.Any(att =>
                                                 (att.IsFreezed == null || att.IsFreezed == false))
                                                 && (isSuperAdmin || approverId < 0 ||
@@ -1617,7 +1525,7 @@ public class ApplicationService
             }
             result.AddRange(getCompOffCredit.Cast<object>());
         }
-        else if (applicationTypeId.HasValue && applicationTypeId == 18)
+        else if (applicationTypeId == 18)
         {
             var getReimbursements = await (from reimbursement in _context.Reimbursements
                                            join staff in _context.StaffCreations on reimbursement.StaffId equals staff.Id into staffJoin
@@ -1626,14 +1534,10 @@ public class ApplicationService
                                            join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
                                            join reimbursementType in _context.ReimbursementTypes on reimbursement.ReimbursementTypeId equals reimbursementType.Id
                                            where reimbursement.IsActive == true
-                                                 && reimbursement.CancelledOn == null
+                                                 && reimbursement.IsCancelled == null
                                                  && (fromDate == null || reimbursement.BillDate >= fromDate)
                                                  && (toDate == null || reimbursement.BillDate <= toDate)
-                                                 && (
-                                                     staffIds == null || !staffIds.Any() ||
-                                                     (reimbursement.StaffId.HasValue && staffIds.Contains(reimbursement.StaffId.Value)) ||
-                                                     (!reimbursement.StaffId.HasValue && staffIds.Contains(reimbursement.CreatedBy))
-                                                 )
+                                                 && (staffIds == null || !staffIds.Any() || (staffIds.Contains(reimbursement.StaffId ?? reimbursement.CreatedBy)))
                                                  && _context.AttendanceRecords.Any(att =>
                                                     (att.IsFreezed == null || att.IsFreezed == false))
                                                  && (isSuperAdmin || approverId < 0 ||
@@ -1667,9 +1571,9 @@ public class ApplicationService
                                                    : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
                                                reimbursement.Status1,
                                                reimbursement.Status2,
-                                               Status = reimbursement.CancelledOn.HasValue ? "Cancelled" :
+/*                                               Status = reimbursement.CancelledOn.HasValue ? "Cancelled" :
                                                         reimbursement.Status1.HasValue ? (reimbursement.Status1.Value ? "Approved" : "Rejected") : "Pending",
-                                               reimbursement.CreatedUtc,
+*/                                               reimbursement.CreatedUtc,
                                                reimbursement.CreatedBy
                                            }).ToListAsync();
 
@@ -1726,6 +1630,7 @@ public class ApplicationService
     public async Task<string> CreateLeaveRequisitionAsync(LeaveRequisitionRequest leaveRequisitionRequest)
     {
         var message = "Leave request submitted successfully.";
+        await NotFoundMethod(leaveRequisitionRequest.ApplicationTypeId);
         var staffOrCreatorId = leaveRequisitionRequest.StaffId ?? leaveRequisitionRequest.CreatedBy;
         var individualLeave = await _context.IndividualLeaveCreditDebits
         .Where(l => l.StaffCreationId == staffOrCreatorId
@@ -1737,7 +1642,7 @@ public class ApplicationService
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var leaveType = await _context.LeaveTypes.Where(l => l.Id == leaveRequisitionRequest.LeaveTypeId && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
-
+        if (leaveType == null) throw new MessageNotFoundException("Leave type not found");
         if(individualLeave == null || individualLeave.AvailableBalance == 0)
         {
             if (leaveRequisitionRequest.StaffId != null) throw new MessageNotFoundException($"No leave balance found for Staff {staffName}");
@@ -1745,15 +1650,14 @@ public class ApplicationService
         }
         if (individualLeave != null && (individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance < leaveRequisitionRequest.TotalDays))
         {
-            if (leaveRequisitionRequest.StaffId != null) throw new InvalidOperationException($"Insufficient leave balance found for Staff {staffName}");
-            else throw new InvalidOperationException("Insufficient leave balance found");
+            if (leaveRequisitionRequest.StaffId != null) throw new ConflictException($"Insufficient leave balance found for Staff {staffName}");
+            else throw new ConflictException("Insufficient leave balance found");
         }
         var existingLeaves = await _context.LeaveRequisitions
                 .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                              (lr.FromDate <= leaveRequisitionRequest.ToDate &&
                               lr.ToDate >= leaveRequisitionRequest.FromDate))
                 .ToListAsync();
-
         foreach (var existingLeave in existingLeaves)
         {
             bool isSameStartDate = existingLeave.FromDate == leaveRequisitionRequest.FromDate;
@@ -1763,7 +1667,7 @@ public class ApplicationService
             if ((existingLeave.StartDuration == "Full Day" || leaveRequisitionRequest.StartDuration == "Full Day") ||
                 (existingLeave.EndDuration == "Full Day" || leaveRequisitionRequest.EndDuration == "Full Day"))
             {
-                throw new InvalidOperationException("Leave request already exists");
+                throw new ConflictException("Leave request already exists");
             }
 
             // Allow complementary half-day leave on the same start date
@@ -1784,16 +1688,15 @@ public class ApplicationService
             if (isSameStartDate && isSameEndDate && ((existingLeave.StartDuration == leaveRequisitionRequest.StartDuration)
                 || (existingLeave.EndDuration == leaveRequisitionRequest.EndDuration)))
             {
-                throw new InvalidOperationException("Leave request already exists");
+                throw new ConflictException("Leave request already exists");
             }
 
             // Prevent overlapping leave
             if (existingLeave.FromDate <= leaveRequisitionRequest.ToDate && existingLeave.ToDate >= leaveRequisitionRequest.FromDate)
             {
-                throw new InvalidOperationException("Leave request already exists");
+                throw new ConflictException("Leave request already exists");
             }
         }
-
         LeaveRequisition leaveRequisition = new LeaveRequisition
         {
             ApplicationTypeId = leaveRequisitionRequest.ApplicationTypeId,
@@ -1814,25 +1717,29 @@ public class ApplicationService
 
         string requestDateTime = leaveRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
-        if(approver1 != null)
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        if (approver1 != null)
         {
-            await _emailService.SendLeaveRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                applicationTypeId: leaveRequisition.ApplicationTypeId,
-                id: leaveRequisition.Id,
-                leaveType: leaveType,
-                fromDate: leaveRequisitionRequest.FromDate,
-                toDate: leaveRequisitionRequest.ToDate,
-                fromDuration: leaveRequisitionRequest.StartDuration,
-                toDuration: leaveRequisitionRequest.EndDuration,
-                totalDays: leaveRequisitionRequest.TotalDays,
-                reason: leaveRequisitionRequest.Reason,
-                createdBy: staffOrCreatorId,
-                creatorName: staffName,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendLeaveRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    applicationTypeId: leaveRequisition.ApplicationTypeId,
+                    id: leaveRequisition.Id,
+                    leaveType: leaveType,
+                    fromDate: leaveRequisitionRequest.FromDate,
+                    toDate: leaveRequisitionRequest.ToDate,
+                    fromDuration: leaveRequisitionRequest.StartDuration,
+                    toDuration: leaveRequisitionRequest.EndDuration,
+                    totalDays: leaveRequisitionRequest.TotalDays,
+                    reason: leaveRequisitionRequest.Reason,
+                    createdBy: staffOrCreatorId,
+                    creatorName: staffName,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
     }
@@ -1840,17 +1747,22 @@ public class ApplicationService
     public async Task<string> AddCommonPermissionAsync(CommonPermissionRequest commonPermissionRequest)
     {
         var message = "Common Permission request submitted successfully.";
+        await NotFoundMethod(commonPermissionRequest.ApplicationTypeId);
+        var staffOrCreatorId = commonPermissionRequest.StaffId ?? commonPermissionRequest.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         CommonPermission commonPermission = new CommonPermission();
         var permissionDate = commonPermissionRequest.PermissionDate;
         var dayOfWeek = permissionDate.DayOfWeek;
-        if (dayOfWeek == DayOfWeek.Saturday) throw new InvalidOperationException("Permission is not allowed on Saturdays.");
+        if (dayOfWeek == DayOfWeek.Saturday) throw new ConflictException("Permission is not allowed on Saturdays.");
         var hasLeaveOnDate = await _context.LeaveRequisitions.AnyAsync(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
             (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
             (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
             (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
             permissionDate >= l.FromDate && permissionDate <= l.ToDate && (l.Status1 == null || l.Status1 == true) &&
             l.IsActive == true && (l.IsCancelled == false || l.IsCancelled == null));
-        if (hasLeaveOnDate) throw new InvalidOperationException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
+        if (hasLeaveOnDate) throw new ConflictException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
         var startOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month, 1);
         var endOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month,
             DateTime.DaysInMonth(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month));
@@ -1862,7 +1774,7 @@ public class ApplicationService
             (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
             (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
             l.PermissionDate == commonPermissionRequest.PermissionDate);
-        if (existingPermissionOnDate) throw new InvalidOperationException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
+        if (existingPermissionOnDate) throw new ConflictException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
         var permissionsThisMonth = await _context.CommonPermissions
             .Where(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
                 (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
@@ -1871,12 +1783,12 @@ public class ApplicationService
                                 l.PermissionDate >= startOfMonth &&
                                 l.PermissionDate <= endOfMonth)
             .ToListAsync();
-        if (permissionsThisMonth.Count >= 2) throw new InvalidOperationException($"You cannot apply for permission more than twice in {monthName}.");
+        if (permissionsThisMonth.Count >= 2) throw new ConflictException($"You cannot apply for permission more than twice in {monthName}.");
         var duration = commonPermissionRequest.EndTime - commonPermissionRequest.StartTime;
-        if (duration.TotalMinutes <= 0) throw new InvalidOperationException("End time must be greater than start time.");
-        if (duration.TotalMinutes > 120) throw new InvalidOperationException("Permission duration cannot exceed 2 hours.");
+        if (duration.TotalMinutes <= 0) throw new ConflictException("End time must be greater than start time.");
+        if (duration.TotalMinutes > 120) throw new ConflictException("Permission duration cannot exceed 2 hours.");
         var totalMinutesThisMonth = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
-        if (totalMinutesThisMonth + duration.TotalMinutes > 120) throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
+        if (totalMinutesThisMonth + duration.TotalMinutes > 120) throw new ConflictException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
         var formattedDuration = $"{duration.Hours:D2}:{duration.Minutes:D2}";
         commonPermission.StaffId = commonPermissionRequest.CreatedBy;
         commonPermission.StaffId = commonPermissionRequest.StaffId;
@@ -1893,30 +1805,30 @@ public class ApplicationService
         await _context.CommonPermissions.AddAsync(commonPermission);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = commonPermissionRequest.StaffId ?? commonPermissionRequest.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
-        string requestDateTime = commonPermission.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+        string requestDateTime = commonPermission.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendCommonPermissionRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                applicationTypeId: commonPermissionRequest.ApplicationTypeId,
-                id: commonPermission.Id,
-                permissionType: commonPermissionRequest.PermissionType,
-                permissionDate: commonPermissionRequest.PermissionDate,
-                startTime: commonPermissionRequest.StartTime,
-                endTime: commonPermissionRequest.EndTime,
-                duration: formattedDuration,
-                remarks: commonPermissionRequest.Remarks,
-                createdBy: staffOrCreatorId,
-                creatorName: staffName,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendCommonPermissionRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    applicationTypeId: commonPermissionRequest.ApplicationTypeId,
+                    id: commonPermission.Id,
+                    permissionType: commonPermissionRequest.PermissionType,
+                    permissionDate: commonPermissionRequest.PermissionDate,
+                    startTime: commonPermissionRequest.StartTime,
+                    endTime: commonPermissionRequest.EndTime,
+                    duration: formattedDuration,
+                    remarks: commonPermissionRequest.Remarks,
+                    createdBy: staffOrCreatorId,
+                    creatorName: staffName,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
     }
@@ -2006,6 +1918,11 @@ public class ApplicationService
     public async Task<string> CreateManualPunchAsync(ManualPunchRequestDto request)
     {
         var message = "Manual Punch request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var manualPunch = new ManualPunchRequistion
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2021,35 +1938,46 @@ public class ApplicationService
         await _context.ManualPunchRequistions.AddAsync(manualPunch);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = manualPunch.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendManualPunchRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                staffName: staffName,
-                id: manualPunch.Id,
-                applicationTypeId: request.ApplicationTypeId,
-                selectPunch: request.SelectPunch,
-                inPunch: request.InPunch,
-                outPunch: request.OutPunch,
-                remarks: request.Remarks,
-                createdBy: staffOrCreatorId,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendManualPunchRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    staffName: staffName,
+                    id: manualPunch.Id,
+                    applicationTypeId: request.ApplicationTypeId,
+                    selectPunch: request.SelectPunch,
+                    inPunch: request.InPunch,
+                    outPunch: request.OutPunch,
+                    remarks: request.Remarks,
+                    createdBy: staffOrCreatorId,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
+    }
+
+    public async Task NotFoundMethod(int applicationTypeId)
+    {
+        var application = await _context.ApplicationTypes.AnyAsync(a => a.Id == applicationTypeId && a.IsActive);
+        if (!application) throw new MessageNotFoundException("Application type not found");
     }
 
     public async Task<string> CreateOnDutyRequisitionAsync(OnDutyRequisitionRequest request)
     {
         var message = "On Duty request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var onDutyRequisition = new OnDutyRequisition
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2070,31 +1998,31 @@ public class ApplicationService
         await _context.OnDutyRequisitions.AddAsync(onDutyRequisition);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = onDutyRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendOnDutyRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                id: onDutyRequisition.Id,
-                applicationTypeId: request.ApplicationTypeId,
-                startDate: request.StartDate,
-                endDate: request.EndDate,
-                startTime: request.StartTime,
-                endTime: request.EndTime,
-                totalDays: request.TotalDays,
-                totalHours: request.TotalHours,
-                reason: request.Reason,
-                createdBy: staffOrCreatorId,
-                creatorName: staffName,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendOnDutyRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    id: onDutyRequisition.Id,
+                    applicationTypeId: request.ApplicationTypeId,
+                    startDate: request.StartDate,
+                    endDate: request.EndDate,
+                    startTime: request.StartTime,
+                    endTime: request.EndTime,
+                    totalDays: request.TotalDays,
+                    totalHours: request.TotalHours,
+                    reason: request.Reason,
+                    createdBy: staffOrCreatorId,
+                    creatorName: staffName,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
     }
@@ -2102,6 +2030,11 @@ public class ApplicationService
     public async Task<string> CreateBusinessTravelAsync(BusinessTravelRequestDto request)
     {
         var message = "Business Travel request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var businessTravel = new BusinessTravel
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2122,31 +2055,31 @@ public class ApplicationService
         _context.BusinessTravels.Add(businessTravel);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = businessTravel.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendBusinessTravelRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                id: businessTravel.Id,
-                applicationTypeId: request.ApplicationTypeId,
-                fromDate: request.FromDate,
-                toDate: request.ToDate,
-                fromTime: request.FromTime,
-                toTime: request.ToTime,
-                totalDays: request.TotalDays,
-                totalHours: request.TotalHours,
-                reason: request.Reason,
-                createdBy: staffOrCreatorId,
-                creatorName: staffName,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendBusinessTravelRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    id: businessTravel.Id,
+                    applicationTypeId: request.ApplicationTypeId,
+                    fromDate: request.FromDate,
+                    toDate: request.ToDate,
+                    fromTime: request.FromTime,
+                    toTime: request.ToTime,
+                    totalDays: request.TotalDays,
+                    totalHours: request.TotalHours,
+                    reason: request.Reason,
+                    createdBy: staffOrCreatorId,
+                    creatorName: staffName,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
     }
@@ -2154,6 +2087,11 @@ public class ApplicationService
     public async Task<string> CreateWorkFromHomeAsync(WorkFromHomeDto request)
     {
         var message = "Work From Home request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var workFromHome = new WorkFromHome
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2174,31 +2112,31 @@ public class ApplicationService
         await _context.WorkFromHomes.AddAsync(workFromHome);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = workFromHome.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendWorkFromHomeRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                id: workFromHome.Id,
-                applicationTypeId: request.ApplicationTypeId,
-                fromDate: request.FromDate,
-                toDate: request.ToDate,
-                fromTime: request.FromTime,
-                toTime: request.ToTime,
-                totalDays: request.TotalDays,
-                totalHours: request.TotalHours,
-                reason: request.Reason,
-                createdBy: staffOrCreatorId,
-                creatorName: staffName,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendWorkFromHomeRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    id: workFromHome.Id,
+                    applicationTypeId: request.ApplicationTypeId,
+                    fromDate: request.FromDate,
+                    toDate: request.ToDate,
+                    fromTime: request.FromTime,
+                    toTime: request.ToTime,
+                    totalDays: request.TotalDays,
+                    totalHours: request.TotalHours,
+                    reason: request.Reason,
+                    createdBy: staffOrCreatorId,
+                    creatorName: staffName,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
     }
@@ -2223,9 +2161,17 @@ public class ApplicationService
         if (shifts.Count == 0) throw new MessageNotFoundException("Shifts not found between the date range for the staff");
         return shifts;
     }
+
     public async Task<string> CreateShiftChangeAsync(ShiftChangeDto request)
     {
         var message = "Shift Change request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
+        if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         var shiftChange = new ShiftChange
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2241,30 +2187,28 @@ public class ApplicationService
         await _context.ShiftChanges.AddAsync(shiftChange);
         await _context.SaveChangesAsync();
 
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
-        var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
-        if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         string requestDateTime = shiftChange.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendShiftChangeRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                id: shiftChange.Id,
-                applicationTypeId: request.ApplicationTypeId,
-                shiftName: shiftName,
-                fromDate: request.FromDate,
-                toDate: request.ToDate,
-                reason: request.Reason,
-                createdBy: staffOrCreatorId,
-                creatorName: staffName,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendShiftChangeRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    id: shiftChange.Id,
+                    applicationTypeId: request.ApplicationTypeId,
+                    shiftName: shiftName,
+                    fromDate: request.FromDate,
+                    toDate: request.ToDate,
+                    reason: request.Reason,
+                    createdBy: staffOrCreatorId,
+                    creatorName: staffName,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
     }
@@ -2272,6 +2216,11 @@ public class ApplicationService
     public async Task<string> CreateShiftExtensionAsync(ShiftExtensionDto request)
     {
         var message = "Shift Extension request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var shiftExtension = new ShiftExtension
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2287,30 +2236,29 @@ public class ApplicationService
         };
         await _context.ShiftExtensions.AddAsync(shiftExtension);
         await _context.SaveChangesAsync();
-
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = shiftExtension.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendShiftExtensionRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                id: shiftExtension.Id,
-                applicationTypeId: request.ApplicationTypeId,
-                transactionDate: request.TransactionDate,
-                durationHours: request.DurationHours,
-                beforeShiftHours: request.BeforeShiftHours,
-                afterShiftHours: request.AfterShiftHours,
-                remarks: request.Remarks,
-                createdBy: staffOrCreatorId,
-                creatorName: staffName,
-                requestDate: requestDateTime
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendShiftExtensionRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    id: shiftExtension.Id,
+                    applicationTypeId: request.ApplicationTypeId,
+                    transactionDate: request.TransactionDate,
+                    durationHours: request.DurationHours,
+                    beforeShiftHours: request.BeforeShiftHours,
+                    afterShiftHours: request.AfterShiftHours,
+                    remarks: request.Remarks,
+                    createdBy: staffOrCreatorId,
+                    creatorName: staffName,
+                    requestDate: requestDateTime
+                );
+            }
         }
         return message;
     }
@@ -2318,6 +2266,13 @@ public class ApplicationService
     public async Task<string> CreateWeeklyOffHolidayWorkingAsync(WeeklyOffHolidayWorkingDto request)
     {
         var message = "Weekly Off/Holiday Working request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
+        if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         var weeklyOffHolidayWorking = new WeeklyOffHolidayWorking
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2333,32 +2288,29 @@ public class ApplicationService
         };
         await _context.WeeklyOffHolidayWorkings.AddAsync(weeklyOffHolidayWorking);
         await _context.SaveChangesAsync();
-
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = weeklyOffHolidayWorking.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-        var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
-        if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
         if (approver1 != null)
         {
-            await _emailService.SendWeeklyOffHolidayWorkingRequestEmail(
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                staffName: staffName,
-                selectShiftType: request.SelectShiftType,
-                id: weeklyOffHolidayWorking.Id,
-                applicationTypeId: request.ApplicationTypeId,
-                txnDate: request.TxnDate,
-                shiftName: shiftName,
-                shiftInTime: request.ShiftInTime,
-                shiftOutTime: request.ShiftOutTime,
-                requestDate: requestDateTime,
-                createdBy: staffOrCreatorId
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendWeeklyOffHolidayWorkingRequestEmail(
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    staffName: staffName,
+                    selectShiftType: request.SelectShiftType,
+                    id: weeklyOffHolidayWorking.Id,
+                    applicationTypeId: request.ApplicationTypeId,
+                    txnDate: request.TxnDate,
+                    shiftName: shiftName,
+                    shiftInTime: request.ShiftInTime,
+                    shiftOutTime: request.ShiftOutTime,
+                    requestDate: requestDateTime,
+                    createdBy: staffOrCreatorId
+                );
+            }
         }
         return message;
     }
@@ -2366,13 +2318,20 @@ public class ApplicationService
     public async Task<string> AddReimbursement(ReimbursementRequestModel request)
     {
         var message = "Reimbursement request submitted successfully";
+        await NotFoundMethod(request.ApplicationTypeId);
+        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
+        if (staffId == null) throw new MessageNotFoundException("Staff not found");
+        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         bool reimbursementExists = await _context.Reimbursements.AnyAsync(r => r.BillNo == request.BillNo);
-        if (reimbursementExists) throw new InvalidOperationException($"Reimbursement with Bill No {request.BillNo} already exists.");
+        if (reimbursementExists) throw new ConflictException($"Reimbursement with Bill No {request.BillNo} already exists.");
         string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         string fileUploadPath = string.Empty;
+        var reimbursementType = await _context.ReimbursementTypes.Where(s => s.Id == request.ReimbursementTypeId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
         async Task<string> SaveFile(IFormFile file, string folderName)
         {
-            if (file == null || file.Length == 0) return null;
+            if (file == null) throw new ArgumentNullException(nameof(file), "File cannot be null.");
+            if (file.Length == 0) throw new InvalidOperationException("Uploaded file is empty.");
             string directoryPath = Path.Combine(baseDirectory, folderName);
             if (!Directory.Exists(directoryPath))
             {
@@ -2404,31 +2363,29 @@ public class ApplicationService
         };
         await _context.Reimbursements.AddAsync(reimbursement);
         await _context.SaveChangesAsync();
-
-        var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
-        if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
         string requestDateTime = reimbursement.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-        var reimbursementType = await _context.ReimbursementTypes.Where(s => s.Id == request.ReimbursementTypeId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
-        if(approver1 != null)
+        if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        if (approver1 != null)
         {
-            await _emailService.SendReimbursementRequestEmail(
-                id: reimbursement.Id,
-                applicationTypeId: reimbursement.ApplicationTypeId,
-                recipientEmail: approver1.OfficialEmail,
-                recipientId: approver1.Id,
-                recipientName: $"{approver1.FirstName} {approver1.LastName}",
-                staffName: staffName,
-                requestDate: requestDateTime,
-                billDate: reimbursement.BillDate,
-                billNo: reimbursement.BillNo,
-                description: reimbursement.Description,
-                billPeriod: reimbursement.BillPeriod,
-                amount: reimbursement.Amount,
-                createdBy: staffOrCreatorId
-            );
+            if (!string.IsNullOrEmpty(approver1.OfficialEmail))
+            {
+                await _emailService.SendReimbursementRequestEmail(
+                    id: reimbursement.Id,
+                    applicationTypeId: reimbursement.ApplicationTypeId,
+                    recipientEmail: approver1.OfficialEmail,
+                    recipientId: approver1.Id,
+                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    staffName: staffName,
+                    requestDate: requestDateTime,
+                    billDate: reimbursement.BillDate,
+                    billNo: reimbursement.BillNo,
+                    description: reimbursement.Description,
+                    billPeriod: reimbursement.BillPeriod,
+                    amount: reimbursement.Amount,
+                    createdBy: staffOrCreatorId
+                );
+            }
         }
         return message;
     }

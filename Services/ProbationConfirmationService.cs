@@ -31,6 +31,21 @@ namespace AttendanceManagement.Services
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<AttendanceManagementSystemContext>();
                     var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+
+                    //Existing assigned shift will be is active false
+                    DateTime date = DateTime.Now;
+                    var expiredShifts = await dbContext.AssignShifts
+                        .Where(s => s.IsActive && s.ToDate < DateOnly.FromDateTime(date))
+                        .ToListAsync();
+                    foreach (var shift in expiredShifts)
+                    {
+                        shift.IsActive = false;
+                        shift.UpdatedBy = 1;
+                        shift.UpdatedUtc = DateTime.UtcNow;
+                    }
+                    await dbContext.SaveChangesAsync();
+
+                    // Probation initiation
                     var today = DateOnly.FromDateTime(DateTime.Today);
                     var probations = await (
                         from p in dbContext.Probations

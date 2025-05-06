@@ -165,6 +165,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<PaySlipComponent> PaySlipComponents { get; set; }
 
+    public virtual DbSet<PerformanceRatingScale> PerformanceRatingScales { get; set; }
+
     public virtual DbSet<PermissionRequistion> PermissionRequistions { get; set; }
 
     public virtual DbSet<PermissionType> PermissionTypes { get; set; }
@@ -841,7 +843,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.FromTime).HasColumnType("datetime");
-            entity.Property(e => e.Reason).HasMaxLength(255);
+            entity.Property(e => e.Reason)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.StartDuration)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -1047,7 +1051,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Reason).IsUnicode(false);
+            entity.Property(e => e.Reason)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.ToDuration)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -1095,7 +1101,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Reason).IsUnicode(false);
+            entity.Property(e => e.Reason)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.TotalDays).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UpdatedUtc)
                 .HasColumnType("datetime")
@@ -1478,11 +1486,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.ToTable("EmailLog");
 
             entity.Property(e => e.Bcc)
-                .HasMaxLength(1000)
                 .IsUnicode(false)
                 .HasColumnName("BCC");
             entity.Property(e => e.Cc)
-                .HasMaxLength(1000)
                 .IsUnicode(false)
                 .HasColumnName("CC");
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
@@ -1496,11 +1502,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.ErrorInnerException).IsUnicode(false);
             entity.Property(e => e.ErrorStackTrace).IsUnicode(false);
             entity.Property(e => e.From)
-                .HasMaxLength(100)
+                .HasMaxLength(320)
                 .IsUnicode(false);
-            entity.Property(e => e.To)
-                .HasMaxLength(100)
-                .IsUnicode(false);
+            entity.Property(e => e.To).IsUnicode(false);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.EmailLogs)
                 .HasForeignKey(d => d.CreatedBy)
@@ -2867,6 +2871,28 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK__PaySlipCo__Updat__2F7AE026");
         });
 
+        modelBuilder.Entity<PerformanceRatingScale>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC0706A7F789");
+
+            entity.ToTable("PerformanceRatingScale");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PerformanceRatingScaleCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Performan__Updat__65A1E6AD");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceRatingScaleUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK__Performan__Updat__66960AE6");
+        });
+
         modelBuilder.Entity<PermissionRequistion>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Permissi__3214EC07D39FE1EC");
@@ -3381,7 +3407,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CancelledOn).HasColumnType("datetime");
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.Description)
-                .HasMaxLength(500)
+                .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
             entity.Property(e => e.UploadFilePath).IsUnicode(false);
@@ -3598,6 +3624,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.ShiftType).WithMany(p => p.Shifts)
                 .HasForeignKey(d => d.ShiftTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Shift_ShiftType");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ShiftUpdatedByNavigations)
@@ -3615,7 +3642,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.Reason).HasMaxLength(255);
+            entity.Property(e => e.Reason)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("UpdatedUTC");
@@ -4515,7 +4544,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.FromTime).HasColumnType("datetime");
-            entity.Property(e => e.Reason).HasMaxLength(255);
+            entity.Property(e => e.Reason)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.StartDuration)
                 .HasMaxLength(20)
                 .IsUnicode(false);

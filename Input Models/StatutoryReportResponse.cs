@@ -15,11 +15,12 @@
 
     public class StatutoryReportRequest
     {
-        public List<int> StaffIds { get; set; }
+        public List<int> StaffIds { get; set; } = new List<int>();
         public DateOnly FromDate { get; set; }
         public DateOnly ToDate { get; set; }
         public int CreatedBy {  get; set; }
     }
+
     public class StatutoryReportDto
     {
         public int StaffId { get; set; }

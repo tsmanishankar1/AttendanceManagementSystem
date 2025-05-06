@@ -21,6 +21,7 @@ namespace AttendanceManagement.Input_Models
         public int CreatedBy { get; set; }
         public List<AcademicDetailRequest> AcademicDetails { get; set; } = new List<AcademicDetailRequest>();
     }
+
     public class AcademicDetailUpdateRequest
     {
         public int AcademicDetailId { get; set; }
@@ -56,9 +57,9 @@ namespace AttendanceManagement.Input_Models
         public string? Board { get; set; }
 
     }
+
     public class CertificationCourseRequest
     {
-     
         public string? CertificationCourseName { get; set; }
         public DateOnly? ValidUpto { get; set; }
         public string? CourseAppraisal { get; set; }
@@ -71,7 +72,6 @@ namespace AttendanceManagement.Input_Models
         public int CreatedBy { get; set; }
         public List<CertificationCourseRequest> CertificationCourses { get; set; } = new List<CertificationCourseRequest>();
     }
-
 
     public class CertificationCourseUpdateRequest
     {
@@ -97,9 +97,9 @@ namespace AttendanceManagement.Input_Models
         public string? CourseAppraisal { get; set; }
         public string? CertificationInstitute { get; set; }
     }
+
     public class PreviousEmploymentRequest
     {
-       
         public string? CompanyName { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
@@ -145,4 +145,3 @@ namespace AttendanceManagement.Input_Models
         public decimal? LastGrossSalary { get; set; }
     }
 }
-

@@ -84,7 +84,6 @@ public class ApplicationController : ControllerBase
                 Message = result
             };
             await _loggingService.AuditLog("CompOff Availability","POST","/api/Application/CreateCompOffAvail",result,request.CreatedBy,JsonSerializer.Serialize(request));
-
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
@@ -92,10 +91,10 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("CompOff Availability","POST","/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
                     return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch (InvalidOperationException ex)
+        catch (ConflictException ex)
         {
             await _loggingService.LogError("CompOff Availability", "POST", "/api/Application/CreateCompOffAvail", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -123,7 +122,7 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Application Cancellation", "POST", "/api/Application/CancelAppliedLeave", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch (InvalidOperationException ex)
+        catch (ConflictException ex)
         {
             await _loggingService.LogError("Application Cancellation", "POST", "/api/Application/CancelAppliedLeave", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -273,7 +272,7 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch(InvalidOperationException ex)
+        catch(ConflictException ex)
         {
             await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -350,7 +349,7 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch(InvalidOperationException ex)
+        catch(ConflictException ex)
         {
             await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -381,7 +380,7 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Common Permission", "POST", "/api/Application/AddCommonPermission", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, commonPermission.CreatedBy, JsonSerializer.Serialize(commonPermission));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch(InvalidOperationException ex)
+        catch(ConflictException ex)
         {
             await _loggingService.LogError("Common Permission", "POST", "/api/Application/AddCommonPermission", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, commonPermission.CreatedBy, JsonSerializer.Serialize(commonPermission));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -476,7 +475,6 @@ public class ApplicationController : ControllerBase
             };
             await _loggingService.AuditLog("Manual Punch", "POST", "/api/Application/CreateManualPunch", result, createManualPunch.CreatedBy, JsonSerializer.Serialize(createManualPunch));
             return Ok(response);
-
         }
         catch (MessageNotFoundException ex)
         {
@@ -665,10 +663,20 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Reimbursement", "POST", "/api/Application/AddReimbursement", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Reimbursement", "POST", "/api/Application/AddReimbursement", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (ArgumentNullException ex)
+        {
+            await _loggingService.LogError("Reimbursement", "POST", "/api/Application/AddReimbursement", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.BadResponse(ex.Message);
+        }
         catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Reimbursement", "POST", "/api/Application/AddReimbursement", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

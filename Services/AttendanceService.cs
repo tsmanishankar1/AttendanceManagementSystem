@@ -19,12 +19,11 @@ public class AttendanceService
         _atrakContext = atrakContext;
         _attendanceContext = attendanceContext;
         _storedProcedureDbContext = storedProcedureDbContext;
-
     }
     public async Task<SmaxTransactionResponse?> GetCheckInCheckOutAsync(int staffId)
     {
-        var staff = await _attendanceContext.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId);
-        if (staff == null) throw new MessageNotFoundException("Staff not found for the given ID.");
+        var staff = await _attendanceContext.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+        if (staff == null) throw new MessageNotFoundException("Staff not found");
         var assignedShift = await _attendanceContext.AssignShifts.Where(a => a.StaffId == staffId).OrderByDescending(a => a.FromDate).FirstOrDefaultAsync();
         var shift = assignedShift != null ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.Id == assignedShift.ShiftId) : null;
         string shiftName = shift?.Name ?? "Not Assigned";
@@ -158,8 +157,23 @@ public class AttendanceService
         return attendanceList;
     }
 
+    private async Task DepartmentAndDivision(int? departmentId, int? divisionId)
+    {
+        if(departmentId != null)
+        {
+            var department = await _attendanceContext.DepartmentMasters.AnyAsync(d => d.Id == departmentId && d.IsActive);
+            if (!department) throw new MessageNotFoundException("Department not found");
+        }
+        if(divisionId != null)
+        {
+            var division = await _attendanceContext.DivisionMasters.AnyAsync(d => d.Id == divisionId && d.IsActive);
+            if (!division) throw new MessageNotFoundException("Division not found");
+        }
+    }
+
     public async Task<List<StaffInfoDto>> GetAllStaffsByDepartmentAndDivision(GetStaffByDepartmentDivision staff)
     {
+        await DepartmentAndDivision(staff.DepartmentId, staff.DivisionId);
         var staffInfo = await (from staffs in _attendanceContext.StaffCreations
                                join dept in _attendanceContext.DepartmentMasters on staffs.DepartmentId equals dept.Id
                                join div in _attendanceContext.DivisionMasters on staffs.DivisionId equals div.Id
@@ -179,6 +193,7 @@ public class AttendanceService
 
     public async Task<List<AttendanceRecordDto>> GetAttendanceRecords(AttendanceStatusResponse attendanceStatus)
     {
+        await DepartmentAndDivision(attendanceStatus.DepartmentId, attendanceStatus.DivisionId);
         var result = await (
                             from ar in _attendanceContext.AttendanceRecords
                             join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id

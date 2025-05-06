@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class ShiftExtensionDto
     {
@@ -8,8 +10,8 @@
         public string? DurationHours { get; set; }
         public DateTime? BeforeShiftHours { get; set; }
         public DateTime? AfterShiftHours { get; set; }
-        public string? Remarks { get; set; }
+        [MaxLength(255)]
+        public string Remarks { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
-
 }

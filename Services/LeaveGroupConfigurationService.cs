@@ -105,6 +105,8 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateConfigurations(LeaveGroupConfigurationRequest configurationRequeset)
         {
             var message = "Leave group configuration added successfully";
+            var leaveType = await _context.LeaveTypes.AnyAsync(h => h.Id == configurationRequeset.LeaveTypeId && h.IsActive);
+            if (!leaveType) throw new MessageNotFoundException("Leave type not found");
             var configuration = new LeaveGroupConfiguration
             {
                 LeaveGroupConfigurationName = configurationRequeset.LeaveGroupConfigurationName,
@@ -141,12 +143,13 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateConfigurations(UpdateLeaveGroupConfiguration configuration)
         {
             var message = "Leave group configuration updated successfully";
+            var leaveType = await _context.LeaveTypes.AnyAsync(h => h.Id == configuration.LeaveTypeId && h.IsActive);
+            if (!leaveType) throw new MessageNotFoundException("Leave type not found");
             var existingTransaction = await _context.LeaveGroupConfigurations.FirstOrDefaultAsync(t => t.Id == configuration.LeaveGroupConfigurationId);
             if (existingTransaction == null)
             {
                 throw new MessageNotFoundException("Leave configuration group not found");
             }
-
             existingTransaction.LeaveGroupConfigurationName = configuration.LeaveGroupConfigurationName ?? existingTransaction.LeaveGroupConfigurationName;
             existingTransaction.LeaveTypeId = configuration.LeaveTypeId ?? existingTransaction.LeaveTypeId;
             existingTransaction.PaidLeave = configuration.PaidLeave ?? existingTransaction.PaidLeave;

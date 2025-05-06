@@ -101,9 +101,20 @@ public class PrefixAndSuffixService
         return allPrefix;
     }
 
+    private async Task PrefixAndSuffixMethod(int prefixTypeId, int suffixTypeId, int leaveTypeId)
+    {
+        var prefix = await _context.PrefixLeaveTypes.AnyAsync(h => h.Id == prefixTypeId && h.IsActive);
+        if (!prefix) throw new MessageNotFoundException("Prefix type not found");
+        var suffix = await _context.SuffixLeaveTypes.AnyAsync(h => h.Id == suffixTypeId && h.IsActive);
+        if (!suffix) throw new MessageNotFoundException("Suffix type not found");
+        var leaveType = await _context.LeaveTypes.AnyAsync(h => h.Id == leaveTypeId && h.IsActive);
+        if (!leaveType) throw new MessageNotFoundException("Leave type not found");
+    }
+
     public async Task<string> Create(PrefixAndSuffixRequest prefixAndSuffixRequest)
     {
         var message = "Prefix and suffix added successfully";
+        await PrefixAndSuffixMethod(prefixAndSuffixRequest.PrefixTypeId, prefixAndSuffixRequest.SuffixTypeId, prefixAndSuffixRequest.LeaveTypeId);
         var prefixAndSuffix = new PrefixAndSuffix
         {
             PrefixLeaveTypeId = prefixAndSuffixRequest.PrefixTypeId,
@@ -121,6 +132,7 @@ public class PrefixAndSuffixService
     public async Task<string> Update(UpdatePrefixAndSuffix updatedPrefixAndSuffix)
     {
         var message = "Prefix and suffix updated successfully";
+        await PrefixAndSuffixMethod(updatedPrefixAndSuffix.PrefixTypeId, updatedPrefixAndSuffix.SuffixTypeId, updatedPrefixAndSuffix.LeaveTypeId);
         var existingRecord = _context.PrefixAndSuffixes.FirstOrDefault(p => p.Id == updatedPrefixAndSuffix.PrefixAndSuffixId);
         if (existingRecord == null)
         {

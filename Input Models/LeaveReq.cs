@@ -61,6 +61,7 @@ namespace AttendanceManagement.Input_Models
         public DateTime? EndTime { get; set; }
         public string Reason { get; set; } = null!;
     }
+
     public class Business
     {
         public int Id { get; set; }
@@ -76,6 +77,7 @@ namespace AttendanceManagement.Input_Models
         public DateOnly? ToDate { get; set; }
         public string Reason { get; set; } = null!;
     }
+
     public class WorkFrom
     {
         public int Id { get; set; }
@@ -91,6 +93,7 @@ namespace AttendanceManagement.Input_Models
         public DateOnly? ToDate { get; set; }
         public string Reason { get; set; } = null!;
     }
+
     public class ShiftChan
     {
         public int Id { get; set; }
@@ -103,6 +106,7 @@ namespace AttendanceManagement.Input_Models
         public DateOnly ToDate { get; set; }
         public string Reason { get; set; } = null!;
     }
+
     public class ShiftExte
     {
         public int Id { get; set; }
@@ -116,6 +120,7 @@ namespace AttendanceManagement.Input_Models
         public DateTime? AfterShiftHours { get; set; }
         public string? Remarks { get; set; }
     }
+
     public class WeeklyOffHoliday
     {
         public int Id { get; set; }
@@ -131,6 +136,7 @@ namespace AttendanceManagement.Input_Models
         public DateTime? ShiftInTime { get; set; }
         public DateTime? ShiftOutTime { get; set; }
     }
+
     public class CompOffAvai
     {
         public int Id { get; set; }
@@ -146,6 +152,7 @@ namespace AttendanceManagement.Input_Models
         public string Reason { get; set; } = null!;
         public decimal TotalDays { get; set; }
     }
+
     public class CompOffCred
     {
         public int Id { get; set; }
@@ -157,6 +164,7 @@ namespace AttendanceManagement.Input_Models
         public decimal TotalDays { get; set; }
         public string Reason { get; set; } = null!;
     }
+
     public class Reimbursements
     {
         public int Id { get; set; }
@@ -171,4 +179,3 @@ namespace AttendanceManagement.Input_Models
         public string? Status2 { get; set; }
     }
 }
-

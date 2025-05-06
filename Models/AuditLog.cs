@@ -15,7 +15,7 @@ public partial class AuditLog
 
     public string SuccessMessage { get; set; } = null!;
 
-    public int StaffId { get; set; }
+    public int CreatedBy { get; set; }
 
     public string? Payload { get; set; }
 

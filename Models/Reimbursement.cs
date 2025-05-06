@@ -11,7 +11,7 @@ public partial class Reimbursement
 
     public string BillNo { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 
     public string BillPeriod { get; set; } = null!;
 

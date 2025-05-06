@@ -17,7 +17,7 @@ public partial class ShiftExtension
 
     public DateTime? AfterShiftHours { get; set; }
 
-    public string? Remarks { get; set; }
+    public string Remarks { get; set; } = null!;
 
     public bool? Status1 { get; set; }
 

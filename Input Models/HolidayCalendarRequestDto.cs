@@ -12,6 +12,7 @@ namespace AttendanceManagement.DTOs
         public bool IsActive { get; set; }
         public List<HolidayCalendarTransactionDto>? Transactions { get; set; } = new List<HolidayCalendarTransactionDto>();
     }
+
     public class UpdateHolidayCalanderDto
     {
         public int Id { get; set; }
@@ -22,12 +23,14 @@ namespace AttendanceManagement.DTOs
         public bool IsActive { get; set; }
         public List<HolidayCalendarTransactionDto>? Transactions { get; set; } = new List<HolidayCalendarTransactionDto>();
     }
+
     public class HolidayCalendarTransactionDto
     {
         public int HolidayMasterId { get; set; }
         public DateOnly FromDate { get; set; }
         public DateOnly ToDate { get; set; }
     }
+
     public class HolidayDto
     {
         public DateTime FromDate { get; set; }
@@ -36,4 +39,3 @@ namespace AttendanceManagement.DTOs
         public bool IsActive { get; set; }
     }
 }
-

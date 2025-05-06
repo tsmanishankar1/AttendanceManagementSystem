@@ -105,7 +105,7 @@ namespace AttendanceManagement.Services
             var manager = await _context.StaffCreations.FirstOrDefaultAsync(m => m.Id == assignManagerRequest.ManagerId && m.IsActive == true);
             if (manager == null) throw new MessageNotFoundException("Manager not found");
             if (manager.OfficialEmail == null) throw new MessageNotFoundException("Manager email not found");
-            if (probation.ManagerId != null) throw new InvalidOperationException("Manager already assigned");
+            if (probation.ManagerId != null) throw new ConflictException("Manager already assigned");
             var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f => f.ProbationId == probation.Id && f.IsActive);
             var effectiveEndDate = feedback?.ExtensionPeriod ?? probation.ProbationEndDate;
             probation.ManagerId = assignManagerRequest.ManagerId;
@@ -119,11 +119,10 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateProbationAsync(ProbationRequest probationRequest)
         {
             var message = "Probation created successfully.";
-            var pro = await _context.Probations.FirstOrDefaultAsync(p => p.StaffCreationId == probationRequest.StaffId && p.IsActive);
-            if (pro != null)
-            {
-                throw new Exception("Probation Details Already Exists");
-            }
+            var staff = await _context.StaffCreations.AnyAsync(p => p.Id == probationRequest.StaffId && p.IsActive == true);
+            if (!staff) throw new MessageNotFoundException("Staff not found");
+            var pro = await _context.Probations.AnyAsync(p => p.StaffCreationId == probationRequest.StaffId);
+            if (pro) throw new ConflictException("Probation Details Already Exists");
             var probation = new Probation
             {
                 StaffCreationId = probationRequest.StaffId,
@@ -142,6 +141,8 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateProbationAsync(UpdateProbation probation)
         {
             var message = "Probation updated successfully.";
+            var staff = await _context.StaffCreations.AnyAsync(p => p.Id == probation.StaffId && p.IsActive == true);
+            if (!staff) throw new MessageNotFoundException("Staff not found");
             var existingProbation = await _context.Probations.FirstOrDefaultAsync(b => b.Id == probation.ProbationId && b.IsActive);
             if (existingProbation == null)
             {
@@ -219,18 +220,19 @@ namespace AttendanceManagement.Services
         public async Task<string> AddFeedbackAsync(FeedbackRequest feedbackRequest)
         {
             var message = "";
+            var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == feedbackRequest.ProbationId && p.IsActive);
+            if (probation == null) throw new MessageNotFoundException("Probation not found");
+            var probationer = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == probation.StaffCreationId && s.IsActive == true);
+            if (probationer == null) throw new MessageNotFoundException("Probationer not found");
+            var approver = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == feedbackRequest.CreatedBy && s.IsActive == true);
+            if (approver == null) throw new MessageNotFoundException("Approver not found");
+            var feedbacks = await _context.Feedbacks.Where(f => f.ProbationId == probation.Id && f.IsActive).OrderByDescending(f => f.Id).FirstOrDefaultAsync();
             if (feedbackRequest.IsApproved)
             {
                 message = "Probation approved successfully.";
-                var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == feedbackRequest.ProbationId && p.IsActive);
-                if (probation == null) throw new MessageNotFoundException("Probation not found");
-                var probationer = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == probation.StaffCreationId && s.IsActive == true);
-                if (probationer == null) throw new MessageNotFoundException("Probationer not found");
-                var approver = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == feedbackRequest.CreatedBy && s.IsActive == true);
-                var feedbacks = await _context.Feedbacks.Where(f => f.ProbationId == probation.Id && f.IsActive).OrderByDescending(f => f.Id).FirstOrDefaultAsync();
                 if (feedbacks != null)
                 {
-                    if (feedbacks.IsApproved == true) throw new InvalidOperationException("Probation already approved");
+                    if (feedbacks.IsApproved == true) throw new ConflictException("Probation already approved");
                     feedbacks.IsActive = false;
                     feedbacks.UpdatedBy = feedbackRequest.CreatedBy;
                     feedbacks.UpdatedUtc = DateTime.UtcNow;
@@ -251,15 +253,9 @@ namespace AttendanceManagement.Services
             else
             {
                 message = "Probation period has been extended successfully.";
-                var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == feedbackRequest.ProbationId && p.IsActive);
-                if (probation == null) throw new MessageNotFoundException("Probation not found");
-                var probationer = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == probation.StaffCreationId && s.IsActive == true);
-                if (probationer == null) throw new MessageNotFoundException("Probationer not found");
-                var approver = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == feedbackRequest.CreatedBy && s.IsActive == true);
-                var feedbacks = await _context.Feedbacks.Where(f => f.ProbationId == probation.Id && f.IsActive).OrderByDescending(f => f.Id).FirstOrDefaultAsync();
                 if (feedbacks != null)
                 {
-                    if (feedbacks.IsApproved == true) throw new InvalidOperationException("Probation already approved");
+                    if (feedbacks.IsApproved == true) throw new ConflictException("Probation already approved");
                     feedbacks.IsActive = false;
                     feedbacks.UpdatedBy = feedbackRequest.CreatedBy;
                     feedbacks.UpdatedUtc = DateTime.UtcNow;
@@ -354,7 +350,7 @@ namespace AttendanceManagement.Services
             if (probation == null) throw new MessageNotFoundException("Probation not found");
             var feedback = await _context.Feedbacks.Where(f => f.ProbationId == hrConfirmation.ProbationId && f.IsActive).OrderByDescending(f => f.Id).FirstOrDefaultAsync();
             if (feedback == null) throw new MessageNotFoundException("Manager feedback not found");
-            if (probation.IsCompleted == true) throw new InvalidOperationException("Probation process has been already completed");
+            if (probation.IsCompleted == true) throw new ConflictException("Probation process has been already completed");
             probation.IsCompleted = hrConfirmation.IsCompleted;
             probation.IsActive = false;
             probation.UpdatedBy = hrConfirmation.CreatedBy;
@@ -424,12 +420,12 @@ namespace AttendanceManagement.Services
             var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
             if (letterGeneration == null)
             {
-                throw new Exception("Letter generation record not found.");
+                throw new MessageNotFoundException("Letter generation record not found.");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))
             {
-                throw new Exception("PDF file not found.");
+                throw new MessageNotFoundException("PDF file not found.");
             }
             return filePath;
         }
@@ -439,12 +435,12 @@ namespace AttendanceManagement.Services
             var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
             if (letterGeneration == null)
             {
-                throw new Exception("Letter generation record not found for the provided StaffCreationId.");
+                throw new MessageNotFoundException("Letter generation record not found for the provided StaffCreationId.");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))
             {
-                throw new Exception("Generated PDF file not found.");
+                throw new MessageNotFoundException("Generated PDF file not found.");
             }
             using (var pdfReader = new iText.Kernel.Pdf.PdfReader(filePath))
             using (var pdfDoc = new iText.Kernel.Pdf.PdfDocument(pdfReader))
@@ -464,12 +460,12 @@ namespace AttendanceManagement.Services
             var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
             if (letterGeneration == null)
             {
-                throw new Exception("Letter generation record not found for the provided StaffCreationId.");
+                throw new MessageNotFoundException("Letter generation record not found for the provided StaffCreationId.");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))
             {
-                throw new Exception("Generated PDF file not found.");
+                throw new MessageNotFoundException("Generated PDF file not found.");
             }
             var fileBytes = File.ReadAllBytes(filePath);
             var fileName = Path.GetFileName(filePath);

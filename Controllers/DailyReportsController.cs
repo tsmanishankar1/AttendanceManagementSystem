@@ -18,7 +18,6 @@ public class DailyReportsController : ControllerBase
     {
         _dailyReportsService = dailyReportsService;
         _loggingService = loggingService;
-
     }
 
     [HttpGet("GetReportType")]

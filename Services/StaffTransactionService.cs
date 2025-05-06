@@ -41,8 +41,15 @@ namespace AttendanceManagement.Services
             return result;
         }
 
+        private async Task StaffFoundMethod(int staffId)
+        {
+            var staff = await _context.StaffCreations.AnyAsync(p => p.Id == staffId && p.IsActive == true);
+            if (!staff) throw new MessageNotFoundException("Staff not found");
+        }
+
         public async Task<string> CreateAsync(ListAcademicDetailRequest academicDetailRequests)
         {
+            await StaffFoundMethod(academicDetailRequests.StaffId);
             foreach (var request in academicDetailRequests.AcademicDetails)
             {
                 var academicDetail = new AcademicDetail
@@ -127,6 +134,7 @@ namespace AttendanceManagement.Services
 
         public async Task<string> CreateAsync(ListCertificationCourseRequest certificationCourseRequests)
         {
+            await StaffFoundMethod(certificationCourseRequests.StaffId);
             foreach (var request in certificationCourseRequests.CertificationCourses)
             {
                 var certificationCourse = new CertificationCourse
@@ -199,6 +207,7 @@ namespace AttendanceManagement.Services
 
         public async Task<string> CreateAsync(ListPreviousEmploymentRequest previousEmploymentRequests)
         {
+            await StaffFoundMethod(previousEmploymentRequests.StaffId);
             foreach (var request in previousEmploymentRequests.PreviousEmployments)
             {
                 var previousEmployment = new PreviousEmployment

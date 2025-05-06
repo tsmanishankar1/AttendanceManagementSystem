@@ -55,6 +55,7 @@
 			<returns>The created CompOff availability record.</returns>
 			<response code="200">Returns the created CompOff availability record.</response>
 			<response code="404">If the request is invalid.</response>
+			<response code="409">If the Comp-Off credit is already used or the worked date does not match.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetCompOffCreditAll">
@@ -75,7 +76,9 @@
 			</param>
 			<returns>Returns a success message if the reimbursement request is submitted successfully.</returns>
 			<response code="200">Successfully created the reimbursement request.</response>
+			<response code="400">The uploaded file is missing or invalid.</response>
 			<response code="404">The provided request data is invalid.</response>
+			<response code="409">A reimbursement request with the same data already exists.</response>
 			<response code="500">An unexpected error occurred on the server.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateCompOffCredit(AttendanceManagement.Input_Models.CompOffCreditDto)">
@@ -193,6 +196,8 @@
 			<param name="commonPermission">The common permission request.</param>
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">If the staff is not found.</response>
+			<response code="409">If permission already exists, permission date falls on Saturday, leave exists on the same date, or monthly limits are exceeded.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetStaffCommonPermission(System.Int32)">
@@ -429,6 +434,7 @@
 			<param name="branchMasterRequest">The branch details to create.</param>
 			<returns>The created branch.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">If company not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.BranchMasterController.Update(AttendanceManagement.Input_Models.UpdateBranch)">
@@ -827,9 +833,11 @@
 			</summary>
 			<returns>The result of the import operation.</returns>
 			<response code="200">Returns a success message if the import is successful.</response>
+			<response code="400">Returned when the request is invalid or missing required data.</response>
 			<response code="404">Returned when the specified data is not found.</response>
 			<response code="409">Returned when there is a conflict during the import process.</response>
-			<response code="500">Returned when an internal server error occurs.</response>		</member>
+			<response code="500">Returned when an internal server error occurs.</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.ExcelImportController.DownloadExcelTemplates(System.Int32)">
 			<summary>
 				Downloads an Excel template based on the specified Excel import ID.
@@ -1540,6 +1548,7 @@
 			<returns>The assigned shift details.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the shift or staff is not found</response>
+			<response code="409">If the staff is already assigned to the same shift or the assignment conflicts with an existing one.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ShiftController.GetAllAssignedShifts(System.Int32)">
@@ -1591,7 +1600,9 @@
 			<param name="updatedStaff">The staff details to update.</param>
 			<returns>The updated staff member.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="400">The uploaded file is missing or invalid.</response>
 			<response code="404">If the staff member is not found</response>
+			<response code="409">The uploaded file is empty or conflicts with existing data.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateApprovers(AttendanceManagement.Input_Models.ApproverUpdateRequest)">
@@ -1610,7 +1621,9 @@
 			<param name="staffInput">The staff details to create.</param>
 			<returns>The created staff member.</returns>
 			<response code="200">Returns the success message</response>
-			<response code="409">If the staff id is already exists.</response>
+			<response code="400">The uploaded file is missing or invalid.</response>
+			<response code="404">One or more required resources (e.g., department or role) were not found.</response>
+			<response code="409">The uploaded file is empty or conflicts with existing data.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetStaffRecordsByApprovalLevel(System.Int32)">
@@ -1661,6 +1674,7 @@
 			<returns>A success message upon approval.</returns>
 			<response code="200">Returns a success message.</response>
 			<response code="404">If the pending staff is not found.</response>
+			<response code="409">If the staff is already approved or the approval request conflicts with existing data.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.CreateDropDownMaster(AttendanceManagement.Input_Models.DropDownRequest)">
@@ -1946,6 +1960,7 @@
 			<param name="staffIds">A list of Staff IDs.</param>
 			<returns>Staff leave details.</returns>
 			<response code="200">Returns staff leave information.</response>
+			<response code="409">If the given staff belong to different organizations or if there is a data conflict.</response>
 			<response code="404">If no staff is found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
@@ -1964,6 +1979,7 @@
 			<param name="assignLeaveType">The assigned leave type details to create.</param>
 			<returns>The created assigned leave type.</returns>
 			<response code="200">Returns the created assigned leave type</response>
+			<response code="404">If the assigned leave type is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.Update(AttendanceManagement.Input_Models.UpdateAssignLeaveTypeDTO)">
@@ -1973,7 +1989,7 @@
 			<param name="assignLeaveType">The assigned leave type details to update.</param>
 			<returns>The updated assigned leave type.</returns>
 			<response code="200">Returns the updated assigned leave type</response>
-			<response code="404">If the assigned leave type is not found</response>
+			<response code="404">If the leave type or staff is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.GetStaffInfoByOrganizationType(System.Int32)">

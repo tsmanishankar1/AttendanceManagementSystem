@@ -38,17 +38,16 @@ public class DailyReportsService
                                     Name = report.Name,
                                     CreatedBy = report.CreatedBy
                                 }).ToListAsync();
-        if (reportType.Count == 0) throw new MessageNotFoundException("No report type found");
+        if (reportType.Count == 0) throw new MessageNotFoundException("No report types found");
         return reportType;
     }
 
     public async Task<object> GetDailyReports(DailyReportRequest request)
     {
+        var reportName = await _context.TypesOfReports.AnyAsync(s => s.Id == request.DailyReportsId && s.IsActive == true);
+        if (!reportName) throw new MessageNotFoundException("Report type not found");
         var user = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == request.CreatedBy && s.IsActive == true);
-        if (user == null)
-        {
-            throw new MessageNotFoundException("User not found");
-        }
+        if (user == null) throw new MessageNotFoundException("User not found");
         var staffIds = request.StaffIds != null && request.StaffIds.Any() ? string.Join(",", request.StaffIds) : (object)DBNull.Value;
         DateOnly fromDate = default, toDate = default;
         DateTime fromDateTime = default, toDateTime = default;
@@ -79,11 +78,6 @@ public class DailyReportsService
         {
             fromDateTime = request.FromDateTime.Value;
             toDateTime = request.ToDateTime.Value;
-        }
-        var reportName = await _context.TypesOfReports.Where(r => r.Id == request.DailyReportsId).Select(r => r.Name).FirstOrDefaultAsync();
-        if (reportName == null)
-        {
-            throw new MessageNotFoundException("Report type not found");
         }
 
         var reportName1 = reportName;
@@ -1516,6 +1510,7 @@ public class DailyReportsService
                         var row = new Dictionary<string, object>();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
+#pragma warning disable CS8601 // Possible null reference assignment.
                             row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
                         }
                         result.Add(row);

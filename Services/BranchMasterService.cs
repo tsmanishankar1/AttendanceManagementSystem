@@ -50,6 +50,8 @@ public class BranchMasterService
     public async Task<string> CreateBranch(BranchMasterRequest branchMasterRequest)
     {
         var message = "Branch created successfully.";
+        var companyId = await _context.CompanyMasters.AnyAsync(d => d.Id == branchMasterRequest.CompanyMasterId && d.IsActive);
+        if (!companyId) throw new MessageNotFoundException("Company not found");
         var branchMaster = new BranchMaster
         {
             Name = branchMasterRequest.FullName,
@@ -77,6 +79,8 @@ public class BranchMasterService
     public async Task<string> UpdateBranch(UpdateBranch branchMasterRequest)
     {
         var message = "Branch updated successfully.";
+        var companyId = await _context.CompanyMasters.AnyAsync(d => d.Id == branchMasterRequest.CompanyMasterId && d.IsActive);
+        if (!companyId) throw new MessageNotFoundException("Company not found");
         var existingBranch = await _context.BranchMasters.FirstOrDefaultAsync(b => b.Id == branchMasterRequest.BranchMasterId);
         if (existingBranch == null)
         {

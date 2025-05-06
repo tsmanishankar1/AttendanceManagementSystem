@@ -1,4 +1,5 @@
 ﻿using AttendanceManagement.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Input_Models
 {
@@ -14,7 +15,6 @@ namespace AttendanceManagement.Input_Models
         public DateOnly FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
         public decimal TotalDays { get; set; }
-
         public string Reason { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
@@ -22,19 +22,14 @@ namespace AttendanceManagement.Input_Models
     public class LeaveRequisitionRequest
     {
         public string StartDuration { get; set; } = null!;
-
         public string? EndDuration { get; set; } = null!;
         public int? StaffId { get; set; }
         public int LeaveTypeId { get; set; }
-
         public DateOnly FromDate { get; set; }
-
         public DateOnly ToDate { get; set; }
-
+        [MaxLength(255)]
         public string Reason { get; set; } = null!;
-
         public int CreatedBy { get; set; }
-
         public int ApplicationTypeId { get; set; }
         public decimal TotalDays { get; set; }
     }
@@ -42,22 +37,14 @@ namespace AttendanceManagement.Input_Models
     public class UpdateLeaveRequest
     {
         public int LeaveRequestId { get; set; }
-
         public string StartDuration { get; set; } = null!;
-
         public string EndDuration { get; set; } = null!;
-
         public int LeaveTypeId { get; set; }
-
         public DateOnly FromDate { get; set; }
-
         public DateOnly? ToDate { get; set; }
-
+        [MaxLength(255)]
         public string Reason { get; set; } = null!;
-
         public int UpdatedBy { get; set; }
-
         public int ApplicationTypeId { get; set; }
     }
-
 }
