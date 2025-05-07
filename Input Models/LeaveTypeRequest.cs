@@ -1,8 +1,12 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class LeaveTypeRequest
     {
+        [MaxLength(50)]
         public string Name { get; set; } = null!;
+        [MaxLength(5)]
         public string ShortName { get; set; } = null!;
         public bool Accountable { get; set; }
         public bool Encashable { get; set; }
@@ -32,7 +36,9 @@
     public class UpdateLeaveType
     {
         public int LeaveTypeId { get; set; }
+        [MaxLength(50)]
         public string Name { get; set; } = null!;
+        [MaxLength(5)]
         public string ShortName { get; set; } = null!;  
         public bool Accountable { get; set; }
         public bool Encashable { get; set; }

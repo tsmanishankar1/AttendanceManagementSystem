@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class PrefixAndSuffixDto
     {
@@ -34,6 +36,7 @@
 
     public class SuffixLeaveRequest
     {
+        [MaxLength(50)]
         public string SuffixLeaveTypeName { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
@@ -46,6 +49,7 @@
 
     public class PrefixLeaveRequest
     {
+        [MaxLength(50)]
         public string PrefixLeaveTypeName { get; set; } = null!;
         public int CreatedBy { get; set; }
     }

@@ -130,6 +130,11 @@ public class ShiftController : ControllerBase
             await _loggingService.AuditLog("Shift", "POST", "/api/Shift/AddRegularShift", createdShift, regularShift.CreatedBy, regularShift);
             return Ok(response);
         }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/AddRegularShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, regularShift.CreatedBy, regularShift);
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Shift", "POST", "/api/Shift/AddRegularShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, regularShift.CreatedBy, regularShift);

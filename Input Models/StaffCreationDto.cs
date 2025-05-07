@@ -1,4 +1,5 @@
 ﻿using AttendanceManagement.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AttendanceManagement.Input_Models
@@ -81,6 +82,7 @@ namespace AttendanceManagement.Input_Models
     public class EventTypeResponse
     {
         public int EventTypeId { get; set; }
+        [MaxLength(50)]
         public string EventTypeName { get; set; } = null!;
     }
 

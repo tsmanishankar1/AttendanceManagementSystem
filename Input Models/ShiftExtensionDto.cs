@@ -7,6 +7,7 @@ namespace AttendanceManagement.Input_Models
         public int ApplicationTypeId { get; set; }
         public int? StaffId { get; set; }
         public DateOnly TransactionDate { get; set; }
+        [MaxLength(255)]
         public string? DurationHours { get; set; }
         public DateTime? BeforeShiftHours { get; set; }
         public DateTime? AfterShiftHours { get; set; }

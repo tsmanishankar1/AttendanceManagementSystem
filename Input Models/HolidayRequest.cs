@@ -1,7 +1,10 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class HolidayRequest
     {
+        [MaxLength(255)]
         public string HolidayName { get; set; } = null!;
         public int HolidayTypeId { get; set; }
         public int CreatedBy { get; set; }
@@ -21,6 +24,7 @@
     public class UpdateHoliday
     {
         public int HolidayMasterId { get; set; }
+        [MaxLength(255)]
         public string HolidayName { get; set; } = null!;
         public int HolidayTypeId { get; set; }
         public int UpdatedBy { get; set; }
@@ -30,6 +34,7 @@
     public class HolidyTypeRequest
     {
         public int Id { get; set; }
+        [MaxLength(255)]
         public string HolidayTypeName { get; set; } = null!;
     }
 }

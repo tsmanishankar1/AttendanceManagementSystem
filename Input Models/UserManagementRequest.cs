@@ -1,8 +1,12 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class UserManagementRequest
     {
+        [MaxLength(100)]
         public string Username { get; set; } = null!;
+        [MaxLength(50)]
         public string Password { get; set; } = null!;
         public int CreatedBy { get; set; }
         public int StaffCreationId { get; set; }

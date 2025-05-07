@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.DTOs
 {
     public class HolidayCalendarRequestDto
     {
+        [MaxLength(255)]
         public string GroupName { get; set; } = null!;
         public int CalendarYear { get; set; }
         public bool Currents { get; set; }
@@ -16,6 +18,7 @@ namespace AttendanceManagement.DTOs
     public class UpdateHolidayCalanderDto
     {
         public int Id { get; set; }
+        [MaxLength(255)]
         public string GroupName { get; set; } = null!;
         public int CalendarYear { get; set; }
         public bool Currents { get; set; }

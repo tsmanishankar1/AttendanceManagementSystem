@@ -59,7 +59,7 @@ public class ToolsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -107,7 +107,7 @@ public class ToolsController : ControllerBase
         catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("Assign Leave Type", "POST", "/api/Tools/CreateAssignLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, assignLeaveType.CreatedBy, JsonSerializer.Serialize(assignLeaveType));
-            return ErrorClass.ErrorResponse(ex.Message);
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -176,6 +176,11 @@ public class ToolsController : ControllerBase
             };
             await _loggingService.AuditLog("Reader Configuration", "POST", "/api/Tools/ReaderConfiguration", ReaderConfig, readerConfiguration.CreatedBy, JsonSerializer.Serialize(readerConfiguration));
             return Ok(response);
+        }   
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Reader Configuration", "POST", "/api/Tools/ReaderConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, readerConfiguration.CreatedBy, JsonSerializer.Serialize(readerConfiguration));
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -220,6 +225,11 @@ public class ToolsController : ControllerBase
             };
             await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AtendanceStatus", result, request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -280,13 +290,11 @@ public class ToolsController : ControllerBase
         try
         {
             var createdAttendanceStatus = await _service.UpdateAttendanceStatusColor(dto);
-
             var response = new
             {
                 Success = true,
                 Message = createdAttendanceStatus
             };
-
             await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/UpdateAttendanceStatusColor", JsonSerializer.Serialize(response), dto.UpdatedBy, JsonSerializer.Serialize(dto));
             return Ok(response);
         }

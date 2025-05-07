@@ -9,6 +9,7 @@ namespace AttendanceManagement.Input_Models
         public TimeOnly EndTime { get; set; }
         public int ApplicationTypeId { get; set; }
         public DateOnly PermissionDate { get; set; }
+        [MaxLength(50)]
         public string PermissionType { get; set; } = null!;
         [MaxLength(255)]
         public string Remarks { get; set; } = null!;
@@ -24,7 +25,6 @@ namespace AttendanceManagement.Input_Models
         public DateOnly PermissionDate { get; set; }
         public string PermissionType { get; set; } = null!;
         public bool? Status { get; set; }
-        [MaxLength(255)]
         public string? Remarks { get; set; }
         public string StaffName { get; set; } = null!;
         public int CreatedBy { get; set; }

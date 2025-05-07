@@ -6,7 +6,9 @@ namespace AttendanceManagement.Input_Models
     {
         public int ApplicationTypeId { get; set; }
         public int? StaffId { get; set; }
+        [MaxLength(20)]
         public string StartDuration { get; set; } = null!;
+        [MaxLength(20)]
         public string? EndDuration { get; set; }
         public DateTime? FromTime { get; set; }
         public DateTime? ToTime { get; set; }
@@ -14,6 +16,7 @@ namespace AttendanceManagement.Input_Models
         public DateOnly? ToDate { get; set; }
         [MaxLength(255)]
         public string Reason { get; set; } = null!;
+        [MaxLength(50)]
         public string? TotalHours { get; set; }
         public decimal? TotalDays { get; set; }
         public int CreatedBy { get; set; }

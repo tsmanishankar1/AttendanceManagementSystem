@@ -89,9 +89,14 @@ public class ApplicationController : ControllerBase
         catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("CompOff Availability","POST","/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
-                    return ErrorClass.NotFoundResponse(ex.Message);
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (ConflictException ex)
+        {
+            await _loggingService.LogError("CompOff Availability", "POST", "/api/Application/CreateCompOffAvail", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("CompOff Availability", "POST", "/api/Application/CreateCompOffAvail", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -168,7 +173,6 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-
             await _loggingService.AuditLog("CompOff Credit","POST","/api/Application/CreateCompOffCredit",result,request.CreatedBy,JsonSerializer.Serialize(request));
             return Ok(response);
         }
@@ -176,6 +180,11 @@ public class ApplicationController : ControllerBase
         {
             await _loggingService.LogError("CompOff Credit","POST","/api/Application/CreateCompOffCredit",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("CompOff Credit", "POST", "/api/Application/CreateCompOffCredit", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -277,6 +286,11 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
             return ErrorClass.ConflictResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Application Approval", "POST", "/api/Application/ApproveApplicationRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, approveLeaveRequest.ApprovedBy, JsonSerializer.Serialize(approveLeaveRequest));
@@ -354,6 +368,11 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
             return ErrorClass.ConflictResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Leave Request", "POST", "/api/Application/CreateLeaveRequisition", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveRequisition.CreatedBy, JsonSerializer.Serialize(leaveRequisition));
@@ -381,6 +400,11 @@ public class ApplicationController : ControllerBase
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch(ConflictException ex)
+        {
+            await _loggingService.LogError("Common Permission", "POST", "/api/Application/AddCommonPermission", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, commonPermission.CreatedBy, JsonSerializer.Serialize(commonPermission));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Common Permission", "POST", "/api/Application/AddCommonPermission", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, commonPermission.CreatedBy, JsonSerializer.Serialize(commonPermission));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -481,6 +505,11 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Manual Punch", "POST", "/api/Application/CreateManualPunch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createManualPunch.CreatedBy, JsonSerializer.Serialize(createManualPunch));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Manual Punch", "POST", "/api/Application/CreateManualPunch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createManualPunch.CreatedBy, JsonSerializer.Serialize(createManualPunch));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Manual Punch", "POST", "/api/Application/CreateManualPunch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createManualPunch.CreatedBy, JsonSerializer.Serialize(createManualPunch));
@@ -506,6 +535,11 @@ public class ApplicationController : ControllerBase
         {
             await _loggingService.LogError("On Duty Request", "POST", "/api/Application/CreateOnDutyRequistion", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, onDutyRequisitionRequest.CreatedBy, JsonSerializer.Serialize(onDutyRequisitionRequest));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("On Duty Request", "POST", "/api/Application/CreateOnDutyRequistion", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, onDutyRequisitionRequest.CreatedBy, JsonSerializer.Serialize(onDutyRequisitionRequest));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -533,6 +567,11 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Business Travel", "POST", "/api/Application/CreateBusinessTravel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createBusinessTravel.CreatedBy, JsonSerializer.Serialize(createBusinessTravel));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Business Travel", "POST", "/api/Application/CreateBusinessTravel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createBusinessTravel.CreatedBy, JsonSerializer.Serialize(createBusinessTravel));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Business Travel", "POST", "/api/Application/CreateBusinessTravel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createBusinessTravel.CreatedBy, JsonSerializer.Serialize(createBusinessTravel));
@@ -558,6 +597,11 @@ public class ApplicationController : ControllerBase
         {
             await _loggingService.LogError("Work From Home", "POST", "/api/Application/CreateWorkFromHome", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createWorkFromHome.CreatedBy, JsonSerializer.Serialize(createWorkFromHome));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Work From Home", "POST", "/api/Application/CreateWorkFromHome", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createWorkFromHome.CreatedBy, JsonSerializer.Serialize(createWorkFromHome));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -585,6 +629,11 @@ public class ApplicationController : ControllerBase
             await _loggingService.LogError("Shift Change", "POST", "/api/Application/CreateShiftChange", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftChange.CreatedBy, JsonSerializer.Serialize(createShiftChange));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Shift Change", "POST", "/api/Application/CreateShiftChange", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftChange.CreatedBy, JsonSerializer.Serialize(createShiftChange));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Shift Change", "POST", "/api/Application/CreateShiftChange", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftChange.CreatedBy, JsonSerializer.Serialize(createShiftChange));
@@ -608,12 +657,17 @@ public class ApplicationController : ControllerBase
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Shift Extension", "POST", "/api/Application/CraeteShiftExtension", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftExtension.CreatedBy, JsonSerializer.Serialize(createShiftExtension));
+            await _loggingService.LogError("Shift Extension", "POST", "/api/Application/CreateShiftExtension", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftExtension.CreatedBy, JsonSerializer.Serialize(createShiftExtension));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Shift Extension", "POST", "/api/Application/CreateShiftExtension", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftExtension.CreatedBy, JsonSerializer.Serialize(createShiftExtension));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Shift Extension", "POST", "/api/Application/CraeteShiftExtension", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftExtension.CreatedBy, JsonSerializer.Serialize(createShiftExtension));
+            await _loggingService.LogError("Shift Extension", "POST", "/api/Application/CreateShiftExtension", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createShiftExtension.CreatedBy, JsonSerializer.Serialize(createShiftExtension));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -636,6 +690,11 @@ public class ApplicationController : ControllerBase
         {
             await _loggingService.LogError("Weekly Off/Holiday Working", "POST", "/api/Application/CreateWeeklyOff/HolidayWorking", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createWeeklyoffHolidayWorking.CreatedBy, JsonSerializer.Serialize(createWeeklyoffHolidayWorking));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Weekly Off/Holiday Working", "POST", "/api/Application/CreateWeeklyOff/HolidayWorking", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createWeeklyoffHolidayWorking.CreatedBy, JsonSerializer.Serialize(createWeeklyoffHolidayWorking));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

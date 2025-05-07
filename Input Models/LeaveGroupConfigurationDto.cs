@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class LeaveGroupConfigurationDto
     {
@@ -32,6 +34,7 @@
 
     public class LeaveGroupConfigurationRequest
     {
+        [MaxLength(255)]
         public string LeaveGroupConfigurationName { get; set; } = null!;
         public int LeaveTypeId { get; set; }
         public bool PaidLeave { get; set; }
@@ -61,6 +64,7 @@
     public class UpdateLeaveGroupConfiguration
     {
         public int LeaveGroupConfigurationId { get; set; }
+        [MaxLength(255)]
         public string? LeaveGroupConfigurationName { get; set; }
         public int? LeaveTypeId { get; set; }
         public bool? PaidLeave { get; set; }

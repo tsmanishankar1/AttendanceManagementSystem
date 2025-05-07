@@ -1,18 +1,29 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class BranchMasterRequest
     {
         public int CompanyMasterId { get; set; }
+        [MaxLength(50)]
         public string FullName { get; set; } = null!;
+        [MaxLength(50)]
         public string ShortName { get; set; } = null!;
+        [MaxLength(100)]
         public string Address { get; set; } = null!;
+        [MaxLength(50)]
         public string City { get; set; } = null!;
+        [MaxLength(100)]
         public string District { get; set; } = null!;
+        [MaxLength(50)]
         public string State { get; set; } = null!;
+        [MaxLength(50)]
         public string Country { get; set; } = null!;
         public int PostalCode { get; set; }
         public long PhoneNumber { get; set; }
+        [MaxLength(100)]
         public string? Fax { get; set; }
+        [MaxLength(100)]
         public string? Email { get; set; }
         public bool IsHeadOffice { get; set; }
         public int CreatedBy { get; set; }
@@ -44,16 +55,25 @@
     {
         public int BranchMasterId { get; set; }
         public int CompanyMasterId { get; set; }
-        public string FullName { get; set; } = null!;       
+        [MaxLength(50)]
+        public string FullName { get; set; } = null!;
+        [MaxLength(50)]
         public string ShortName { get; set; } = null!;
+        [MaxLength(100)]
         public string Address { get; set; } = null!;
+        [MaxLength(50)]
         public string City { get; set; } = null!;
+        [MaxLength(100)]
         public string District { get; set; } = null!;
+        [MaxLength(50)]
         public string State { get; set; } = null!;
+        [MaxLength(50)]
         public string Country { get; set; } = null!;
         public int PostalCode { get; set; }
         public long PhoneNumber { get; set; }
+        [MaxLength(100)]
         public string? Fax { get; set; }
+        [MaxLength(100)]
         public string? Email { get; set; } 
         public bool IsHeadOffice { get; set; }
         public int UpdatedBy { get; set; }

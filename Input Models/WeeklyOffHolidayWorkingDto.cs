@@ -1,8 +1,11 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class WeeklyOffHolidayWorkingDto
     {
         public int ApplicationTypeId { get; set; }
+        [MaxLength(100)]
         public string SelectShiftType { get; set; } = null!;
         public DateOnly TxnDate { get; set; }
         public int ShiftId { get; set; }

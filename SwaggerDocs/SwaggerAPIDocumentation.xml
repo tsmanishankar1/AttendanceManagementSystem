@@ -89,6 +89,7 @@
 			<returns>The created CompOff credit record.</returns>
 			<response code="200">Returns the created CompOff credit record.</response>
 			<response code="404">If the request is invalid.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CancelAppliedLeave(AttendanceManagement.Input_Models.CancelAppliedLeave)">
@@ -238,6 +239,7 @@
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the Manual Punchis not found.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateOnDutyRequisition(AttendanceManagement.Input_Models.OnDutyRequisitionRequest)">
@@ -248,6 +250,7 @@
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the onDuty Requisition  is not found.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateBusinessTravel(AttendanceManagement.Input_Models.BusinessTravelRequestDto)">
@@ -258,6 +261,7 @@
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the Business Travel is not found.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateWorkFromHome(AttendanceManagement.Input_Models.WorkFromHomeDto)">
@@ -268,6 +272,7 @@
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the  Work From Home is not found.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateShiftChange(AttendanceManagement.Input_Models.ShiftChangeDto)">
@@ -278,6 +283,7 @@
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If theShiftChange is not found.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateShiftExtension(AttendanceManagement.Input_Models.ShiftExtensionDto)">
@@ -288,6 +294,7 @@
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If Shift Extension is not found.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateWeeklyOffHolidayWorking(AttendanceManagement.Input_Models.WeeklyOffHolidayWorkingDto)">
@@ -298,6 +305,7 @@
 			<returns>The result of the creation operation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the CreateWeeklyoffHolidayWorking is not found.</response>
+			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="T:AttendanceController">
@@ -1175,7 +1183,7 @@
 			<param name="loginService">The authentication service.</param>
 			<param name="logger">The logger.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LoginController.Login(AttendanceManagement.Models.Login)">
+		<member name="M:AttendanceManagement.Controllers.LoginController.Login(AttendanceManagement.Input_Models.Login)">
 			<summary>
 				Authenticates a user and returns a JWT token.
 			</summary>
@@ -1183,6 +1191,17 @@
 			<returns>The JWT token.</returns>
 			<response code="200">Returns the JWT token</response>
 			<response code="404">If the user is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.LoginController.RefreshToken(AttendanceManagement.Input_Models.RefreshTokenDto)">
+			<summary>
+				Refreshes the access token using a valid refresh token.
+			</summary>
+			<param name="refreshTokenDto">The refresh token data.</param>
+			<returns>The new access token.</returns>
+			<response code="200">Returns the new access token</response>
+			<response code="400">If the refresh token is invalid or empty</response>
+			<response code="409">If the refresh token is expired or invalid</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.PayrollController">
@@ -1538,6 +1557,7 @@
 			<param name="regularShift">The regular shift details to create.</param>
 			<returns>The created regular shift.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">If the shift is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ShiftController.AssignShiftToStaff(AttendanceManagement.Input_Models.AssignShiftRequest)">
@@ -2027,6 +2047,7 @@
 			<param name="readerConfiguration">The reader configuration details to create.</param>
 			<returns>The result of the reader configuration creation.</returns>
 			<response code="200">Returns the result of the reader configuration creation</response>
+			<response code="404">If no reader type is found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.GetReaderConfigurations">
@@ -2236,6 +2257,8 @@
 			<param name="model">The password change details.</param>
 			<returns>The result of the password change.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="400">If the input is invalid.</response>
+			<response code="404">If the user is not found.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:UserManagementController.GetStaffDetailsByUsername(System.String)">
@@ -2265,6 +2288,8 @@
 			<param name="model">The password reset details.</param>
 			<returns>The result of the password reset.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="400">If the input is invalid.</response>
+			<response code="404">If the user is not found.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:UserManagementController.GetByStaffId(System.Int32)">

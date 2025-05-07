@@ -150,6 +150,7 @@ public class ApplicationService
                         TotalDays = tempWithSc.temp.lr.TotalDays,
                         Reason = tempWithSc.temp.lr.Reason
                     })
+                .OrderByDescending(x => x.Id)
                 .ToListAsync(),
             2 => await _context.CommonPermissions
                 .Where(cp => (cp.StaffId.HasValue ? cp.StaffId == staffId : cp.CreatedBy == staffId))
@@ -183,6 +184,7 @@ public class ApplicationService
                         PermissionType = tempWithSc.cp.PermissionType,
                         Remarks = tempWithSc.cp.Remarks
                     })
+                .OrderByDescending(x => x.Id)
                 .ToListAsync(),
             3 => await _context.ManualPunchRequistions
                  .Where(mp => (mp.StaffId.HasValue ? mp.StaffId == staffId : mp.CreatedBy == staffId))
@@ -211,6 +213,7 @@ public class ApplicationService
                          OutPunch = tempWithSc.mp.OutPunch,
                          Remarks = tempWithSc.mp.Remarks
                      })
+                 .OrderByDescending(x => x.Id)
                  .ToListAsync(),
             4 => await _context.OnDutyRequisitions
                 .Where(od => (od.StaffId.HasValue ? od.StaffId == staffId : od.CreatedBy == staffId))
@@ -242,6 +245,7 @@ public class ApplicationService
                         EndTime = tempWithSc.od.EndTime,
                         Reason = tempWithSc.od.Reason
                     })
+                .OrderByDescending(x => x.Id)
                 .ToListAsync(),
             5 => await _context.BusinessTravels
                  .Where(bt => (bt.StaffId.HasValue ? bt.StaffId == staffId : bt.CreatedBy == staffId))
@@ -274,6 +278,7 @@ public class ApplicationService
                          ToDate = tempWithSc.bt.ToDate,
                          Reason = tempWithSc.bt.Reason
                      })
+                 .OrderByDescending(x => x.Id)
                  .ToListAsync(),
             6 => await _context.WorkFromHomes
                    .Where(wfh => (wfh.StaffId.HasValue ? wfh.StaffId == staffId : wfh.CreatedBy == staffId))
@@ -305,6 +310,7 @@ public class ApplicationService
                            ToDate = tempWithSc.wfh.ToDate,
                            Reason = tempWithSc.wfh.Reason
                        })
+                   .OrderByDescending(x => x.Id)
                    .ToListAsync(),
             7 => await _context.ShiftChanges
                   .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
@@ -337,6 +343,7 @@ public class ApplicationService
                                             : "Pending")
                                         : null
                       })
+                  .OrderByDescending(x => x.Id)
                   .ToListAsync(),
             8 => await _context.ShiftExtensions
                  .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
@@ -367,6 +374,7 @@ public class ApplicationService
                                            : "Pending")
                                        : null
                      })
+                 .OrderByDescending(x => x.Id)
                  .ToListAsync(),
             9 => await _context.WeeklyOffHolidayWorkings
                 .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
@@ -400,6 +408,7 @@ public class ApplicationService
                                           : "Pending")
                                       : null
                     })
+                .OrderByDescending(x => x.Id)
                 .ToListAsync(),
             10 => await _context.CompOffAvails
                 .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
@@ -431,6 +440,7 @@ public class ApplicationService
                                           : "Pending")
                                       : null
                     })
+                .OrderByDescending(x => x.Id)
                 .ToListAsync(),
             11 => await _context.CompOffCredits
                 .Where(lr => (lr.StaffId.HasValue ? lr.StaffId == staffId : lr.CreatedBy == staffId))
@@ -458,6 +468,7 @@ public class ApplicationService
                                           : "Pending")
                                       : null
                     })
+                .OrderByDescending(x => x.Id)
                 .ToListAsync(),
             18 => await _context.Reimbursements
                 .Where(r => (r.StaffId.HasValue ? r.StaffId == staffId : r.CreatedBy == staffId))
@@ -487,6 +498,7 @@ public class ApplicationService
                                           : "Pending")
                                       : null
                     })
+                .OrderByDescending(x => x.Id)
                 .ToListAsync(),
             _ => Enumerable.Empty<object>()
         };
@@ -596,7 +608,7 @@ public class ApplicationService
             var todayDateOnly = DateOnly.FromDateTime(DateTime.Today);
             var attendanceRecord = await _context.AttendanceRecords.FirstOrDefaultAsync(a => !a.IsDeleted && a.AttendanceDate == dateOnly && a.StaffId == staffId);
             int? color = null;
-            string statusName = "";
+            string statusName = "Unprocessed";
             if (attendanceRecord != null)
             {
                 var status = await _context.StatusDropdowns.FirstOrDefaultAsync(s => s.Id == attendanceRecord.StatusId && s.IsActive);
@@ -691,6 +703,7 @@ public class ApplicationService
     public async Task<string> CreateAsync(CompOffCreditDto compOffCreditDto)
     {
         var message = "CompOff Credit request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(compOffCreditDto.ApplicationTypeId);
         var staffOrCreatorId = compOffCreditDto.StaffId ?? compOffCreditDto.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -745,6 +758,7 @@ public class ApplicationService
     public async Task<string> CreateAsync(CompOffAvailRequest request)
     {
         var message = "CompOff Avail request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -861,8 +875,6 @@ public class ApplicationService
                                          && leave.IsCancelled == null
                                          && (!fromDate.HasValue || leave.FromDate >= fromDate)
                                          && (!toDate.HasValue || leave.ToDate <= toDate)
-                                         && _context.AttendanceRecords.Any(att =>
-                                         (att.IsFreezed == null || att.IsFreezed == false))
                                          && (isSuperAdmin || approverId < 0 || 
                                              ((
                                                      leave.StaffId.HasValue &&
@@ -893,6 +905,7 @@ public class ApplicationService
                                                      leave.Status1 != false
                                                  )))
                                          && (staffIds == null || !staffIds.Any() || (staffIds.Contains(leave.StaffId ?? leave.CreatedBy)))
+                                   orderby leave.Id descending
                                    select new
                                    {
                                        leave.Id,
@@ -928,8 +941,6 @@ public class ApplicationService
                                              && (permission.StaffId == null || staff.IsActive == true)
                                              && creatorStaff.IsActive == true
                                              && permission.IsCancelled == null
-                                             && _context.AttendanceRecords.Any(att =>
-                                              (att.IsFreezed == null || att.IsFreezed == false))
                                              && (isSuperAdmin || approverId < 0 ||
                                                         ((
                                                                 permission.StaffId.HasValue &&
@@ -962,6 +973,7 @@ public class ApplicationService
                                                                 permission.Status1 != false
                                                             ) ) )
                                              && (staffIds == null || !staffIds.Any() || (staffIds.Contains(permission.StaffId ?? permission.CreatedBy)))
+                                              orderby permission.Id descending
                                               select new
                                               {
                                                   permission.Id,
@@ -998,8 +1010,6 @@ public class ApplicationService
                                               && (punch.StaffId == null || staff.IsActive == true)
                                               && creatorStaff.IsActive == true
                                               && punch.IsCancelled == null
-                                              && _context.AttendanceRecords.Any(att =>
-                                              (att.IsFreezed == null || att.IsFreezed == false))
                                               && (isSuperAdmin || approverId < 0 ||
                                                   ((
                                                           punch.StaffId.HasValue &&
@@ -1032,6 +1042,7 @@ public class ApplicationService
                                                           punch.Status1 != false
                                                       ) ) )
                                          && (staffIds == null || !staffIds.Any() || (staffIds.Contains(punch.StaffId ?? punch.CreatedBy)))
+                                        orderby punch.Id descending
                                         select new
                                         {
                                             punch.Id,
@@ -1072,8 +1083,6 @@ public class ApplicationService
                                                      && duty.IsCancelled == null
                                                      && (!fromDate.HasValue || duty.StartDate >= fromDate)
                                                      && (!toDate.HasValue || duty.EndDate <= toDate)
-                                                     && _context.AttendanceRecords.Any(att =>
-                                                        (att.IsFreezed == null || att.IsFreezed == false))
                                                      && (isSuperAdmin || approverId < 0 ||
                                                          ((
                                                              (duty.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1090,6 +1099,7 @@ public class ApplicationService
                                                               duty.Status1 != false && duty.ApplicationTypeId == 4)
                                                          )))
                                              && (staffIds == null || !staffIds.Any() || (staffIds.Contains(duty.StaffId ?? duty.CreatedBy)))
+                                               orderby duty.Id descending
                                                select new
                                                {
                                                    duty.Id,
@@ -1132,8 +1142,6 @@ public class ApplicationService
                                                   && travel.IsCancelled == null
                                                   && (!fromDate.HasValue || travel.FromDate >= fromDate)
                                                   && (!toDate.HasValue || travel.ToDate <= toDate)
-                                                  && _context.AttendanceRecords.Any(att =>
-                                                    (att.IsFreezed == null || att.IsFreezed == false))
                                                   && (isSuperAdmin || (approverId < 0 ||
                                                       (
                                                           (travel.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1150,6 +1158,7 @@ public class ApplicationService
                                                            travel.Status1 != false && travel.ApplicationTypeId == 5)
                                                       )))
                                              && (staffIds == null || !staffIds.Any() || (staffIds.Contains(travel.StaffId ?? travel.CreatedBy)))
+                                            orderby travel.Id descending
                                             select new
                                             {
                                                 travel.Id,
@@ -1192,8 +1201,6 @@ public class ApplicationService
                                                 && workFromHome.IsCancelled == null
                                                 && (!fromDate.HasValue || workFromHome.FromDate >= fromDate)
                                                 && (!toDate.HasValue || workFromHome.ToDate <= toDate)
-                                                && _context.AttendanceRecords.Any(att =>
-                                                (att.IsFreezed == null || att.IsFreezed == false))
                                                 && (isSuperAdmin || approverId < 0 ||
                                                 ((
                                                         (workFromHome.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1210,6 +1217,7 @@ public class ApplicationService
                                                          workFromHome.Status1 != false && workFromHome.ApplicationTypeId == 6)
                                                     ) ) )
                                          && (staffIds == null || !staffIds.Any() || (staffIds.Contains(workFromHome.StaffId ?? workFromHome.CreatedBy)))
+                                          orderby workFromHome.Id descending
                                           select new
                                           {
                                               workFromHome.Id,
@@ -1253,8 +1261,6 @@ public class ApplicationService
                                                && shiftChange.IsCancelled == null
                                                && (!fromDate.HasValue || shiftChange.FromDate >= fromDate)
                                                && (!toDate.HasValue || shiftChange.ToDate <= toDate)
-                                               && _context.AttendanceRecords.Any(att =>
-                                                (att.IsFreezed == null || att.IsFreezed == false))
                                                && (isSuperAdmin || approverId < 0 ||
                                                ( (
                                                        (shiftChange.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1271,6 +1277,7 @@ public class ApplicationService
                                                         shiftChange.Status1 != false && shiftChange.ApplicationTypeId == 7)
                                                    ) ) )
                                          && (staffIds == null || !staffIds.Any() || (staffIds.Contains(shiftChange.StaffId ?? shiftChange.CreatedBy)))
+                                         orderby shiftChange.Id descending
                                          select new
                                          {
                                              shiftChange.Id,
@@ -1309,8 +1316,6 @@ public class ApplicationService
                                                   && creatorStaff.IsActive == true
                                                   && shiftExtension.IsCancelled == null
                                                  && (staffIds == null || !staffIds.Any() || (staffIds.Contains(shiftExtension.StaffId ?? shiftExtension.CreatedBy)))
-                                                  && _context.AttendanceRecords.Any(att =>
-                                                    (att.IsFreezed == null || att.IsFreezed == false))
                                                   && (isSuperAdmin || approverId < 0 ||
                                                       ( (
                                                           (shiftExtension.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1328,6 +1333,7 @@ public class ApplicationService
                                                       ) ) )
                                                   && (!fromDate.HasValue || shiftExtension.TransactionDate >= fromDate)
                                                   && (!toDate.HasValue || shiftExtension.TransactionDate <= toDate)
+                                            orderby shiftExtension.Id descending
                                             select new
                                             {
                                                 shiftExtension.Id,
@@ -1367,8 +1373,6 @@ public class ApplicationService
                                                           && creatorStaff.IsActive == true
                                                           && holidayWorking.IsCancelled == null
                                                          && (staffIds == null || !staffIds.Any() || (staffIds.Contains(holidayWorking.StaffId ?? holidayWorking.CreatedBy)))
-                                                          && _context.AttendanceRecords.Any(att =>
-                                                            (att.IsFreezed == null || att.IsFreezed == false))
                                                           && (isSuperAdmin || approverId < 0
                                                           || ((
                                                                   (holidayWorking.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1386,6 +1390,7 @@ public class ApplicationService
                                                               )))                                                       
                                                           && (!fromDate.HasValue || holidayWorking.TxnDate >= fromDate)
                                                           && (!toDate.HasValue || holidayWorking.TxnDate <= toDate)
+                                                    orderby holidayWorking.Id descending
                                                     select new
                                                     {
                                                         holidayWorking.Id,
@@ -1425,8 +1430,6 @@ public class ApplicationService
                                                && creatorStaff.IsActive == true
                                                && compOff.IsCancelled == null
                                              && (staffIds == null || !staffIds.Any() || (staffIds.Contains(compOff.StaffId ?? compOff.CreatedBy)))
-                                               && _context.AttendanceRecords.Any(att =>
-                                                (att.IsFreezed == null || att.IsFreezed == false))
                                                && (isSuperAdmin || approverId < 0 ||
                                                    ((
                                                        (compOff.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1444,6 +1447,7 @@ public class ApplicationService
                                                    ) ) )
                                                && (!fromDate.HasValue || compOff.FromDate >= fromDate)
                                                && (!toDate.HasValue || compOff.ToDate <= toDate)
+                                         orderby compOff.Id descending
                                          select new
                                          {
                                              compOff.Id,
@@ -1485,8 +1489,6 @@ public class ApplicationService
                                                 && creatorStaff.IsActive == true
                                                 && compOff.IsCancelled == null
                                              && (staffIds == null || !staffIds.Any() || (staffIds.Contains(compOff.StaffId ?? compOff.CreatedBy)))
-                                                && _context.AttendanceRecords.Any(att =>
-                                                (att.IsFreezed == null || att.IsFreezed == false))
                                                 && (isSuperAdmin || approverId < 0 ||
                                                     ( (
                                                         (compOff.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1502,6 +1504,7 @@ public class ApplicationService
                                                          compOff.Status1 == true && compOff.Status2 == null &&
                                                          compOff.ApplicationTypeId == 11)
                                                     ) ) )
+                                          orderby compOff.Id descending
                                           select new
                                           {
                                               compOff.Id,
@@ -1538,8 +1541,6 @@ public class ApplicationService
                                                  && (fromDate == null || reimbursement.BillDate >= fromDate)
                                                  && (toDate == null || reimbursement.BillDate <= toDate)
                                                  && (staffIds == null || !staffIds.Any() || (staffIds.Contains(reimbursement.StaffId ?? reimbursement.CreatedBy)))
-                                                 && _context.AttendanceRecords.Any(att =>
-                                                    (att.IsFreezed == null || att.IsFreezed == false))
                                                  && (isSuperAdmin || approverId < 0 ||
                                                      ((
                                                          (reimbursement.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
@@ -1555,6 +1556,7 @@ public class ApplicationService
                                                           reimbursement.Status1 == true && reimbursement.Status2 == null &&
                                                           reimbursement.ApplicationTypeId == 18)
                                                      ) ) )
+                                           orderby reimbursement.Id descending
                                            select new
                                            {
                                                reimbursement.Id,
@@ -1630,6 +1632,7 @@ public class ApplicationService
     public async Task<string> CreateLeaveRequisitionAsync(LeaveRequisitionRequest leaveRequisitionRequest)
     {
         var message = "Leave request submitted successfully.";
+        await AttendanceFreeze();
         await NotFoundMethod(leaveRequisitionRequest.ApplicationTypeId);
         var staffOrCreatorId = leaveRequisitionRequest.StaffId ?? leaveRequisitionRequest.CreatedBy;
         var individualLeave = await _context.IndividualLeaveCreditDebits
@@ -1747,6 +1750,7 @@ public class ApplicationService
     public async Task<string> AddCommonPermissionAsync(CommonPermissionRequest commonPermissionRequest)
     {
         var message = "Common Permission request submitted successfully.";
+        await AttendanceFreeze();
         await NotFoundMethod(commonPermissionRequest.ApplicationTypeId);
         var staffOrCreatorId = commonPermissionRequest.StaffId ?? commonPermissionRequest.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -1918,6 +1922,7 @@ public class ApplicationService
     public async Task<string> CreateManualPunchAsync(ManualPunchRequestDto request)
     {
         var message = "Manual Punch request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -1964,7 +1969,13 @@ public class ApplicationService
         return message;
     }
 
-    public async Task NotFoundMethod(int applicationTypeId)
+    private async Task AttendanceFreeze()
+    {
+        var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
+        if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed; attendance records are frozen");
+    }
+
+    private async Task NotFoundMethod(int applicationTypeId)
     {
         var application = await _context.ApplicationTypes.AnyAsync(a => a.Id == applicationTypeId && a.IsActive);
         if (!application) throw new MessageNotFoundException("Application type not found");
@@ -1973,6 +1984,7 @@ public class ApplicationService
     public async Task<string> CreateOnDutyRequisitionAsync(OnDutyRequisitionRequest request)
     {
         var message = "On Duty request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -2030,6 +2042,7 @@ public class ApplicationService
     public async Task<string> CreateBusinessTravelAsync(BusinessTravelRequestDto request)
     {
         var message = "Business Travel request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -2087,6 +2100,7 @@ public class ApplicationService
     public async Task<string> CreateWorkFromHomeAsync(WorkFromHomeDto request)
     {
         var message = "Work From Home request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -2165,6 +2179,7 @@ public class ApplicationService
     public async Task<string> CreateShiftChangeAsync(ShiftChangeDto request)
     {
         var message = "Shift Change request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -2216,6 +2231,7 @@ public class ApplicationService
     public async Task<string> CreateShiftExtensionAsync(ShiftExtensionDto request)
     {
         var message = "Shift Extension request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -2266,6 +2282,7 @@ public class ApplicationService
     public async Task<string> CreateWeeklyOffHolidayWorkingAsync(WeeklyOffHolidayWorkingDto request)
     {
         var message = "Weekly Off/Holiday Working request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -2318,6 +2335,7 @@ public class ApplicationService
     public async Task<string> AddReimbursement(ReimbursementRequestModel request)
     {
         var message = "Reimbursement request submitted successfully";
+        await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);

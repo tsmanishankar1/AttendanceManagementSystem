@@ -68,11 +68,11 @@ public class UserManagementService
         }
         if (user.Password != model.CurrentPassword)
         {
-            throw new Exception("Current password is incorrect.");
+            throw new InvalidOperationException("Current password is incorrect.");
         }
         if (model.NewPassword != model.ConfirmPassword)
         {
-            throw new Exception("New password and confirm password must match.");
+            throw new ArgumentException("New password and confirm password must match.");
         }
         var passwordHistory = await _context.PasswordHistories
             .Join(_context.UserManagements,
@@ -92,7 +92,7 @@ public class UserManagementService
         var usageCount = passwordHistory.Count(ph => ph.NewPassword == model.NewPassword);
         if (usageCount >= 1) 
         {
-            throw new Exception("You cannot reuse this password immediately. Try a different one.");
+            throw new InvalidOperationException("You cannot reuse this password immediately. Try a different one.");
         }
         var passwordHistoryEntry = new PasswordHistory
         {
@@ -115,7 +115,7 @@ public class UserManagementService
         var user = await(from staff in _context.StaffCreations
                          join department in _context.DepartmentMasters
                          on staff.DepartmentId equals department.Id
-                         where staff.FirstName + " " + staff.LastName == staffname && staff.IsActive==true
+                         where staff.FirstName + " " + staff.LastName == staffname && staff.IsActive == true
                          select new UserManagementResponse
                          {
                              UserManagementId = staff.Id,
@@ -137,7 +137,7 @@ public class UserManagementService
         }
         if (model.NewPassword != model.ConfirmPassword)
         {
-            throw new Exception("New password and confirm password must be match");
+            throw new ArgumentException("New password and confirm password must be match");
         }
         user.Password = model.NewPassword;
         user.UpdatedUtc = DateTime.UtcNow;

@@ -1,8 +1,12 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class DesignationRequest
     {
+        [MaxLength(50)]
         public string FullName { get; set; } = null!;
+        [MaxLength(50)]
         public string? ShortName { get; set; }
         public int CreatedBy { get; set; }
         public bool IsActive { get; set; }
@@ -20,7 +24,9 @@
     public class UpdateDesignation
     {
         public int DesignationMasterId { get; set; }
+        [MaxLength(50)]
         public string FullName { get; set; } = null!;
+        [MaxLength(50)]
         public string? ShortName { get; set; }
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }

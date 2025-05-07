@@ -1,10 +1,12 @@
 ﻿using AttendanceManagement.DTOs;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Input_Models
 {
     public class HolidayConfigurationResponse
     {
         public int HolidayCalendarId { get; set; }
+        [MaxLength(255)]
         public string GroupName { get; set; } = null!;
         public int CalendarYear { get; set; }
         public bool Currents { get; set; }
@@ -25,6 +27,7 @@ namespace AttendanceManagement.Input_Models
 
     public class HolidayZoneRequest
     {
+        [MaxLength(255)]
         public string HolidayZoneName { get; set; } = null!;
         public int HolidayCalendarId { get; set; }
         public int CreatedBy { get; set; }
@@ -35,6 +38,7 @@ namespace AttendanceManagement.Input_Models
     {
         public int HolidayZoneId { get; set; }
         public int HolidayCalendarId {  get; set; }
+        [MaxLength(255)]
         public string HolidayZoneName { get; set; } = null!;
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }

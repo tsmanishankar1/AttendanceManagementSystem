@@ -1,11 +1,17 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class ShiftRequest
     {
+        [MaxLength(100)]
         public string ShiftName { get; set; } = null!;
+        [MaxLength(5)]
         public string ShortName { get; set; } = null!;
         public int ShiftTypeId { get; set; }
+        [MaxLength(20)]
         public string StartTime { get; set; } = null!;
+        [MaxLength(20)]
         public string EndTime { get; set; } = null!;
         public int CreatedBy { get; set; }
         public bool IsActive { get; set; }
@@ -55,10 +61,14 @@
     public class UpdateShift
     {
         public int ShiftId { get; set; }
+        [MaxLength(100)]
         public string ShiftName { get; set; } = null!;
         public int ShiftTypeId { get; set; }
+        [MaxLength(5)]
         public string ShortName { get; set; } = null!;
+        [MaxLength(20)]
         public string StartTime { get; set; } = null!;
+        [MaxLength(20)]
         public string EndTime { get; set; } = null!;
         public int UpdatedBy { get; set; }
         public bool IsActive { get; set; }
@@ -66,12 +76,16 @@
 
     public class RegularShiftRequest
     {
+        [MaxLength(100)]
         public string ShiftType { get; set; } = null!;
         public bool? WeeklyOffType { get; set; }
+        [MaxLength(100)]
         public string? DayPattern { get; set; } = null!;
         public DateOnly ChangeEffectFrom { get; set; }
+        [MaxLength(255)]
         public string Reason { get; set; } = null!;
         public int? ShiftId { get; set; }
+        [MaxLength(255)]
         public string? ShiftPattern { get; set; }
         public List<int> StaffIds { get; set; } = new List<int>();  
         public int CreatedBy { get; set; }

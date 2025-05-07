@@ -59,7 +59,7 @@ public class BranchMasterController : ControllerBase
         catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
-            return ErrorClass.ErrorResponse(ex.Message);
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {

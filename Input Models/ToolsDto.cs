@@ -1,8 +1,12 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class ReaderConfigurationRequest
     {
+        [MaxLength(100)]
         public string ReaderName { get; set; } = null!;
+        [MaxLength(100)]
         public string ReaderIpAddress { get; set; } = null!;
         public bool IsAttendanceReader { get; set; }
         public bool IsAccessReader { get; set; }
@@ -27,8 +31,11 @@
 
     public class AttendanceStatusColorDto
     {
+        [MaxLength(100)]
         public string StatusName { get; set; } = null!;
+        [MaxLength(50)]
         public string ShortName { get; set; } = null!;
+        [MaxLength(100)]
         public string ColourCode { get; set; } = null!;
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
@@ -40,6 +47,7 @@
         public int StatusId { get; set; }
         public DateOnly FromDate { get; set; }
         public DateOnly ToDate { get; set; }
+        [MaxLength(255)]
         public string? Remarks { get; set; }
         public int? DurationId { get; set; }
         public int CreatedBy { get; set; } 

@@ -33,7 +33,7 @@ public class UserManagementController : ControllerBase
         catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("Register User", "POST", "/api/UserManagement/RegisterUser", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, userRequest.CreatedBy, JsonSerializer.Serialize(userRequest));
-            return ErrorClass.ErrorResponse(ex.Message);
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch(ConflictException ex)
         {
@@ -89,6 +89,16 @@ public class UserManagementController : ControllerBase
             await _loggingService.LogError("Password Change", "POST", "/api/UserManagement/ChangePassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UserId, JsonSerializer.Serialize(model));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ArgumentException ex)
+        {
+            await _loggingService.LogError("Password Change", "POST", "/api/UserManagement/ChangePassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UserId, JsonSerializer.Serialize(model));
+            return ErrorClass.BadResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Password Change", "POST", "/api/UserManagement/ChangePassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UserId, JsonSerializer.Serialize(model));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Password Change", "POST", "/api/UserManagement/ChangePassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.UserId, JsonSerializer.Serialize(model));
@@ -137,6 +147,11 @@ public class UserManagementController : ControllerBase
         {
             await _loggingService.LogError("Reset Password", "POST", "/api/UserManagement/ResetPassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            await _loggingService.LogError("Reset Password", "POST", "/api/UserManagement/ResetPassword", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, model.CreatedBy, JsonSerializer.Serialize(model));
+            return ErrorClass.BadResponse(ex.Message);
         }
         catch (Exception ex)
         {

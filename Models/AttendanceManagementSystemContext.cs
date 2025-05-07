@@ -717,8 +717,12 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
-            entity.Property(e => e.ShortName).HasMaxLength(50);
-            entity.Property(e => e.StatusName).HasMaxLength(100);
+            entity.Property(e => e.ShortName)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.StatusName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AttendanceStatusColorCreatedByNavigations)
@@ -4447,7 +4451,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.SelectShiftType).HasMaxLength(100);
+            entity.Property(e => e.SelectShiftType)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.ShiftInTime).HasColumnType("datetime");
             entity.Property(e => e.ShiftOutTime).HasColumnType("datetime");
             entity.Property(e => e.UpdatedUtc)

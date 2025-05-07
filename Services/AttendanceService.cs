@@ -145,11 +145,36 @@ public class AttendanceService
         return message;
     }
 
-    public async Task<List<AttendanceRecordDto>> AttendanceRecords()
+    public async Task<List<AttendanceRecordResponse>> AttendanceRecords()
     {
-        var attendanceList = await _storedProcedureDbContext.attendanceRecordDtos
-            .FromSqlRaw("EXEC AttendanceRecords")
-            .ToListAsync();
+        var attendanceList = await (from att in _attendanceContext.AttendanceRecords
+                                    select new AttendanceRecordResponse
+                                    {
+                                        Id = att.Id,
+                                        BreakHour = att.BreakHour,
+                                        IsBreakHoursExceed = att.IsBreakHoursExceed,
+                                        ExtraBreakHours = att.ExtraBreakHours,
+                                        FirstIn = att.FirstIn,
+                                        LastOut = att.LastOut,
+                                        IsEarlyComing = att.IsEarlyComing,
+                                        IsLateComing = att.IsLateComing,
+                                        IsEarlyGoing = att.IsEarlyGoing,
+                                        IsLateGoing = att.IsLateGoing,
+                                        ShiftId = att.ShiftId,
+                                        StaffId = att.StaffId,
+                                        IsRegularized = att.IsRegularized,
+                                        StatusId = att.StatusId,
+                                        IsHolidayWorkingEligible = att.IsHolidayWorkingEligible,
+                                        Norm = att.Norm,
+                                        CompletedFileCount = att.CompletedFileCount,
+                                        TotalFte = att.TotalFte,
+                                        IsFteAchieved = att.IsFteAchieved,
+                                        IsFreezed = att.IsFreezed,
+                                        FreezedBy = att.FreezedBy,
+                                        FreezedOn = att.FreezedOn,
+                                        AttendanceDate = att.AttendanceDate
+                                    })
+                                    .ToListAsync();
         if (attendanceList.Count == 0)
         {
             throw new MessageNotFoundException("No attendance records found");

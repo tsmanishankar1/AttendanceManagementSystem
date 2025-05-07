@@ -111,10 +111,7 @@ namespace AttendanceManagement.Services
 
         public async Task<string> CreateAssignLeaveType(CreateAssignLeaveTypeDTO dto)
         {
-            var leave = await _context.LeaveTypes.AnyAsync(p => p.Id == dto.LeaveTypeId && p.IsActive == true);
-            if (!leave) throw new MessageNotFoundException("Leave type not found");
-            var org = await _context.OrganizationTypes.AnyAsync(p => p.Id == dto.OrganizationTypeId && p.IsActive == true);
-            if (!org) throw new MessageNotFoundException("Organization type not found");
+            await LeaveNotFoundMethod(dto.LeaveTypeId, dto.OrganizationTypeId);
             var newAssignLeaveType = new AssignLeaveType
             {
                 LeaveTypeId = dto.LeaveTypeId,
@@ -129,16 +126,18 @@ namespace AttendanceManagement.Services
             return "LeaveType assigned successfully";
         }
 
+        private async Task LeaveNotFoundMethod(int leaveTypeId, int organizationTypeId)
+        {
+            var leave = await _context.LeaveTypes.AnyAsync(p => p.Id == leaveTypeId && p.IsActive == true);
+            if (!leave) throw new MessageNotFoundException("Leave type not found");
+            var org = await _context.OrganizationTypes.AnyAsync(p => p.Id == organizationTypeId && p.IsActive == true);
+            if (!org) throw new MessageNotFoundException("Organization type not found");
+        }
         public async Task<string> UpdateAssignLeaveType(UpdateAssignLeaveTypeDTO dto)
         {
             var assignLeaveType = await _context.AssignLeaveTypes.FindAsync(dto.Id);
             if (assignLeaveType == null) throw new MessageNotFoundException("Assigned leave type not found");
-
-            var leave = await _context.LeaveTypes.AnyAsync(p => p.Id == dto.LeaveTypeId && p.IsActive == true);
-            if (!leave) throw new MessageNotFoundException("Leave type not found");
-            var org = await _context.OrganizationTypes.AnyAsync(p => p.Id == dto.OrganizationTypeId && p.IsActive == true);
-            if (!org) throw new MessageNotFoundException("Organization type not found");
-
+            await LeaveNotFoundMethod(dto.LeaveTypeId, dto.OrganizationTypeId);
             assignLeaveType.LeaveTypeId = dto.LeaveTypeId;
             assignLeaveType.OrganizationTypeId = dto.OrganizationTypeId;
             assignLeaveType.IsActive = true;
@@ -254,11 +253,13 @@ namespace AttendanceManagement.Services
 
         public async Task<string> UpdateAttendanceStatusAsync(UpdateAttendanceStatusRequest request)
         {
+            var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
+            if (!hasUnfreezed) throw new InvalidOperationException("Attendance records are frozen. Attendance regularization is not allowed.");
             var newRecords = new List<AttendanceStatus>();
             foreach (var staffId in request.StaffIds)
             {
                 var attendanceRecords = await _context.AttendanceRecords
-                    .Where(a => a.StaffId == staffId && (a.AttendanceDate >= request.FromDate && a.AttendanceDate <= request.ToDate) && (a.IsFreezed == null || a.IsFreezed == false))
+                    .Where(a => a.StaffId == staffId && (a.AttendanceDate >= request.FromDate && a.AttendanceDate <= request.ToDate))
                     .ToListAsync();
                 if (attendanceRecords.Any())
                 {

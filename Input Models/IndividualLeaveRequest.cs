@@ -1,4 +1,6 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class IndividualLeaveRequest
     {
@@ -6,11 +8,14 @@
         public int DepartmentId { get; set; }
         public int StaffCreationId {  get; set; }
         public bool TransactionFlag { get; set; }
+        [MaxLength(255)]
         public string LeaveReason { get; set; } = null!;
+        [MaxLength(20)]
         public string Month { get; set; } = null!;
         public int Year { get; set; }
         public decimal LeaveCount { get; set; }
         public bool Isactive { get; set; }
+        [MaxLength(255)]
         public string? Remarks { get; set; }
         public decimal? ActualBalance { get; set; }
         public decimal? AvailableBalance { get; set; }
@@ -22,10 +27,13 @@
         public IEnumerable<SelectedStaff> SelectedRows { get; set; } = null!;
         public int LeaveTypeId { get; set; }
         public bool TransactionFlag { get; set; }
+        [MaxLength(255)]
         public string LeaveReason { get; set; } = null!;
+        [MaxLength(20)]
         public string Month { get; set; } = null!;
         public int Year { get; set; }
         public decimal LeaveCount { get; set; }
+        [MaxLength(255)]
         public string? Remarks { get; set; }
         public int CreatedBy { get; set; }
     }

@@ -1,21 +1,32 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
+
 namespace AttendanceManagement.Input_Models
 {
     public class StaffCreationInputModel
     {
+        [MaxLength(50)]
         public string CardCode { get; set; } = null!;
+        [MaxLength(100)]
         public string StaffId { get; set; } = null!;
+        [MaxLength(100)]
         public string Title { get; set; } = null!;
+        [MaxLength(100)]
         public string FirstName { get; set; } = null!;
+        [MaxLength(100)]
         public string? LastName { get; set; }
+        [MaxLength(100)]
         public string? ShortName { get; set; }
+        [MaxLength(50)]
         public string Gender { get; set; } = null!;
         public bool Hide { get; set; }
+        [MaxLength(50)]
         public string BloodGroup { get; set; } = null!;
         public IFormFile? ProfilePhoto { get; set; }
         public IFormFile? AadharCardFilePath { get; set; }
         public IFormFile? PanCardFilePath { get; set; }
         public IFormFile? DrivingLicenseFilePath { get; set; }
+        [MaxLength(50)]
         public string MaritalStatus { get; set; } = null!;
         public DateOnly Dob { get; set; }
         public DateOnly? MarriageDate { get; set; }
@@ -27,33 +38,49 @@ namespace AttendanceManagement.Input_Models
         public int BranchId { get; set; }
         public int DepartmentId { get; set; }
         public int DivisionId { get; set; }
+        [MaxLength(50)]
         public string Volume { get; set; } = null!;
         public int DesignationId { get; set; }
         public int GradeId { get; set; }
         public int CategoryId { get; set; }
         public int CostCenterId { get; set; }
         public int WorkStationId { get; set; }
+        [MaxLength(50)]
         public string City { get; set; } = null!;
+        [MaxLength(50)]
         public string District { get; set; } = null!;
+        [MaxLength(50)]
         public string State { get; set; } = null!;
+        [MaxLength(50)]
         public string Country { get; set; } = null!;
         public int PostalCode { get; set; }
         public bool OtEligible { get; set; }
+        [MaxLength(50)]
         public string ApprovalLevel { get; set; } = null!;
         public int ApprovalLevel1 { get; set; }
         public int? ApprovalLevel2 { get; set; }
+        [MaxLength(50)]
         public string AccessLevel { get; set; } = null!;
+        [MaxLength(50)]
         public string PolicyGroup { get; set; } = null!;
+        [MaxLength(50)]
         public string WorkingDayPattern { get; set; } = null!;
         public decimal Tenure { get; set; }
+        [MaxLength(50)]
         public string? UanNumber { get; set; }
+        [MaxLength(50)]
         public string? EsiNumber { get; set; }
         public bool IsMobileAppEligible { get; set; }
+        [MaxLength(50)]
         public string GeoStatus { get; set; } = null!;
         public int CreatedBy { get; set; }
+        [MaxLength(25)]
         public string? MiddleName { get; set; }
+        [MaxLength(255)]
         public string PersonalLocation { get; set; } = null!;
+        [MaxLength(100)]
         public string PersonalEmail { get; set; } = null!;
+        [MaxLength(100)]
         public string? OfficialEmail { get; set; }
         public int LeaveGroupId { get; set; }
         public int CompanyMasterId { get; set; }
@@ -61,23 +88,35 @@ namespace AttendanceManagement.Input_Models
         public int HolidayCalendarId { get; set; }
         public int StatusId { get; set; }
         public long? AadharNo { get; set; }
+        [MaxLength(50)]
         public string? PanNo { get; set; }
+        [MaxLength(50)]
         public string? PassportNo { get; set; }
+        [MaxLength(50)]
         public string? DrivingLicense { get; set; }
+        [MaxLength(50)]
         public string? BankName { get; set; }
         public long? BankAccountNo { get; set; }
+        [MaxLength(50)]
         public string? BankIfscCode { get; set; }
+        [MaxLength(50)]
         public string? BankBranch { get; set; }
+        [MaxLength(200)]
         public string HomeAddress { get; set; } = null!;
+        [MaxLength(100)]
         public string FatherName { get; set; } = null!;
+        [MaxLength(100)]
         public string MotherName { get; set; } = null!;
         public long? FatherAadharNo { get; set; }
         public long? MotherAadharNo { get; set; }
+        [MaxLength(50)]
         public string EmergencyContactPerson1 { get; set; } = null!;
+        [MaxLength(50)]
         public string? EmergencyContactPerson2 { get; set; }
         public long EmergencyContactNo1 { get; set; }
         public long? EmergencyContactNo2 { get; set; }
         public int OrganizationTypeId { get; set; }
+        [MaxLength(50)]
         public string WorkingStatus { get; set; } = null!;
     }
 
@@ -189,37 +228,59 @@ namespace AttendanceManagement.Input_Models
 
     public class IndividualStaffUpdate
     {
+        [MaxLength(100)]
         public string Title { get; set; } = null!;
+        [MaxLength(100)]
         public string FirstName { get; set; } = null!;
+        [MaxLength(100)]
         public string? LastName { get; set; }
+        [MaxLength(100)]
         public string? ShortName { get; set; }
+        [MaxLength(50)]
         public string Gender { get; set; } = null!;
         public IFormFile? ProfilePhoto { get; set; }
         public IFormFile? AadharFilePath { get; set; }
         public IFormFile? PanCardFilePath { get; set; }
         public IFormFile? DrivingLicenseFilePath { get; set; }
+        [MaxLength(50)]
         public string MaritalStatus { get; set; } = null!;
         public long PersonalPhone { get; set; }
         public long? OfficialPhone { get; set; }
+        [MaxLength(50)]
         public string City { get; set; } = null!;
+        [MaxLength(50)]
         public string District { get; set; } = null!;
+        [MaxLength(50)]
         public string State { get; set; } = null!;
+        [MaxLength(50)]
         public string Country { get; set; } = null!;
         public int PostalCode { get; set; }
+        [MaxLength(25)]
         public string? MiddleName { get; set; }
+        [MaxLength(255)]
         public string PersonalLocation { get; set; } = null!;
+        [MaxLength(100)]
         public string? OfficialEmail { get; set; }
+        [MaxLength(100)]
         public string PersonalEmail { get; set; } = null!;
+        [MaxLength(50)]
         public string? BankName { get; set; }
         public long? BankAccountNo { get; set; }
+        [MaxLength(50)]
         public string? BankIfscCode { get; set; }
+        [MaxLength(50)]
         public string? BankBranch { get; set; }
+        [MaxLength(200)]
         public string HomeAddress { get; set; } = null!;
+        [MaxLength(100)]
         public string FatherName { get; set; } = null!;
+        [MaxLength(50)]
         public string EmergencyContactPerson1 { get; set; } = null!;
+        [MaxLength(50)]
         public string? EmergencyContactPerson2 { get; set; }
         public long EmergencyContactNo1 { get; set; }
         public long? EmergencyContactNo2 { get; set; }
+        [MaxLength(100)]
         public string MotherName { get; set; } = null!;
         public int UpdatedBy { get; set; }
     }
@@ -351,19 +412,29 @@ namespace AttendanceManagement.Input_Models
         public string? LoginUserName { get; set; }
         public bool? IncludeTerminated { get; set; }
     }
+
     public class UpdateStaff
     {
         public int StaffCreationId { get; set; }
+        [MaxLength(50)]
         public string CardCode { get; set; } = null!;
+        [MaxLength(100)]
         public string StaffId { get; set; } = null!;
+        [MaxLength(100)]
         public string Title { get; set; } = null!;
+        [MaxLength(100)]
         public string FirstName { get; set; } = null!;
+        [MaxLength(100)]
         public string? LastName { get; set; }
+        [MaxLength(100)]
         public string? ShortName { get; set; }
+        [MaxLength(50)]
         public string Gender { get; set; } = null!;
         public bool Hide { get; set; }
+        [MaxLength(50)]
         public string BloodGroup { get; set; } = null!;
         public IFormFile? ProfilePhoto { get; set; }
+        [MaxLength(50)]
         public string MaritalStatus { get; set; } = null!;
         public DateOnly Dob { get; set; }
         public DateOnly? MarriageDate { get; set; }
@@ -375,32 +446,48 @@ namespace AttendanceManagement.Input_Models
         public int BranchId { get; set; }
         public int DepartmentId { get; set; }
         public int DivisionId { get; set; }
+        [MaxLength(50)]
         public string Volume { get; set; } = null!;
         public int DesignationId { get; set; }
         public int GradeId { get; set; }
         public int CategoryId { get; set; }
         public int CostCenterId { get; set; }
         public int WorkStationId { get; set; }
+        [MaxLength(50)]
         public string City { get; set; } = null!;
+        [MaxLength(50)]
         public string District { get; set; } = null!;
+        [MaxLength(50)]
         public string State { get; set; } = null!;
+        [MaxLength(50)]
         public string Country { get; set; } = null!;
         public int PostalCode { get; set; }
         public bool OtEligible { get; set; }
+        [MaxLength(50)]
         public string ApprovalLevel { get; set; } = null!;
         public int ApprovalLevel1 { get; set; }
         public int? ApprovalLevel2 { get; set; }
+        [MaxLength(50)]
         public string AccessLevel { get; set; } = null!;
+        [MaxLength(50)]
         public string PolicyGroup { get; set; } = null!;
+        [MaxLength(50)]
         public string WorkingDayPattern { get; set; } = null!;
         public decimal Tenure { get; set; }
+        [MaxLength(50)]
         public string? UanNumber { get; set; }
+        [MaxLength(50)]
         public string? EsiNumber { get; set; }
         public bool IsMobileAppEligible { get; set; }
+        [MaxLength(50)]
         public string GeoStatus { get; set; } = null!;
+        [MaxLength(25)]
         public string? MiddleName { get; set; }
+        [MaxLength(255)]
         public string PersonalLocation { get; set; } = null!;
+        [MaxLength(100)]
         public string PersonalEmail { get; set; } = null!;
+        [MaxLength(100)]
         public string? OfficialEmail { get; set; }
         public int LeaveGroupId { get; set; }
         public int CompanyMasterId { get; set; }
@@ -408,24 +495,37 @@ namespace AttendanceManagement.Input_Models
         public int HolidayCalendarId { get; set; }
         public int StatusId { get; set; }
         public long? AadharNo { get; set; }
+        [MaxLength(50)]
         public string? PanNo { get; set; }
+        [MaxLength(50)]
         public string? PassportNo { get; set; }
+        [MaxLength(50)]
         public string? DrivingLicense { get; set; }
+        [MaxLength(50)]
         public string? BankName { get; set; }
+        [MaxLength(50)]
         public long? BankAccountNo { get; set; }
+        [MaxLength(50)]
         public string? BankIfscCode { get; set; }
+        [MaxLength(50)]
         public string? BankBranch { get; set; }
+        [MaxLength(200)]
         public string HomeAddress { get; set; } = null!;
+        [MaxLength(100)]
         public string FatherName { get; set; } = null!;
+        [MaxLength(50)]
         public string EmergencyContactPerson1 { get; set; } = null!;
+        [MaxLength(50)]
         public string? EmergencyContactPerson2 { get; set; }
         public long EmergencyContactNo1 { get; set; }
         public long? EmergencyContactNo2 { get; set; }
+        [MaxLength(100)]
         public string MotherName { get; set; } = null!;
         public long? FatherAadharNo { get; set; }
         public long? MotherAadharNo { get; set; }
         public int UpdatedBy { get; set; }
         public int OrganizationTypeId { get; set; }
+        [MaxLength(50)]
         public string WorkingStatus { get; set; } = null!;
         public DateOnly? ResignationDate { get; set; }
         public DateOnly? RelievingDate { get; set; }
@@ -450,6 +550,7 @@ namespace AttendanceManagement.Input_Models
 
     public class DropDownRequest
     {
+        [MaxLength(100)]
         public string Name { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
@@ -464,6 +565,7 @@ namespace AttendanceManagement.Input_Models
     public class UpdateDropDown
     {
         public int Id { get; set; }
+        [MaxLength(100)]
         public string Name { get; set; } = null!;
         public int UpdatedBy { get; set; }
     }
@@ -471,6 +573,7 @@ namespace AttendanceManagement.Input_Models
     public class DropDownDetailsRequest
     {
         public int DropDownMasterId { get; set; }
+        [MaxLength(100)]
         public string Name { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
@@ -479,6 +582,7 @@ namespace AttendanceManagement.Input_Models
     {
         public int DropDownMasterId { get; set; }
         public int DropDownDetailId { get; set; }
+        [MaxLength(100)]
         public string Name { get; set; } = null!;
         public int UpdatedBy { get; set; }
     }

@@ -1,16 +1,26 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
+
 namespace AttendanceManagement.Input_Models
 {
     public class AcademicDetailRequest
     {
+        [MaxLength(255)]
         public string? Qualification { get; set; }
+        [MaxLength(255)]
         public string? Specialization { get; set; }
+        [MaxLength(255)]
         public string? University { get; set; }
+        [MaxLength(255)]
         public string? Institution { get; set; }
+        [MaxLength(100)]
         public string? MediumOfInstruction { get; set; }
+        [MaxLength(100)]
         public string? CourseType { get; set; }
         public int? YearOfPassing { get; set; }
+        [MaxLength(255)]
         public string? CourseOfAppraisal { get; set; }
+        [MaxLength(255)]
         public string? Board { get; set; }
       
     }
@@ -25,14 +35,22 @@ namespace AttendanceManagement.Input_Models
     public class AcademicDetailUpdateRequest
     {
         public int AcademicDetailId { get; set; }
+        [MaxLength(255)]
         public string? Qualification { get; set; }
+        [MaxLength(255)]
         public string? Specialization { get; set; }
+        [MaxLength(255)]
         public string? University { get; set; }
+        [MaxLength(255)]
         public string? Institution { get; set; }
+        [MaxLength(100)]
         public string? MediumOfInstruction { get; set; }
+        [MaxLength(100)]
         public string? CourseType { get; set; }
         public int? YearOfPassing { get; set; }
+        [MaxLength(255)]
         public string? CourseOfAppraisal { get; set; }
+        [MaxLength(255)]
         public string? Board { get; set; }
     }
 
@@ -60,9 +78,12 @@ namespace AttendanceManagement.Input_Models
 
     public class CertificationCourseRequest
     {
+        [MaxLength(255)]
         public string? CertificationCourseName { get; set; }
         public DateOnly? ValidUpto { get; set; }
+        [MaxLength(255)]
         public string? CourseAppraisal { get; set; }
+        [MaxLength(255)]
         public string? CertificationInstitute { get; set; }
     }
 
@@ -76,9 +97,12 @@ namespace AttendanceManagement.Input_Models
     public class CertificationCourseUpdateRequest
     {
         public int Id { get; set; }
+        [MaxLength(255)]
         public string? CertificationCourseName { get; set; }
         public DateOnly? ValidUpto { get; set; }
+        [MaxLength(255)]
         public string? CourseAppraisal { get; set; }
+        [MaxLength(255)]
         public string? CertificationInstitute { get; set; }
     }
 
@@ -100,10 +124,13 @@ namespace AttendanceManagement.Input_Models
 
     public class PreviousEmploymentRequest
     {
+        [MaxLength(255)]
         public string? CompanyName { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
+        [MaxLength(255)]
         public string? PreviousLocation { get; set; }
+        [MaxLength(255)]
         public string? FunctionalArea { get; set; }
         public decimal? LastGrossSalary { get; set; }
     }
@@ -119,10 +146,13 @@ namespace AttendanceManagement.Input_Models
     public class PreviousEmploymentUpdateRequest
     {
         public int Id { get; set; }
+        [MaxLength(255)]
         public string? CompanyName { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
+        [MaxLength(255)]
         public string? PreviousLocation { get; set; }
+        [MaxLength(255)]
         public string? FunctionalArea { get; set; }
         public decimal? LastGrossSalary { get; set; }
     }

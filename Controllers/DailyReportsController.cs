@@ -86,7 +86,7 @@ public class DailyReportsController : ControllerBase
         catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("Working Type Amount", "POST", "/api/Attendance/AddWorkingTypeAmount", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
-            return ErrorClass.ErrorResponse(ex.Message);
+            return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {

@@ -10,6 +10,7 @@ namespace AttendanceManagement.Input_Models
 
     public class ApplicationTypeRequest
     {
+        [MaxLength(100)]
         public string ApplicationTypeName { get; set; } = null!;
     }
 
@@ -70,7 +71,9 @@ namespace AttendanceManagement.Input_Models
         public DateOnly WorkedDate { get; set; }
         public DateOnly FromDate { get; set; }
         public DateOnly ToDate { get; set; }
+        [MaxLength(50)]
         public string FromDuration { get; set; } = null!;
+        [MaxLength(50)]
         public string ToDuration { get; set; } = null!;
         [MaxLength(255)]
         public string Reason { get; set; } = null!;
@@ -115,9 +118,11 @@ namespace AttendanceManagement.Input_Models
     public class ReimbursementRequestModel
     {
         public DateOnly BillDate { get; set; }
+        [MaxLength(50)]
         public string BillNo { get; set; } = null!;
         [MaxLength(255)]
         public string Description { get; set; } = null!;
+        [MaxLength(100)]
         public string BillPeriod { get; set; } = null!;
         public decimal Amount { get; set; }
         public int ApplicationTypeId { get; set; }

@@ -1,7 +1,10 @@
-﻿namespace AttendanceManagement.Input_Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AttendanceManagement.Input_Models
 {
     public class WeeklyOffRequest
     {
+        [MaxLength(100)]
         public string WeeklyOffName { get; set; } = null!;
         public List<int> MarkWeeklyOff { get; set; } = new List<int>();
         public bool IsActive { get; set; }
@@ -26,6 +29,7 @@
     public class UpdateWeeklyOff
     {
         public int WeeklyOffId { get; set; }
+        [MaxLength(100)]
         public string WeeklyOffName { get; set; } = null!;
         public List<int> MarkWeeklyOff { get; set; } = new List<int>();
         public bool IsActive { get; set; }

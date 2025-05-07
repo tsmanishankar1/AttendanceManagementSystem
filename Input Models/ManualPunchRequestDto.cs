@@ -6,6 +6,7 @@ namespace AttendanceManagement.Input_Models
     {
         public int ApplicationTypeId { get; set; }
         public int? StaffId { get; set; }
+        [MaxLength(100)]
         public string SelectPunch { get; set; } = null!;
         public DateTime? InPunch { get; set; }
         public DateTime? OutPunch { get; set; }

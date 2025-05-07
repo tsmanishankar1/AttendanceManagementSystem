@@ -31,6 +31,8 @@ namespace AttendanceManagement.Services
             var applicationType = await _context.ApplicationTypes.Where(a => a.Id == approveLeaveRequest.ApplicationTypeId && a.IsActive).Select(a => a.Name).FirstOrDefaultAsync();
             foreach (var item in selectedRows)
             {
+                var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
+                if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed; attendance records are frozen");
                 if (approveLeaveRequest.ApplicationTypeId == 1)
                 {
                     var leave = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == item.Id);

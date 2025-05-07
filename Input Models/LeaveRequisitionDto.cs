@@ -21,7 +21,9 @@ namespace AttendanceManagement.Input_Models
 
     public class LeaveRequisitionRequest
     {
+        [MaxLength(50)]
         public string StartDuration { get; set; } = null!;
+        [MaxLength(50)]
         public string? EndDuration { get; set; } = null!;
         public int? StaffId { get; set; }
         public int LeaveTypeId { get; set; }
@@ -37,7 +39,9 @@ namespace AttendanceManagement.Input_Models
     public class UpdateLeaveRequest
     {
         public int LeaveRequestId { get; set; }
+        [MaxLength(50)]
         public string StartDuration { get; set; } = null!;
+        [MaxLength(50)]
         public string EndDuration { get; set; } = null!;
         public int LeaveTypeId { get; set; }
         public DateOnly FromDate { get; set; }
