@@ -1661,45 +1661,67 @@ public class ApplicationService
                              (lr.FromDate <= leaveRequisitionRequest.ToDate &&
                               lr.ToDate >= leaveRequisitionRequest.FromDate))
                 .ToListAsync();
+        var existingLeaves = await _context.LeaveRequisitions
+         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                      (lr.FromDate <= leaveRequisitionRequest.ToDate &&
+                       lr.ToDate >= leaveRequisitionRequest.FromDate) &&
+                      lr.IsActive)
+         .ToListAsync();
+
         foreach (var existingLeave in existingLeaves)
         {
-            bool isSameStartDate = existingLeave.FromDate == leaveRequisitionRequest.FromDate;
-            bool isSameEndDate = existingLeave.ToDate == leaveRequisitionRequest.ToDate;
+            bool sameStartDate = existingLeave.FromDate == leaveRequisitionRequest.FromDate;
+            bool sameEndDate = existingLeave.ToDate == leaveRequisitionRequest.ToDate;
+            bool sameDay = leaveRequisitionRequest.FromDate == leaveRequisitionRequest.ToDate &&
+                           existingLeave.FromDate == existingLeave.ToDate &&
+                           existingLeave.FromDate == leaveRequisitionRequest.FromDate;
 
-            // Prevent duplicate Full-Day leave
+            // Allow complementary half-days on the same start date
+            if (sameStartDate &&
+                ((existingLeave.StartDuration == "First Half" && leaveRequisitionRequest.StartDuration == "Second Half") ||
+                 (existingLeave.StartDuration == "Second Half" && leaveRequisitionRequest.StartDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-days on the same end date
+            if (sameEndDate &&
+                ((existingLeave.EndDuration == "First Half" && leaveRequisitionRequest.EndDuration == "Second Half") ||
+                 (existingLeave.EndDuration == "Second Half" && leaveRequisitionRequest.EndDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-day request on same single day
+            if (sameDay)
+            {
+                if ((existingLeave.StartDuration == "First Half" && leaveRequisitionRequest.StartDuration == "Second Half") ||
+                    (existingLeave.StartDuration == "Second Half" && leaveRequisitionRequest.StartDuration == "First Half"))
+                {
+                    continue;
+                }
+
+                if (existingLeave.StartDuration == leaveRequisitionRequest.StartDuration)
+                {
+                    throw new ConflictException("Leave request already exists");
+                }
+            }
+
+            // Prevent full day overlap
             if ((existingLeave.StartDuration == "Full Day" || leaveRequisitionRequest.StartDuration == "Full Day") ||
                 (existingLeave.EndDuration == "Full Day" || leaveRequisitionRequest.EndDuration == "Full Day"))
             {
                 throw new ConflictException("Leave request already exists");
             }
 
-            // Allow complementary half-day leave on the same start date
-            if (isSameStartDate && ((existingLeave.StartDuration == "First Half" && leaveRequisitionRequest.StartDuration == "Second Half")
-                || (existingLeave.StartDuration == "Second Half" && leaveRequisitionRequest.StartDuration == "First Half")))
-            {
-                continue; // Allow request
-            }
-
-            // Allow complementary half-day leave on the same end date
-            if (isSameEndDate && ((existingLeave.EndDuration == "First Half" && leaveRequisitionRequest.EndDuration == "Second Half")
-                || (existingLeave.EndDuration == "Second Half" && leaveRequisitionRequest.EndDuration == "First Half")))
-            {
-                continue; // Allow request
-            }
-
-            // Prevent duplicate leave for the same half-day slot
-            if (isSameStartDate && isSameEndDate && ((existingLeave.StartDuration == leaveRequisitionRequest.StartDuration)
-                || (existingLeave.EndDuration == leaveRequisitionRequest.EndDuration)))
-            {
-                throw new ConflictException("Leave request already exists");
-            }
-
-            // Prevent overlapping leave
-            if (existingLeave.FromDate <= leaveRequisitionRequest.ToDate && existingLeave.ToDate >= leaveRequisitionRequest.FromDate)
+            // Prevent general date overlap
+            if (existingLeave.FromDate <= leaveRequisitionRequest.ToDate &&
+                existingLeave.ToDate >= leaveRequisitionRequest.FromDate)
             {
                 throw new ConflictException("Leave request already exists");
             }
         }
+
         LeaveRequisition leaveRequisition = new LeaveRequisition
         {
             ApplicationTypeId = leaveRequisitionRequest.ApplicationTypeId,
