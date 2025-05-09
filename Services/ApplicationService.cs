@@ -1656,11 +1656,7 @@ public class ApplicationService
             if (leaveRequisitionRequest.StaffId != null) throw new ConflictException($"Insufficient leave balance found for Staff {staffName}");
             else throw new ConflictException("Insufficient leave balance found");
         }
-        var existingLeaves = await _context.LeaveRequisitions
-                .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
-                             (lr.FromDate <= leaveRequisitionRequest.ToDate &&
-                              lr.ToDate >= leaveRequisitionRequest.FromDate))
-                .ToListAsync();
+
         var existingLeaves = await _context.LeaveRequisitions
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.FromDate <= leaveRequisitionRequest.ToDate &&
