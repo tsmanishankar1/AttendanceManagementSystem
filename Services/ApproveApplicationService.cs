@@ -32,7 +32,7 @@ namespace AttendanceManagement.Services
             foreach (var item in selectedRows)
             {
                 var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
-                if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed; attendance records are frozen");
+                if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
                 if (approveLeaveRequest.ApplicationTypeId == 1)
                 {
                     var leave = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == item.Id);

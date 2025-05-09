@@ -1972,7 +1972,7 @@ public class ApplicationService
     private async Task AttendanceFreeze()
     {
         var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
-        if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed; attendance records are frozen");
+        if (!hasUnfreezed) throw new InvalidOperationException("You request cannot proceed attendance records are frozen");
     }
 
     private async Task NotFoundMethod(int applicationTypeId)
