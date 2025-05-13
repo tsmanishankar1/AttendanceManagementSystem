@@ -20,7 +20,7 @@ namespace AttendanceManagement.Services
             if (!holidayType) throw new MessageNotFoundException("Holiday type not found");
             var holiday = new HolidayMaster
             {
-                HolidayName = holidayRequest.HolidayName,
+                Name = holidayRequest.HolidayName,
                 HolidayTypeId = holidayRequest.HolidayTypeId,
                 CreatedBy = holidayRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow,
@@ -51,7 +51,7 @@ namespace AttendanceManagement.Services
                               select new HolidayResponse
                               {
                                   HolidayMasterId = holiday.Id,
-                                  HolidayName = holiday.HolidayName,
+                                  HolidayName = holiday.Name,
                                   HolidayTypeId = holidayType.Id,
                                   HolidayTypeName = holidayType.Name,
                                   IsActive = holiday.IsActive,
@@ -73,7 +73,7 @@ namespace AttendanceManagement.Services
             var existingHoliday = await _context.HolidayMasters.FirstOrDefaultAsync(h => h.Id == updatedHoliday.HolidayMasterId);
             if (existingHoliday == null) throw new MessageNotFoundException("Holiday not found");
 
-            existingHoliday.HolidayName = updatedHoliday.HolidayName;
+            existingHoliday.Name = updatedHoliday.HolidayName;
             existingHoliday.HolidayTypeId = updatedHoliday.HolidayTypeId;
             existingHoliday.IsActive = updatedHoliday.IsActive;
             existingHoliday.UpdatedBy = updatedHoliday.UpdatedBy;

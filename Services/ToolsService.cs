@@ -311,13 +311,13 @@ namespace AttendanceManagement.Services
         public async Task<List<AttendanceStatusColorResponse>> GetAttendanceStatusColor()
         {
             var response = await _context.AttendanceStatusColors
-                .Where(color => color.IsActive)
                 .Select(color => new AttendanceStatusColorResponse
                 {
                     Id = color.Id,
                     StatusName = color.StatusName,
                     ShortName = color.ShortName,
-                    ColourCode = color.ColourCode
+                    ColourCode = color.ColourCode,
+                    IsActive = color.IsActive
                 })
                 .ToListAsync();
             if (response.Count == 0)

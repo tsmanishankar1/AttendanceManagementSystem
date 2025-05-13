@@ -61,6 +61,7 @@ namespace AttendanceManagement.Input_Models
         public string StatusName { get; set; } = null!;
         public string ShortName { get; set; } = null!;
         public string? ColourCode { get; set; }
+        public bool IsActive {  get; set; }
 
     }
 

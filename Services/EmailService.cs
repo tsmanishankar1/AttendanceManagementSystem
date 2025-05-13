@@ -226,7 +226,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new leave requisition has been submitted.</p>
+                        <p>A new Leave requisition has been submitted.</p>
                         <p><strong>Leave Type:</strong> {leaveType}</p>
                         <p><strong>From Date:</strong> {fromDateFormatted}</p>
                         <p><strong>To Date:</strong> {toDateFormatted}</p>
@@ -304,7 +304,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new permission request has been submitted.</p>
+                        <p>A new Permission request has been submitted.</p>
                         <p><strong>Permission Date:</strong> {permissionDateFormatted}</p>
                         <p><strong>Start Time:</strong> {startTimeFormatted}</p>
                         <p><strong>End Time:</strong> {endTimeFormatted}</p>
@@ -380,7 +380,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new manual punch requisition has been submitted.</p>
+                        <p>A new Manual Punch requisition has been submitted.</p>
                         <p><strong>Select Punch:</strong> {selectPunch}</p>";
 
                         if (inPunch.HasValue)
@@ -420,7 +420,7 @@ namespace AttendanceManagement.Services
                     if(staff != null)
                     {
                         var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                        string subject = "New On-Duty Requisition Submitted";
+                        string subject = "New On Duty Requisition Submitted";
                         var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
 
                         string Base64UrlEncode(string input)
@@ -472,7 +472,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new on-duty requisition has been submitted.</p>
+                        <p>A new On Duty requisition has been submitted.</p>
                         {details}
                         <p><strong>Reason:</strong> {reason}</p>
                         <p><strong>Requested By:</strong> {creatorName}</p>
@@ -555,7 +555,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new business travel requisition has been submitted.</p>
+                        <p>A new Business Travel requisition has been submitted.</p>
                         {details}
                         <p><strong>Reason:</strong> {reason}</p>
                         <p><strong>Requested By:</strong> {creatorName}</p>
@@ -638,7 +638,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new work from home requisition has been submitted.</p>
+                        <p>A new Work From Home requisition has been submitted.</p>
                         {details}
                         <p><strong>Reason:</strong> {reason}</p>
                         <p><strong>Requested By:</strong> {creatorName}</p>
@@ -711,7 +711,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new shift change requisition has been submitted.</p>
+                        <p>A new Shift Change requisition has been submitted.</p>
                         {details}
                         <p><strong>Reason:</strong> {reason}</p>
                         <p><strong>Requested By:</strong> {creatorName}</p>
@@ -788,7 +788,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new shift extension requisition has been submitted.</p>
+                        <p>A new Shift Extension requisition has been submitted.</p>
                         {details}
                         <p><strong>Remarks:</strong> {remarks}</p>
                         <p><strong>Requested By:</strong> {creatorName}</p>
@@ -820,7 +820,7 @@ namespace AttendanceManagement.Services
                     if(staff != null)
                     {
                         var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                        string subject = "Weekly Off/Holiday Working Request Submitted";
+                        string subject = "Weekly Off/ Holiday Working Request Submitted";
                         string Base64UrlEncode(string input)
                         {
                             return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
@@ -858,7 +858,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new weekly off/holiday working request has been submitted.</p>
+                        <p>A new Weekly Off/ Holiday Working request has been submitted.</p>
                         <p><strong>Shift:</strong> {shiftName}</p>
                         <p><strong>Transaction Date:</strong> {txnDate:dd-MMM-yyyy}</p>";
 
@@ -895,7 +895,7 @@ namespace AttendanceManagement.Services
                 if (receiver != null)
                 {
                     var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                    string subject = "Comp-Off Credit Request Submitted";
+                    string subject = "CompOff Credit Request Submitted";
                     string Base64UrlEncode(string input)
                     {
                         return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
@@ -935,7 +935,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new Comp-Off credit request has been submitted.</p>
+                        <p>A new CompOff Credit request has been submitted.</p>
                         <p><strong>Worked Date:</strong> {workedDate:dd-MMM-yyyy}</p>
                         <p><strong>Total Days Credited:</strong> {totalDays}</p>
                         <p><strong>Updated Balance:</strong> {balance}</p>
@@ -969,7 +969,7 @@ namespace AttendanceManagement.Services
                     if(staff != null)
                     {
                         var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                        string subject = "Comp-Off Avail Request Submitted";
+                        string subject = "CompOff Avail Request Submitted";
                         string Base64UrlEncode(string input)
                         {
                             return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
@@ -1005,9 +1005,9 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new Comp-Off avail request has been submitted.</p>
+                        <p>A new CompOff Avail request has been submitted.</p>
                         <p><strong>Worked Date:</strong> {workedDate:dd-MMM-yyyy}</p>
-                        <p><strong>Comp-Off Period:</strong> {fromDate:dd-MMM-yyyy} to {toDate:dd-MMM-yyyy}</p>
+                        <p><strong>CompOff Period:</strong> {fromDate:dd-MMM-yyyy} to {toDate:dd-MMM-yyyy}</p>
                         <p><strong>Total Days:</strong> {totalDays}</p>
                         <p><strong>Reason:</strong> {reason}</p>
                         <p><strong>Requested By:</strong> {staffName}</p>
@@ -1075,7 +1075,7 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new reimbursement request has been submitted.</p>
+                        <p>A new Reimbursement request has been submitted.</p>
                         <p><strong>Requested By:</strong> {staffName}</p>
                         <p><strong>Department:</strong> {department}</p>
                         <p><strong>Bill Date:</strong> {billDate:dd-MMM-yyyy}</p>

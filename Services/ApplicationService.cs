@@ -589,7 +589,7 @@ public class ApplicationService
             .Where(hm => hm.HolidayCalendarTransactions.Any(x => ((x.FromDate.Month == month && x.FromDate.Year == year) || (x.ToDate.Month == month && x.ToDate.Year == year))))
             .Select(hm => new
             {
-                HolidayName = hm.HolidayName,
+                HolidayName = hm.Name,
                 Transactions = hm.HolidayCalendarTransactions
                     .Where(x => (x.FromDate.Month == month && x.FromDate.Year == year) || (x.ToDate.Month == month && x.ToDate.Year == year))
                     .Select(x => new { x.FromDate, x.ToDate })
@@ -709,6 +709,17 @@ public class ApplicationService
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var existingLeaves = await _context.CompOffCredits
+        .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) && lr.WorkedDate <= compOffCreditDto.WorkedDate)
+        .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.WorkedDate == compOffCreditDto.WorkedDate;
+            if (sameStartDate)
+            {
+                throw new ConflictException("CompOff Credit request already exists");
+            }
+        }
         var lastBalance = await _context.CompOffCredits
             .Where(c => (c.StaffId ?? c.CreatedBy) == staffOrCreatorId)
             .OrderByDescending(c => c.Id)
@@ -769,17 +780,80 @@ public class ApplicationService
         {
             throw new ConflictException("WorkedDate does not match the date in CompOffCredit");
         }
+        var isHolidayWorkingExist = await _context.CompOffAvails.AnyAsync(h => h.WorkedDate == request.WorkedDate && (h.StaffId ?? h.CreatedBy) == staffOrCreatorId);
+        if (!isHolidayWorkingExist)
+        {
+            throw new ConflictException("CompOff Avail request already exists for the requested worked date");
+        }
+        var existingLeaves = await _context.CompOffAvails
+        .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                     (lr.FromDate <= request.ToDate &&
+                      lr.ToDate >= request.FromDate))
+        .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.FromDate == request.FromDate;
+            bool sameEndDate = existingLeave.ToDate == request.ToDate;
+            bool sameDay = request.FromDate == request.ToDate &&
+                           existingLeave.FromDate == existingLeave.ToDate &&
+                           existingLeave.FromDate == request.FromDate;
+
+            // Allow complementary half-days on the same start date
+            if (sameStartDate &&
+                ((existingLeave.FromDuration == "First Half" && request.FromDuration == "Second Half") ||
+                 (existingLeave.FromDuration == "Second Half" && request.FromDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-days on the same end date
+            if (sameEndDate &&
+                ((existingLeave.ToDuration == "First Half" && request.ToDuration == "Second Half") ||
+                 (existingLeave.ToDuration == "Second Half" && request.ToDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-day request on same single day
+            if (sameDay)
+            {
+                if ((existingLeave.FromDuration == "First Half" && request.FromDuration == "Second Half") ||
+                    (existingLeave.FromDuration == "Second Half" && request.FromDuration == "First Half"))
+                {
+                    continue;
+                }
+
+                if (existingLeave.FromDuration == request.FromDuration)
+                {
+                    throw new ConflictException("CompOff Avail request already exists");
+                }
+            }
+
+            // Prevent full day overlap
+            if ((existingLeave.FromDuration == "Full Day" || request.FromDuration == "Full Day") ||
+                (existingLeave.ToDuration == "Full Day" || request.ToDuration == "Full Day"))
+            {
+                throw new ConflictException("CompOff Avail request already exists");
+            }
+
+            // Prevent general date overlap
+            if (existingLeave.FromDate <= request.ToDate &&
+                existingLeave.ToDate >= request.FromDate)
+            {
+                throw new ConflictException("CompOff Avail request already exists");
+            }
+        }
         var lastCompOffCredit = await _context.CompOffCredits
             .Where(c => (c.StaffId ?? c.CreatedBy) == staffOrCreatorId)
             .OrderByDescending(c => c.CreatedUtc)
             .FirstOrDefaultAsync();
         if (lastCompOffCredit == null)
         {
-            throw new MessageNotFoundException("No Comp-Off Credit record found");
+            throw new MessageNotFoundException("No CompOff Credit record found");
         }
         if (lastCompOffCredit.Balance == 0)
         {
-            throw new ConflictException("No Comp-Off Credit balance found");
+            throw new ConflictException("No CompOff Credit balance found");
         }
         var compOff = new CompOffAvail
         {
@@ -798,6 +872,14 @@ public class ApplicationService
         };
         await _context.CompOffAvails.AddAsync(compOff);
         await _context.SaveChangesAsync();
+
+        if (lastCompOffCredit.TotalDays == 0) throw new MessageNotFoundException("Insufficient CompOff balance found");
+        if (lastCompOffCredit != null && lastCompOffCredit.Balance > 0)
+        {
+            lastCompOffCredit.Balance = (lastCompOffCredit.Balance ?? 0) - (int)compOff.TotalDays;
+            lastCompOffCredit.UpdatedBy = staffOrCreatorId;
+            lastCompOffCredit.UpdatedUtc = DateTime.UtcNow;
+        }
 
         string requestDateTime = compOff.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
@@ -1412,7 +1494,7 @@ public class ApplicationService
 
             if (!getWeeklyOffHolidayWorking.Any())
             {
-                throw new MessageNotFoundException("No Weekly Off/Holiday Working requisitions found");
+                throw new MessageNotFoundException("No Weekly Off/ Holiday Working requisitions found");
             }
             result.AddRange(getWeeklyOffHolidayWorking.Cast<object>());
         }
@@ -1656,14 +1738,11 @@ public class ApplicationService
             if (leaveRequisitionRequest.StaffId != null) throw new ConflictException($"Insufficient leave balance found for Staff {staffName}");
             else throw new ConflictException("Insufficient leave balance found");
         }
-
         var existingLeaves = await _context.LeaveRequisitions
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.FromDate <= leaveRequisitionRequest.ToDate &&
-                       lr.ToDate >= leaveRequisitionRequest.FromDate) &&
-                      lr.IsActive)
+                       lr.ToDate >= leaveRequisitionRequest.FromDate))
          .ToListAsync();
-
         foreach (var existingLeave in existingLeaves)
         {
             bool sameStartDate = existingLeave.FromDate == leaveRequisitionRequest.FromDate;
@@ -1736,6 +1815,17 @@ public class ApplicationService
         await _context.LeaveRequisitions.AddAsync(leaveRequisition);
         await _context.SaveChangesAsync();
 
+        if (individualLeave != null && individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance >= leaveRequisition.TotalDays)
+        {
+            individualLeave.AvailableBalance = decimal.Subtract(individualLeave.AvailableBalance, leaveRequisition.TotalDays);
+            individualLeave.UpdatedBy = staffOrCreatorId;
+            individualLeave.UpdatedUtc = DateTime.UtcNow;
+        }
+        else
+        {
+            if (leaveRequisition.StaffId != null) throw new ConflictException($"Insufficient leave balance found for Staff {staffName}");
+            else throw new ConflictException("Insufficient leave balance found");
+        }
         string requestDateTime = leaveRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
@@ -1990,7 +2080,7 @@ public class ApplicationService
     private async Task AttendanceFreeze()
     {
         var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
-        if (!hasUnfreezed) throw new InvalidOperationException("You request cannot proceed attendance records are frozen");
+        if (!hasUnfreezed) throw new InvalidOperationException("Your request cannot proceed attendance records are frozen");
     }
 
     private async Task NotFoundMethod(int applicationTypeId)
@@ -2008,6 +2098,64 @@ public class ApplicationService
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var existingLeaves = await _context.OnDutyRequisitions
+         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                      (lr.StartDate <= request.EndDate &&
+                       lr.EndDate >= request.StartDate))
+         .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.StartDate == request.StartDate;
+            bool sameEndDate = existingLeave.EndDate == request.EndDate;
+            bool sameDay = request.StartDate == request.EndDate &&
+                           existingLeave.StartDate == existingLeave.EndDate &&
+                           existingLeave.StartDate == request.StartDate;
+
+            // Allow complementary half-days on the same start date
+            if (sameStartDate &&
+                ((existingLeave.StartDuration == "First Half" && request.StartDuration == "Second Half") ||
+                 (existingLeave.StartDuration == "Second Half" && request.StartDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-days on the same end date
+            if (sameEndDate &&
+                ((existingLeave.EndDuration == "First Half" && request.EndDuration == "Second Half") ||
+                 (existingLeave.EndDuration == "Second Half" && request.EndDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-day request on same single day
+            if (sameDay)
+            {
+                if ((existingLeave.StartDuration == "First Half" && request.StartDuration == "Second Half") ||
+                    (existingLeave.StartDuration == "Second Half" && request.StartDuration == "First Half"))
+                {
+                    continue;
+                }
+
+                if (existingLeave.StartDuration == request.StartDuration)
+                {
+                    throw new ConflictException("On Duty request already exists");
+                }
+            }
+
+            // Prevent full day overlap
+            if ((existingLeave.StartDuration == "Full Day" || request.StartDuration == "Full Day") ||
+                (existingLeave.EndDuration == "Full Day" || request.EndDuration == "Full Day"))
+            {
+                throw new ConflictException("On Duty request already exists");
+            }
+
+            // Prevent general date overlap
+            if (existingLeave.StartDate <= request.EndDate &&
+                existingLeave.EndDate >= request.StartDate)
+            {
+                throw new ConflictException("On Duty request already exists");
+            }
+        }
         var onDutyRequisition = new OnDutyRequisition
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2066,6 +2214,64 @@ public class ApplicationService
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var existingLeaves = await _context.BusinessTravels
+         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                      (lr.FromDate <= request.ToDate &&
+                       lr.ToDate >= request.FromDate))
+         .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.FromDate == request.FromDate;
+            bool sameEndDate = existingLeave.ToDate == request.ToDate;
+            bool sameDay = request.FromDate == request.ToDate &&
+                           existingLeave.FromDate == existingLeave.ToDate &&
+                           existingLeave.FromDate == request.FromDate;
+
+            // Allow complementary half-days on the same start date
+            if (sameStartDate &&
+                ((existingLeave.StartDuration == "First Half" && request.StartDuration == "Second Half") ||
+                 (existingLeave.StartDuration == "Second Half" && request.StartDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-days on the same end date
+            if (sameEndDate &&
+                ((existingLeave.EndDuration == "First Half" && request.EndDuration == "Second Half") ||
+                 (existingLeave.EndDuration == "Second Half" && request.EndDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-day request on same single day
+            if (sameDay)
+            {
+                if ((existingLeave.StartDuration == "First Half" && request.StartDuration == "Second Half") ||
+                    (existingLeave.StartDuration == "Second Half" && request.StartDuration == "First Half"))
+                {
+                    continue;
+                }
+
+                if (existingLeave.StartDuration == request.StartDuration)
+                {
+                    throw new ConflictException("Business Travel request already exists");
+                }
+            }
+
+            // Prevent full day overlap
+            if ((existingLeave.StartDuration == "Full Day" || request.StartDuration == "Full Day") ||
+                (existingLeave.EndDuration == "Full Day" || request.EndDuration == "Full Day"))
+            {
+                throw new ConflictException("Business Travel request already exists");
+            }
+
+            // Prevent general date overlap
+            if (existingLeave.FromDate <= request.ToDate &&
+                existingLeave.ToDate >= request.FromDate)
+            {
+                throw new ConflictException("Business Travel request already exists");
+            }
+        }
         var businessTravel = new BusinessTravel
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2124,6 +2330,64 @@ public class ApplicationService
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var existingLeaves = await _context.WorkFromHomes
+         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                      (lr.FromDate <= request.ToDate &&
+                       lr.ToDate >= request.FromDate))
+         .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.FromDate == request.FromDate;
+            bool sameEndDate = existingLeave.ToDate == request.ToDate;
+            bool sameDay = request.FromDate == request.ToDate &&
+                           existingLeave.FromDate == existingLeave.ToDate &&
+                           existingLeave.FromDate == request.FromDate;
+
+            // Allow complementary half-days on the same start date
+            if (sameStartDate &&
+                ((existingLeave.StartDuration == "First Half" && request.StartDuration == "Second Half") ||
+                 (existingLeave.StartDuration == "Second Half" && request.StartDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-days on the same end date
+            if (sameEndDate &&
+                ((existingLeave.EndDuration == "First Half" && request.EndDuration == "Second Half") ||
+                 (existingLeave.EndDuration == "Second Half" && request.EndDuration == "First Half")))
+            {
+                continue;
+            }
+
+            // Allow complementary half-day request on same single day
+            if (sameDay)
+            {
+                if ((existingLeave.StartDuration == "First Half" && request.StartDuration == "Second Half") ||
+                    (existingLeave.StartDuration == "Second Half" && request.StartDuration == "First Half"))
+                {
+                    continue;
+                }
+
+                if (existingLeave.StartDuration == request.StartDuration)
+                {
+                    throw new ConflictException("Work From Home request already exists");
+                }
+            }
+
+            // Prevent full day overlap
+            if ((existingLeave.StartDuration == "Full Day" || request.StartDuration == "Full Day") ||
+                (existingLeave.EndDuration == "Full Day" || request.EndDuration == "Full Day"))
+            {
+                throw new ConflictException("Work From Home request already exists");
+            }
+
+            // Prevent general date overlap
+            if (existingLeave.FromDate <= request.ToDate &&
+                existingLeave.ToDate >= request.FromDate)
+            {
+                throw new ConflictException("Work From Home request already exists");
+            }
+        }
         var workFromHome = new WorkFromHome
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2205,6 +2469,21 @@ public class ApplicationService
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
         if (shiftName == null) throw new MessageNotFoundException("Shift not found");
+        var existingLeaves = await _context.ShiftChanges
+         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                      (lr.FromDate <= request.ToDate &&
+                       lr.ToDate >= request.FromDate) &&
+                      lr.IsActive)
+         .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            // Prevent general date overlap
+            if (existingLeave.FromDate <= request.ToDate &&
+                existingLeave.ToDate >= request.FromDate)
+            {
+                throw new ConflictException("shift Change request already exists");
+            }
+        }
         var shiftChange = new ShiftChange
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2255,6 +2534,18 @@ public class ApplicationService
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var existingLeaves = await _context.ShiftExtensions
+         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                      (lr.TransactionDate == request.TransactionDate))
+         .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.TransactionDate == request.TransactionDate;
+            if (sameStartDate)
+            {
+                throw new ConflictException("Shift Extension request already exists");
+            }
+        }
         var shiftExtension = new ShiftExtension
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2299,7 +2590,7 @@ public class ApplicationService
 
     public async Task<string> CreateWeeklyOffHolidayWorkingAsync(WeeklyOffHolidayWorkingDto request)
     {
-        var message = "Weekly Off/Holiday Working request submitted successfully";
+        var message = "Weekly Off/ Holiday Working request submitted successfully";
         await AttendanceFreeze();
         await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
@@ -2308,6 +2599,18 @@ public class ApplicationService
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
         var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
         if (shiftName == null) throw new MessageNotFoundException("Shift not found");
+        var existingLeaves = await _context.WeeklyOffHolidayWorkings
+        .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
+                     (lr.TxnDate == request.TxnDate))
+        .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.TxnDate == request.TxnDate;
+            if (sameStartDate)
+            {
+                throw new ConflictException("WeeklyOff/ Holiday Working request already exists");
+            }
+        }
         var weeklyOffHolidayWorking = new WeeklyOffHolidayWorking
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2361,6 +2664,17 @@ public class ApplicationService
         var staffName = $"{staffId.FirstName} {staffId.LastName}";
         bool reimbursementExists = await _context.Reimbursements.AnyAsync(r => r.BillNo == request.BillNo);
         if (reimbursementExists) throw new ConflictException($"Reimbursement with Bill No {request.BillNo} already exists.");
+        var existingLeaves = await _context.Reimbursements
+        .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) && lr.BillNo == request.BillNo)
+        .ToListAsync();
+        foreach (var existingLeave in existingLeaves)
+        {
+            bool sameStartDate = existingLeave.BillNo == request.BillNo;
+            if (sameStartDate)
+            {
+                throw new ConflictException("Reimbursement request already exists");
+            }
+        }
         string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         string fileUploadPath = string.Empty;
         var reimbursementType = await _context.ReimbursementTypes.Where(s => s.Id == request.ReimbursementTypeId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();

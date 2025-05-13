@@ -195,7 +195,7 @@ namespace AttendanceManagement.Services
                 .Select(h => new
                 {
                     Id = h.Id,
-                    HolidayName = h.HolidayMaster.HolidayName,
+                    HolidayName = h.HolidayMaster.Name,
                     FromDate = h.FromDate,
                     ToDate = h.ToDate
                 })

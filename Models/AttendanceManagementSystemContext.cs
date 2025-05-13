@@ -1917,7 +1917,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.HolidayName)
+            entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc)

@@ -55,7 +55,7 @@ namespace AttendanceManagement.Services
                         {
                             if (leave.Status1 == null)
                             {
-                                var individualLeave = await _context.IndividualLeaveCreditDebits
+                                /*var individualLeave = await _context.IndividualLeaveCreditDebits
                                     .Where(l => l.StaffCreationId == staffOrCreatorId
                                                 && l.LeaveTypeId == leave.LeaveTypeId
                                                 && l.IsActive == true)
@@ -71,7 +71,7 @@ namespace AttendanceManagement.Services
                                 {
                                     if (leave.StaffId != null) throw new ConflictException($"Insufficient leave balance found for Staff {staffName}");
                                     else throw new ConflictException("Insufficient leave balance found");
-                                }
+                                }*/
                                 leave.Status1 = true;
                                 leave.IsActive = false;
                                 leave.UpdatedBy = approveLeaveRequest.ApprovedBy;
@@ -90,7 +90,7 @@ namespace AttendanceManagement.Services
                         {
                             if (leave.Status1 == null)
                             {
-                                var individualLeave = await _context.IndividualLeaveCreditDebits
+                               /* var individualLeave = await _context.IndividualLeaveCreditDebits
                                     .Where(l => l.StaffCreationId == staffOrCreatorId
                                                 && l.LeaveTypeId == leave.LeaveTypeId
                                                 && l.IsActive == true)
@@ -106,7 +106,7 @@ namespace AttendanceManagement.Services
                                 {
                                     if (leave.StaffId != null) throw new ConflictException($"Insufficient leave balance found for Staff {staffName}");
                                     else throw new ConflictException("Insufficient leave balance found");
-                                }
+                                }*/
                                 leave.Status1 = true;
                                 leave.UpdatedBy = approveLeaveRequest.ApprovedBy;
                                 leave.UpdatedUtc = DateTime.UtcNow;
@@ -121,7 +121,7 @@ namespace AttendanceManagement.Services
                             }
                             else if (leave.Status1 == true && leave.Status2 == null)
                             {
-                                var individualLeave = await _context.IndividualLeaveCreditDebits
+                                /*var individualLeave = await _context.IndividualLeaveCreditDebits
                                     .Where(l => l.StaffCreationId == staffOrCreatorId
                                                 && l.LeaveTypeId == leave.LeaveTypeId
                                                 && l.IsActive == true)
@@ -144,7 +144,7 @@ namespace AttendanceManagement.Services
                                     {
                                         throw new MessageNotFoundException("Insufficient leave balance found");
                                     }
-                                }
+                                }*/
                                 leave.Status2 = true;
                                 leave.IsActive = false;
                                 leave.ApprovedBy = approveLeaveRequest.ApprovedBy;
@@ -166,7 +166,7 @@ namespace AttendanceManagement.Services
                         var notification = new ApprovalNotification
                         {
                             StaffId = leave.CreatedBy,
-                            Message = $"Your leave request has been approved. Approved by - {approverName} on {approvedTime}",
+                            Message = $"Your Leave request has been approved. Approved by - {approverName} on {approvedTime}",
                             IsActive = true,
                             CreatedBy = approveLeaveRequest.ApprovedBy,
                             CreatedUtc = DateTime.UtcNow
@@ -217,6 +217,23 @@ namespace AttendanceManagement.Services
                             {
                                 throw new ConflictException("Leave request has already been rejected");
                             }
+                            var individualLeave = await _context.IndividualLeaveCreditDebits
+                                    .Where(l => l.StaffCreationId == staffOrCreatorId
+                                                && l.LeaveTypeId == leave.LeaveTypeId
+                                                && l.IsActive == true)
+                                    .OrderByDescending(l => l.Id)
+                                    .FirstOrDefaultAsync();
+                            if (individualLeave != null)
+                            {
+                                individualLeave.AvailableBalance = decimal.Add(individualLeave.AvailableBalance, leave.TotalDays);
+                                individualLeave.UpdatedBy = approveLeaveRequest.ApprovedBy;
+                                individualLeave.UpdatedUtc = DateTime.UtcNow;
+                            }
+                            else
+                            {
+                                if (leave.StaffId != null) throw new MessageNotFoundException($"Leave balance not found for Staff {staffName}");
+                                else throw new ConflictException("Leave balance not found");
+                            }
                             if (leave.Status1 == null)
                             {
                                 leave.Status1 = false;
@@ -227,6 +244,23 @@ namespace AttendanceManagement.Services
                         }
                         else if (staff.ApprovalLevel2 != null)
                         {
+                            var individualLeave = await _context.IndividualLeaveCreditDebits
+                                   .Where(l => l.StaffCreationId == staffOrCreatorId
+                                               && l.LeaveTypeId == leave.LeaveTypeId
+                                               && l.IsActive == true)
+                                   .OrderByDescending(l => l.Id)
+                                   .FirstOrDefaultAsync();
+                            if (individualLeave != null)
+                            {
+                                individualLeave.AvailableBalance = decimal.Add(individualLeave.AvailableBalance, leave.TotalDays);
+                                individualLeave.UpdatedBy = approveLeaveRequest.ApprovedBy;
+                                individualLeave.UpdatedUtc = DateTime.UtcNow;
+                            }
+                            else
+                            {
+                                if (leave.StaffId != null) throw new MessageNotFoundException($"Leave balance not found for Staff {staffName}");
+                                else throw new ConflictException("Leave balance not found");
+                            }
                             if (leave.Status1 == null)
                             {
                                 leave.Status1 = false;
@@ -265,7 +299,7 @@ namespace AttendanceManagement.Services
                         var notification = new ApprovalNotification
                         {
                             StaffId = leave.CreatedBy,
-                            Message = $"Your leave request has been rejected. Rejected by - {approverName} on {approvedTime}",
+                            Message = $"Your Leave request has been rejected. Rejected by - {approverName} on {approvedTime}",
                             IsActive = true,
                             CreatedBy = approveLeaveRequest.ApprovedBy,
                             CreatedUtc = DateTime.UtcNow
@@ -305,7 +339,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 2)
                 {
                     var permissionRequest = await _context.CommonPermissions.FirstOrDefaultAsync(l => l.Id == item.Id);
-                    if (permissionRequest == null) throw new MessageNotFoundException("Permission request not found");
+                    if (permissionRequest == null) throw new MessageNotFoundException("Common Permission request not found");
                     var permissionType = await _context.PermissionTypes.Where(l => l.Name == permissionRequest.PermissionType && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
                     var staffOrCreatorId = permissionRequest.StaffId ?? permissionRequest.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -381,8 +415,8 @@ namespace AttendanceManagement.Services
                     string approvedTime = permissionRequest!.UpdatedUtc.HasValue ? permissionRequest.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Common Permission request approved successfully" : "Common Permission request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your common permission request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your common permission request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Common Permission request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Common Permission request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = permissionRequest.CreatedBy,
@@ -430,7 +464,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 3)
                 {
                     var manualPunch = await _context.ManualPunchRequistions.FirstOrDefaultAsync(m => m.Id == item.Id);
-                    if (manualPunch == null) throw new MessageNotFoundException("Manual punch request not found");
+                    if (manualPunch == null) throw new MessageNotFoundException("Manual Punch request not found");
                     //var punchType = manualPunch.SelectPunch;
                     var staffOrCreatorId = manualPunch.StaffId ?? manualPunch.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
@@ -505,10 +539,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = manualPunch!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = manualPunch.UpdatedUtc.HasValue ? manualPunch.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Manual punch request approved successfully" : "Manual punch request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "Manual Punch request approved successfully" : "Manual Punch request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your manual punch request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your manual punch request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Manual Punch request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Manual Punch request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = manualPunch.CreatedBy,
@@ -551,7 +585,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 4)
                 {
                     var onDuty = await _context.OnDutyRequisitions.FirstOrDefaultAsync(o => o.Id == item.Id);
-                    if (onDuty == null) throw new MessageNotFoundException("On duty request not found");
+                    if (onDuty == null) throw new MessageNotFoundException("On Duty request not found");
                     var staffOrCreatorId = onDuty.StaffId ?? onDuty.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -622,10 +656,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = onDuty!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = onDuty.UpdatedUtc.HasValue ? onDuty.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "On-duty request approved successfully" : "On-duty request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "On Duty request approved successfully" : "On Duty request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your on-duty request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your on-duty request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your On Duty request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your On Duty request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = onDuty.CreatedBy,
@@ -671,7 +705,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 5)
                 {
                     var businessTravel = await _context.BusinessTravels.FirstOrDefaultAsync(l => l.Id == item.Id);
-                    if (businessTravel == null) throw new MessageNotFoundException("Business travel request not found");
+                    if (businessTravel == null) throw new MessageNotFoundException("Business Travel request not found");
                     var staffOrCreatorId = businessTravel.StaffId ?? businessTravel.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -745,10 +779,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = businessTravel!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = businessTravel.UpdatedUtc.HasValue ? businessTravel.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Business travel request approved successfully" : "Business travel request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "Business Travel request approved successfully" : "Business Travel request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your business travel request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your business travel request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Business Travel request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Business Travel request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = businessTravel.CreatedBy,
@@ -794,7 +828,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 6)
                 {
                     var workFromHome = await _context.WorkFromHomes.FirstOrDefaultAsync(l => l.Id == item.Id);
-                    if (workFromHome == null) throw new MessageNotFoundException("Work from home request not found");
+                    if (workFromHome == null) throw new MessageNotFoundException("Work From Home request not found");
                     var staffOrCreatorId = workFromHome.StaffId ?? workFromHome.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -868,10 +902,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = workFromHome!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = workFromHome.UpdatedUtc.HasValue ? workFromHome.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Work from home request approved successfully" : "Work from home request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "Work From Home request approved successfully" : "Work From Home request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your work from home request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your work from home request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Work From Home request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Work From Home request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = workFromHome.CreatedBy,
@@ -917,7 +951,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 7)
                 {
                     var shiftChange = await _context.ShiftChanges.FirstOrDefaultAsync(l => l.Id == item.Id);
-                    if (shiftChange == null) throw new MessageNotFoundException("Shift change request not found");
+                    if (shiftChange == null) throw new MessageNotFoundException("Shift Change request not found");
                     var staffOrCreatorId = shiftChange.StaffId ?? shiftChange.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -968,7 +1002,6 @@ namespace AttendanceManagement.Services
                             {
                                 string statusMessage = shiftChange!.Status2 == true
                                        ? "Shift Change request has already been approved." : "Shift Change request has already been rejected.";
-
                                 throw new ConflictException(statusMessage);
                             }
                         }
@@ -994,10 +1027,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = shiftChange!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = shiftChange.UpdatedUtc.HasValue ? shiftChange.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Shift change request approved successfully" : "Shift change request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "Shift Change request approved successfully" : "Shift Change request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your shift change request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your shift change request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Shift Change request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Shift Change request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = shiftChange.CreatedBy,
@@ -1040,7 +1073,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 8)
                 {
                     var shiftExtension = await _context.ShiftExtensions.FirstOrDefaultAsync(s => s.Id == item.Id);
-                    if (shiftExtension == null) throw new MessageNotFoundException("Shift extension request not found");
+                    if (shiftExtension == null) throw new MessageNotFoundException("Shift Extension request not found");
                     var staffOrCreatorId = shiftExtension.StaffId ?? shiftExtension.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -1114,10 +1147,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = shiftExtension!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = shiftExtension.UpdatedUtc.HasValue ? shiftExtension.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Shift extension request approved successfully" : "Shift extension request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "Shift Extension request approved successfully" : "Shift Extension request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your shift extension request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your shift extension request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Shift Extension request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Shift Extension request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = shiftExtension.CreatedBy,
@@ -1161,7 +1194,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 9)
                 {
                     var weeklyOffHoliday = await _context.WeeklyOffHolidayWorkings.FirstOrDefaultAsync(w => w.Id == item.Id);
-                    if (weeklyOffHoliday == null) throw new MessageNotFoundException("Weekly off/holiday working request not found");
+                    if (weeklyOffHoliday == null) throw new MessageNotFoundException("Weekly Off/ Holiday Working request not found");
                     var staffOrCreatorId = weeklyOffHoliday.StaffId ?? weeklyOffHoliday.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -1179,7 +1212,7 @@ namespace AttendanceManagement.Services
                             if (weeklyOffHolidayRequest1.Status1.HasValue && weeklyOffHolidayRequest1.Status1 != null)
                             {
                                 string statusMessage = weeklyOffHoliday.Status1 == true
-                                       ? "Weekly Off/Holiday Working request has already been approved." : "Weekly Off/Holiday Working request has already been rejected.";
+                                       ? "Weekly Off/ Holiday Working request has already been approved." : "Weekly Off/ Holiday Working request has already been rejected.";
                                 throw new ConflictException(statusMessage);
                             }
                         }
@@ -1200,7 +1233,7 @@ namespace AttendanceManagement.Services
                             if (weeklyOffHolidayRequest1.Status1.HasValue && weeklyOffHolidayRequest1.Status1 != null)
                             {
                                 string statusMessage = weeklyOffHoliday!.Status1 == true
-                                       ? "Weekly Off/Holiday Working request has already been approved." : "Weekly Off/Holiday Working request has already been rejected.";
+                                       ? "Weekly Off/ Holiday Working request has already been approved." : "Weekly Off/ Holiday Working request has already been rejected.";
                                 throw new ConflictException(statusMessage);
                             }
                         }
@@ -1211,7 +1244,7 @@ namespace AttendanceManagement.Services
                             if (weeklyOffHolidayRequest2.Status2.HasValue && weeklyOffHolidayRequest2.Status2 != null)
                             {
                                 string statusMessage = weeklyOffHoliday!.Status2 == true
-                                       ? "Weekly Off/Holiday Working request has already been approved." : "Weekly Off/Holiday Working request has already been rejected.";
+                                       ? "Weekly Off/ Holiday Working request has already been approved." : "Weekly Off/ Holiday Working request has already been rejected.";
                                 throw new ConflictException(statusMessage);
                             }
                         }
@@ -1237,10 +1270,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = weeklyOffHoliday!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = weeklyOffHoliday.UpdatedUtc.HasValue ? weeklyOffHoliday.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Weekly off/holiday working request approved successfully" : "Weekly off/holiday working request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "Weekly Off/ Holiday Working request approved successfully" : "Weekly Off/ Holiday Working request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your weekly off/holiday working request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your weekly off/holiday working request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Weekly Off/ Holiday Working request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Weekly Off/ Holiday Working request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = weeklyOffHoliday.CreatedBy,
@@ -1283,8 +1316,8 @@ namespace AttendanceManagement.Services
                 }
                 else if (approveLeaveRequest.ApplicationTypeId == 10)
                 {
-                    var compOffAvail = await _context.CompOffAvails.FirstOrDefaultAsync(c => c.Id == item.Id && c.IsActive);
-                    if (compOffAvail == null) throw new MessageNotFoundException("Compoff avail request not found");
+                    var compOffAvail = await _context.CompOffAvails.FirstOrDefaultAsync(c => c.Id == item.Id);
+                    if (compOffAvail == null) throw new MessageNotFoundException("CompOff Avail request not found");
                     var staffOrCreatorId = compOffAvail.StaffId ?? compOffAvail.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -1354,7 +1387,7 @@ namespace AttendanceManagement.Services
                             compOffAvail.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-                    if (approveLeaveRequest.IsApproved)
+/*                    if (approveLeaveRequest.IsApproved)
                     {
                         if (approver2 == null)
                         {
@@ -1391,14 +1424,14 @@ namespace AttendanceManagement.Services
                             }
                         }
                     }
-                    await _context.SaveChangesAsync();
+*/                    await _context.SaveChangesAsync();
 
                     string requestedTime = compOffAvail!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = compOffAvail.UpdatedUtc.HasValue ? compOffAvail.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Comp-Off Avail request approved successfully" : "Comp-Off Avail request rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "CompOff Avail request approved successfully" : "CompOff Avail request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your Comp-Off avail request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your Comp-Off avail request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your CompOff Avail request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your CompOff Avail request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = compOffAvail.CreatedBy,
@@ -1442,7 +1475,7 @@ namespace AttendanceManagement.Services
                 else if (approveLeaveRequest.ApplicationTypeId == 11)
                 {
                     var compOffCredit = await _context.CompOffCredits.FirstOrDefaultAsync(c => c.Id == item.Id);
-                    if (compOffCredit == null) throw new MessageNotFoundException("Compoff credit request not found");
+                    if (compOffCredit == null) throw new MessageNotFoundException("Compoff Credit request not found");
                     var staffOrCreatorId = compOffCredit.StaffId ?? compOffCredit.CreatedBy;
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
@@ -1533,10 +1566,10 @@ namespace AttendanceManagement.Services
 
                     string requestedTime = compOffCredit!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = compOffCredit.UpdatedUtc.HasValue ? compOffCredit.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                    message = approveLeaveRequest.IsApproved ? "Comp-Off Credit request approved successfully" : "Comp-Off request Credit rejected successfully";
+                    message = approveLeaveRequest.IsApproved ? "CompOff Credit request approved successfully" : "CompOff Credit request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your Comp-Off credit has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your Comp-Off credit has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your CompOff Credit request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your CompOff Credit request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = compOffCredit.CreatedBy,
@@ -1654,7 +1687,9 @@ namespace AttendanceManagement.Services
                     string requestedTime = reimbursementRequest!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = reimbursementRequest.UpdatedUtc.HasValue ? reimbursementRequest.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Reimbursement request approved successfully" : "Reimbursement request rejected successfully";
-                    var notificationMessage = $"Your reimbursement request has been approved. Approved by - {approverName} on {approvedTime}";
+                    var notificationMessage = approveLeaveRequest.IsApproved
+                        ? $"Your Reimbursement request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Reimbursement request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = reimbursementRequest.CreatedBy,

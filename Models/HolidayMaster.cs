@@ -7,7 +7,7 @@ public partial class HolidayMaster
 {
     public int Id { get; set; }
 
-    public string HolidayName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public int HolidayTypeId { get; set; }
 
