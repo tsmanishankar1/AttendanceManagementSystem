@@ -270,6 +270,12 @@ namespace AttendanceManagement.Input_Models
         public string? BankIfscCode { get; set; }
         [MaxLength(50)]
         public string? BankBranch { get; set; }
+        [MaxLength(50)]
+        public string? PanNo { get; set; }
+        [MaxLength(50)]
+        public string? PassportNo { get; set; }
+        [MaxLength(50)]
+        public string? DrivingLicense { get; set; }
         [MaxLength(200)]
         public string HomeAddress { get; set; } = null!;
         [MaxLength(100)]
@@ -410,6 +416,7 @@ namespace AttendanceManagement.Input_Models
         public string? ShiftName { get; set; }
         public string? Status { get; set; }
         public string? LoginUserName { get; set; }
+        public string? AccessLevel {  get; set; }
         public bool? IncludeTerminated { get; set; }
     }
 

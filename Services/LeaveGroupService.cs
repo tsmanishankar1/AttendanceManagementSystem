@@ -87,10 +87,18 @@ namespace AttendanceManagement.Services
             existingLeaveGroup.IsActive = leaveGroup.IsActive;
             existingLeaveGroup.UpdatedBy = leaveGroup.UpdatedBy;
             existingLeaveGroup.UpdatedUtc = DateTime.UtcNow;
-
+            if (!leaveGroup.IsActive)
+            {
+                foreach (var transaction in existingLeaveGroup.LeaveGroupTransactions.Where(t => t.IsActive))
+                {
+                    transaction.IsActive = false;
+                    transaction.UpdatedBy = leaveGroup.UpdatedBy;
+                    transaction.UpdatedUtc = DateTime.UtcNow;
+                }
+            }
             await _context.SaveChangesAsync();
 
-            if (leaveGroup.LeaveTypeIds != null)
+            if (leaveGroup.IsActive && leaveGroup.LeaveTypeIds != null)
             {
                 var existingLeaveGroupTransactions = await _context.LeaveGroupTransactions.Where(lgt => lgt.LeaveGroupId == leaveGroup.LeaveGroupId && lgt.IsActive).ToListAsync();
                 foreach (var transaction in existingLeaveGroupTransactions)

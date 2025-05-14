@@ -12,14 +12,10 @@ using Org.BouncyCastle.Asn1.Ocsp;
 public class ExcelImportService
 {
     private readonly AttendanceManagementSystemContext _context;
-    private readonly IConfiguration _configuration;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly string _workspacePath = "ExcelTemplates";
-    public ExcelImportService(AttendanceManagementSystemContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+    public ExcelImportService(AttendanceManagementSystemContext context)
     {
         _context = context;
-        _configuration = configuration;
-        _httpContextAccessor = httpContextAccessor;
         var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _workspacePath);
         if (!Directory.Exists(uploadPath))
         {
@@ -27,22 +23,22 @@ public class ExcelImportService
         }
     }
 
-    public async Task<byte[]> GetExcelTemplateBytes(int excelImportId)
-    {
-        var excelTemplate = await _context.ExcelImports.FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
-        if (excelTemplate == null)
+    /*    public async Task<byte[]> GetExcelTemplateBytes(int excelImportId)
         {
-            throw new MessageNotFoundException("Excel template not found");
+            var excelTemplate = await _context.ExcelImports.FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
+            if (excelTemplate == null)
+            {
+                throw new MessageNotFoundException("Excel template not found");
+            }
+            string fileName = $"{excelTemplate.Name}.xlsx";
+            string filePath = Path.Combine(_workspacePath, fileName);
+            if (!System.IO.File.Exists(filePath))
+            {
+                throw new MessageNotFoundException("Excel template not found in workspace");
+            }
+            return await System.IO.File.ReadAllBytesAsync(filePath);
         }
-        string fileName = $"{excelTemplate.Name}.xlsx";
-        string filePath = Path.Combine(_workspacePath, fileName);
-        if (!System.IO.File.Exists(filePath))
-        {
-            throw new MessageNotFoundException("Excel template not found in workspace");
-        }
-        return await System.IO.File.ReadAllBytesAsync(filePath);
-    }
-
+    */
     public async Task<string> GetExcelTemplateFilePath(int excelImportId)
     {
         var excelTemplate = await _context.ExcelImports.FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
@@ -50,6 +46,7 @@ public class ExcelImportService
         {
             throw new MessageNotFoundException("Excel template not found");
         }
+
         string fileName = $"{excelTemplate.Name}.xlsx";
         return Path.Combine(_workspacePath, fileName);
     }
@@ -61,6 +58,14 @@ public class ExcelImportService
         {
             var excelImportType = await _context.ExcelImports.FirstOrDefaultAsync(e => e.Id == excelImportDto.ExcelImportId && e.IsActive);
             if (excelImportType == null) throw new MessageNotFoundException("Excel import type not found");
+            var fileExtension = Path.GetExtension(excelImportDto.File.FileName);
+            if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("Invalid file");
+            }
+            var expectedFileName = excelImportType.Name;
+            var uploadedFileName = Path.GetFileNameWithoutExtension(excelImportDto.File.FileName);
+            if (!string.Equals(expectedFileName, uploadedFileName, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Invalid file");
             var staffExists = await _context.StaffCreations.AnyAsync(s => s.Id == excelImportDto.CreatedBy && s.IsActive == true);
             if (!staffExists) throw new MessageNotFoundException($"Staff not found");
             using (var stream = new MemoryStream())
@@ -167,12 +172,12 @@ public class ExcelImportService
                     var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                     if (missingHeaders.Any())
                     {
-                        throw new ArgumentException($"Invalid Excel file for excel Import type {excelImportType.Name}. Missing headers: {string.Join(", ", missingHeaders)}");
+                        throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
                     }
                     var extraHeaders = headerRow.Except(requiredHeaders).ToList();
                     if (extraHeaders.Any())
                     {
-                        throw new ArgumentException($"Invalid Excel file for excel Import type {excelImportType.Name}. Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                        throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
                     }
                     var columnIndexes = requiredHeaders.ToDictionary(
                         header => header,
@@ -189,7 +194,7 @@ public class ExcelImportService
                                 var validDepartmentIds = _context.DepartmentMasters.Where(d => d.IsActive).Select(d => d.Id).ToHashSet();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var branchName = worksheet.Cells[row, columnIndexes["BranchName"]]?.Text.Trim();
+                                    var branchName = worksheet.Cells[row, columnIndexes["BranchName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(branchName))
                                     {
                                         continue;
@@ -199,7 +204,7 @@ public class ExcelImportService
                                     {
                                         continue;
                                     }
-                                    var approvalLevel1 = worksheet.Cells[row, columnIndexes["ApprovalLevel1"]]?.Text.Trim();
+                                    var approvalLevel1 = worksheet.Cells[row, columnIndexes["ApprovalLevel1"]].Text.Trim();
                                     if (string.IsNullOrEmpty(approvalLevel1))
                                     {
                                         continue;
@@ -221,91 +226,91 @@ public class ExcelImportService
                                     {
                                         continue;
                                     }
-                                    var departmentName = worksheet.Cells[row, columnIndexes["DepartmentName"]]?.Text.Trim();
+                                    var departmentName = worksheet.Cells[row, columnIndexes["DepartmentName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(departmentName))
                                     {
                                         continue;
                                     }
                                     var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == departmentName.ToLower() && d.IsActive);
                                     if (department == null) throw new MessageNotFoundException($"Department '{departmentName}' not found");
-                                    var statusName = worksheet.Cells[row, columnIndexes["StatusName"]]?.Text.Trim();
+                                    var statusName = worksheet.Cells[row, columnIndexes["StatusName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(statusName))
                                     {
                                         continue;
                                     }
                                     var status = await _context.Statuses.FirstOrDefaultAsync(d => d.Name.ToLower() == statusName.ToLower() && d.IsActive);
                                     if (status == null) throw new MessageNotFoundException($"Status '{statusName}' not found");
-                                    var divisionName = worksheet.Cells[row, columnIndexes["DivisionName"]]?.Text.Trim();
+                                    var divisionName = worksheet.Cells[row, columnIndexes["DivisionName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(divisionName))
                                     {
                                         continue;
                                     }
                                     var division = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == divisionName.ToLower() && d.IsActive);
                                     if (division == null) throw new MessageNotFoundException($"Division '{divisionName}' not found");
-                                    var designationName = worksheet.Cells[row, columnIndexes["DesignationName"]]?.Text.Trim();
+                                    var designationName = worksheet.Cells[row, columnIndexes["DesignationName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(designationName))
                                     {
                                         continue;
                                     }
                                     var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
                                     if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
-                                    var gradeName = worksheet.Cells[row, columnIndexes["GradeName"]]?.Text.Trim();
+                                    var gradeName = worksheet.Cells[row, columnIndexes["GradeName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(gradeName))
                                     {
                                         continue;
                                     }
                                     var grade = await _context.GradeMasters.FirstOrDefaultAsync(g => g.Name.ToLower() == gradeName.ToLower() && g.IsActive);
                                     if (grade == null) throw new MessageNotFoundException($"Grade '{gradeName}' not found");
-                                    var organizationTypeName = worksheet.Cells[row, columnIndexes["OrganizationType"]]?.Text.Trim();
+                                    var organizationTypeName = worksheet.Cells[row, columnIndexes["OrganizationType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(organizationTypeName))
                                     {
                                         continue;
                                     }
                                     var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(g => g.ShortName.ToLower() == organizationTypeName.ToLower() && g.IsActive);
                                     if (organizationType == null) throw new MessageNotFoundException($"Organization '{organizationTypeName}' not found");
-                                    var categoryName = worksheet.Cells[row, columnIndexes["CategoryName"]]?.Text.Trim();
+                                    var categoryName = worksheet.Cells[row, columnIndexes["CategoryName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(categoryName))
                                     {
                                         continue;
                                     }
                                     var category = await _context.CategoryMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == categoryName.ToLower() && c.IsActive);
                                     if (category == null) throw new MessageNotFoundException($"Category '{categoryName}' not found");
-                                    var costCenterName = worksheet.Cells[row, columnIndexes["CostCenterName"]]?.Text.Trim();
+                                    var costCenterName = worksheet.Cells[row, columnIndexes["CostCenterName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(costCenterName))
                                     {
                                         continue;
                                     }
                                     var costCenter = await _context.CostCentreMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == costCenterName.ToLower() && c.IsActive);
                                     if (costCenter == null) throw new MessageNotFoundException($"Cost Center '{costCenterName}' not found");
-                                    var workStationName = worksheet.Cells[row, columnIndexes["WorkStationName"]]?.Text.Trim();
+                                    var workStationName = worksheet.Cells[row, columnIndexes["WorkStationName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(workStationName))
                                     {
                                         continue;
                                     }
                                     var workStation = await _context.WorkstationMasters.FirstOrDefaultAsync(w => w.Name.ToLower() == workStationName.ToLower() && w.IsActive);
                                     if (workStation == null) throw new MessageNotFoundException($"Workstation '{workStationName}' not found");
-                                    var leaveGroupName = worksheet.Cells[row, columnIndexes["LeaveGroupName"]]?.Text.Trim();
+                                    var leaveGroupName = worksheet.Cells[row, columnIndexes["LeaveGroupName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(leaveGroupName))
                                     {
                                         continue;
                                     }
                                     var leaveGroup = await _context.LeaveGroupConfigurations.FirstOrDefaultAsync(l => l.LeaveGroupConfigurationName.ToLower() == leaveGroupName.ToLower() && l.IsActive);
                                     if (leaveGroup == null) throw new MessageNotFoundException($"Leave Group '{leaveGroupName}' not found");
-                                    var companyName = worksheet.Cells[row, columnIndexes["CompanyMasterName"]]?.Text.Trim();
+                                    var companyName = worksheet.Cells[row, columnIndexes["CompanyMasterName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(companyName))
                                     {
                                         continue;
                                     }
                                     var companyMaster = await _context.CompanyMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == companyName.ToLower() && c.IsActive);
                                     if (companyMaster == null) throw new MessageNotFoundException($"Company '{companyName}' not found");
-                                    var locationName = worksheet.Cells[row, columnIndexes["LocationMasterName"]]?.Text.Trim();
+                                    var locationName = worksheet.Cells[row, columnIndexes["LocationMasterName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(locationName))
                                     {
                                         continue;
                                     }
                                     var locationMaster = await _context.LocationMasters.FirstOrDefaultAsync(l => l.Name.ToLower() == locationName.ToLower() && l.IsActive);
                                     if (locationMaster == null) throw new MessageNotFoundException($"Location '{locationName}' not found");
-                                    var holidayCalendarName = worksheet.Cells[row, columnIndexes["HolidayCalendarName"]]?.Text.Trim();
+                                    var holidayCalendarName = worksheet.Cells[row, columnIndexes["HolidayCalendarName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(holidayCalendarName))
                                     {
                                         continue;
@@ -345,24 +350,24 @@ public class ExcelImportService
                                         OtEligible = bool.TryParse(worksheet.Cells[row, columnIndexes["Oteligible"]].Text, out var otEligible) ? otEligible : false,
                                         ApprovalLevel1 = approval1.Id,
                                         ApprovalLevel2 = approval2.Id,
-                                        AccessLevel = worksheet.Cells[row, columnIndexes["AccessLevel"]]?.Text?.Trim() ?? string.Empty,
-                                        PolicyGroup = worksheet.Cells[row, columnIndexes["PolicyGroup"]]?.Text?.Trim() ?? string.Empty,
-                                        WorkingDayPattern = worksheet.Cells[row, columnIndexes["WorkingDayPattern"]]?.Text?.Trim() ?? string.Empty,
-                                        Tenure = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure"]]?.Text.Trim(), out decimal tenure) ? tenure : 0m,
+                                        AccessLevel = worksheet.Cells[row, columnIndexes["AccessLevel"]].Text.Trim(),
+                                        PolicyGroup = worksheet.Cells[row, columnIndexes["PolicyGroup"]].Text.Trim(),
+                                        WorkingDayPattern = worksheet.Cells[row, columnIndexes["WorkingDayPattern"]].Text.Trim(),
+                                        Tenure = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure"]].Text.Trim(), out decimal tenure) ? tenure : 0m,
                                         UanNumber = worksheet.Cells[row, columnIndexes["Uannumber"]]?.Text.Trim(),
                                         EsiNumber = worksheet.Cells[row, columnIndexes["EsiNumber"]]?.Text.Trim(),
-                                        IsMobileAppEligible = (bool)(bool.TryParse(worksheet.Cells[row, columnIndexes["IsMobileAppEligible"]]?.Text, out var isMobileAppEligible) ? isMobileAppEligible : false),
-                                        GeoStatus = worksheet.Cells[row, columnIndexes["GeoStatus"]]?.Text.Trim() ?? string.Empty,
-                                        MiddleName = worksheet.Cells[row, columnIndexes["MiddleName"]].Text.Trim(),
+                                        IsMobileAppEligible = (bool)(bool.TryParse(worksheet.Cells[row, columnIndexes["IsMobileAppEligible"]].Text, out var isMobileAppEligible) ? isMobileAppEligible : false),
+                                        GeoStatus = worksheet.Cells[row, columnIndexes["GeoStatus"]].Text.Trim(),
+                                        MiddleName = worksheet.Cells[row, columnIndexes["MiddleName"]]?.Text.Trim(),
                                         OfficialPhone = long.TryParse(worksheet.Cells[row, columnIndexes["OfficialPhone"]]?.Text, out var officialPhone) ? officialPhone : 0,
-                                        PersonalLocation = worksheet.Cells[row, columnIndexes["PersonalLocation"]]?.Text.Trim() ?? string.Empty,
+                                        PersonalLocation = worksheet.Cells[row, columnIndexes["PersonalLocation"]].Text.Trim(),
                                         PersonalEmail = worksheet.Cells[row, columnIndexes["PersonalEmail"]].Text.Trim(),
                                         LeaveGroupId = leaveGroup.Id,
                                         CompanyMasterId = companyMaster.Id,
                                         LocationMasterId = locationMaster.Id,
                                         HolidayCalendarId = holidayCalendar.Id,
                                         StatusId = status.Id,
-                                        AadharNo = long.TryParse(worksheet.Cells[row, columnIndexes["AadharNo"]].Text, out var aadharNo) ? aadharNo : 0,
+                                        AadharNo = long.TryParse(worksheet.Cells[row, columnIndexes["AadharNo"]]?.Text, out var aadharNo) ? aadharNo : 0,
                                         PanNo = worksheet.Cells[row, columnIndexes["PanNo"]]?.Text.Trim(),
                                         PassportNo = worksheet.Cells[row, columnIndexes["PassportNo"]]?.Text.Trim(),
                                         DrivingLicense = worksheet.Cells[row, columnIndexes["DrivingLicense"]]?.Text.Trim(),
@@ -370,20 +375,20 @@ public class ExcelImportService
                                         BankAccountNo = long.TryParse(worksheet.Cells[row, columnIndexes["BankAccountNo"]]?.Text, out var bankAccountNo) ? bankAccountNo : 0,
                                         BankIfscCode = worksheet.Cells[row, columnIndexes["BankIfscCode"]]?.Text.Trim(),
                                         BankBranch = worksheet.Cells[row, columnIndexes["BankBranch"]]?.Text.Trim(),
-                                        HomeAddress = worksheet.Cells[row, columnIndexes["HomeAddress"]]?.Text.Trim() ?? string.Empty,
-                                        FatherName = worksheet.Cells[row, columnIndexes["FatherName"]]?.Text.Trim() ?? string.Empty,
-                                        EmergencyContactPerson1 = worksheet.Cells[row, columnIndexes["EmergencyContactPerson1"]]?.Text.Trim() ?? string.Empty,
+                                        HomeAddress = worksheet.Cells[row, columnIndexes["HomeAddress"]].Text.Trim(),
+                                        FatherName = worksheet.Cells[row, columnIndexes["FatherName"]].Text.Trim(),
+                                        EmergencyContactPerson1 = worksheet.Cells[row, columnIndexes["EmergencyContactPerson1"]].Text.Trim(),
                                         EmergencyContactPerson2 = worksheet.Cells[row, columnIndexes["EmergencyContactPerson2"]]?.Text.Trim() ?? string.Empty,
                                         EmergencyContactNo1 = long.TryParse(worksheet.Cells[row, columnIndexes["EmergencyContactNo1"]].Text, out var emergencyContactNo1) ? emergencyContactNo1 : 0,
-                                        EmergencyContactNo2 = long.TryParse(worksheet.Cells[row, columnIndexes["EmergencyContactNo2"]].Text, out var emergencyContactNo2) ? emergencyContactNo2 : 0,
-                                        MotherName = worksheet.Cells[row, columnIndexes["MotherName"]]?.Text.Trim() ?? string.Empty,
+                                        EmergencyContactNo2 = long.TryParse(worksheet.Cells[row, columnIndexes["EmergencyContactNo2"]]?.Text, out var emergencyContactNo2) ? emergencyContactNo2 : 0,
+                                        MotherName = worksheet.Cells[row, columnIndexes["MotherName"]].Text.Trim(),
                                         FatherAadharNo = long.TryParse(worksheet.Cells[row, columnIndexes["FatherAadharNo"]]?.Text, out var fatherAadharNo) ? fatherAadharNo : 0,
                                         MotherAadharNo = long.TryParse(worksheet.Cells[row, columnIndexes["MotherAadharNo"]]?.Text, out var motherAadharNo) ? motherAadharNo : 0,
                                         OrganizationTypeId = organizationType.Id,
-                                        WorkingStatus = worksheet.Cells[row, columnIndexes["WorkingStatus"]]?.Text.Trim() ?? string.Empty,
-                                        ConfirmationDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ConfirmationDate"]].Text, out var confirmationDate) ? confirmationDate : (DateOnly?)null,
-                                        PostalCode = int.TryParse(worksheet.Cells[row, columnIndexes["PostalCode"]]?.Text, out var postalCode) ? postalCode : 0,
-                                        ApprovalLevel = worksheet.Cells[row, columnIndexes["ApprovalLevel"]]?.Text.Trim() ?? string.Empty,
+                                        WorkingStatus = worksheet.Cells[row, columnIndexes["WorkingStatus"]].Text.Trim(),
+                                        ConfirmationDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ConfirmationDate"]]?.Text, out var confirmationDate) ? confirmationDate : (DateOnly?)null,
+                                        PostalCode = int.TryParse(worksheet.Cells[row, columnIndexes["PostalCode"]].Text, out var postalCode) ? postalCode : 0,
+                                        ApprovalLevel = worksheet.Cells[row, columnIndexes["ApprovalLevel"]].Text.Trim() ?? string.Empty,
                                         OfficialEmail = worksheet.Cells[row, columnIndexes["OfficialEmail"]]?.Text.Trim() ?? string.Empty,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         IsActive = true,
@@ -391,32 +396,36 @@ public class ExcelImportService
                                     };
                                     staffCreations.Add(staffCreation);
                                 }
-                                await _context.StaffCreations.AddRangeAsync(staffCreations);
+                                if(staffCreations.Count > 0)
+                                {
+                                    await _context.StaffCreations.AddRangeAsync(staffCreations);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 2)
                             {
                                 var individualLeaveCreditDebits = new List<IndividualLeaveCreditDebit>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveTypeName"]]?.Text.Trim();
+                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveTypeName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(leaveTypeName)) throw new MessageNotFoundException($"Leave type {leaveTypeName} not found");
                                     var leaveType = await _context.LeaveTypes.FirstOrDefaultAsync(l => l.Name.ToLower() == leaveTypeName.ToLower() && l.IsActive);
                                     if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found");
-                                    var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffCreationId"]]?.Text.Trim();
+                                    var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffCreationId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffCreationIdStr)) throw new MessageNotFoundException($"Staff {staffCreationIdStr} not found");
                                     var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                    if (!match.Success) throw new ArgumentException($"Invalid StaffCreationId format at row {row}.");
+                                    if (!match.Success) throw new ArgumentException($"Invalid StaffCreationId format {staffCreationIdStr}");
                                     var shortName = match.Groups[1].Value;
                                     var staffId = int.Parse(match.Groups[2].Value);
-                                    var organization = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive);
-                                    if (organization == null) throw new MessageNotFoundException($"Organization short name '{shortName}' not found at row {row}.");
-                                    var staffCreation = await _context.StaffCreations
-                                        .FirstOrDefaultAsync(s => (s.OrganizationTypeId == organization.Id) && s.Id == staffId && s.IsActive == true);
+                                    var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
                                     if (staffCreation == null) throw new MessageNotFoundException("Staff not found");
-                                    var transactionFlagValue = worksheet.Cells[row, columnIndexes["TransactionFlag"]]?.Text.Trim().ToLower();
-                                    var transactionFlag = transactionFlagValue == "1" || transactionFlagValue == "true";
-                                    var leaveCount = decimal.TryParse(worksheet.Cells[row, columnIndexes["LeaveCount"]]?.Text, out var parsedLeaveCount) ? parsedLeaveCount : 0;
-                                    if (leaveCount <= 0) throw new ArgumentException($"Invalid leave count at row {row}.");
+                                    var transactionFlagValue = worksheet.Cells[row, columnIndexes["TransactionFlag"]].Text.Trim().ToLower();
+                                    var transactionFlag = transactionFlagValue == "true" || transactionFlagValue == "false";
+                                    var leaveCount = decimal.TryParse(worksheet.Cells[row, columnIndexes["LeaveCount"]].Text, out var parsedLeaveCount) ? parsedLeaveCount : 0;
+                                    if (leaveCount <= 0) throw new ArgumentException($"Invalid leave count {leaveCount}");
                                     var actualBalance = await _context.IndividualLeaveCreditDebits
                                         .Where(l => l.StaffCreationId == staffCreation.Id && l.LeaveTypeId == leaveType.Id && l.IsActive)
                                         .OrderByDescending(l => l.CreatedUtc)
@@ -434,19 +443,19 @@ public class ExcelImportService
                                     }
                                     else
                                     {
-                                        if (availableBalance < leaveCount) throw new ConflictException($"Insufficient available balance for staff '{staffCreation.Id}' at row {row}.");
+                                        if (availableBalance < leaveCount) throw new ConflictException($"Insufficient leave balance for staff '{staffCreationIdStr}'");
                                         availableBalance -= leaveCount;
                                     }
                                     var individualLeaveCreditDebit = new IndividualLeaveCreditDebit
                                     {
                                         LeaveTypeId = leaveType.Id,
                                         StaffCreationId = staffCreation.Id,
-                                        LeaveReason = worksheet.Cells[row, columnIndexes["LeaveReason"]]?.Text.Trim() ?? string.Empty,
-                                        Remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text.Trim(),
+                                        LeaveReason = worksheet.Cells[row, columnIndexes["LeaveReason"]].Text.Trim(),
+                                        Remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim(),
                                         TransactionFlag = transactionFlag,
                                         LeaveCount = leaveCount,
-                                        Month = worksheet.Cells[row, columnIndexes["Month"]]?.Text.Trim() ?? string.Empty,
-                                        Year = int.TryParse(worksheet.Cells[row, columnIndexes["Year"]]?.Text, out var parsedYear) ? parsedYear : DateTime.UtcNow.Year,
+                                        Month = worksheet.Cells[row, columnIndexes["Month"]].Text.Trim(),
+                                        Year = int.TryParse(worksheet.Cells[row, columnIndexes["Year"]].Text, out var parsedYear) ? parsedYear : DateTime.UtcNow.Year,
                                         ActualBalance = actualBalance,
                                         AvailableBalance = availableBalance,
                                         IsActive = true,
@@ -455,7 +464,14 @@ public class ExcelImportService
                                     };
                                     individualLeaveCreditDebits.Add(individualLeaveCreditDebit);
                                 }
-                                await _context.IndividualLeaveCreditDebits.AddRangeAsync(individualLeaveCreditDebits);
+                                if(individualLeaveCreditDebits.Count > 0)
+                                {
+                                    await _context.IndividualLeaveCreditDebits.AddRangeAsync(individualLeaveCreditDebits);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 3)
                             {
@@ -475,7 +491,14 @@ public class ExcelImportService
                                     };
                                     departmentMasters.Add(departmentMaster);
                                 }
-                                await _context.DepartmentMasters.AddRangeAsync(departmentMasters);
+                                if(departmentMasters.Count > 0)
+                                {
+                                    await _context.DepartmentMasters.AddRangeAsync(departmentMasters);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 4)
                             {
@@ -492,7 +515,14 @@ public class ExcelImportService
                                     };
                                     designationMasters.Add(designationMaster);
                                 }
-                                await _context.DesignationMasters.AddRangeAsync(designationMasters);
+                                if(designationMasters.Count > 0)
+                                {
+                                    await _context.DesignationMasters.AddRangeAsync(designationMasters);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 5)
                             {
@@ -509,7 +539,14 @@ public class ExcelImportService
                                     };
                                     divisionMasters.Add(divisionMaster);
                                 }
-                                await _context.DivisionMasters.AddRangeAsync(divisionMasters);
+                                if(divisionMasters.Count > 0)
+                                {
+                                    await _context.DivisionMasters.AddRangeAsync(divisionMasters);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 6)
                             {
@@ -526,7 +563,14 @@ public class ExcelImportService
                                     };
                                     costCentreMasters.Add(costCentreMaster);
                                 }
-                                await _context.CostCentreMasters.AddRangeAsync(costCentreMasters);
+                                if(costCentreMasters.Count > 0)
+                                {
+                                    await _context.CostCentreMasters.AddRangeAsync(costCentreMasters);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 7)
                             {
@@ -543,63 +587,64 @@ public class ExcelImportService
                                     };
                                     volumes.Add(volume);
                                 }
-                                await _context.Volumes.AddRangeAsync(volumes);
+                                if(volumes.Count > 0)
+                                {
+                                    await _context.Volumes.AddRangeAsync(volumes);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 8)
                             {
                                 var manualPunchRequisitions = new List<ManualPunchRequistion>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text?.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(applicationTypeName))
                                     {
-                                        throw new Exception($"ApplicationTypeName is required at row {row}.");
+                                        throw new Exception($"Application Type Name is required");
                                     }
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"ApplicationType '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
                                     }
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text?.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
                                     DateTime? inPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["InPunch"]]?.Text, out var parsedInPunch) ? parsedInPunch : null;
                                     DateTime? outPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["OutPunch"]]?.Text, out var parsedOutPunch) ? parsedOutPunch : null;
                                     if (!inPunch.HasValue || !outPunch.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid InPunch or OutPunch format at row {row}.");
+                                        throw new ArgumentException($"Invalid InPunch or OutPunch format");
                                     }
                                     var manualPunchRequisition = new ManualPunchRequistion
                                     {
                                         StaffId = staffId,
-                                        SelectPunch = worksheet.Cells[row, columnIndexes["SelectPunch"]]?.Text?.Trim() ?? string.Empty,
+                                        SelectPunch = worksheet.Cells[row, columnIndexes["SelectPunch"]].Text.Trim(),
                                         InPunch = inPunch.Value,
                                         OutPunch = outPunch.Value,
-                                        Remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text?.Trim() ?? string.Empty,
+                                        Remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim(),
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow,
@@ -613,7 +658,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("No manual punch requisitions found in the Excel file.");
+                                    throw new MessageNotFoundException("Record not found");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 9)
@@ -621,37 +666,31 @@ public class ExcelImportService
                                 var commonPermissions = new List<CommonPermission>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"ApplicationTypeName '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
                                     }
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }   
                                     }
                                     var startTimeText = worksheet.Cells[row, columnIndexes["StartTime"]].Text.Trim();
@@ -679,11 +718,11 @@ public class ExcelImportService
                                     }
                                     if (newRequestMinutes > 120)
                                     {
-                                        throw new ArgumentException("Permission duration cannot exceed 2 hour per request.");
+                                        throw new ArgumentException("Permission duration cannot exceed 2 hours");
                                     }
                                     if (totalMinutesUsed + newRequestMinutes > 120)
                                     {
-                                        throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
+                                        throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours");
                                     }
                                     var formattedDuration = $"{(int)newRequestMinutes / 60:D2}:{(int)newRequestMinutes % 60:D2}";
                                     var totalHours = (endTime - startTime).ToString("hh\\:mm");
@@ -710,7 +749,7 @@ public class ExcelImportService
                                 var staffCreations = new List<StaffCreation>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var staffText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                                    var staffText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffText))
                                     {
                                         continue;
@@ -724,7 +763,7 @@ public class ExcelImportService
                                     {
                                         continue;
                                     }
-                                    var statusName = worksheet.Cells[row, columnIndexes["Status"]]?.Text.Trim();
+                                    var statusName = worksheet.Cells[row, columnIndexes["Status"]].Text.Trim();
                                     if (string.IsNullOrEmpty(statusName))
                                     {
                                         continue;
@@ -749,13 +788,13 @@ public class ExcelImportService
                                     existingStaff.UpdatedUtc = DateTime.UtcNow;
                                     staffCreations.Add(existingStaff);
                                 }
-                                if (staffCreations.Any())
+                                if (staffCreations.Count > 0)
                                 {
                                     _context.StaffCreations.UpdateRange(staffCreations);
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("No valid staff records found for update");
+                                    throw new MessageNotFoundException("Record not found");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 11)
@@ -767,9 +806,9 @@ public class ExcelImportService
                                     var endTimeCell = worksheet.Cells[row, columnIndexes["EndTime"]];
                                     var shortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
                                     var startTime = ConvertExcelDateTime(startTimeCell)?.ToString("HH:mm")
-                                    ?? throw new Exception($"Unable to parse StartTime. Raw value: '{startTimeCell.Text}'");
+                                    ?? throw new FormatException($"Unable to parse StartTime '{startTimeCell.Text}'");
                                     var endTime = ConvertExcelDateTime(endTimeCell)?.ToString("HH:mm")
-                                        ?? throw new Exception($"Unable to parse EndTime. Raw value: '{endTimeCell.Text}'");
+                                        ?? throw new FormatException($"Unable to parse EndTime '{endTimeCell.Text}'");
                                     var shiftMaster = new Shift
                                     {
                                         Name = worksheet.Cells[row, columnIndexes["ShiftName"]].Text.Trim(),
@@ -782,64 +821,65 @@ public class ExcelImportService
                                     };
                                     shiftMasters.Add(shiftMaster);
                                 }
-                                await _context.Shifts.AddRangeAsync(shiftMasters);
+                                if(shiftMasters.Count > 0)
+                                {
+                                    await _context.Shifts.AddRangeAsync(shiftMasters);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 12)
                             {
                                 var leaveRequisitions = new List<LeaveRequisition>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"ApplicationTypeName '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
                                     }
-                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveTypeName"]]?.Text.Trim();
-                                    if (string.IsNullOrEmpty(leaveTypeName)) throw new Exception($"Leave type name is required at row {row}.");
+                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveTypeName"]].Text.Trim();
+                                    if (string.IsNullOrEmpty(leaveTypeName)) throw new Exception($"Leave type name is required");
                                     var leaveType = await _context.LeaveTypes.FirstOrDefaultAsync(l => l.Name.ToLower() == leaveTypeName.ToLower() && l.IsActive);
                                     if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found");
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
-                                    bool isFromDateValid = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["FromDate"]]?.Text, out var fromDate);
-                                    bool isToDateValid = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ToDate"]]?.Text, out var toDate);
+                                    bool isFromDateValid = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["FromDate"]].Text, out var fromDate);
+                                    bool isToDateValid = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ToDate"]].Text, out var toDate);
                                     if (!isFromDateValid)
                                     {
-                                        throw new ArgumentException($"Invalid FromDate at row {row}.");
+                                        throw new ArgumentException($"Invalid FromDate {isFromDateValid}");
                                     }
                                     toDate = isToDateValid ? toDate : fromDate;
                                     decimal totalDays = (toDate.ToDateTime(TimeOnly.MinValue) - fromDate.ToDateTime(TimeOnly.MinValue)).Days + 1;
                                     var leaveRequisition = new LeaveRequisition
                                     {
                                         ApplicationTypeId = applicationType.Id,
-                                        StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]]?.Text.Trim() ?? string.Empty,
-                                        EndDuration = worksheet.Cells[row, columnIndexes["EndDuration"]]?.Text.Trim(),
-                                        Reason = worksheet.Cells[row, columnIndexes["Reason"]]?.Text.Trim() ?? string.Empty,
+                                        StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]].Text.Trim(),
+                                        EndDuration = worksheet.Cells[row, columnIndexes["EndDuration"]].Text.Trim(),
+                                        Reason = worksheet.Cells[row, columnIndexes["Reason"]].Text.Trim(),
                                         LeaveTypeId = leaveType.Id,
                                         FromDate = fromDate,
                                         ToDate = toDate,
@@ -855,43 +895,41 @@ public class ExcelImportService
                                 {
                                     await _context.LeaveRequisitions.AddRangeAsync(leaveRequisitions);
                                 }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 13)
                             {
                                 var onDutyRequisitions = new List<OnDutyRequisition>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"ApplicationTypeName '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
                                     }
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
                                     DateOnly? startDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["StartDate"]]?.Text, out var parsedStartDate) ? parsedStartDate : null;
@@ -916,9 +954,9 @@ public class ExcelImportService
                                         EndTime = endTime,
                                         StartDate = startDate,
                                         EndDate = endDate,
-                                        StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]]?.Text.Trim() ?? string.Empty,
+                                        StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]].Text.Trim(),
                                         EndDuration = worksheet.Cells[row, columnIndexes["EndDuration"]]?.Text.Trim(),
-                                        Reason = worksheet.Cells[row, columnIndexes["Reason"]]?.Text.Trim() ?? string.Empty,
+                                        Reason = worksheet.Cells[row, columnIndexes["Reason"]].Text.Trim(),
                                         TotalDays = totalDays,
                                         TotalHours = totalHours,
                                         StaffId = staffId,
@@ -932,43 +970,41 @@ public class ExcelImportService
                                 {
                                     await _context.OnDutyRequisitions.AddRangeAsync(onDutyRequisitions);
                                 }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 14)
                             {
                                 var workFromHomes = new List<WorkFromHome>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"ApplicationTypeName '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
                                     }
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
                                     DateTime? fromTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["FromTime"]]?.Text, out var parsedFromTime) ? parsedFromTime : null;
@@ -994,10 +1030,10 @@ public class ExcelImportService
                                         ToTime = toTime,
                                         FromDate = fromDate,
                                         ToDate = toDate,
-                                        Reason = worksheet.Cells[row, columnIndexes["Reason"]]?.Text.Trim() ?? string.Empty,
+                                        Reason = worksheet.Cells[row, columnIndexes["Reason"]].Text.Trim(),
                                         TotalDays = totalDays,
                                         TotalHours = totalHours,
-                                        StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]]?.Text.Trim() ?? string.Empty,
+                                        StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]].Text.Trim(),
                                         EndDuration = worksheet.Cells[row, columnIndexes["EndDuration"]]?.Text.Trim() ?? string.Empty,
                                         StaffId = staffId,
                                         IsActive = true,
@@ -1010,54 +1046,52 @@ public class ExcelImportService
                                 {
                                     await _context.WorkFromHomes.AddRangeAsync(workFromHomes);
                                 }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 15)
                             {
                                 var onDutyOvertimes = new List<OnDutyOvertime>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
-                                    DateOnly? otDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["OTDate"]]?.Text, out var parsedOtDate) ? parsedOtDate : null;
+                                    DateOnly? otDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["OTDate"]].Text, out var parsedOtDate) ? parsedOtDate : null;
                                     if (!otDate.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid or missing OTDate at row {row}.");
+                                        throw new ArgumentException($"Invalid OT Date {otDate}");
                                     }
                                     DateTime? startTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["StartTime"]]?.Text, out var parsedStartTime) ? parsedStartTime : null;
                                     DateTime? endTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["EndTime"]]?.Text, out var parsedEndTime) ? parsedEndTime : null;
-                                    string otType = worksheet.Cells[row, columnIndexes["OTType"]]?.Text.Trim() ?? string.Empty;
+                                    string otType = worksheet.Cells[row, columnIndexes["OTType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(otType))
                                     {
-                                        throw new Exception($"OT Type is required at row {row}.");
+                                        throw new Exception($"OT Type is required");
                                     }
                                     var onDutyOvertime = new OnDutyOvertime
                                     {
-                                        StaffId = staffId ?? throw new Exception($"Staff ID is required at row {row}."),
+                                        StaffId = staffId ?? throw new Exception($"Staff Id is required"),
                                         Otdate = otDate.Value,
                                         StartTime = startTime,
                                         EndTime = endTime,
@@ -1072,54 +1106,52 @@ public class ExcelImportService
                                 {
                                     await _context.OnDutyOvertimes.AddRangeAsync(onDutyOvertimes);
                                 }
+                                else
+                                {
+                                    throw new MessageNotFoundException("Record not found");
+                                }
                             }
                             else if (excelImportDto.ExcelImportId == 16)
                             {
                                 var shiftExtensions = new List<ShiftExtension>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]]?.Text?.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(applicationTypeName))
                                     {
-                                        throw new Exception($"ApplicationTypeName is required at row {row}.");
+                                        throw new Exception($"Application Type is required");
                                     }
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"ApplicationTypeName '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
                                     }
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text?.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
 
-                                    DateOnly? transactionDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["TransactionDate"]]?.Text, out var parsedDate) ? parsedDate : null;
+                                    DateOnly? transactionDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["TransactionDate"]].Text, out var parsedDate) ? parsedDate : null;
                                     if (!transactionDate.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid or missing TransactionDate at row {row}.");
+                                        throw new ArgumentException($"Invalid TransactionDate at row {row}.");
                                     }
                                     DateTime? beforeShiftHours = DateTime.TryParse(worksheet.Cells[row, columnIndexes["BeforeShiftHours"]]?.Text, out var parsedBeforeShift) ? parsedBeforeShift : null;
                                     DateTime? afterShiftHours = DateTime.TryParse(worksheet.Cells[row, columnIndexes["AfterShiftHours"]]?.Text, out var parsedAfterShift) ? parsedAfterShift : null;
@@ -1145,7 +1177,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("No valid shift extensions found in the Excel file.");
+                                    throw new MessageNotFoundException("Record not found");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 17)
@@ -1153,44 +1185,38 @@ public class ExcelImportService
                                 var staffVaccinations = new List<StaffVaccination>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text?.Trim();
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     int? staffId = null;
                                     if (!string.IsNullOrEmpty(staffIdText))
                                     {
                                         var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
                                         if (match.Success)
                                         {
-                                            string organizationCode = match.Groups[1].Value;
-                                            int parsedStaffId = int.Parse(match.Groups[2].Value);
-                                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName == organizationCode && o.IsActive);
-                                            if (organizationType == null)
-                                            {
-                                                throw new MessageNotFoundException($"Organization code '{organizationCode}' not found");
-                                            }
-                                            bool staffExistsInOrg = await _context.StaffCreations
-                                                .AnyAsync(s => s.Id == parsedStaffId && s.OrganizationTypeId == organizationType.Id && s.IsActive == true);
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
                                             if (!staffExistsInOrg)
                                             {
-                                                throw new MessageNotFoundException($"Staff ID '{parsedStaffId}' not found");
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
                                             }
-                                            staffId = parsedStaffId;
+                                            staffId = staffExist.Id;
                                         }
                                         else
                                         {
-                                            throw new ArgumentException($"Invalid Staff ID format '{staffIdText}' at row {row}. Expected format: OrganizationCode + NumericId (e.g., VL42).");
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
                                     DateOnly? vaccinatedDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["VaccinatedDate"]]?.Text, out var parsedVaccinatedDate) ? parsedVaccinatedDate : null;
                                     if (!vaccinatedDate.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid or missing VaccinatedDate at row {row}.");
+                                        throw new ArgumentException($"Invalid VaccinatedDate '{vaccinatedDate}'");
                                     }
                                     if (!int.TryParse(worksheet.Cells[row, columnIndexes["VaccinationNumber"]]?.Text, out int vaccinationNumber))
                                     {
-                                        throw new ArgumentException($"Invalid or missing VaccinationNumber at row {row}.");
+                                        throw new ArgumentException($"Invalid VaccinationNumber '{vaccinationNumber}'");
                                     }
                                     bool isExempted = false;
-                                    var isExemptedText = worksheet.Cells[row, columnIndexes["IsExempted"]]?.Text?.Trim().ToLower();
+                                    var isExemptedText = worksheet.Cells[row, columnIndexes["IsExempted"]].Text.Trim().ToLower();
                                     if (isExemptedText == "yes")
                                     {
                                         isExempted = true;
@@ -1201,12 +1227,12 @@ public class ExcelImportService
                                     }
                                     else
                                     {
-                                        throw new ArgumentException($"Invalid IsExempted value '{isExemptedText}' at row {row}. Expected 'Yes' or 'No'.");
+                                        throw new ArgumentException($"Invalid IsExempted value '{isExemptedText}'");
                                     }
                                     string? comments = worksheet.Cells[row, columnIndexes["Comments"]]?.Text?.Trim();
                                     var staffVaccination = new StaffVaccination
                                     {
-                                        StaffId = staffId ?? throw new Exception($"Staff ID is required at row {row}."),
+                                        StaffId = staffId ?? throw new Exception($"Staff Id is required"),
                                         VaccinatedDate = vaccinatedDate,
                                         VaccinationNumber = vaccinationNumber,
                                         IsExempted = isExempted,
@@ -1223,7 +1249,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("No staff vaccinations found in the Excel file.");
+                                    throw new MessageNotFoundException("Record not found");
                                 }
                             }
                             else if(excelImportDto.ExcelImportId == 18)
@@ -1232,7 +1258,7 @@ public class ExcelImportService
                                 var validDepartmentIds = _context.DepartmentMasters.Where(d => d.IsActive).Select(d => d.Id).ToHashSet();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var departmentName = worksheet.Cells[row, columnIndexes["Department"]]?.Text.Trim();
+                                    var departmentName = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
                                     if (string.IsNullOrEmpty(departmentName))
                                     {
                                         continue;
@@ -1244,18 +1270,18 @@ public class ExcelImportService
                                         EmpId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim(),
                                         Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
                                         DepartmentId = department.Id,
-                                        ProdScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod Score"]]?.Text.Trim(), out decimal prodeScore) ? prodeScore : 0m,
-                                        ProdPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod %"]]?.Text.Trim(), out decimal prodPercentage) ? prodPercentage : 0m,
+                                        ProdScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod Score"]].Text.Trim(), out decimal prodeScore) ? prodeScore : 0m,
+                                        ProdPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod %"]].Text.Trim(), out decimal prodPercentage) ? prodPercentage : 0m,
                                         ProdGrade = worksheet.Cells[row, columnIndexes["Prod Grade"]].Text.Trim(),
-                                        QualityScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality Score"]]?.Text.Trim(), out decimal qualityScore) ? qualityScore : 0m,
-                                        QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Qual %"]]?.Text.Trim(), out decimal qualityPercentage) ? qualityPercentage : 0m,
-                                        NoOfAbsent = decimal.TryParse(worksheet.Cells[row, columnIndexes["No Of Absent"]]?.Text.Trim(), out decimal noOfAbsent) ? noOfAbsent : 0m,
-                                        AttendanceScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd Score"]]?.Text.Trim(), out decimal attendanceScore) ? attendanceScore : 0m,
-                                        AttendancePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd %"]]?.Text.Trim(), out decimal attendancePercentage) ? attendancePercentage : 0m,
+                                        QualityScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality Score"]].Text.Trim(), out decimal qualityScore) ? qualityScore : 0m,
+                                        QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Qual %"]].Text.Trim(), out decimal qualityPercentage) ? qualityPercentage : 0m,
+                                        NoOfAbsent = decimal.TryParse(worksheet.Cells[row, columnIndexes["No Of Absent"]].Text.Trim(), out decimal noOfAbsent) ? noOfAbsent : 0m,
+                                        AttendanceScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd Score"]].Text.Trim(), out decimal attendanceScore) ? attendanceScore : 0m,
+                                        AttendancePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd %"]].Text.Trim(), out decimal attendancePercentage) ? attendancePercentage : 0m,
                                         AttendanceGrade = worksheet.Cells[row, columnIndexes["Attd Grade"]].Text.Trim(),
-                                        FinalTotal = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Total"]]?.Text.Trim(), out decimal finalTotal) ? finalTotal : 0m,
-                                        TotalScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Score"]]?.Text.Trim(), out decimal totalScore) ? totalScore : 0m,
-                                        FinalScorePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Score %"]]?.Text.Trim(), out decimal finalScorePercentage) ? finalScorePercentage : 0m,
+                                        FinalTotal = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Total"]].Text.Trim(), out decimal finalTotal) ? finalTotal : 0m,
+                                        TotalScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Score"]].Text.Trim(), out decimal totalScore) ? totalScore : 0m,
+                                        FinalScorePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Score %"]].Text.Trim(), out decimal finalScorePercentage) ? finalScorePercentage : 0m,
                                         FinalGrade = worksheet.Cells[row, columnIndexes["Final Grade"]].Text.Trim(),
                                         ProductionAchievedPercentageJan = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Jan"]]?.Text.Trim(), out decimal jan) ? jan : (decimal?)null,
                                         ProductionAchievedPercentageFeb = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Feb"]]?.Text.Trim(), out decimal feb) ? feb : (decimal?)null,
@@ -1282,7 +1308,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("No valid probation report found in the Excel file.");
+                                    throw new MessageNotFoundException("Record not found");
                                 }
                             }
                             else if(excelImportDto.ExcelImportId == 19)
@@ -1291,7 +1317,7 @@ public class ExcelImportService
                                 var validDivisionIds = _context.DivisionMasters.Where(d => d.IsActive).Select(d => d.Id).ToHashSet();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var divisionName = worksheet.Cells[row, columnIndexes["EMP Division"]]?.Text.Trim();
+                                    var divisionName = worksheet.Cells[row, columnIndexes["EMP Division"]].Text.Trim();
                                     if (string.IsNullOrEmpty(divisionName))
                                     {
                                         continue;
@@ -1328,7 +1354,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("No valid probation report found in the Excel file.");
+                                    throw new MessageNotFoundException("Record not found");
                                 }
                             }
                             await _context.SaveChangesAsync();
@@ -1337,7 +1363,7 @@ public class ExcelImportService
                         catch (Exception ex)
                         {
                             await transaction.RollbackAsync();
-                            throw new Exception($"Error processing Excel file: {ex.Message}");
+                            throw new Exception($"Error processing the Excel file: {ex.Message}");
                         }
                     }
                 }

@@ -193,10 +193,11 @@ namespace AttendanceManagement.Services
                     new SqlParameter("@GradeName", string.IsNullOrWhiteSpace(getStaff.GradeName) ? (object)DBNull.Value : getStaff.GradeName),
                     new SqlParameter("@Status", string.IsNullOrWhiteSpace(getStaff.Status) ? (object)DBNull.Value : getStaff.Status),
                     new SqlParameter("@LoginUserName", string.IsNullOrWhiteSpace(getStaff.LoginUserName) ? (object)DBNull.Value : getStaff.LoginUserName),
+                    new SqlParameter("@AccessLevel", string.IsNullOrWhiteSpace(getStaff.AccessLevel) ? (object)DBNull.Value : getStaff.AccessLevel),
                     new SqlParameter("@IncludeTerminated", getStaff.IncludeTerminated.HasValue ? (object)getStaff.IncludeTerminated.Value : DBNull.Value)
             };
             var staffList = await _storedProcedureDbContext.StaffDto
-                .FromSqlRaw("EXEC GetStaffByFilters @ApproverId, @ShiftName, @OrganizationTypeName, @CompanyName, @DivisionName, @CategoryName, @CostCentreName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName, @Status, @LoginUserName, @IncludeTerminated", parameters)
+                .FromSqlRaw("EXEC GetStaffByFilters @ApproverId, @ShiftName, @OrganizationTypeName, @CompanyName, @DivisionName, @CategoryName, @CostCentreName, @BranchName, @DepartmentName, @DesignationName, @StaffName, @LocationName, @GradeName, @Status, @LoginUserName, @AccessLevel, @IncludeTerminated", parameters)
                 .ToListAsync();
             return staffList;
         }
@@ -249,6 +250,9 @@ namespace AttendanceManagement.Services
             staff.HomeAddress = individualStaffUpdate.HomeAddress;
             staff.FatherName = individualStaffUpdate.FatherName;
             staff.MotherName = individualStaffUpdate.MotherName;
+            staff.PanNo = individualStaffUpdate.PanNo;
+            staff.PassportNo = individualStaffUpdate.PassportNo;
+            staff.DrivingLicense = individualStaffUpdate.DrivingLicense;
             staff.EmergencyContactPerson1 = individualStaffUpdate.EmergencyContactPerson1;
             staff.EmergencyContactPerson2 = individualStaffUpdate.EmergencyContactPerson2;
             staff.EmergencyContactNo1 = individualStaffUpdate.EmergencyContactNo1;

@@ -24,8 +24,17 @@ public class ExcelImportController : ControllerBase
         try
         {
             var filePath = await _excelImportService.GetExcelTemplateFilePath(excelImportId);
-            filePath = Path.GetFullPath(filePath).Replace("\\", "/");
-            return Ok(new { Success = true, Message = filePath }); 
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return ErrorClass.NotFoundResponse("Excel template file not found.");
+            }
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var fileName = Path.GetFileName(filePath);
+            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+            return File(fileBytes, contentType, fileName);
         }
         catch (MessageNotFoundException ex)
         {
@@ -60,6 +69,11 @@ public class ExcelImportController : ControllerBase
         {
             await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (FormatException ex)
+        {
+            await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
+            return ErrorClass.BadResponse(ex.Message);
         }
         catch (InvalidOperationException ex)
         {

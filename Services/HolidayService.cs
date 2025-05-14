@@ -159,13 +159,12 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateHolidayCalendar(UpdateHolidayCalanderDto request)
         {
             var message = "Holiday calendar updated successfully";
-
             var existingCalendar = await _context.HolidayCalendarConfigurations
                 .Include(h => h.HolidayCalendarTransactions)
                 .FirstOrDefaultAsync(h => h.Id == request.Id);
             if (existingCalendar == null)
             {
-                throw new MessageNotFoundException("Holiday calendar not found.");
+                throw new MessageNotFoundException("Holiday calendar not found");
             }
             existingCalendar.Name = request.GroupName ?? existingCalendar.Name;
             existingCalendar.CalendarYear = request.CalendarYear;
@@ -173,9 +172,18 @@ namespace AttendanceManagement.Services
             existingCalendar.IsActive = request.IsActive;
             existingCalendar.UpdatedBy = request.UpdatedBy;
             existingCalendar.UpdatedUtc = DateTime.UtcNow;
-
+            if (!request.IsActive)
+            {
+                foreach (var transaction in existingCalendar.HolidayCalendarTransactions.Where(t => t.IsActive))
+                {
+                    transaction.IsActive = false;
+                    transaction.UpdatedBy = request.UpdatedBy;
+                    transaction.UpdatedUtc = DateTime.UtcNow;
+                }
+            }
             await _context.SaveChangesAsync();
-            if (request.Transactions != null && request.Transactions.Any())
+
+            if (request.IsActive && request.Transactions != null && request.Transactions.Any())
             {
                 var existingTransactions = await _context.HolidayCalendarTransactions
                     .Where(hct => hct.HolidayCalendarId == request.Id && hct.IsActive)
