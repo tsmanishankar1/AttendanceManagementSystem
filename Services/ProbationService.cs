@@ -14,6 +14,10 @@ using OfficeOpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NETCore.MailKit.Core;
+using System.Threading.Tasks;
+using PdfWriter = iTextSharp.text.pdf.PdfWriter;
+using Font = iTextSharp.text.Font;
+using iText.IO.Font;
 
 namespace AttendanceManagement.Services
 {
@@ -371,7 +375,11 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
 
             var staffCreationId = probation.StaffCreationId;
-            var pdfPath = GeneratePdf(staffCreationId);
+            var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffCreationId && s.IsActive == true);
+            if (staffId == null) throw new MessageNotFoundException("Staff not found");
+            var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == staffId.DesignationId && d.IsActive);
+            if (designation == null) throw new MessageNotFoundException("Designation not found");
+            var pdfPath = GeneratePdf(staffCreationId, designation.Name, staffId.Title);
             byte[] pdfBytes = System.IO.File.ReadAllBytes(pdfPath);
             string base64Pdf = Convert.ToBase64String(pdfBytes);
             var letterGeneration = new LetterGeneration
@@ -388,30 +396,95 @@ namespace AttendanceManagement.Services
             return pdfPath;
         }
 
-        private string GeneratePdf(int staffCreationId)
+        private string GeneratePdf(int staffCreationId, string designation, string title)
         {
             var staff = _context.StaffCreations.FirstOrDefault(s => s.Id == staffCreationId && s.IsActive == true);
             if (staff == null)
             {
-                throw new Exception($"Staff with ID {staffCreationId} not found.");
+                throw new MessageNotFoundException($"Staff with ID {staffCreationId} not found.");
             }
-            var fileName = $"Letter_{staff.FirstName} {staff.LastName}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+
+            // Prepare file and directory paths
+            var fileName = $"Confirmation_Letter_{staff.FirstName}_{staff.LastName}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
             var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
             var filePath = Path.Combine(directoryPath, fileName);
-            using (var pdfDoc = new Document(PageSize.A4))
+
+            // Create the PDF
+            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var pdfDoc = new Document(PageSize.A4, 50, 50, 80, 50))
             {
-                iTextSharp.text.pdf.PdfWriter.GetInstance(pdfDoc, new FileStream(filePath, FileMode.Create));
+                PdfWriter.GetInstance(pdfDoc, fs);
                 pdfDoc.Open();
-                pdfDoc.Add(new Paragraph($"Employee Confirmation Letter"));
-                pdfDoc.Add(new Paragraph($"Name: {staff.FirstName} {staff.LastName}"));
-                pdfDoc.Add(new Paragraph($"Congratulations! Your employment has been confirmed."));
-                pdfDoc.Add(new Paragraph($"Effective Date: {DateTime.UtcNow.ToShortDateString()}"));
+
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14);
+                var underlineFont = new Font(Font.FontFamily.HELVETICA, 14, Font.UNDERLINE | Font.BOLD);
+                var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
+                var redFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.RED);
+
+                // Date
+                pdfDoc.Add(new Paragraph(DateTime.UtcNow.ToString("dd MMMM yyyy"), bodyFont));
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Name, Employee Code, Designation
+                pdfDoc.Add(new Paragraph($"Name: {staff.FirstName} {staff.LastName}", bodyFont));
+                pdfDoc.Add(new Paragraph($"Employee Code: {staff.StaffId}", bodyFont));
+                pdfDoc.Add(new Paragraph($"Designation: {designation}", bodyFont));
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Salutation
+                pdfDoc.Add(new Paragraph($"Dear {title} {staff.FirstName} {staff.LastName},", bodyFont));
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Subject - Center aligned and Underlined
+                var subjectParagraph = new Paragraph("Sub: Service Confirmation", underlineFont)
+                {
+                    Alignment = Element.ALIGN_CENTER
+                };
+                pdfDoc.Add(subjectParagraph);
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Body Paragraph 1 (includes "VLead" with styled V)
+                var para1 = new Paragraph();
+                para1.Add(new Chunk("V", redFont));
+                para1.Add(new Chunk("Lead Design Services appreciates your continuous participation and involvement in the organizational growth. Based on the review of your performance for the period from (Date) to (Date), we are pleased to inform and confirm your services with effect from ", bodyFont));
+                para1.Add(new Chunk(DateTime.UtcNow.ToString("dd MMMM yyyy"), bodyFont));
+                para1.Add(new Chunk(" in the organization.", bodyFont));
+                pdfDoc.Add(para1);
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Body Paragraph 2
+                pdfDoc.Add(new Paragraph("All other terms and conditions as per your appointment order will remain unchanged.", bodyFont));
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Body Paragraph 3
+                pdfDoc.Add(new Paragraph("Please sign and return the enclosed copy of this letter as a token of acknowledgement.", bodyFont));
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Body Paragraph 4 (includes "VLead" again)
+                var para4 = new Paragraph();
+                para4.Add(new Chunk("We wish you all the best in your assignments with ", bodyFont));
+                para4.Add(new Chunk("V", redFont));
+                para4.Add(new Chunk("Lead Design Services.", bodyFont));
+                pdfDoc.Add(para4);
+                pdfDoc.Add(new Paragraph(" "));
+
+                // Signature block
+                pdfDoc.Add(new Paragraph("For ", bodyFont));
+                var company = new Paragraph();
+                company.Add(new Chunk("V", redFont));
+                company.Add(new Chunk("Lead Design Services Private Limited", bodyFont));
+                pdfDoc.Add(company);
+                pdfDoc.Add(new Paragraph(" "));
+                pdfDoc.Add(new Paragraph("Nirmala Thamarai", bodyFont));
+                pdfDoc.Add(new Paragraph("Manager - HR", bodyFont));
+
                 pdfDoc.Close();
             }
+
             return filePath;
         }
 

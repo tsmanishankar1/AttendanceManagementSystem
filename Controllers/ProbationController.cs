@@ -176,15 +176,13 @@ public class ProbationController : ControllerBase
         try
         {
             var pdfBase64 = await _probationService.ProcessApprovalAsync(hrConfirmation);
-            var response = new
-            {
-                Success = true,
-                Message = pdfBase64
-            };
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(pdfBase64);
+            var fileName = Path.GetFileName(pdfBase64);
+            var contentType = "application/pdf";
             await _loggingService.AuditLog("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", pdfBase64, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
-            return Ok(response);
+            return File(fileBytes, contentType, fileName);
         }
-        catch(MessageNotFoundException ex)
+        catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("Letter Generation", "POST", "/api/Probation/HrApprovalWithLetterGeneration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, hrConfirmation.CreatedBy, JsonSerializer.Serialize(hrConfirmation));
             return ErrorClass.NotFoundResponse(ex.Message);

@@ -46,7 +46,6 @@ public class ExcelImportService
         {
             throw new MessageNotFoundException("Excel template not found");
         }
-
         string fileName = $"{excelTemplate.Name}.xlsx";
         return Path.Combine(_workspacePath, fileName);
     }
@@ -61,11 +60,11 @@ public class ExcelImportService
             var fileExtension = Path.GetExtension(excelImportDto.File.FileName);
             if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
             {
-                throw new ArgumentException("Invalid file");
+                throw new ArgumentException("Please upload the correct Excel template File");
             }
             var expectedFileName = excelImportType.Name;
             var uploadedFileName = Path.GetFileNameWithoutExtension(excelImportDto.File.FileName);
-            if (!string.Equals(expectedFileName, uploadedFileName, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Invalid file");
+            if (!string.Equals(expectedFileName, uploadedFileName, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Please upload the correct Excel template File");
             var staffExists = await _context.StaffCreations.AnyAsync(s => s.Id == excelImportDto.CreatedBy && s.IsActive == true);
             if (!staffExists) throw new MessageNotFoundException($"Staff not found");
             using (var stream = new MemoryStream())
@@ -74,7 +73,7 @@ public class ExcelImportService
                 using (var package = new ExcelPackage(stream))
                 {
                     var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                    if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file.");
+                    if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
                     var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                     var requiredHeaders = new List<string>();
                     if (excelImportDto.ExcelImportId == 1)
@@ -86,22 +85,22 @@ public class ExcelImportService
                             "CostCenter", "WorkStation", "City", "District", "State","Country", "OtEligible", "ApprovalLevel1", "ApprovalLevel2", "AccessLevel",
                             "PolicyGroup", "WorkingDayPattern", "Tenure", "UanNumber", "EsiNumber", "IsMobileAppEligible", "GeoStatus", "MiddleName",
                             "OfficialPhone", "PersonalLocation", "PersonalEmail", "LeaveGroup", "Company", "Location", "HolidayCalendar", "Status",
-                            "AadharNo", "PanNo", "PassportNo", "DrivingLicense", "BankName", "BankAccountNo", "BankIfscCode", "BankBranch", "Qualification",
+                            "AadharNo", "PanNo", "PassportNo", "DrivingLicense", "BankName", "BankAccountNo", "BankIfscCode", "BankBranch",
                             "HomeAddress", "FatherName", "EmergencyContactPerson1", "EmergencyContactPerson2", "EmergencyContactNo1", "EmergencyContactNo2", "MotherName",
                             "FatherAadharNo", "MotherAadharNo", "OrganizationType", "WorkingStatus", "ConfirmationDate", "PostalCode", "ApprovalLevel", "OfficialEmail"
                         };
                     }
                     else if (excelImportDto.ExcelImportId == 2)
                     {
-                        requiredHeaders = new List<string> {"LeaveTypeName", "StaffCreationId", "TransactionFlag", "Month", "Year", "Remarks", "LeaveCount", "LeaveReason"};
+                        requiredHeaders = new List<string> {"LeaveType", "StaffId", "TransactionFlag", "Month", "Year", "Remarks", "LeaveCount", "LeaveReason"};
                     }
                     else if (excelImportDto.ExcelImportId == 3)
                     {
-                        requiredHeaders = new List<string> {"FullName", "ShortName", "Phone", "Fax", "Email" };
+                        requiredHeaders = new List<string> {"Name", "ShortName", "Phone", "Fax", "Email" };
                     }
                     else if (excelImportDto.ExcelImportId == 4 || excelImportDto.ExcelImportId == 5 || excelImportDto.ExcelImportId == 6)
                     {
-                        requiredHeaders = new List<string> {"FullName", "ShortName" };
+                        requiredHeaders = new List<string> {"Name", "ShortName" };
                     }
                     else if (excelImportDto.ExcelImportId == 7)
                     {
@@ -109,11 +108,11 @@ public class ExcelImportService
                     }
                     else if (excelImportDto.ExcelImportId == 8)
                     {
-                        requiredHeaders = new List<string> {"StaffId", "SelectPunch", "InPunch", "OutPunch", "Remarks", "ApplicationTypeName" };
+                        requiredHeaders = new List<string> {"StaffId", "SelectPunch", "InPunch", "OutPunch", "Remarks", "ApplicationType" };
                     }
                     else if (excelImportDto.ExcelImportId == 9)
                     {
-                        requiredHeaders = new List<string> {"StartTime", "EndTime", "StaffId", "Remarks", "PermissionDate", "PermissionType", "ApplicationTypeName" };
+                        requiredHeaders = new List<string> {"StartTime", "EndTime", "StaffId", "Remarks", "PermissionDate", "PermissionType", "ApplicationType" };
                     }
                     else if (excelImportDto.ExcelImportId == 10)
                     {
@@ -121,31 +120,31 @@ public class ExcelImportService
                     }
                     else if (excelImportDto.ExcelImportId == 11)
                     {
-                        requiredHeaders = new List<string> {"ShiftName", "StartTime", "EndTime", "ShortName" };
+                        requiredHeaders = new List<string> {"StaffId", "Shift", "FromDate", "ToDate" };
                     }
                     else if (excelImportDto.ExcelImportId == 12)
                     {
-                        requiredHeaders = new List<string> {"ApplicationTypeName", "FromDate", "ToDate", "Reason", "StaffId", "StartDuration", "EndDuration", "LeaveTypeName" };
+                        requiredHeaders = new List<string> {"ApplicationType", "FromDate", "ToDate", "Reason", "StaffId", "StartDuration", "EndDuration", "LeaveType", "TotalDays" };
                     }
                     else if (excelImportDto.ExcelImportId == 13)
                     {
-                        requiredHeaders = new List<string> {"ApplicationTypeName", "StartTime", "EndTime", "StartDate", "EndDate", "Reason", "StaffId", "StartDuration", "EndDuration" };
+                        requiredHeaders = new List<string> {"ApplicationType", "StartTime", "EndTime", "StartDate", "EndDate", "Reason", "StaffId", "StartDuration", "EndDuration", "TotalDays", "TotalHours" };
                     }
                     else if (excelImportDto.ExcelImportId == 14)
                     {
-                        requiredHeaders = new List<string> {"ApplicationTypeName", "FromTime", "ToTime", "FromDate", "ToDate", "Reason", "StartDuration", "EndDuration", "StaffId" };
+                        requiredHeaders = new List<string> {"ApplicationType", "FromTime", "ToTime", "FromDate", "ToDate", "Reason", "StartDuration", "EndDuration", "StaffId", "TotalDays", "TotalHours" };
                     }
                     else if (excelImportDto.ExcelImportId == 15)
                     {
-                        requiredHeaders = new List<string> {"ApplicationTypeName", "StaffId", "OTDate", "StartTime", "EndTime", "OTType" };
+                        requiredHeaders = new List<string> {"StaffId", "OTDate", "StartTime", "EndTime", "OTType" };
                     }
                     else if (excelImportDto.ExcelImportId == 16)
                     {
-                        requiredHeaders = new List<string> {"ApplicationTypeName", "StaffId", "TransactionDate", "BeforeShiftHours", "AfterShiftHours", "Remarks", "DurationHours" };
+                        requiredHeaders = new List<string> {"ApplicationType", "StaffId", "TransactionDate", "BeforeShiftHours", "AfterShiftHours", "Remarks", "DurationHours" , "Shift"};
                     }
                     else if (excelImportDto.ExcelImportId == 17)
                     {
-                        requiredHeaders = new List<string> {"StaffId", "VaccinatedDate", "VaccinationNumber", "IsExempted", "Comments" };
+                        requiredHeaders = new List<string> {"StaffId", "VaccinatedDate", "VaccinationNumber", "IsExempted", "Comments", "SecondVaccinationDate" };
                     }
                     else if(excelImportDto.ExcelImportId == 18)
                     {
@@ -402,7 +401,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 2)
@@ -410,14 +409,14 @@ public class ExcelImportService
                                 var individualLeaveCreditDebits = new List<IndividualLeaveCreditDebit>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveTypeName"]].Text.Trim();
+                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(leaveTypeName)) throw new MessageNotFoundException($"Leave type {leaveTypeName} not found");
                                     var leaveType = await _context.LeaveTypes.FirstOrDefaultAsync(l => l.Name.ToLower() == leaveTypeName.ToLower() && l.IsActive);
                                     if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found");
-                                    var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffCreationId"]].Text.Trim();
+                                    var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffCreationIdStr)) throw new MessageNotFoundException($"Staff {staffCreationIdStr} not found");
                                     var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                    if (!match.Success) throw new ArgumentException($"Invalid StaffCreationId format {staffCreationIdStr}");
+                                    if (!match.Success) throw new ArgumentException($"Invalid Staff Id format {staffCreationIdStr}");
                                     var shortName = match.Groups[1].Value;
                                     var staffId = int.Parse(match.Groups[2].Value);
                                     var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
@@ -470,7 +469,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 3)
@@ -480,7 +479,7 @@ public class ExcelImportService
                                 {
                                     var departmentMaster = new DepartmentMaster
                                     {
-                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         Phone = long.TryParse(worksheet.Cells[row, columnIndexes["Phone"]].Text, out var phone) ? phone : 0,
                                         Fax = worksheet.Cells[row, columnIndexes["Fax"]].Text.Trim(),
@@ -497,7 +496,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 4)
@@ -507,7 +506,7 @@ public class ExcelImportService
                                 {
                                     var designationMaster = new DesignationMaster
                                     {
-                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
@@ -521,7 +520,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 5)
@@ -531,7 +530,7 @@ public class ExcelImportService
                                 {
                                     var divisionMaster = new DivisionMaster
                                     {
-                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
@@ -545,7 +544,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 6)
@@ -555,7 +554,7 @@ public class ExcelImportService
                                 {
                                     var costCentreMaster = new CostCentreMaster
                                     {
-                                        Name = worksheet.Cells[row, columnIndexes["FullName"]].Text.Trim(),
+                                        Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
                                         ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
@@ -569,7 +568,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 7)
@@ -593,7 +592,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 8)
@@ -601,10 +600,10 @@ public class ExcelImportService
                                 var manualPunchRequisitions = new List<ManualPunchRequistion>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(applicationTypeName))
                                     {
-                                        throw new Exception($"Application Type Name is required");
+                                        throw new Exception($"Application Type is required");
                                     }
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
                                     if (applicationType == null)
@@ -658,7 +657,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 9)
@@ -666,7 +665,7 @@ public class ExcelImportService
                                 var commonPermissions = new List<CommonPermission>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
@@ -758,7 +757,7 @@ public class ExcelImportService
                                     {
                                         continue;
                                     }
-                                    var existingStaff = _context.StaffCreations.FirstOrDefault(s => s.Id == staffId && s.IsActive == true);
+                                    var existingStaff = _context.StaffCreations.FirstOrDefault(s => s.StaffId == staffText && s.IsActive == true);
                                     if (existingStaff == null)
                                     {
                                         continue;
@@ -794,27 +793,61 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 11)
                             {
-                                var shiftMasters = new List<Shift>();
+                                var shiftMasters = new List<AssignShift>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var startTimeCell = worksheet.Cells[row, columnIndexes["StartTime"]];
-                                    var endTimeCell = worksheet.Cells[row, columnIndexes["EndTime"]];
-                                    var shortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
-                                    var startTime = ConvertExcelDateTime(startTimeCell)?.ToString("HH:mm")
-                                    ?? throw new FormatException($"Unable to parse StartTime '{startTimeCell.Text}'");
-                                    var endTime = ConvertExcelDateTime(endTimeCell)?.ToString("HH:mm")
-                                        ?? throw new FormatException($"Unable to parse EndTime '{endTimeCell.Text}'");
-                                    var shiftMaster = new Shift
+                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
+                                    int? staffId = null;
+                                    if (!string.IsNullOrEmpty(staffIdText))
                                     {
-                                        Name = worksheet.Cells[row, columnIndexes["ShiftName"]].Text.Trim(),
-                                        StartTime = startTime,
-                                        ShortName = shortName,
-                                        EndTime = endTime,
+                                        var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
+                                        if (match.Success)
+                                        {
+                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
+                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
+                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
+                                            if (!staffExistsInOrg)
+                                            {
+                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
+                                            }
+                                            staffId = staffExist.Id;
+                                        }
+                                        else
+                                        {
+                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
+                                        }
+                                    }
+                                    var shift = worksheet.Cells[row, columnIndexes["Shift"]].Text.Trim();
+                                    if (string.IsNullOrEmpty(shift))
+                                    {
+                                        continue;
+                                    }
+                                    var shiftId = await _context.Shifts
+                                        .Where(d => d.Name.Trim().ToLower() == shift.Trim().ToLower() && d.IsActive)
+                                        .Select(d => d.Id)
+                                        .FirstOrDefaultAsync();
+
+                                    DateOnly fromDate;
+                                    DateOnly toDate;
+                                    if (!DateOnly.TryParse(worksheet.Cells[row, columnIndexes["FromDate"]].Text, out fromDate))
+                                    {
+                                        throw new FormatException($"Invalid FromDate");
+                                    }
+                                    if (!DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ToDate"]].Text, out toDate))
+                                    {
+                                        throw new FormatException($"Invalid ToDate");
+                                    }
+                                    var shiftMaster = new AssignShift
+                                    {
+                                        StaffId = staffId ?? throw new Exception($"Staff Id is required"),
+                                        ShiftId = shiftId,
+                                        FromDate = fromDate,
+                                        ToDate = toDate,
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
@@ -823,11 +856,11 @@ public class ExcelImportService
                                 }
                                 if(shiftMasters.Count > 0)
                                 {
-                                    await _context.Shifts.AddRangeAsync(shiftMasters);
+                                    await _context.AssignShifts.AddRangeAsync(shiftMasters);
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 12)
@@ -835,13 +868,13 @@ public class ExcelImportService
                                 var leaveRequisitions = new List<LeaveRequisition>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
                                         throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
                                     }
-                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveTypeName"]].Text.Trim();
+                                    var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(leaveTypeName)) throw new Exception($"Leave type name is required");
                                     var leaveType = await _context.LeaveTypes.FirstOrDefaultAsync(l => l.Name.ToLower() == leaveTypeName.ToLower() && l.IsActive);
                                     if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found");
@@ -873,7 +906,6 @@ public class ExcelImportService
                                         throw new ArgumentException($"Invalid FromDate {isFromDateValid}");
                                     }
                                     toDate = isToDateValid ? toDate : fromDate;
-                                    decimal totalDays = (toDate.ToDateTime(TimeOnly.MinValue) - fromDate.ToDateTime(TimeOnly.MinValue)).Days + 1;
                                     var leaveRequisition = new LeaveRequisition
                                     {
                                         ApplicationTypeId = applicationType.Id,
@@ -883,7 +915,7 @@ public class ExcelImportService
                                         LeaveTypeId = leaveType.Id,
                                         FromDate = fromDate,
                                         ToDate = toDate,
-                                        TotalDays = totalDays,
+                                        TotalDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["TotalDays"]].Text.Trim(), out decimal prodeScore) ? prodeScore : 0m,
                                         StaffId = staffId,
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
@@ -897,7 +929,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 13)
@@ -905,7 +937,7 @@ public class ExcelImportService
                                 var onDutyRequisitions = new List<OnDutyRequisition>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
@@ -936,7 +968,7 @@ public class ExcelImportService
                                     DateOnly? endDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["EndDate"]]?.Text, out var parsedEndDate) ? parsedEndDate : null;
                                     DateTime? startTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["StartTime"]]?.Text, out var parsedStartTime) ? parsedStartTime : null;
                                     DateTime? endTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["EndTime"]]?.Text, out var parsedEndTime) ? parsedEndTime : null;
-                                    decimal? totalDays = null;
+/*                                    decimal? totalDays = null;
                                     if (startDate.HasValue && endDate.HasValue)
                                     {
                                         totalDays = (endDate.Value.DayNumber - startDate.Value.DayNumber) + 1;
@@ -947,7 +979,7 @@ public class ExcelImportService
                                         TimeSpan timeDifference = endTime.Value - startTime.Value;
                                         totalHours = $"{(int)timeDifference.TotalHours}h {timeDifference.Minutes}m";
                                     }
-                                    var onDutyRequisition = new OnDutyRequisition
+*/                                  var onDutyRequisition = new OnDutyRequisition
                                     {
                                         ApplicationTypeId = applicationType.Id,
                                         StartTime = startTime,
@@ -957,8 +989,8 @@ public class ExcelImportService
                                         StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]].Text.Trim(),
                                         EndDuration = worksheet.Cells[row, columnIndexes["EndDuration"]]?.Text.Trim(),
                                         Reason = worksheet.Cells[row, columnIndexes["Reason"]].Text.Trim(),
-                                        TotalDays = totalDays,
-                                        TotalHours = totalHours,
+                                        TotalDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["TotalDays"]].Text.Trim(), out decimal prodeScore) ? prodeScore : 0m,
+                                        TotalHours = worksheet.Cells[row, columnIndexes["TotalHours"]].Text.Trim(),
                                         StaffId = staffId,
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
@@ -972,7 +1004,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 14)
@@ -980,7 +1012,7 @@ public class ExcelImportService
                                 var workFromHomes = new List<WorkFromHome>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
@@ -1012,7 +1044,7 @@ public class ExcelImportService
                                     DateOnly? fromDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["FromDate"]]?.Text, out var parsedFromDate) ? parsedFromDate : null;
                                     DateOnly? toDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ToDate"]]?.Text, out var parsedToDate) ? parsedToDate : null;
 
-                                    string? totalHours = null;
+/*                                    string? totalHours = null;
                                     if (fromTime.HasValue && toTime.HasValue)
                                     {
                                         TimeSpan timeDifference = toTime.Value - fromTime.Value;
@@ -1023,7 +1055,7 @@ public class ExcelImportService
                                     {
                                         totalDays = (toDate.Value.DayNumber - fromDate.Value.DayNumber) + 1;
                                     }
-                                    var workFrom = new WorkFromHome
+*/                                  var workFrom = new WorkFromHome
                                     {
                                         ApplicationTypeId = applicationType.Id,
                                         FromTime = fromTime,
@@ -1031,8 +1063,8 @@ public class ExcelImportService
                                         FromDate = fromDate,
                                         ToDate = toDate,
                                         Reason = worksheet.Cells[row, columnIndexes["Reason"]].Text.Trim(),
-                                        TotalDays = totalDays,
-                                        TotalHours = totalHours,
+                                        TotalDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["TotalDays"]].Text.Trim(), out decimal prodeScore) ? prodeScore : 0m,
+                                        TotalHours = worksheet.Cells[row, columnIndexes["TotalHours"]].Text.Trim(),
                                         StartDuration = worksheet.Cells[row, columnIndexes["StartDuration"]].Text.Trim(),
                                         EndDuration = worksheet.Cells[row, columnIndexes["EndDuration"]]?.Text.Trim() ?? string.Empty,
                                         StaffId = staffId,
@@ -1048,7 +1080,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 15)
@@ -1108,7 +1140,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 16)
@@ -1116,7 +1148,7 @@ public class ExcelImportService
                                 var shiftExtensions = new List<ShiftExtension>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationTypeName"]].Text.Trim();
+                                    var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(applicationTypeName))
                                     {
                                         throw new Exception($"Application Type is required");
@@ -1147,7 +1179,15 @@ public class ExcelImportService
                                             throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
                                         }
                                     }
-
+                                    var shift = worksheet.Cells[row, columnIndexes["Shift"]].Text.Trim();
+                                    if (string.IsNullOrEmpty(shift))
+                                    {
+                                        continue;
+                                    }
+                                    var shiftId = await _context.Shifts
+                                        .Where(d => d.Name.Trim().ToLower() == shift.Trim().ToLower() && d.IsActive)
+                                        .Select(d => d.Id)
+                                        .FirstOrDefaultAsync();
                                     DateOnly? transactionDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["TransactionDate"]].Text, out var parsedDate) ? parsedDate : null;
                                     if (!transactionDate.HasValue)
                                     {
@@ -1167,7 +1207,8 @@ public class ExcelImportService
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow,
-                                        StaffId = staffId
+                                        StaffId = staffId,
+                                        ShiftId = shiftId
                                     };
                                     shiftExtensions.Add(shiftExtension);
                                 }
@@ -1177,7 +1218,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if (excelImportDto.ExcelImportId == 17)
@@ -1211,6 +1252,11 @@ public class ExcelImportService
                                     {
                                         throw new ArgumentException($"Invalid VaccinatedDate '{vaccinatedDate}'");
                                     }
+                                    DateTime? secondVaccinatedDate = DateTime.TryParse(worksheet.Cells[row, columnIndexes["SecondVaccinationDate"]]?.Text, out var parsedSecondVaccinatedDate) ? parsedSecondVaccinatedDate : null;
+                                    if (!vaccinatedDate.HasValue)
+                                    {
+                                        throw new ArgumentException($"Invalid SecondVaccinatedDate '{secondVaccinatedDate}'");
+                                    }
                                     if (!int.TryParse(worksheet.Cells[row, columnIndexes["VaccinationNumber"]]?.Text, out int vaccinationNumber))
                                     {
                                         throw new ArgumentException($"Invalid VaccinationNumber '{vaccinationNumber}'");
@@ -1235,6 +1281,7 @@ public class ExcelImportService
                                         StaffId = staffId ?? throw new Exception($"Staff Id is required"),
                                         VaccinatedDate = vaccinatedDate,
                                         VaccinationNumber = vaccinationNumber,
+                                        SecondVaccinationDate = secondVaccinatedDate,
                                         IsExempted = isExempted,
                                         Comments = comments,
                                         IsActive = true,
@@ -1249,7 +1296,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if(excelImportDto.ExcelImportId == 18)
@@ -1308,7 +1355,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             else if(excelImportDto.ExcelImportId == 19)
@@ -1354,7 +1401,7 @@ public class ExcelImportService
                                 }
                                 else
                                 {
-                                    throw new MessageNotFoundException("Record not found");
+                                    throw new MessageNotFoundException("File is empty");
                                 }
                             }
                             await _context.SaveChangesAsync();
@@ -1363,7 +1410,7 @@ public class ExcelImportService
                         catch (Exception ex)
                         {
                             await transaction.RollbackAsync();
-                            throw new Exception($"Error processing the Excel file: {ex.Message}");
+                            throw new Exception(ex.Message);
                         }
                     }
                 }
@@ -1372,7 +1419,7 @@ public class ExcelImportService
         }
         catch (Exception ex)
         {
-            throw new Exception($"Error processing the Excel file: {ex.Message}");
+            throw new Exception(ex.Message);
         }
     }
 

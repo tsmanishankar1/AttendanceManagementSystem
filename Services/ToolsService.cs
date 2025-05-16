@@ -1,5 +1,6 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
@@ -133,6 +134,7 @@ namespace AttendanceManagement.Services
             var org = await _context.OrganizationTypes.AnyAsync(p => p.Id == organizationTypeId && p.IsActive == true);
             if (!org) throw new MessageNotFoundException("Organization type not found");
         }
+
         public async Task<string> UpdateAssignLeaveType(UpdateAssignLeaveTypeDTO dto)
         {
             var assignLeaveType = await _context.AssignLeaveTypes.FindAsync(dto.Id);

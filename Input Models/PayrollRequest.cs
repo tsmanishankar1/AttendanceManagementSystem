@@ -11,6 +11,7 @@
         public int Id { get; set; }
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
+        public string StaffName { get; set; } = null!;
         public decimal Basic { get; set; }
         public decimal? Hra { get; set; }
         public decimal? Da { get; set; }
@@ -52,6 +53,7 @@
         public int Id { get; set; }
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
+        public string StaffName { get; set; } = null!;
         public decimal Basic { get; set; }
         public decimal? Hra { get; set; }
         public decimal? Da { get; set; }
