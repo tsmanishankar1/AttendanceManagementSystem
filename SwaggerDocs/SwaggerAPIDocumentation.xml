@@ -663,10 +663,11 @@
 			<response code="404">If no New Joinees found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DashboardController.GetAllHolidays">
+		<member name="M:AttendanceManagement.Controllers.DashboardController.GetAllHolidays(System.Int32)">
 			<summary>
 				Retrieves all holidays.
 			</summary>
+			<param name="staffId">The ID of the staff member.</param>
 			<returns>All holidays.</returns>
 			<response code="200">Returns the list of holidays</response>
 			<response code="404">If no holidays are found</response>
@@ -1238,15 +1239,29 @@
 			<response code="404">If required data is not found</response>
 			<response code="500">If an internal server error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PayrollController.GetPaySlip(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GetPaySlip(System.Int32,System.Int32,System.Int32)">
 			<summary>
 				Retrieves a payslip for a specific staff member.
 			</summary>
 			<param name="staffId">The ID of the staff member.</param>
+			<param name="month">The month for which the payslip is generated.</param>
+			<param name="year">The year for which the payslip is generated.</param>
 			<returns>Returns the payslip details.</returns>
-			<response code="200">Returns the payslip data</response>
+			<response code="200">Returns the payslip pdf file</response>
 			<response code="404">If no payslip is found for the given staff ID</response>
 			<response code="500">If an internal server error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySheet(System.Int32,System.Int32,System.Int32)">
+			<summary>
+				Generates the paysheet PDF for a specified staff member for a given month and year.
+			</summary>
+			<param name="staffId">The ID of the staff member.</param>
+			<param name="month">The month for which the paysheet is generated.</param>
+			<param name="year">The year for which the paysheet is generated.</param>
+			<returns>Returns the PDF file as a downloadable file stream.</returns>
+			<response code="200">Returns the paysheet PDF file.</response>
+			<response code="404">If no paysheet is found for the given staff ID.</response>
+			<response code="500">If an internal server error occurs.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.PayrollController.GetAllPaySlip">
 			<summary>

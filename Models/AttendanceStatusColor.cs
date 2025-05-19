@@ -7,7 +7,7 @@ public partial class AttendanceStatusColor
 {
     public int Id { get; set; }
 
-    public string StatusName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public string ShortName { get; set; } = null!;
 

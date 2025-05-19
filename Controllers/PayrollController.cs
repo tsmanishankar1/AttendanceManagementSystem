@@ -3,6 +3,7 @@ using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers
@@ -13,10 +14,12 @@ namespace AttendanceManagement.Controllers
     {
         private readonly PayrollService _payrollService;
         private readonly LoggingService _loggingService;
-        public PayrollController(PayrollService payrollService, LoggingService loggingService)
+        private readonly AttendanceManagementSystemContext _context;
+        public PayrollController(PayrollService payrollService, LoggingService loggingService, AttendanceManagementSystemContext context)
         {
             _payrollService = payrollService;
             _loggingService = loggingService;
+            _context = context;
         }
 
         [HttpPost("UploadPaySlip")]
@@ -46,17 +49,36 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetPaySlip")]
-        public async Task<IActionResult> GetPaySlip(int staffId)
+        public async Task<IActionResult> GetPaySlip(int staffId, int month, int year)
         {
             try
             {
-                var result = await _payrollService.GetPaySlip(staffId);
-                var response = new
-                {
-                    Success = true,
-                    Message = result
-                };
-                return Ok(response);
+                var payslip = await _payrollService.GetPaySlip(staffId, month, year);
+                var pdfBytes = PayslipPdfGenerator.Generate(payslip);
+                string fileName = $"Payslip_{payslip.StaffCreationId}_{payslip.SalaryMonth}_{payslip.SalaryYear}.pdf";
+
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GeneratePaySheet")]
+        public async Task<IActionResult> GeneratePaySheet(int staffId, int month, int year)
+        {
+            try
+            {
+                var paysheet = await _payrollService.GeneratePaySheet(staffId, month, year);
+                var pdfBytes = PayslipPdfGenerator.GeneratePaysheetPdf(paysheet);
+                string fileName = $"Paysheet_{paysheet.StaffId}_{paysheet.Month}_{paysheet.Year}.pdf";
+
+                return File(pdfBytes, "application/pdf", fileName);
             }
             catch (MessageNotFoundException ex)
             {

@@ -1,7 +1,9 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace AttendanceManagement.Services
@@ -160,11 +162,15 @@ namespace AttendanceManagement.Services
             return message;
         }
 
-        public async Task<PayslipResponse> GetPaySlip(int staffId)
+        public async Task<PayslipResponse> GetPaySlip(int staffId, int month, int year)
         {
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if (staff == null) throw new MessageNotFoundException("Staff not found");
+            string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
             var paySlip = await (from payslip in _context.PaySlips
                                  join s in _context.StaffCreations on payslip.StaffId equals s.Id
-                                 where payslip.StaffId == staffId && payslip.IsActive == true
+                                 where payslip.StaffId == staffId && payslip.SalaryMonth == monthName
+                                 && payslip.SalaryYear == year && payslip.IsActive == true
                                  select new PayslipResponse
                                  {
                                      Id = payslip.Id,
@@ -213,6 +219,81 @@ namespace AttendanceManagement.Services
             return paySlip;
         }
 
+        public async Task<PaysheetResponse> GeneratePaySheet(int staffId, int month, int year)
+        {
+            var staffs = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if (staffs == null) throw new MessageNotFoundException("Staff not found");
+            string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+            var paySheet = await (from pay in _context.PaySheets
+                                  join staff in _context.StaffCreations on pay.StaffId equals staff.StaffId
+                                  join designation in _context.DesignationMasters on pay.DesignationId equals designation.Id
+                                  join department in _context.DepartmentMasters on pay.DepartmentId equals department.Id
+                                  where staff.IsActive == true && designation.IsActive && department.IsActive && pay.IsActive
+                                  && pay.StaffId == staffs.StaffId && pay.Month == month && pay.Year == year
+                                  select new PaysheetResponse
+                                  {
+                                      StaffId = staff.StaffId,
+                                      EmployeeName = pay.EmployeeName,
+                                      GroupName = pay.GroupName,
+                                      DisplayNameInReports = pay.DisplayNameInReports,
+                                      Month = monthName,
+                                      Year = year,
+                                      DateOfJoining = pay.DateOfJoining,
+                                      EmployeeNumber = pay.EmployeeNumber,
+                                      Designation = designation.Name,
+                                      Department = department.Name,
+                                      Location = pay.Location,
+                                      Gender = pay.Gender,
+                                      DateOfBirth = pay.DateOfBirth,
+                                      FatherOrMotherName = pay.FatherOrMotherName,
+                                      SpouseName = pay.SpouseName,
+                                      Address = pay.Address,
+                                      Email = pay.Email,
+                                      PhoneNo = pay.PhoneNo,
+                                      BankName = pay.BankName,
+                                      AccountNo = pay.AccountNo,
+                                      IfscCode = pay.IfscCode,
+                                      PfAccountNo = pay.PfAccountNo,
+                                      Uan = pay.Uan,
+                                      Pan = pay.Pan,
+                                      AadhaarNo = pay.AadhaarNo,
+                                      EsiNo = pay.EsiNo,
+                                      SalaryEffectiveFrom = pay.SalaryEffectiveFrom,
+                                      BasicActual = pay.BasicActual,
+                                      HraActual = pay.HraActual,
+                                      ConveActual = pay.ConveActual,
+                                      MedAllowActual = pay.MedAllowActual,
+                                      SplAllowActual = pay.SplAllowActual,
+                                      LopDays = pay.LopDays,
+                                      StdDays = pay.StdDays,
+                                      WrkDays = pay.WrkDays,
+                                      PfAdmin = pay.PfAdmin,
+                                      BasicEarned = pay.BasicEarned,
+                                      BasicArradj = pay.BasicArradj,
+                                      HraEarned = pay.HraEarned,
+                                      HraArradj = pay.HraArradj,
+                                      ConveEarned = pay.ConveEarned,
+                                      ConveArradj = pay.ConveArradj,
+                                      MedAllowEarned = pay.MedAllowEarned,
+                                      MedAllowArradj = pay.MedAllowArradj,
+                                      SplAllowEarned = pay.SplAllowEarned,
+                                      SplAllowArradj = pay.SplAllowArradj,
+                                      OtherAll = pay.OtherAll,
+                                      GrossEarn = pay.GrossEarn,
+                                      Pf = pay.Pf,
+                                      Esi = pay.Esi,
+                                      Lwf = pay.Lwf,
+                                      Pt = pay.Pt,
+                                      It = pay.It,
+                                      MedClaim = pay.MedClaim,
+                                      OtherDed = pay.OtherDed,
+                                      GrossDed = pay.GrossDed,
+                                      NetPay = pay.NetPay
+                                  })
+                                  .FirstOrDefaultAsync();
+            if (paySheet == null) throw new MessageNotFoundException("Paysheet not found");
+            return paySheet;
+        }
         public async Task<List<PayslipResponse>> GetAllPaySlip()
         {
             var paySlip = await (from payslip in _context.PaySlips

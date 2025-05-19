@@ -96,43 +96,49 @@ namespace AttendanceManagement.Services
                 if (reportingManager != null)
                 {
                     var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                    string Base64UrlEncode(string input)
+                    if(frontEndUrl != null)
                     {
-                        return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
-                            .TrimEnd('=')
-                            .Replace('+', '-')
-                            .Replace('/', '_');
-                    }
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
-                    var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
-                    var approvalJson = JsonSerializer.Serialize(new
-                    {
-                        staffId = staff.Id,
-                        StaffCreationId = staff.StaffId,
-                        StaffName = staffName,
-                        Department = department,
-                        IsApproved = true,
-                        ApprovedBy = staff.CreatedBy
-                    });
-                    var rejectJson = JsonSerializer.Serialize(new
-                    {
-                        staffId = staff.Id,
-                        StaffCreationId = staff.StaffId,
-                        StaffName = staffName,
-                        Department = department,
-                        IsApproved = false,
-                        ApprovedBy = staff.CreatedBy
-                    });
+                        string Base64UrlEncode(string input)
+                        {
+                            return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
+                                .TrimEnd('=')
+                                .Replace('+', '-')
+                                .Replace('/', '_');
+                        }
+                        var staffName = $"{staff.FirstName} {staff.LastName}";
+                        var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
+                        var approvalJson = JsonSerializer.Serialize(new
+                        {
+                            staffId = staff.Id,
+                            StaffCreationId = staff.StaffId,
+                            StaffName = staffName,
+                            Department = department,
+                            IsApproved = true,
+                            ApprovedBy = staff.CreatedBy
+                        });
+                        var rejectJson = JsonSerializer.Serialize(new
+                        {
+                            staffId = staff.Id,
+                            StaffCreationId = staff.StaffId,
+                            StaffName = staffName,
+                            Department = department,
+                            IsApproved = false,
+                            ApprovedBy = staff.CreatedBy
+                        });
 
-                    string approvalEncoded = Base64UrlEncode(approvalJson);
-                    string rejectEncoded = Base64UrlEncode(rejectJson);
-                    string approvalLink = $"{frontEndUrl}/#/main/Employee/Approve?data={approvalEncoded}";
-                    string rejectLink = $"{frontEndUrl}/#/main/Employee/Approve?data={rejectEncoded}";
-                    string reportingManagerFullName = $"{reportingManager.FirstName} {reportingManager.LastName}";
-                    string staffFullName = $"{staff.FirstName} {staff.LastName}";
-                    string subject = "Staff Approval Request";
+                        string approvalEncoded = Base64UrlEncode(approvalJson);
+                        string rejectEncoded = Base64UrlEncode(rejectJson);
+                        if (frontEndUrl.EndsWith("/"))
+                        {
+                            frontEndUrl = frontEndUrl.TrimEnd('/');
+                        }
+                        string approvalLink = $"{frontEndUrl}/#/main/Employee/Approve?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Employee/Approve?data={rejectEncoded}";
+                        string reportingManagerFullName = $"{reportingManager.FirstName} {reportingManager.LastName}";
+                        string staffFullName = $"{staff.FirstName} {staff.LastName}";
+                        string subject = "Staff Approval Request";
 
-                    string emailBody = $@"
+                        string emailBody = $@"
                         <p>Dear {reportingManagerFullName},</p>
                         <p>A new staff member <strong>{staffFullName}</strong> has been added and requires your approval.</p>       
                         <p>Please review this request and take appropriate action:</p>
@@ -143,7 +149,8 @@ namespace AttendanceManagement.Services
                         <br>Best Regards,<br>
                         HR Team";
 
-                    await SendApprovalEmail(managerEmail, subject, emailBody, staff.CreatedBy);
+                        await SendApprovalEmail(managerEmail, subject, emailBody, staff.CreatedBy);
+                    }
                 }
             }
         }
@@ -185,66 +192,72 @@ namespace AttendanceManagement.Services
                     if (staff != null)
                     {
                         var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                        string subject = "New Leave Requisition Submitted";
-
-                        string Base64UrlEncode(string input)
+                        if(!string.IsNullOrWhiteSpace(frontEndUrl))
                         {
-                            return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
-                                .TrimEnd('=')
-                                .Replace('+', '-')
-                                .Replace('/', '_');
+                            string subject = "New Leave Requisition Submitted";
+                            string Base64UrlEncode(string input)
+                            {
+                                return Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
+                                    .TrimEnd('=')
+                                    .Replace('+', '-')
+                                    .Replace('/', '_');
+                            }
+                            var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
+                            var approvalJson = JsonSerializer.Serialize(new
+                            {
+                                Id = id,
+                                IsApproved = true,
+                                ApplicationTypeId = applicationTypeId,
+                                ApprovedBy = recipientId,
+                                StaffCreationId = staff.StaffId,
+                                StaffName = creatorName,
+                                Department = department,
+                                LeaveType = leaveType
+                            });
+                            var rejectJson = JsonSerializer.Serialize(new
+                            {
+                                Id = id,
+                                IsApproved = false,
+                                ApplicationTypeId = applicationTypeId,
+                                ApprovedBy = recipientId,
+                                StaffCreationId = staff.StaffId,
+                                StaffName = creatorName,
+                                Department = department,
+                                LeaveType = leaveType
+                            });
+                            string approvalEncoded = Base64UrlEncode(approvalJson);
+                            string rejectEncoded = Base64UrlEncode(rejectJson);
+                            if (frontEndUrl.EndsWith("/"))
+                            {
+                                frontEndUrl = frontEndUrl.TrimEnd('/');
+                            }
+                            string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
+                            string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
+                            string fromDateFormatted = fromDate.ToString("dd-MMM-yyyy");
+                            string toDateFormatted = toDate.ToString("dd-MMM-yyyy");
+
+                            string emailBody = $@"
+                            <p>Dear {recipientName},</p>
+                            <p>A new Leave requisition has been submitted.</p>
+                            <p><strong>Leave Type:</strong> {leaveType}</p>
+                            <p><strong>From Date:</strong> {fromDateFormatted}</p>
+                            <p><strong>To Date:</strong> {toDateFormatted}</p>
+                            <p><strong>From Duration:</strong> {fromDuration}</p>
+                            <p><strong>To Duration:</strong> {toDuration}</p>
+                            <p><strong>Total Days:</strong> {totalDays}</p>
+                            <p><strong>Reason:</strong> {reason}</p>
+                            <p><strong>Requested By:</strong> {creatorName}</p>
+                            <p><strong>Requested Time:</strong> {requestDate}</p>
+                            <p>Please review this request and take appropriate action:</p>
+                            <p>
+                                <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
+                                <a href='{rejectLink}' style='background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none;'>Reject</a>
+                            </p>
+                            <br>Best Regards,<br>
+                            HR Team";
+
+                            await SendApprovalEmail(recipientEmail, subject, emailBody, createdBy);
                         }
-                        var department = await _context.DepartmentMasters.Where(d => d.Id == staff.DepartmentId && d.IsActive).Select(d => d.Name).FirstOrDefaultAsync();
-                        var approvalJson = JsonSerializer.Serialize(new
-                        {
-                            Id = id,
-                            IsApproved = true,
-                            ApplicationTypeId = applicationTypeId,
-                            ApprovedBy = recipientId,
-                            StaffCreationId = staff.StaffId,
-                            StaffName = creatorName,
-                            Department = department,
-                            LeaveType = leaveType
-                        });
-                        var rejectJson = JsonSerializer.Serialize(new
-                        {
-                            Id = id,
-                            IsApproved = false,
-                            ApplicationTypeId = applicationTypeId,
-                            ApprovedBy = recipientId,
-                            StaffCreationId = staff.StaffId,
-                            StaffName = creatorName,
-                            Department = department,
-                            LeaveType = leaveType
-                        });
-                        string approvalEncoded = Base64UrlEncode(approvalJson);
-                        string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/OnBehalfApplicationApproval?data={rejectEncoded}";
-                        string fromDateFormatted = fromDate.ToString("dd-MMM-yyyy");
-                        string toDateFormatted = toDate.ToString("dd-MMM-yyyy");
-
-                        string emailBody = $@"
-                        <p>Dear {recipientName},</p>
-                        <p>A new Leave requisition has been submitted.</p>
-                        <p><strong>Leave Type:</strong> {leaveType}</p>
-                        <p><strong>From Date:</strong> {fromDateFormatted}</p>
-                        <p><strong>To Date:</strong> {toDateFormatted}</p>
-                        <p><strong>From Duration:</strong> {fromDuration}</p>
-                        <p><strong>To Duration:</strong> {toDuration}</p>
-                        <p><strong>Total Days:</strong> {totalDays}</p>
-                        <p><strong>Reason:</strong> {reason}</p>
-                        <p><strong>Requested By:</strong> {creatorName}</p>
-                        <p><strong>Requested Time:</strong> {requestDate}</p>
-                        <p>Please review this request and take appropriate action:</p>
-                        <p>
-                            <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
-                            <a href='{rejectLink}' style='background-color: #f44336; color: white; padding: 10px 20px; text-decoration: none;'>Reject</a>
-                        </p>
-                        <br>Best Regards,<br>
-                        HR Team";
-
-                        await SendApprovalEmail(recipientEmail, subject, emailBody, createdBy);
                     }
                 }
             }

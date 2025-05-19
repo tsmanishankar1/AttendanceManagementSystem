@@ -25,6 +25,8 @@ public partial class DesignationMaster
 
     public virtual ICollection<ManualAttendanceProcessing> ManualAttendanceProcessings { get; set; } = new List<ManualAttendanceProcessing>();
 
+    public virtual ICollection<PaySheet> PaySheets { get; set; } = new List<PaySheet>();
+
     public virtual ICollection<StaffCreation> StaffCreations { get; set; } = new List<StaffCreation>();
 
     public virtual ICollection<StatutoryReport> StatutoryReports { get; set; } = new List<StatutoryReport>();

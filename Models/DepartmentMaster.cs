@@ -33,6 +33,8 @@ public partial class DepartmentMaster
 
     public virtual ICollection<HeadCount> HeadCounts { get; set; } = new List<HeadCount>();
 
+    public virtual ICollection<PaySheet> PaySheets { get; set; } = new List<PaySheet>();
+
     public virtual ICollection<StaffCreation> StaffCreations { get; set; } = new List<StaffCreation>();
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }

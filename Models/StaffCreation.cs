@@ -563,6 +563,10 @@ public partial class StaffCreation
 
     public virtual ICollection<OrganizationType> OrganizationTypeUpdatedByNavigations { get; set; } = new List<OrganizationType>();
 
+    public virtual ICollection<PaySheet> PaySheetCreatedByNavigations { get; set; } = new List<PaySheet>();
+
+    public virtual ICollection<PaySheet> PaySheetUpdatedByNavigations { get; set; } = new List<PaySheet>();
+
     public virtual ICollection<PaySlipComponent> PaySlipComponentCreatedByNavigations { get; set; } = new List<PaySlipComponent>();
 
     public virtual ICollection<PaySlipComponent> PaySlipComponentStaffs { get; set; } = new List<PaySlipComponent>();

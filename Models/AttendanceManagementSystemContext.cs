@@ -161,6 +161,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<PasswordHistory> PasswordHistories { get; set; }
 
+    public virtual DbSet<PaySheet> PaySheets { get; set; }
+
     public virtual DbSet<PaySlip> PaySlips { get; set; }
 
     public virtual DbSet<PaySlipComponent> PaySlipComponents { get; set; }
@@ -717,11 +719,11 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.ShortName)
                 .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.StatusName)
-                .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
@@ -2763,6 +2765,109 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PasswordHistoryUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK__PasswordH__Updat__4E1475DF");
+        });
+
+        modelBuilder.Entity<PaySheet>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PaySheet__3214EC07868242CE");
+
+            entity.ToTable("PaySheet");
+
+            entity.Property(e => e.Address)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.BankName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.BasicActual).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BasicArradj).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BasicEarned).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConveActual).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConveArradj).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConveEarned).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.DisplayNameInReports)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.Esi).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.FatherOrMotherName)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.Gender)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.GrossDed).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GrossEarn).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GroupName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.HraActual).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.HraArradj).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.HraEarned).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.IfscCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.It).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Location)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.LopDays).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Lwf).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedAllowActual).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedAllowArradj).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedAllowEarned).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedClaim).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.NetPay).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.OtherAll).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.OtherDed).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Pan)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Pf).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PfAccountNo)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.PfAdmin)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.Pt).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SplAllowActual).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SplAllowArradj).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SplAllowEarned).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SpouseName)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.StaffId)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.StdDays).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.WrkDays).HasColumnType("decimal(5, 2)");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PaySheetCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PaySheet__Create__79A8DF5A");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.PaySheets)
+                .HasForeignKey(d => d.DepartmentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PaySheet__Depart__78B4BB21");
+
+            entity.HasOne(d => d.Designation).WithMany(p => p.PaySheets)
+                .HasForeignKey(d => d.DesignationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PaySheet__Design__77C096E8");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PaySheetUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK__PaySheet__Update__7A9D0393");
         });
 
         modelBuilder.Entity<PaySlip>(entity =>

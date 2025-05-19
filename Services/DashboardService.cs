@@ -188,18 +188,22 @@ namespace AttendanceManagement.Services
             return newJoinees;
         }
 
-        public async Task<List<object>> GetAllHolidaysAsync()
+        public async Task<List<object>> GetAllHolidaysAsync(int staffId)
         {
-            var holiday = await _context.HolidayCalendarTransactions
-                .Where(h => h.IsActive)
-                .Select(h => new
-                {
-                    Id = h.Id,
-                    HolidayName = h.HolidayMaster.Name,
-                    FromDate = h.FromDate,
-                    ToDate = h.ToDate
-                })
-                .ToListAsync<object>();
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if (staff == null) throw new MessageNotFoundException("Staff not found");
+            var holiday = await (from hc in _context.HolidayCalendarTransactions
+                                 join hm in _context.HolidayMasters on hc.HolidayMasterId equals hm.Id
+                                 join hcc in _context.HolidayCalendarConfigurations on hc.HolidayCalendarId equals hcc.Id
+                                 where hc.IsActive && hcc.IsActive && hm.IsActive && hcc.Id == staff.HolidayCalendarId
+                                 select new
+                                 {
+                                     Id = hc.Id,
+                                     HolidayName = hm.Name,
+                                     FromDate = hc.FromDate,
+                                     ToDate = hc.ToDate
+                                 })
+                                  .ToListAsync<object>();
             if (holiday == null)
             {
                 throw new MessageNotFoundException("No holidays found");

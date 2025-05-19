@@ -298,7 +298,7 @@ namespace AttendanceManagement.Services
             var message = "Attendance status created successfully.";
             var attendanceStatus = new AttendanceStatusColor
             {
-                StatusName = dto.StatusName,
+                Name = dto.StatusName,
                 ShortName = dto.ShortName,
                 ColourCode = dto.ColourCode,
                 IsActive = dto.IsActive,
@@ -316,7 +316,7 @@ namespace AttendanceManagement.Services
                 .Select(color => new AttendanceStatusColorResponse
                 {
                     Id = color.Id,
-                    StatusName = color.StatusName,
+                    StatusName = color.Name,
                     ShortName = color.ShortName,
                     ColourCode = color.ColourCode,
                     IsActive = color.IsActive
@@ -337,7 +337,7 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No attendance status color found");
             }
-            existingStatusColor.StatusName = updateAttendanceStatusColor.StatusName;
+            existingStatusColor.Name = updateAttendanceStatusColor.StatusName;
             existingStatusColor.ShortName = updateAttendanceStatusColor.ShortName;
             existingStatusColor.ColourCode = updateAttendanceStatusColor.ColourCode;
             existingStatusColor.IsActive = updateAttendanceStatusColor.IsActive;

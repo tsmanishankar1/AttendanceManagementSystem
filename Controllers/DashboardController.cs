@@ -65,11 +65,11 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("GetAllHolidays")]
-    public async Task<IActionResult> GetAllHolidays()
+    public async Task<IActionResult> GetAllHolidays(int staffId)
     {
         try
         {
-            var holidays = await _dashboardService.GetAllHolidaysAsync();
+            var holidays = await _dashboardService.GetAllHolidaysAsync(staffId);
             var response = new
             {
                 Success = true,

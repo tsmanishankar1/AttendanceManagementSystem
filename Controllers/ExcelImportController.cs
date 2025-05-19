@@ -24,12 +24,10 @@ public class ExcelImportController : ControllerBase
         try
         {
             var filePath = await _excelImportService.GetExcelTemplateFilePath(excelImportId);
-
             if (!System.IO.File.Exists(filePath))
             {
-                return ErrorClass.NotFoundResponse("Excel template file not found.");
+                return ErrorClass.NotFoundResponse("Excel template file not found");
             }
-
             var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             var fileName = Path.GetFileName(filePath);
             var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

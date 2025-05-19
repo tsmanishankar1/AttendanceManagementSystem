@@ -598,7 +598,7 @@ public class ApplicationService
             .ToListAsync();
         var statusColors = await _context.AttendanceStatusColors
             .Where(c => c.IsActive)
-            .Select(c => new { c.Id, c.StatusName })
+            .Select(c => new { c.Id, c.Name })
             .ToListAsync();
         var result = new List<object>();
         foreach (var date in allDates)
@@ -643,7 +643,7 @@ public class ApplicationService
                         }
                     }
 
-                    color = statusColors.FirstOrDefault(c => c.StatusName == statusName)?.Id;
+                    color = statusColors.FirstOrDefault(c => c.Name == statusName)?.Id;
                 }
             }
             var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);

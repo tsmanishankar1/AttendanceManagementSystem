@@ -12,14 +12,14 @@ using Org.BouncyCastle.Asn1.Ocsp;
 public class ExcelImportService
 {
     private readonly AttendanceManagementSystemContext _context;
-    private readonly string _workspacePath = "ExcelTemplates";
+    private readonly string _workspacePath;
     public ExcelImportService(AttendanceManagementSystemContext context)
     {
         _context = context;
-        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), _workspacePath);
-        if (!Directory.Exists(uploadPath))
+        _workspacePath = Path.Combine(Directory.GetCurrentDirectory(), "ExcelTemplates");
+        if (!Directory.Exists(_workspacePath))
         {
-            Directory.CreateDirectory(uploadPath);
+            Directory.CreateDirectory(_workspacePath);
         }
     }
 
@@ -39,6 +39,7 @@ public class ExcelImportService
             return await System.IO.File.ReadAllBytesAsync(filePath);
         }
     */
+
     public async Task<string> GetExcelTemplateFilePath(int excelImportId)
     {
         var excelTemplate = await _context.ExcelImports.FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
@@ -162,6 +163,19 @@ public class ExcelImportService
                         requiredHeaders = new List<string>
                         {
                             "Emp ID", "Name", "EMP Division", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct","Nov", "Dec"
+                        };
+                    }
+                    else if (excelImportDto.ExcelImportId == 20)
+                    {
+                        requiredHeaders = new List<string>
+                        {
+                            "Employee Name", "Group Name", "Display Name In Reports", "Date of Joining", "Employee Number", "Designation", "Department",
+                            "Location", "Gender", "Date of Birth", "Father's/Mother's Name", "Spouse Name", "Address", "Email", "Phone No", "Bank Name",
+                            "Account No", "IFSC Code", "PF Account No", "UAN No", "PAN No", "Aadhaar No", "ESI No", "Salary Effective From", "Basic_Actual",
+                            "HRA_Actual", "CONVE_Actual", "MED_ALLOW_Actual", "SPL_ALLOW_Actual", "LOP_DAYS", "STD_DAYS", "WRK_DAYS", "PF_ADMIN",
+                            "BASIC EARNED", "BASIC_ARRADJ", "HRA_EARNED", "HRA_ARRADJ", "CONVE_EARNED", "CONVE_ARRADJ", "MED_ALLOW_EARNED", "MED_ALLOW__ARRADJ",
+                            "SPL_ALLOW_EARNED", "SPL_ALLOW__ARRADJ", "OTHER_ALL", "GROSS_EARN", "PF", "ESI", "LWF", "PT", "IT", "MED_CLAIM", "OTHER_DED",
+                            "GROSS_DED", "NET_PAY"
                         };
                     }
                     else
@@ -1404,6 +1418,120 @@ public class ExcelImportService
                                     throw new MessageNotFoundException("File is empty");
                                 }
                             }
+                            else if(excelImportDto.ExcelImportId == 20)
+                            {
+                                var paySheets = new List<PaySheet>();
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
+                                    var employee = _context.StaffCreations.Where(s => s.IsActive == true)
+                                        .AsEnumerable()
+                                        .FirstOrDefault(s => $"{s.FirstName} {(s.LastName ?? "")}".Trim() == employeeName);
+                                    if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                    var employeeId = employee.StaffId;
+                                    var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
+                                    if (string.IsNullOrEmpty(designationName))
+                                    {
+                                        continue;
+                                    }
+                                    var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
+                                    if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                    var departmentName = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
+                                    if (string.IsNullOrEmpty(designationName))
+                                    {
+                                        continue;
+                                    }
+                                    var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == departmentName.ToLower() && d.IsActive);
+                                    if (department == null) throw new MessageNotFoundException($"Department '{departmentName}' not found");
+                                    DateOnly dateOfJoining = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["Date of Joining"]].Text, out var parsedDate) ? parsedDate : DateOnly.MinValue;
+                                    if (dateOfJoining == DateOnly.MinValue)
+                                    {
+                                        throw new ArgumentException($"Invalid Date of Joining: '{dateOfJoining}'");
+                                    }
+                                    DateOnly dateOfBirth = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["Date of Birth"]].Text, out var parsedDate1) ? parsedDate1 : DateOnly.MinValue;
+                                    if (dateOfBirth == DateOnly.MinValue)
+                                    {
+                                        throw new ArgumentException($"Invalid Date of Birth: '{dateOfBirth}'");
+                                    }
+                                    DateOnly salaryEffectiveFrom = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["Salary Effective From"]].Text, out var parsedDate2) ? parsedDate2 : DateOnly.MinValue;
+                                    if (salaryEffectiveFrom == DateOnly.MinValue)
+                                    {
+                                        throw new ArgumentException($"Invalid Salary Effective From: '{salaryEffectiveFrom}'");
+                                    }
+                                    var addPaySheet = new PaySheet
+                                    {
+                                        EmployeeName = employeeName,
+                                        StaffId = employeeId,
+                                        GroupName = worksheet.Cells[row, columnIndexes["Group Name"]].Text.Trim(),
+                                        DisplayNameInReports = worksheet.Cells[row, columnIndexes["Display Name In Reports"]].Text.Trim(),
+                                        DateOfJoining = dateOfJoining,
+                                        EmployeeNumber = int.TryParse(worksheet.Cells[row, columnIndexes["Employee Number"]].Text, out var postalCode) ? postalCode : 0,
+                                        DesignationId = designation.Id,
+                                        DepartmentId = department.Id,
+                                        Location = worksheet.Cells[row, columnIndexes["Location"]].Text.Trim(),
+                                        Gender = worksheet.Cells[row, columnIndexes["Gender"]].Text.Trim(),
+                                        DateOfBirth = dateOfBirth,
+                                        FatherOrMotherName = worksheet.Cells[row, columnIndexes["Father's/Mother's Name"]].Text.Trim(),
+                                        SpouseName = worksheet.Cells[row, columnIndexes["Spouse Name"]]?.Text?.Trim(),
+                                        Address = worksheet.Cells[row, columnIndexes["Address"]].Text.Trim(),
+                                        Email = worksheet.Cells[row, columnIndexes["Email"]].Text.Trim(),
+                                        PhoneNo = long.TryParse(worksheet.Cells[row, columnIndexes["Phone No"]].Text, out var personalPhone) ? personalPhone : 0,
+                                        BankName = worksheet.Cells[row, columnIndexes["Bank Name"]].Text.Trim(),
+                                        AccountNo = long.TryParse(worksheet.Cells[row, columnIndexes["Account No"]].Text, out var account) ? account : 0,
+                                        IfscCode = worksheet.Cells[row, columnIndexes["IFSC Code"]].Text.Trim(),
+                                        PfAccountNo = worksheet.Cells[row, columnIndexes["PF Account No"]].Text.Trim(),
+                                        Uan = long.TryParse(worksheet.Cells[row, columnIndexes["UAN No"]].Text, out var uan) ? uan : 0,
+                                        Pan = worksheet.Cells[row, columnIndexes["PAN No"]].Text.Trim(),
+                                        AadhaarNo = long.TryParse(worksheet.Cells[row, columnIndexes["Aadhaar No"]].Text, out var aadhar) ? aadhar : 0,
+                                        EsiNo = long.TryParse(worksheet.Cells[row, columnIndexes["ESI No"]].Text, out var esiNo) ? esiNo : 0,
+                                        SalaryEffectiveFrom = salaryEffectiveFrom,
+                                        BasicActual = decimal.TryParse(worksheet.Cells[row, columnIndexes["Basic_Actual"]].Text.Trim(), out decimal basic) ? basic : 0m,
+                                        HraActual = decimal.TryParse(worksheet.Cells[row, columnIndexes["HRA_Actual"]].Text.Trim(), out decimal hra) ? hra : 0m,
+                                        ConveActual = decimal.TryParse(worksheet.Cells[row, columnIndexes["CONVE_Actual"]].Text.Trim(), out decimal conv) ? conv : 0m,
+                                        MedAllowActual = decimal.TryParse(worksheet.Cells[row, columnIndexes["MED_ALLOW_Actual"]].Text.Trim(), out decimal med) ? med : 0m,
+                                        SplAllowActual = decimal.TryParse(worksheet.Cells[row, columnIndexes["SPL_ALLOW_Actual"]].Text.Trim(), out decimal spl) ? spl : 0m,
+                                        LopDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["LOP_DAYS"]].Text.Trim(), out decimal lop) ? lop : 0m,
+                                        StdDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["STD_DAYS"]].Text.Trim(), out decimal std) ? std : 0m,
+                                        WrkDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["WRK_DAYS"]].Text.Trim(), out decimal wrk) ? wrk : 0m,
+                                        PfAdmin = worksheet.Cells[row, columnIndexes["PF_ADMIN"]].Text.Trim(),
+                                        BasicEarned = decimal.TryParse(worksheet.Cells[row, columnIndexes["BASIC EARNED"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
+                                        BasicArradj = decimal.TryParse(worksheet.Cells[row, columnIndexes["BASIC_ARRADJ"]].Text.Trim(), out decimal basicArradj) ? basicArradj : 0m,
+                                        HraEarned = decimal.TryParse(worksheet.Cells[row, columnIndexes["HRA_EARNED"]].Text.Trim(), out decimal hraEarned) ? hraEarned : 0m,
+                                        HraArradj = decimal.TryParse(worksheet.Cells[row, columnIndexes["HRA_ARRADJ"]].Text.Trim(), out decimal hraArradj) ? hraArradj : 0m,
+                                        ConveEarned = decimal.TryParse(worksheet.Cells[row, columnIndexes["CONVE_EARNED"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
+                                        ConveArradj = decimal.TryParse(worksheet.Cells[row, columnIndexes["CONVE_ARRADJ"]].Text.Trim(), out decimal convArradj) ? convArradj : 0m,
+                                        MedAllowEarned = decimal.TryParse(worksheet.Cells[row, columnIndexes["MED_ALLOW_EARNED"]].Text.Trim(), out decimal medAllowEarned) ? medAllowEarned : 0m,
+                                        MedAllowArradj = decimal.TryParse(worksheet.Cells[row, columnIndexes["MED_ALLOW__ARRADJ"]].Text.Trim(), out decimal medAllowArradj) ? medAllowArradj : 0m,
+                                        SplAllowEarned = decimal.TryParse(worksheet.Cells[row, columnIndexes["SPL_ALLOW_EARNED"]].Text.Trim(), out decimal splAllowEarned) ? splAllowEarned : 0m,
+                                        SplAllowArradj = decimal.TryParse(worksheet.Cells[row, columnIndexes["SPL_ALLOW__ARRADJ"]].Text.Trim(), out decimal splAllowArradj) ? splAllowArradj : 0m,
+                                        OtherAll = decimal.TryParse(worksheet.Cells[row, columnIndexes["OTHER_ALL"]].Text.Trim(), out decimal otherAll) ? otherAll : 0m,
+                                        GrossEarn = decimal.TryParse(worksheet.Cells[row, columnIndexes["GROSS_EARN"]].Text.Trim(), out decimal grossEarn) ? grossEarn : 0m,
+                                        Pf = decimal.TryParse(worksheet.Cells[row, columnIndexes["PF"]].Text.Trim(), out decimal pf) ? pf : 0m,
+                                        Esi = decimal.TryParse(worksheet.Cells[row, columnIndexes["ESI"]].Text.Trim(), out decimal esi) ? esi : 0m,
+                                        Lwf = decimal.TryParse(worksheet.Cells[row, columnIndexes["LWF"]].Text.Trim(), out decimal lwf) ? lwf : 0m,
+                                        Pt = decimal.TryParse(worksheet.Cells[row, columnIndexes["PT"]].Text.Trim(), out decimal pt) ? pt : 0m,
+                                        It = decimal.TryParse(worksheet.Cells[row, columnIndexes["IT"]].Text.Trim(), out decimal it) ? it : 0m,
+                                        MedClaim = decimal.TryParse(worksheet.Cells[row, columnIndexes["MED_CLAIM"]].Text.Trim(), out decimal medClaim) ? medClaim : 0m,
+                                        OtherDed = decimal.TryParse(worksheet.Cells[row, columnIndexes["OTHER_DED"]].Text.Trim(), out decimal otherDed) ? otherDed : 0m,
+                                        GrossDed = decimal.TryParse(worksheet.Cells[row, columnIndexes["GROSS_DED"]].Text.Trim(), out decimal grossDed) ? grossDed : 0m,
+                                        NetPay = decimal.TryParse(worksheet.Cells[row, columnIndexes["NET_PAY"]].Text.Trim(), out decimal netPay) ? netPay : 0m,
+                                        Month = excelImportDto.Month ?? 0,
+                                        Year = excelImportDto.ProductivityYear ?? 0,
+                                        IsActive = true,
+                                        CreatedBy = excelImportDto.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    paySheets.Add(addPaySheet);
+                                }
+                                if(paySheets.Count > 0)
+                                {
+                                    await _context.PaySheets.AddRangeAsync(paySheets);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("File is empty");
+                                }
+                            }
                             await _context.SaveChangesAsync();
                             await transaction.CommitAsync();
                         }
@@ -1421,27 +1549,5 @@ public class ExcelImportService
         {
             throw new Exception(ex.Message);
         }
-    }
-
-    DateTime? ConvertExcelDateTime(ExcelRangeBase cell)
-    {
-        if (double.TryParse(cell.Text, out var numericValue))
-        {
-            return DateTime.FromOADate(numericValue);
-        }
-        else if (DateTime.TryParse(cell.Text, out var parsedDateTime))
-        {
-            return parsedDateTime;
-        }
-        else if (DateTime.TryParseExact(
-            cell.Text,
-            new[] { "MM-dd-yy H:mm", "dd-MM-yyyy HH:mm:ss", "yyyy-MM-dd H:mm:ss", "dd/MM/yyyy H:mm:ss" },
-            System.Globalization.CultureInfo.InvariantCulture,
-            System.Globalization.DateTimeStyles.None,
-            out var customParsedDateTime))
-        {
-            return customParsedDateTime;
-        }
-        return null;
     }
 }

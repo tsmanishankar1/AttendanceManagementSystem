@@ -407,7 +407,7 @@ namespace AttendanceManagement.Input_Models
         public string? CostCentreName { get; set; }
         public string? BranchName { get; set; }
         public string? DepartmentName { get; set; }
-       public string? DivisionName { get; set; }
+        public string? DivisionName { get; set; }
         public string? DesignationName { get; set; }
         public string? StaffName { get; set; }
         public string? LocationName { get; set; }
