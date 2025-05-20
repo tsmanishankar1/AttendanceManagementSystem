@@ -178,6 +178,14 @@ public class ExcelImportService
                             "GROSS_DED", "NET_PAY"
                         };
                     }
+                    else if(excelImportDto.ExcelImportId == 21)
+                    {
+                        requiredHeaders = new List<string>
+                        {
+                            "Emp ID", "Name", "EMP Division", "Prod %", "Prod Score", "Prod Grade", "Qual %", "Qual Score", "Qual Grade", "No of Abs", "Attd %",
+                            "Attd Score", "Attd Grade", "Total Score", "Working months", "Score", "Final %", "Final Grade", "Comments"
+                        };
+                    }
                     else
                     {
                         throw new MessageNotFoundException("Excel import type not found");
@@ -1531,6 +1539,62 @@ public class ExcelImportService
                                 {
                                     throw new MessageNotFoundException("File is empty");
                                 }
+                            }
+                            else if(excelImportDto.ExcelImportId == 21)
+                            {
+                                var performances = new List<PerformanceReport>();
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var employeeId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                                    var employeeName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
+                                    var employee = _context.StaffCreations.Where(s => s.IsActive == true)
+                                        .AsEnumerable()
+                                        .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
+                                    if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                    var designationName = worksheet.Cells[row, columnIndexes["EMP Division"]].Text.Trim();
+                                    if (string.IsNullOrEmpty(designationName))
+                                    {
+                                        continue;
+                                    }
+                                    var designation = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
+                                    if (designation == null) throw new MessageNotFoundException($"Division '{designationName}' not found");
+                                    var addPerformance = new PerformanceReport
+                                    {
+                                        EmpId = employeeId,
+                                        Name = employeeName,
+                                        EmpDivisionId = designation.Id,
+                                        ProdPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod %"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
+                                        ProdScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod Score"]].Text.Trim(), out decimal basicArradj) ? basicArradj : 0m,
+                                        ProdGrade = worksheet.Cells[row, columnIndexes["Prod Grade"]].Text.Trim(),
+                                        QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Qual %"]].Text.Trim(), out decimal hraArradj) ? hraArradj : 0m,
+                                        QualityScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Qual Score"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
+                                        QualityGrade = worksheet.Cells[row, columnIndexes["Qual Grade"]].Text.Trim(),
+                                        NoOfAbsents = int.TryParse(worksheet.Cells[row, columnIndexes["No of Abs"]].Text, out var postalCode) ? postalCode : 0,
+                                        AttendancePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd %"]].Text.Trim(), out decimal medAllowArradj) ? medAllowArradj : 0m,
+                                        AttendanceScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd Score"]].Text.Trim(), out decimal splAllowEarned) ? splAllowEarned : 0m,
+                                        AttendanceGrade = worksheet.Cells[row, columnIndexes["Attd Grade"]].Text.Trim(),
+                                        TotalScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Score"]].Text.Trim(), out decimal medAllowArra) ? medAllowArra : 0m,
+                                        WorkingMonths = int.TryParse(worksheet.Cells[row, columnIndexes["Working months"]].Text.Trim(), out var postal) ? postal : 0,
+                                        Score = decimal.TryParse(worksheet.Cells[row, columnIndexes["Score"]].Text.Trim(), out var score) ? score : 0,
+                                        FinalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out var final) ? final : 0,
+                                        FinalGrade = worksheet.Cells[row, columnIndexes["Final Grade"]].Text.Trim(),
+                                        Comments = worksheet.Cells[row, columnIndexes["Comments"]].Text.Trim(),
+                                        PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
+                                        IsActive = true,
+                                        CreatedBy = excelImportDto.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    performances.Add(addPerformance);
+                                }
+                                if (performances.Count > 0)
+                                {
+                                    await _context.PerformanceReports.AddRangeAsync(performances);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("File is empty");
+                                }
+
                             }
                             await _context.SaveChangesAsync();
                             await transaction.CommitAsync();

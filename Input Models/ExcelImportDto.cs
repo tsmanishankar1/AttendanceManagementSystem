@@ -5,6 +5,7 @@
         public int ExcelImportId { get; set; }
         public int? ProductivityYear { get; set; }
         public int? Month {  get; set; }
+        public int? PerformanceTypeId { get; set; }
         public int CreatedBy { get; set; }
         public IFormFile File { get; set; } = null!;
     }

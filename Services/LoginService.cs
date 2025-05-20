@@ -69,7 +69,7 @@ public class LoginService
     private string GenerateRefreshToken(int userId)
     {
         var refreshToken = GenerateRandomToken();
-        var expiryDate = DateTime.UtcNow.AddHours(1);
+        var expiryDate = DateTime.UtcNow.AddHours(2);
         RefreshTokenStore.AddRefreshToken(refreshToken, userId, expiryDate);
         return refreshToken;
     }

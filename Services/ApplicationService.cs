@@ -781,7 +781,7 @@ public class ApplicationService
             throw new ConflictException("WorkedDate does not match the date in CompOffCredit");
         }
         var isHolidayWorkingExist = await _context.CompOffAvails.AnyAsync(h => h.WorkedDate == request.WorkedDate && (h.StaffId ?? h.CreatedBy) == staffOrCreatorId);
-        if (!isHolidayWorkingExist)
+        if (isHolidayWorkingExist)
         {
             throw new ConflictException("CompOff Avail request already exists for the requested worked date");
         }
