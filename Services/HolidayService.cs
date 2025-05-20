@@ -144,7 +144,7 @@ namespace AttendanceManagement.Services
                 Transactions = (from holidayTran in _context.HolidayCalendarTransactions
                                 join holidayMaster in _context.HolidayMasters
                                 on holidayTran.HolidayMasterId equals holidayMaster.Id
-                                where holidayTran.HolidayCalendarId == holiday.Id && holidayTran.IsActive
+                                where holidayTran.HolidayCalendarId == holiday.Id
                                 select new HolidayCalendarTransactionDto
                                 {
                                     HolidayMasterId = holidayTran.HolidayMasterId,

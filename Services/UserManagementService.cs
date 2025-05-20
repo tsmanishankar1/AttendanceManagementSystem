@@ -53,7 +53,7 @@ public class UserManagementService
         return new
         {
             StaffCreationId = user.Id,
-            StaffName = $"{user.FirstName} {user.LastName}",
+            StaffName = $"{user.FirstName}{(string.IsNullOrWhiteSpace(user.LastName) ? "" : " " + user.LastName)}",
             CreatedBy = user.CreatedBy
         };
     }
@@ -112,17 +112,29 @@ public class UserManagementService
 
     public async Task<UserManagementResponse> GetStaffDetailsByStaffName(string staffname)
     {
-        var user = await(from staff in _context.StaffCreations
-                         join department in _context.DepartmentMasters
-                         on staff.DepartmentId equals department.Id
-                         where staff.FirstName + " " + staff.LastName == staffname && staff.IsActive == true
-                         select new UserManagementResponse
-                         {
-                             UserManagementId = staff.Id,
-                             StaffName = staff.FirstName + " " + staff.LastName,
-                             DepartmentName = department.Name,
-                             CreatedBy = staff.CreatedBy
-                         }).FirstOrDefaultAsync();
+        var staffList = await (
+            from staff in _context.StaffCreations
+            join department in _context.DepartmentMasters
+                on staff.DepartmentId equals department.Id
+            where staff.IsActive == true
+            select new
+            {
+                staff.Id,
+                staff.FirstName,
+                staff.LastName,
+                staff.CreatedBy,
+                DepartmentName = department.Name
+            }
+        ).ToListAsync();
+        var user = staffList
+            .Select(s => new UserManagementResponse
+            {
+                UserManagementId = s.Id,
+                StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
+                DepartmentName = s.DepartmentName,
+                CreatedBy = s.CreatedBy
+            })
+            .FirstOrDefault(u => u.StaffName == staffname);
         if (user == null) throw new MessageNotFoundException("Staff not found.");
         return user;
     }
@@ -155,7 +167,7 @@ public class UserManagementService
                           select new UserManagementResponse
                           {
                               UserManagementId = staff.Id,
-                              StaffName = staff.FirstName + " " + staff.LastName,
+                              StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                               DepartmentName = department.Name,
                               CreatedBy = staff.CreatedBy
                           }).FirstOrDefaultAsync();

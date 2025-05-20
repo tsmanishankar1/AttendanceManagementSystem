@@ -118,6 +118,7 @@ namespace AttendanceManagement.Input_Models
         public int OrganizationTypeId { get; set; }
         [MaxLength(50)]
         public string WorkingStatus { get; set; } = null!;
+        public bool IsNonProduction { get; set; }
     }
 
     public class StaffCreationResponse
@@ -222,6 +223,7 @@ namespace AttendanceManagement.Input_Models
         public string OrganizationTypeName { get; set; } = null!;
         public int WorkingStatusId { get; set; }
         public string WorkingStatus { get; set; } = null!;
+        public bool IsNonProduction { get; set; }
         public DateOnly? ResignationDate { get; set; }
         public DateOnly? RelievingDate { get; set; }
     }
@@ -539,7 +541,7 @@ namespace AttendanceManagement.Input_Models
         public IFormFile? AadharCardFilePath { get; set; }
         public IFormFile? PanCardFilePath { get; set; }
         public IFormFile? DrivingLicenseFilePath { get; set; }
-      
+        public bool IsNonProduction { get; set; }
     }
 
     public class OrganizationTypeResponse

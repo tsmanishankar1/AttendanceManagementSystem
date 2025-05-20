@@ -23,7 +23,7 @@ namespace AttendanceManagement.Services
                 {
                     StaffId=s.Id,
                     StaffCreationId = s.StaffId,
-                    FullName = $"{s.FirstName} {s.LastName ?? ""}".Trim(),
+                    FullName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                     DepartmentId = s.DepartmentId,
                     DepartmentName = _context.DepartmentMasters
                                     .Where(d => d.Id == s.DepartmentId && d.IsActive)
@@ -139,7 +139,7 @@ namespace AttendanceManagement.Services
                 if (shift == null) throw new MessageNotFoundException("Shift not found");
                 var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.Id && s.IsActive == true);
                 if (staff == null) throw new MessageNotFoundException("Staff not found");
-                var staffName = staff.FirstName + " " + staff.LastName;
+                var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                 var existingAssignedShift = await _context.AssignShifts
                     .Where(a => a.FromDate == assignShift.FromDate && a.ToDate == assignShift.ToDate && a.StaffId == item.Id && a.IsActive)
                     .ToListAsync();
@@ -199,7 +199,7 @@ namespace AttendanceManagement.Services
                                                ShiftName = sh.Name,
                                                FromDate = ass.FromDate,
                                                ToDate = ass.ToDate,
-                                               StaffName = $"{st.FirstName} {st.LastName}"
+                                               StaffName = $"{st.FirstName}{(string.IsNullOrWhiteSpace(st.LastName) ? "" : " " + st.LastName)}"
                                            })
                                            .ToListAsync();
             if (getAssignedShifts.Count == 0) throw new MessageNotFoundException("No assigned shifts found");

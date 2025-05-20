@@ -35,17 +35,27 @@ namespace AttendanceManagement.Services
         {
             var message = "Approvers updated successfully";
             var staffList = await _context.StaffCreations.Where(s => staffIds.Contains(s.Id)).ToListAsync();
+            if(approverId2 != null)
+            {
+            }
             if (staffList == null || !staffList.Any())
             {
                 throw new MessageNotFoundException("No valid staff members found");
             }
+            string fullName = "";
             if (approverId1.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId1.Value))
             {
-                throw new MessageNotFoundException($"ApproverId1 ({approverId1}) does not exist");
+                var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == approverId1 && s.IsActive == true);
+                if (approver1 == null) throw new MessageNotFoundException("Approver1 not found");
+                fullName = $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}";
+                throw new MessageNotFoundException($"ApproverId1 {fullName} does not exist");
             }
             if (approverId2.HasValue && !await _context.StaffCreations.AnyAsync(s => s.Id == approverId2.Value))
             {
-                throw new MessageNotFoundException($"ApproverId2 ({approverId2}) does not exist");
+                var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == approverId2 && s.IsActive == true);
+                if (approver2 == null) throw new MessageNotFoundException("Approver2 not found");
+                fullName = $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}";
+                throw new MessageNotFoundException($"ApproverId2 {fullName} does not exist");
             }
             foreach (var staff in staffList)
             {
@@ -104,9 +114,9 @@ namespace AttendanceManagement.Services
                     Tenure = s.Tenure,
                     ApprovalLevel = s.ApprovalLevel,
                     ApprovalLevelId1 = s.ApprovalLevel1,
-                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}" : null,
+                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel1Navigation.LastName) ? "" : " " + s.ApprovalLevel1Navigation.LastName)}" : null,
                     ApprovalLevelId2 = s.ApprovalLevel2,
-                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel2Navigation.LastName) ? "" : " " + s.ApprovalLevel2Navigation.LastName)}" : null,
                     UanNumber = s.UanNumber,
                     EsiNumber = s.EsiNumber,
                     IsMobileAppEligible = s.IsMobileAppEligible,
@@ -162,6 +172,7 @@ namespace AttendanceManagement.Services
                     EmergencyContactNo2 = s.EmergencyContactNo2,
                     OrganizationTypeId = s.OrganizationTypeId,
                     OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId && o.IsActive).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
+                    IsNonProduction = s.IsNonProduction,
                     ResignationDate = s.ResignationDate,
                     RelievingDate = s.RelievingDate,               
                     CreatedBy = s.CreatedBy,
@@ -308,9 +319,9 @@ namespace AttendanceManagement.Services
                                      PersonalLocation = s.PersonalLocation,
                                      Tenure = s.Tenure,
                                      ApprovalLevelId1 = s.ApprovalLevel1,
-                                     ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}",
+                                     ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel1Navigation.LastName) ? "" : " " + s.ApprovalLevel1Navigation.LastName)}",
                                      ApprovalLevelId2 = s.ApprovalLevel2,
-                                     ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                                     ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel2Navigation.LastName) ? "" : " " + s.ApprovalLevel2Navigation.LastName)}" : null,
                                      UanNumber = s.UanNumber,
                                      EsiNumber = s.EsiNumber,
                                      District = s.District,
@@ -516,6 +527,7 @@ namespace AttendanceManagement.Services
                 AadharCardFilePath = aadharCardPath,
                 PanCardFilePath = panCardPath,
                 DrivingLicenseFilePath = drivingLicensePath,
+                IsNonProduction = staffInput.IsNonProduction
             };
             await _context.StaffCreations.AddAsync(staff);
             await _context.SaveChangesAsync();
@@ -662,6 +674,7 @@ namespace AttendanceManagement.Services
             existingStaff.EmergencyContactNo2 = updatedStaff.EmergencyContactNo2;
             existingStaff.OrganizationTypeId = updatedStaff.OrganizationTypeId;
             existingStaff.WorkingStatus = updatedStaff.WorkingStatus;
+            existingStaff.IsNonProduction = updatedStaff.IsNonProduction;
             existingStaff.ResignationDate = updatedStaff.ResignationDate;
             existingStaff.RelievingDate = updatedStaff.RelievingDate;
             existingStaff.UpdatedBy = updatedStaff.UpdatedBy;
@@ -744,9 +757,9 @@ namespace AttendanceManagement.Services
                     Tenure = s.Tenure,
                     ApprovalLevel = s.ApprovalLevel,
                     ApprovalLevelId1 = s.ApprovalLevel1,
-                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}" : null,
+                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel1Navigation.LastName) ? "" : " " + s.ApprovalLevel1Navigation.LastName)}" : null,
                     ApprovalLevelId2 = s.ApprovalLevel2,
-                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel2Navigation.LastName) ? "" : " " + s.ApprovalLevel2Navigation.LastName)}" : null,
                     UanNumber = s.UanNumber,
                     EsiNumber = s.EsiNumber,
                     IsMobileAppEligible = s.IsMobileAppEligible,
@@ -802,6 +815,7 @@ namespace AttendanceManagement.Services
                     EmergencyContactNo2 = s.EmergencyContactNo2,
                     OrganizationTypeId = s.OrganizationTypeId,
                     OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId && o.IsActive).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
+                    IsNonProduction = s.IsNonProduction,
                     ResignationDate = s.ResignationDate,
                     RelievingDate = s.RelievingDate,
                     CreatedBy = s.CreatedBy
@@ -867,9 +881,9 @@ namespace AttendanceManagement.Services
                     Tenure = s.Tenure,
                     ApprovalLevel = s.ApprovalLevel,
                     ApprovalLevelId1 = s.ApprovalLevel1,
-                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName} {s.ApprovalLevel1Navigation.LastName}" : null,
+                    ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel1Navigation.LastName) ? "" : " " + s.ApprovalLevel1Navigation.LastName)}" : null,
                     ApprovalLevelId2 = s.ApprovalLevel2,
-                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName ?? string.Empty} {s.ApprovalLevel2Navigation.LastName ?? string.Empty}".Trim() : null,
+                    ApprovalLevel2 = s.ApprovalLevel2Navigation != null ? $"{s.ApprovalLevel2Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel2Navigation.LastName) ? "" : " " + s.ApprovalLevel2Navigation.LastName)}" : null,
                     UanNumber = s.UanNumber,
                     EsiNumber = s.EsiNumber,
                     IsMobileAppEligible = s.IsMobileAppEligible,
@@ -925,6 +939,7 @@ namespace AttendanceManagement.Services
                     EmergencyContactNo2 = s.EmergencyContactNo2,
                     OrganizationTypeId = s.OrganizationTypeId,
                     OrganizationTypeName = _context.OrganizationTypes.Where(o => o.Id == s.OrganizationTypeId && o.IsActive).Select(o => o.Name).FirstOrDefault() ?? string.Empty,
+                    IsNonProduction = s.IsNonProduction,
                     ResignationDate = s.ResignationDate,
                     RelievingDate = s.RelievingDate,
                     CreatedBy = s.CreatedBy
@@ -1097,7 +1112,8 @@ namespace AttendanceManagement.Services
                 {1040, new PerformanceRatingScale() },
                 {1041, new HolidayMaster() },
                 {1042, new LeaveType() },
-                {1043, new AttendanceStatusColor() }
+                {1043, new AttendanceStatusColor() },
+                {1044, new PerformanceUploadType() }
             };
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
             {
@@ -1170,7 +1186,8 @@ namespace AttendanceManagement.Services
                 { 1040, _context.PerformanceRatingScales.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1041, _context.HolidayMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1042, _context.LeaveTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1043, _context.AttendanceStatusColors.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1043, _context.AttendanceStatusColors.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1044, _context.PerformanceUploadTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -1241,7 +1258,8 @@ namespace AttendanceManagement.Services
                 { 1040, async () => await _context.PerformanceRatingScales.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1041, async () => await _context.HolidayMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1042, async () => await _context.LeaveTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1043, async () => await _context.AttendanceStatusColors.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1043, async () => await _context.AttendanceStatusColors.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1044, async () => await _context.PerformanceUploadTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

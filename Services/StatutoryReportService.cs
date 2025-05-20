@@ -26,7 +26,7 @@ namespace AttendanceManagement.Services
             var user = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == request.CreatedBy && s.IsActive == true);
             if (user == null) throw new MessageNotFoundException("User not found");
             var userId = request.CreatedBy;
-            var userName = $"{user.FirstName} {user.LastName}";
+            var userName = $"{user.FirstName}{(string.IsNullOrWhiteSpace(user.LastName) ? "" : " " + user.LastName)}";
             var userCreationId = user.StaffId;
             var staffIdList = request.StaffIds ?? new List<int>();
             var staffIdParam = staffIdList.Any() ? string.Join(",", staffIdList) : (object)DBNull.Value;
@@ -65,7 +65,7 @@ namespace AttendanceManagement.Services
                                           {
                                               staff.Id,
                                               StaffCreationId = staff.StaffId,
-                                              Name = staff.FirstName + " " + staff.LastName,
+                                              Name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                                               Department = dept.Name,
                                               Designation = desig.Name
                                           }).ToListAsync();

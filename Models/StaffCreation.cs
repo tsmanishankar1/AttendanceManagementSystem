@@ -171,6 +171,8 @@ public partial class StaffCreation
 
     public string StaffId { get; set; } = null!;
 
+    public bool IsNonProduction { get; set; }
+
     public virtual ICollection<AcademicDetail> AcademicDetailCreatedByNavigations { get; set; } = new List<AcademicDetail>();
 
     public virtual ICollection<AcademicDetail> AcademicDetailStaffs { get; set; } = new List<AcademicDetail>();
@@ -582,6 +584,14 @@ public partial class StaffCreation
     public virtual ICollection<PerformanceRatingScale> PerformanceRatingScaleCreatedByNavigations { get; set; } = new List<PerformanceRatingScale>();
 
     public virtual ICollection<PerformanceRatingScale> PerformanceRatingScaleUpdatedByNavigations { get; set; } = new List<PerformanceRatingScale>();
+
+    public virtual ICollection<PerformanceReport> PerformanceReportCreatedByNavigations { get; set; } = new List<PerformanceReport>();
+
+    public virtual ICollection<PerformanceReport> PerformanceReportUpdatedByNavigations { get; set; } = new List<PerformanceReport>();
+
+    public virtual ICollection<PerformanceUploadType> PerformanceUploadTypeCreatedByNavigations { get; set; } = new List<PerformanceUploadType>();
+
+    public virtual ICollection<PerformanceUploadType> PerformanceUploadTypeUpdatedByNavigations { get; set; } = new List<PerformanceUploadType>();
 
     public virtual ICollection<PermissionRequistion> PermissionRequistionCreatedByNavigations { get; set; } = new List<PermissionRequistion>();
 

@@ -513,7 +513,7 @@ public class ApplicationService
             {
                 s.Id,
                 s.StaffId,
-                StaffName = $"{s.FirstName} {s.LastName}"
+                StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}"
             })
             .FirstOrDefaultAsync();
         if (staff == null) throw new MessageNotFoundException("Staff not found.");
@@ -703,12 +703,12 @@ public class ApplicationService
     public async Task<string> CreateAsync(CompOffCreditDto compOffCreditDto)
     {
         var message = "CompOff Credit request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(compOffCreditDto.ApplicationTypeId);
         var staffOrCreatorId = compOffCreditDto.StaffId ?? compOffCreditDto.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(compOffCreditDto.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var existingLeaves = await _context.CompOffCredits
         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) && lr.WorkedDate <= compOffCreditDto.WorkedDate)
         .ToListAsync();
@@ -750,7 +750,7 @@ public class ApplicationService
                 await _emailService.SendCompOffCreditRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     staffName: staffName,
                     id: compOffCredit.Id,
                     applicationTypeId: compOffCreditDto.ApplicationTypeId,
@@ -769,12 +769,12 @@ public class ApplicationService
     public async Task<string> CreateAsync(CompOffAvailRequest request)
     {
         var message = "CompOff Avail request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var isHolidayWorkingExists = await _context.CompOffCredits.AnyAsync(h => h.WorkedDate == request.WorkedDate && (h.StaffId ?? h.CreatedBy) == staffOrCreatorId && !h.IsActive);
         if (!isHolidayWorkingExists)
         {
@@ -880,7 +880,7 @@ public class ApplicationService
             lastCompOffCredit.UpdatedBy = staffOrCreatorId;
             lastCompOffCredit.UpdatedUtc = DateTime.UtcNow;
         }
-
+        await _context.SaveChangesAsync();
         string requestDateTime = compOff.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
@@ -891,7 +891,7 @@ public class ApplicationService
                 await _emailService.SendCompOffApprovalRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     staffName: staffName,
                     id: compOff.Id,
                     applicationTypeId: compOff.ApplicationTypeId,
@@ -994,9 +994,8 @@ public class ApplicationService
                                        leave.ApplicationTypeId,
                                        ApplicationType = application.Name,
                                        StaffId = leave.StaffId ?? leave.CreatedBy,
-                                       StaffName = leave.StaffId.HasValue
-                                           ? leaveStaff.FirstName + " " + (leaveStaff.LastName ?? "")
-                                           : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                       StaffName = leave.StaffId.HasValue ? $"{leaveStaff.FirstName}{(string.IsNullOrWhiteSpace(leaveStaff.LastName) ? "" : " " + leaveStaff.LastName)}"
+                                       : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                        leave.StartDuration,
                                        leave.EndDuration,
                                        LeaveType = leaveType.Name,
@@ -1062,9 +1061,8 @@ public class ApplicationService
                                                   permission.ApplicationTypeId,
                                                   permission.PermissionType,
                                                   StaffId = permission.StaffId ?? permission.CreatedBy,
-                                                  StaffName = permission.StaffId.HasValue
-                                                      ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                      : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                                  StaffName = permission.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                                  : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                   permission.PermissionDate,
                                                   permission.StartTime,
                                                   permission.EndTime,
@@ -1131,9 +1129,8 @@ public class ApplicationService
                                             punch.ApplicationTypeId,
                                             ApplicationType = application.Name,
                                             StaffId = punch.StaffId ?? punch.CreatedBy,
-                                            StaffName = punch.StaffId.HasValue
-                                                ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                            StaffName = punch.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                            : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                             punch.SelectPunch,
                                             punch.InPunch,
                                             punch.OutPunch,
@@ -1188,9 +1185,8 @@ public class ApplicationService
                                                    duty.ApplicationTypeId,
                                                    ApplicationType = application.Name,
                                                    StaffId = duty.StaffId ?? duty.CreatedBy,
-                                                   StaffName = duty.StaffId.HasValue
-                                                       ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                       : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                                   StaffName = duty.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                                   : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                    duty.StartDuration,
                                                    duty.EndDuration,
                                                    duty.StartDate,
@@ -1247,9 +1243,8 @@ public class ApplicationService
                                                 travel.ApplicationTypeId,
                                                 ApplicationType = application.Name,
                                                 StaffId = travel.StaffId ?? travel.CreatedBy,
-                                                StaffName = travel.StaffId.HasValue
-                                                    ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                    : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                                StaffName = travel.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                                : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                 travel.StartDuration,
                                                 travel.EndDuration,
                                                 travel.FromDate,
@@ -1306,9 +1301,8 @@ public class ApplicationService
                                               workFromHome.ApplicationTypeId,
                                               ApplicationType = application.Name,
                                               StaffId = workFromHome.StaffId ?? workFromHome.CreatedBy,
-                                              StaffName = workFromHome.StaffId.HasValue
-                                                  ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                  : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                              StaffName = workFromHome.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                              : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                               workFromHome.StartDuration,
                                               workFromHome.EndDuration,
                                               workFromHome.FromDate,
@@ -1366,9 +1360,8 @@ public class ApplicationService
                                              shiftChange.ApplicationTypeId,
                                              ApplicationType = application.Name,
                                              StaffId = shiftChange.StaffId ?? shiftChange.CreatedBy,
-                                             StaffName = shiftChange.StaffId.HasValue
-                                                 ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                 : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                             StaffName = shiftChange.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                             : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                              shiftChange.FromDate,
                                              shiftChange.ToDate,
                                              shiftChange.Reason,
@@ -1422,9 +1415,8 @@ public class ApplicationService
                                                 shiftExtension.ApplicationTypeId,
                                                 ApplicationType = application.Name,
                                                 StaffId = shiftExtension.StaffId ?? shiftExtension.CreatedBy,
-                                                StaffName = shiftExtension.StaffId.HasValue
-                                                    ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                    : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                                StaffName = shiftExtension.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                                : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                 shiftExtension.TransactionDate,
                                                 shiftExtension.DurationHours,
                                                 shiftExtension.BeforeShiftHours,
@@ -1479,9 +1471,8 @@ public class ApplicationService
                                                         holidayWorking.ApplicationTypeId,
                                                         ApplicationType = application.Name,
                                                         StaffId = holidayWorking.StaffId ?? holidayWorking.CreatedBy,
-                                                        StaffName = holidayWorking.StaffId.HasValue
-                                                            ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                            : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                                        StaffName = holidayWorking.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                                        : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                         holidayWorking.TxnDate,
                                                         holidayWorking.SelectShiftType,
                                                         holidayWorking.ShiftId,
@@ -1536,9 +1527,8 @@ public class ApplicationService
                                              compOff.ApplicationTypeId,
                                              ApplicationType = application.Name,
                                              StaffId = compOff.StaffId ?? compOff.CreatedBy,
-                                             StaffName = compOff.StaffId.HasValue
-                                                 ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                 : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                             StaffName = compOff.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                             : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                              compOff.WorkedDate,
                                              compOff.FromDate,
                                              compOff.ToDate,
@@ -1593,9 +1583,8 @@ public class ApplicationService
                                               compOff.ApplicationTypeId,
                                               ApplicationType = application.Name,
                                               StaffId = compOff.StaffId ?? compOff.CreatedBy,
-                                              StaffName = compOff.StaffId.HasValue
-                                                  ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                  : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                              StaffName = compOff.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                              : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                               compOff.WorkedDate,
                                               compOff.TotalDays,
                                               compOff.Reason,
@@ -1650,9 +1639,8 @@ public class ApplicationService
                                                reimbursement.UploadFilePath,
                                                reimbursementType.Name,
                                                StaffId = reimbursement.StaffId ?? reimbursement.CreatedBy,
-                                               StaffName = reimbursement.StaffId.HasValue
-                                                   ? staff.FirstName + " " + (staff.LastName ?? "")
-                                                   : creatorStaff.FirstName + " " + (creatorStaff.LastName ?? ""),
+                                               StaffName = reimbursement.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                               : $"{creatorStaff.FirstName} {(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                reimbursement.Status1,
                                                reimbursement.Status2,
 /*                                               Status = reimbursement.CancelledOn.HasValue ? "Cancelled" :
@@ -1714,9 +1702,9 @@ public class ApplicationService
     public async Task<string> CreateLeaveRequisitionAsync(LeaveRequisitionRequest leaveRequisitionRequest)
     {
         var message = "Leave request submitted successfully.";
-        await AttendanceFreeze();
-        await NotFoundMethod(leaveRequisitionRequest.ApplicationTypeId);
         var staffOrCreatorId = leaveRequisitionRequest.StaffId ?? leaveRequisitionRequest.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(leaveRequisitionRequest.ApplicationTypeId);
         var individualLeave = await _context.IndividualLeaveCreditDebits
         .Where(l => l.StaffCreationId == staffOrCreatorId
                     && l.LeaveTypeId == leaveRequisitionRequest.LeaveTypeId
@@ -1725,7 +1713,7 @@ public class ApplicationService
         .FirstOrDefaultAsync();
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var leaveType = await _context.LeaveTypes.Where(l => l.Id == leaveRequisitionRequest.LeaveTypeId && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
         if (leaveType == null) throw new MessageNotFoundException("Leave type not found");
         if(individualLeave == null || individualLeave.AvailableBalance == 0)
@@ -1826,6 +1814,7 @@ public class ApplicationService
             if (leaveRequisition.StaffId != null) throw new ConflictException($"Insufficient leave balance found for Staff {staffName}");
             else throw new ConflictException("Insufficient leave balance found");
         }
+        await _context.SaveChangesAsync();
         string requestDateTime = leaveRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
@@ -1836,7 +1825,7 @@ public class ApplicationService
                 await _emailService.SendLeaveRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     applicationTypeId: leaveRequisition.ApplicationTypeId,
                     id: leaveRequisition.Id,
                     leaveType: leaveType,
@@ -1858,12 +1847,12 @@ public class ApplicationService
     public async Task<string> AddCommonPermissionAsync(CommonPermissionRequest commonPermissionRequest)
     {
         var message = "Common Permission request submitted successfully.";
-        await AttendanceFreeze();
-        await NotFoundMethod(commonPermissionRequest.ApplicationTypeId);
         var staffOrCreatorId = commonPermissionRequest.StaffId ?? commonPermissionRequest.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(commonPermissionRequest.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         CommonPermission commonPermission = new CommonPermission();
         var permissionDate = commonPermissionRequest.PermissionDate;
         var dayOfWeek = permissionDate.DayOfWeek;
@@ -1927,7 +1916,7 @@ public class ApplicationService
                 await _emailService.SendCommonPermissionRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     applicationTypeId: commonPermissionRequest.ApplicationTypeId,
                     id: commonPermission.Id,
                     permissionType: commonPermissionRequest.PermissionType,
@@ -2030,12 +2019,12 @@ public class ApplicationService
     public async Task<string> CreateManualPunchAsync(ManualPunchRequestDto request)
     {
         var message = "Manual Punch request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var manualPunch = new ManualPunchRequistion
         {
             ApplicationTypeId = request.ApplicationTypeId,
@@ -2061,7 +2050,7 @@ public class ApplicationService
                 await _emailService.SendManualPunchRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     staffName: staffName,
                     id: manualPunch.Id,
                     applicationTypeId: request.ApplicationTypeId,
@@ -2077,9 +2066,9 @@ public class ApplicationService
         return message;
     }
 
-    private async Task AttendanceFreeze()
+    private async Task AttendanceFreeze(int staffId)
     {
-        var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
+        var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false && f.StaffId == staffId);
         if (!hasUnfreezed) throw new InvalidOperationException("Your request cannot proceed attendance records are frozen");
     }
 
@@ -2092,12 +2081,12 @@ public class ApplicationService
     public async Task<string> CreateOnDutyRequisitionAsync(OnDutyRequisitionRequest request)
     {
         var message = "On Duty request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var existingLeaves = await _context.OnDutyRequisitions
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.StartDate <= request.EndDate &&
@@ -2186,7 +2175,7 @@ public class ApplicationService
                 await _emailService.SendOnDutyRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     id: onDutyRequisition.Id,
                     applicationTypeId: request.ApplicationTypeId,
                     startDate: request.StartDate,
@@ -2208,12 +2197,12 @@ public class ApplicationService
     public async Task<string> CreateBusinessTravelAsync(BusinessTravelRequestDto request)
     {
         var message = "Business Travel request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var existingLeaves = await _context.BusinessTravels
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.FromDate <= request.ToDate &&
@@ -2302,7 +2291,7 @@ public class ApplicationService
                 await _emailService.SendBusinessTravelRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     id: businessTravel.Id,
                     applicationTypeId: request.ApplicationTypeId,
                     fromDate: request.FromDate,
@@ -2324,12 +2313,12 @@ public class ApplicationService
     public async Task<string> CreateWorkFromHomeAsync(WorkFromHomeDto request)
     {
         var message = "Work From Home request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var existingLeaves = await _context.WorkFromHomes
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.FromDate <= request.ToDate &&
@@ -2418,7 +2407,7 @@ public class ApplicationService
                 await _emailService.SendWorkFromHomeRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     id: workFromHome.Id,
                     applicationTypeId: request.ApplicationTypeId,
                     fromDate: request.FromDate,
@@ -2461,12 +2450,12 @@ public class ApplicationService
     public async Task<string> CreateShiftChangeAsync(ShiftChangeDto request)
     {
         var message = "Shift Change request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
         if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         var existingLeaves = await _context.ShiftChanges
@@ -2509,7 +2498,7 @@ public class ApplicationService
                 await _emailService.SendShiftChangeRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     id: shiftChange.Id,
                     applicationTypeId: request.ApplicationTypeId,
                     shiftName: shiftName,
@@ -2528,12 +2517,12 @@ public class ApplicationService
     public async Task<string> CreateShiftExtensionAsync(ShiftExtensionDto request)
     {
         var message = "Shift Extension request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var existingLeaves = await _context.ShiftExtensions
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.TransactionDate == request.TransactionDate))
@@ -2571,7 +2560,7 @@ public class ApplicationService
                 await _emailService.SendShiftExtensionRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     id: shiftExtension.Id,
                     applicationTypeId: request.ApplicationTypeId,
                     transactionDate: request.TransactionDate,
@@ -2591,12 +2580,12 @@ public class ApplicationService
     public async Task<string> CreateWeeklyOffHolidayWorkingAsync(WeeklyOffHolidayWorkingDto request)
     {
         var message = "Weekly Off/ Holiday Working request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
         if (shiftName == null) throw new MessageNotFoundException("Shift not found");
         var existingLeaves = await _context.WeeklyOffHolidayWorkings
@@ -2636,7 +2625,7 @@ public class ApplicationService
                 await _emailService.SendWeeklyOffHolidayWorkingRequestEmail(
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     staffName: staffName,
                     selectShiftType: request.SelectShiftType,
                     id: weeklyOffHolidayWorking.Id,
@@ -2656,12 +2645,12 @@ public class ApplicationService
     public async Task<string> AddReimbursement(ReimbursementRequestModel request)
     {
         var message = "Reimbursement request submitted successfully";
-        await AttendanceFreeze();
-        await NotFoundMethod(request.ApplicationTypeId);
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
+        await AttendanceFreeze(staffOrCreatorId);
+        await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
-        var staffName = $"{staffId.FirstName} {staffId.LastName}";
+        var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         bool reimbursementExists = await _context.Reimbursements.AnyAsync(r => r.BillNo == request.BillNo);
         if (reimbursementExists) throw new ConflictException($"Reimbursement with Bill No {request.BillNo} already exists.");
         var existingLeaves = await _context.Reimbursements
@@ -2725,7 +2714,7 @@ public class ApplicationService
                     applicationTypeId: reimbursement.ApplicationTypeId,
                     recipientEmail: approver1.OfficialEmail,
                     recipientId: approver1.Id,
-                    recipientName: $"{approver1.FirstName} {approver1.LastName}",
+                    recipientName: $"{approver1.FirstName}{(string.IsNullOrWhiteSpace(approver1.LastName) ? "" : " " + approver1.LastName)}",
                     staffName: staffName,
                     requestDate: requestDateTime,
                     billDate: reimbursement.BillDate,

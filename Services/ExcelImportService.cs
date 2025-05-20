@@ -13,10 +13,10 @@ public class ExcelImportService
 {
     private readonly AttendanceManagementSystemContext _context;
     private readonly string _workspacePath;
-    public ExcelImportService(AttendanceManagementSystemContext context)
+    public ExcelImportService(AttendanceManagementSystemContext context, IWebHostEnvironment env)
     {
         _context = context;
-        _workspacePath = Path.Combine(Directory.GetCurrentDirectory(), "ExcelTemplates");
+        _workspacePath = Path.Combine(env.ContentRootPath, "ExcelTemplates");
         if (!Directory.Exists(_workspacePath))
         {
             Directory.CreateDirectory(_workspacePath);
@@ -1426,7 +1426,7 @@ public class ExcelImportService
                                     var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
                                     var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                         .AsEnumerable()
-                                        .FirstOrDefault(s => $"{s.FirstName} {(s.LastName ?? "")}".Trim() == employeeName);
+                                        .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
                                     if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
                                     var employeeId = employee.StaffId;
                                     var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();

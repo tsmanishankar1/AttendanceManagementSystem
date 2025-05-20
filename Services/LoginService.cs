@@ -136,7 +136,7 @@ public class LoginService
             {
                 throw new MessageNotFoundException("User not found");
             }
-            var userName2 = userName1.FirstName + " " + userName1.LastName;
+            var userName2 = $"{userName1.FirstName}{(string.IsNullOrWhiteSpace(userName1.LastName) ? "" : " " + userName1.LastName)}";
             var staff = _context.StaffCreations.FirstOrDefault(e => e.Id == staffId && e.IsActive == true);
             if (staff == null)
             {
@@ -155,7 +155,7 @@ public class LoginService
 */
             var approver = _context.StaffCreations.FirstOrDefault(e => e.Id == staff.ApprovalLevel1 && e.IsActive == true);
             if (approver == null) throw new MessageNotFoundException("Approver not found");
-            string approverFullName = approver != null ? $"{approver.FirstName} {approver.LastName}" : "N/A";
+            string approverFullName = approver != null ? $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}" : "N/A";
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = new byte[32];
             RandomNumberGenerator.Fill(key);

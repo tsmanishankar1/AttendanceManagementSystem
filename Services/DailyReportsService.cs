@@ -92,7 +92,7 @@ public class DailyReportsService
         //var toDate1 = toDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture);
         var reportDate = DateTime.Now.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
         var userId = request.CreatedBy;
-        var userName = $"{user.FirstName} {user.LastName}";
+        var userName = $"{user.FirstName}{(string.IsNullOrWhiteSpace(user.LastName) ? "" : " " + user.LastName)}";
         var userCreationId = user.StaffId;
 
         if (request.DailyReportsId == 1)

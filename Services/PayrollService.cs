@@ -154,7 +154,7 @@ namespace AttendanceManagement.Services
                         catch (Exception ex)
                         {
                             await transaction.RollbackAsync();
-                            throw new Exception($"Error processing Excel file: {ex.Message}");
+                            throw new Exception(ex.Message);
                         }
                     }
                 }
@@ -176,7 +176,7 @@ namespace AttendanceManagement.Services
                                      Id = payslip.Id,
                                      StaffId = payslip.StaffId,
                                      StaffCreationId = s.StaffId,
-                                     StaffName = $"{s.FirstName} {s.LastName}",
+                                     StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                      Basic = payslip.Basic,
                                      Hra = payslip.Hra,
                                      Da = payslip.Da,
@@ -304,7 +304,7 @@ namespace AttendanceManagement.Services
                                      Id = payslip.Id,
                                      StaffId = payslip.StaffId,
                                      StaffCreationId = s.StaffId,
-                                     StaffName = $"{s.FirstName} {s.LastName}",
+                                     StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                      Basic = payslip.Basic,
                                      Hra = payslip.Hra,
                                      Da = payslip.Da,
@@ -505,7 +505,7 @@ namespace AttendanceManagement.Services
                                              Id = salary.Id,
                                              StaffId = salary.StaffId,
                                              StaffCreationId = s.StaffId,
-                                             StaffName = $"{s.FirstName} {s.LastName}",
+                                             StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                              Basic = salary.Basic,
                                              Hra = salary.Hra,
                                              Da = salary.Da,
@@ -561,7 +561,7 @@ namespace AttendanceManagement.Services
                                              Id = salary.Id,
                                              StaffId = salary.StaffId,
                                              StaffCreationId = s.StaffId,
-                                             StaffName = $"{s.FirstName} {s.LastName}",
+                                             StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                              Basic = salary.Basic,
                                              Hra = salary.Hra,
                                              Da = salary.Da,

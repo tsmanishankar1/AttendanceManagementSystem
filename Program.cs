@@ -3,6 +3,7 @@ using AttendanceManagement.AtrakModels;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using AttendanceManagement.Services;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ using System.Text;
 
 var configuration = ConfigureWebApiAppSettings();
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Configuration.AddConfiguration(configuration);
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 builder.Services.AddEndpointsApiExplorer();
@@ -84,7 +85,6 @@ builder.Services.AddScoped<StaffTransactionService>();
 builder.Services.AddScoped<ApproveApplicationService>();
 builder.Services.AddScoped<StatutoryReportService>();
 builder.Services.AddHostedService<ProbationConfirmationService>();
-
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -119,9 +119,11 @@ app.MapControllers();
 app.Run();
 static IConfigurationRoot ConfigureWebApiAppSettings()
 {
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
     var configurationBuilder = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
 
     return configurationBuilder.Build();
 }

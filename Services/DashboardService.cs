@@ -48,7 +48,7 @@ namespace AttendanceManagement.Services
                 {
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
-                    StaffName = $"{staff.FirstName} {staff.LastName}",
+                    StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                     Location =  _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                     BirthDate = staff.Dob.ToString("MMMM dd"),
@@ -66,7 +66,7 @@ namespace AttendanceManagement.Services
                 {
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
-                    StaffName = $"{staff.FirstName} {staff.LastName}",
+                    StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                     MarriageDate = staff.MarriageDate?.ToString("MMMM dd") ?? string.Empty,
@@ -84,7 +84,7 @@ namespace AttendanceManagement.Services
                 {
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
-                    StaffName = $"{staff.FirstName} {staff.LastName}",
+                    StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                     JoiningDate = staff.JoiningDate.ToString("MMMM dd"),
@@ -104,7 +104,7 @@ namespace AttendanceManagement.Services
                     {
                         StaffId = staff.Id,
                         StaffCreationId = staff.StaffId,
-                        StaffName = $"{staff.FirstName} {staff.LastName}",
+                        StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                         Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId)?.Name ?? string.Empty,
                         Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId)?.Name ?? string.Empty,
                         JoiningDate = staff.JoiningDate.ToString("MMMM dd"),
@@ -123,7 +123,7 @@ namespace AttendanceManagement.Services
                 {
                     StaffId = staff.Id,
                     StaffCreationId = staff.StaffId,
-                    StaffName = $"{staff.FirstName} {staff.LastName}",
+                    StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                     Location = _context.LocationMasters.FirstOrDefault(loc => loc.Id == staff.LocationMasterId && loc.IsActive)?.Name ?? string.Empty,
                     Designation = _context.DesignationMasters.FirstOrDefault(des => des.Id == staff.DesignationId && des.IsActive)?.Name ?? string.Empty,
                     ProfilePhoto = staff.ProfilePhoto
@@ -178,7 +178,7 @@ namespace AttendanceManagement.Services
                                     {
                                         StaffId = staff.Id,
                                         StaffCreationId = staff.StaffId,
-                                        StaffName = $"{staff.FirstName} {staff.LastName}",
+                                        StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                                         Location = loc.Name,
                                         Designation = des.Name,
                                         JoiningDate = staff.JoiningDate.ToString("MMMM dd")
@@ -204,7 +204,7 @@ namespace AttendanceManagement.Services
                                      ToDate = hc.ToDate
                                  })
                                   .ToListAsync<object>();
-            if (holiday == null)
+            if (holiday.Count == 0)
             {
                 throw new MessageNotFoundException("No holidays found");
             }

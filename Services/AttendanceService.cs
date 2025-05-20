@@ -207,7 +207,7 @@ public class AttendanceService
                                select new StaffInfoDto
                                {
                                    StaffId = staffs.Id,
-                                   StaffName = $"{staffs.FirstName} {staffs.LastName}",
+                                   StaffName = $"{staffs.FirstName}{(string.IsNullOrWhiteSpace(staffs.LastName) ? "" : " " + staffs.LastName)}",
                                    DepartmentName = dept.Name
                                })
                                .ToListAsync();
@@ -242,7 +242,7 @@ public class AttendanceService
                                 Id = ar.Id,
                                 StaffId = ar.StaffId,
                                 StaffCreationId = staff.StaffId,
-                                StaffName = $"{staff.FirstName}{staff.LastName}",
+                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                                 FirstIn = ar.FirstIn,
                                 LastOut = ar.LastOut,
                                 ShiftId = ar.ShiftId,

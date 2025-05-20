@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using PdfWriter = iTextSharp.text.pdf.PdfWriter;
 using Font = iTextSharp.text.Font;
 using iText.IO.Font;
+using Microsoft.Win32.SafeHandles;
 
 namespace AttendanceManagement.Services
 {
@@ -56,7 +57,7 @@ namespace AttendanceManagement.Services
                     ProbationId = p.Id,
                     StaffId = p.StaffCreationId,
                     StaffCreationId = s.StaffId,
-                    StaffName = s.FirstName + " " + s.LastName,
+                    StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                     DepartmentName = d.Name,
                     ProbationStartDate = p.ProbationStartDate,
                     ProbationEndDate = latestFeedback != null && latestFeedback.ExtensionPeriod != null
@@ -85,7 +86,7 @@ namespace AttendanceManagement.Services
                                           ProbationId = p.Id,
                                           StaffId = p.StaffCreationId,
                                           StaffCreationId = s.StaffId,
-                                          StaffName = s.FirstName + " " + s.LastName,
+                                          StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                           DepartmentName = d.Name,
                                           ProbationStartDate = p.ProbationStartDate,
                                           ProbationEndDate = p.ProbationEndDate,
@@ -116,7 +117,9 @@ namespace AttendanceManagement.Services
             probation.AssignedBy = assignManagerRequest.CreatedBy;
             probation.AssignedOn = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-            await _emailService.AssignManager(manager.OfficialEmail, manager.Id, $"{manager.FirstName} {manager.LastName}", $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, effectiveEndDate, assignManagerRequest.CreatedBy);
+            await _emailService.AssignManager(manager.OfficialEmail, manager.Id, $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                $"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}", probation.ProbationStartDate, effectiveEndDate,
+                assignManagerRequest.CreatedBy);
             return message;
         }
 
@@ -175,7 +178,7 @@ namespace AttendanceManagement.Services
                                           ProbationId = p.Id,
                                           StaffId = p.StaffCreationId,
                                           StaffCreationId = s.StaffId,
-                                          StaffName = s.FirstName + " " + s.LastName,
+                                          StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                           DepartmentName = d.Name,
                                           ProbationStartDate = p.ProbationStartDate,
                                           ProbationEndDate = p.ProbationEndDate,
@@ -208,7 +211,7 @@ namespace AttendanceManagement.Services
                     ProbationId = p.Id,
                     StaffId = p.StaffCreationId,
                     StaffCreationId = s.StaffId,
-                    StaffName = s.FirstName + " " + s.LastName,
+                    StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                     FeedbackText = f.FeedbackText,
                     ProbationExtensionPeriod = f.ExtensionPeriod,
                     IsApproved = f.IsApproved,
@@ -252,7 +255,10 @@ namespace AttendanceManagement.Services
                 };
                 await _context.Feedbacks.AddAsync(feedback);
                 string approvedTime = feedback.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                await _emailService.SendProbationConfirmationNotificationToHrAsync(approver.Id, $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, probation.ProbationEndDate, null, feedbackRequest.IsApproved, $"{approver.FirstName} {approver.LastName}", approvedTime, feedbackRequest.CreatedBy);
+                await _emailService.SendProbationConfirmationNotificationToHrAsync
+                (approver.Id, $"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}", probation.ProbationStartDate,
+                probation.ProbationEndDate, null, feedbackRequest.IsApproved, $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}",
+                approvedTime, feedbackRequest.CreatedBy);
             }
             else
             {
@@ -277,7 +283,10 @@ namespace AttendanceManagement.Services
                 };
                 await _context.Feedbacks.AddAsync(feedback);
                 string approvedTime = feedback.CreatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-                await _emailService.SendProbationConfirmationNotificationToHrAsync(approver.Id, $"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, effectiveEndDate, feedbackRequest.ExtensionPeriod, feedbackRequest.IsApproved, $"{approver.FirstName} {approver.LastName}", approvedTime, feedbackRequest.CreatedBy);
+                await _emailService.SendProbationConfirmationNotificationToHrAsync
+                (approver.Id, $"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}",
+                probation.ProbationStartDate, effectiveEndDate, feedbackRequest.ExtensionPeriod, feedbackRequest.IsApproved,
+                $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}", approvedTime, feedbackRequest.CreatedBy);
             }
             await _context.SaveChangesAsync();
             return message;
@@ -297,7 +306,7 @@ namespace AttendanceManagement.Services
                     FeedbackText = f.FeedbackText,
                     StaffId = p.StaffCreationId,
                     StaffCreationId = s.StaffId,
-                    StaffName = s.FirstName + " " + s.LastName,
+                    StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                     IsApproved = f.IsApproved,
                     CreatedBy = f.CreatedBy
                 }).FirstOrDefaultAsync();
@@ -322,7 +331,7 @@ namespace AttendanceManagement.Services
                     FeedbackText = f.FeedbackText,
                     StaffId = p.StaffCreationId,
                     StaffCreationId = s.StaffId,
-                    StaffName = s.FirstName + " " + s.LastName,
+                    StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                     IsApproved = f.IsApproved,
                     CreatedBy = f.CreatedBy
                 }).ToListAsync();
@@ -348,7 +357,8 @@ namespace AttendanceManagement.Services
 
         public async Task<string> ProcessApprovalAsync(HrConfirmation hrConfirmation)
         {
-            var staff = await _context.StaffCreations.Where(s => s.Id == hrConfirmation.CreatedBy && s.IsActive == true).Select(s => $"{s.FirstName}{s.LastName}").FirstOrDefaultAsync();
+            var staff = await _context.StaffCreations.Where(s => s.Id == hrConfirmation.CreatedBy && s.IsActive == true)
+                .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}").FirstOrDefaultAsync();
             string approvedDateTime = DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
             var probation = await _context.Probations.FirstOrDefaultAsync(p => p.Id == hrConfirmation.ProbationId && p.IsActive);
             if (probation == null) throw new MessageNotFoundException("Probation not found");
@@ -409,7 +419,7 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException($"Staff with ID {staffCreationId} not found.");
             }
-            var fileName = $"Confirmation_Letter_{staff.FirstName}_{staff.LastName}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+            var fileName = $"Confirmation_Letter_{staff.StaffId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
             var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
             if (!Directory.Exists(directoryPath))
             {
@@ -439,7 +449,7 @@ namespace AttendanceManagement.Services
                 // Name
                 var nameLine = new Paragraph();
                 nameLine.Add(new Chunk("Name: ", boldFont));
-                nameLine.Add(new Chunk($"{staff.FirstName} {staff.LastName}", bodyFont));
+                nameLine.Add(new Chunk($"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}", bodyFont));
                 pdfDoc.Add(nameLine);
 
                 // Employee Code
@@ -458,7 +468,7 @@ namespace AttendanceManagement.Services
                 // Salutation (Dear ...)
                 var dearLine = new Paragraph();
                 dearLine.Add(new Chunk("Dear ", boldFont));
-                dearLine.Add(new Chunk($"{title} {staff.FirstName} {staff.LastName},", bodyFont));
+                dearLine.Add(new Chunk($"{title} {staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)},", bodyFont));
                 pdfDoc.Add(dearLine);
                 pdfDoc.Add(new Paragraph(" "));
 

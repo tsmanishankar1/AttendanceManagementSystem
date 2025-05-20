@@ -25,15 +25,15 @@ namespace AttendanceManagement.Services
             var selectedRows = approveLeaveRequest.SelectedRows;
             var approverName = await _context.StaffCreations
                 .Where(s => s.Id == approveLeaveRequest.ApprovedBy && s.IsActive == true)
-                .Select(s => $"{s.FirstName}{s.LastName}")
+                .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
                 .FirstOrDefaultAsync();
             //string approvedDateTime = DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
             var applicationType = await _context.ApplicationTypes.Where(a => a.Id == approveLeaveRequest.ApplicationTypeId && a.IsActive).Select(a => a.Name).FirstOrDefaultAsync();
             foreach (var item in selectedRows)
             {
-                var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
+/*                var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
                 if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
-                if (approveLeaveRequest.ApplicationTypeId == 1)
+*/                if (approveLeaveRequest.ApplicationTypeId == 1)
                 {
                     var leave = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == item.Id);
                     //if (leave == null) throw new MessageNotFoundException("Leave request not found");
@@ -44,9 +44,10 @@ namespace AttendanceManagement.Services
                     var leaveType = await _context.LeaveTypes.Where(l => l.Id == leave.LeaveTypeId && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
                     if (leaveType == null) throw new MessageNotFoundException("Leave type not found");
                     var staffOrCreatorId = leave.StaffId ?? leave.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approveLeaveRequest.IsApproved)
@@ -184,7 +185,7 @@ namespace AttendanceManagement.Services
                                     await _emailService.SendLeaveRequestEmail(
                                         recipientEmail: approver2.OfficialEmail,
                                         recipientId: approver2.Id,
-                                        recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                        recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                         applicationTypeId: leave.ApplicationTypeId,
                                         id: leave.Id,
                                         leaveType: leaveType,
@@ -342,9 +343,10 @@ namespace AttendanceManagement.Services
                     if (permissionRequest == null) throw new MessageNotFoundException("Common Permission request not found");
                     var permissionType = await _context.PermissionTypes.Where(l => l.Name == permissionRequest.PermissionType && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
                     var staffOrCreatorId = permissionRequest.StaffId ?? permissionRequest.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -442,7 +444,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendCommonPermissionRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     applicationTypeId: permissionRequest.ApplicationTypeId,
                                     id: permissionRequest.Id,
                                     permissionType: permissionRequest.PermissionType,
@@ -467,9 +469,10 @@ namespace AttendanceManagement.Services
                     if (manualPunch == null) throw new MessageNotFoundException("Manual Punch request not found");
                     //var punchType = manualPunch.SelectPunch;
                     var staffOrCreatorId = manualPunch.StaffId ?? manualPunch.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -565,7 +568,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendManualPunchRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     staffName: staffName,
                                     id: manualPunch.Id,
                                     applicationTypeId: manualPunch.ApplicationTypeId,
@@ -587,9 +590,10 @@ namespace AttendanceManagement.Services
                     var onDuty = await _context.OnDutyRequisitions.FirstOrDefaultAsync(o => o.Id == item.Id);
                     if (onDuty == null) throw new MessageNotFoundException("On Duty request not found");
                     var staffOrCreatorId = onDuty.StaffId ?? onDuty.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -682,7 +686,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendOnDutyRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     id: onDuty.Id,
                                     applicationTypeId: onDuty.ApplicationTypeId,
                                     startDate: onDuty.StartDate,
@@ -707,9 +711,10 @@ namespace AttendanceManagement.Services
                     var businessTravel = await _context.BusinessTravels.FirstOrDefaultAsync(l => l.Id == item.Id);
                     if (businessTravel == null) throw new MessageNotFoundException("Business Travel request not found");
                     var staffOrCreatorId = businessTravel.StaffId ?? businessTravel.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -805,7 +810,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendBusinessTravelRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     id: businessTravel.Id,
                                     applicationTypeId: businessTravel.ApplicationTypeId,
                                     fromDate: businessTravel.FromDate,
@@ -830,9 +835,10 @@ namespace AttendanceManagement.Services
                     var workFromHome = await _context.WorkFromHomes.FirstOrDefaultAsync(l => l.Id == item.Id);
                     if (workFromHome == null) throw new MessageNotFoundException("Work From Home request not found");
                     var staffOrCreatorId = workFromHome.StaffId ?? workFromHome.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -928,7 +934,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendWorkFromHomeRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     id: workFromHome.Id,
                                     applicationTypeId: workFromHome.ApplicationTypeId,
                                     fromDate: workFromHome.FromDate,
@@ -953,9 +959,10 @@ namespace AttendanceManagement.Services
                     var shiftChange = await _context.ShiftChanges.FirstOrDefaultAsync(l => l.Id == item.Id);
                     if (shiftChange == null) throw new MessageNotFoundException("Shift Change request not found");
                     var staffOrCreatorId = shiftChange.StaffId ?? shiftChange.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     var shiftName = await _context.Shifts.Where(s => s.Id == shiftChange.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
@@ -1053,7 +1060,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendShiftChangeRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     id: shiftChange.Id,
                                     applicationTypeId: shiftChange.ApplicationTypeId,
                                     shiftName: shiftName,
@@ -1075,9 +1082,10 @@ namespace AttendanceManagement.Services
                     var shiftExtension = await _context.ShiftExtensions.FirstOrDefaultAsync(s => s.Id == item.Id);
                     if (shiftExtension == null) throw new MessageNotFoundException("Shift Extension request not found");
                     var staffOrCreatorId = shiftExtension.StaffId ?? shiftExtension.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -1173,7 +1181,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendShiftExtensionRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     id: shiftExtension.Id,
                                     applicationTypeId: shiftExtension.ApplicationTypeId,
                                     transactionDate: shiftExtension.TransactionDate,
@@ -1196,9 +1204,10 @@ namespace AttendanceManagement.Services
                     var weeklyOffHoliday = await _context.WeeklyOffHolidayWorkings.FirstOrDefaultAsync(w => w.Id == item.Id);
                     if (weeklyOffHoliday == null) throw new MessageNotFoundException("Weekly Off/ Holiday Working request not found");
                     var staffOrCreatorId = weeklyOffHoliday.StaffId ?? weeklyOffHoliday.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var shiftName = await _context.Shifts.Where(s => s.Id == weeklyOffHoliday.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
                     if (shiftName == null) throw new MessageNotFoundException("Shift name not found");
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
@@ -1296,7 +1305,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendWeeklyOffHolidayWorkingRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     staffName: staffName,
                                     selectShiftType: weeklyOffHoliday.SelectShiftType,
                                     id: weeklyOffHoliday.Id,
@@ -1319,9 +1328,10 @@ namespace AttendanceManagement.Services
                     var compOffAvail = await _context.CompOffAvails.FirstOrDefaultAsync(c => c.Id == item.Id);
                     if (compOffAvail == null) throw new MessageNotFoundException("CompOff Avail request not found");
                     var staffOrCreatorId = compOffAvail.StaffId ?? compOffAvail.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -1454,7 +1464,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendCompOffApprovalRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     staffName: staffName,
                                     id: compOffAvail.Id,
                                     applicationTypeId: compOffAvail.ApplicationTypeId,
@@ -1477,9 +1487,10 @@ namespace AttendanceManagement.Services
                     var compOffCredit = await _context.CompOffCredits.FirstOrDefaultAsync(c => c.Id == item.Id);
                     if (compOffCredit == null) throw new MessageNotFoundException("Compoff Credit request not found");
                     var staffOrCreatorId = compOffCredit.StaffId ?? compOffCredit.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -1592,7 +1603,7 @@ namespace AttendanceManagement.Services
                                 await _emailService.SendCompOffCreditRequestEmail(
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     staffName: staffName,
                                     id: compOffCredit.Id,
                                     applicationTypeId: compOffCredit.ApplicationTypeId,
@@ -1614,9 +1625,10 @@ namespace AttendanceManagement.Services
                     var reimbursementRequest = await _context.Reimbursements.FirstOrDefaultAsync(r => r.Id == item.Id);
                     if (reimbursementRequest == null) throw new MessageNotFoundException("Reimbursement request not found");
                     var staffOrCreatorId = reimbursementRequest.StaffId ?? reimbursementRequest.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                    var staffName = $"{staff.FirstName} {staff.LastName}";
+                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
                     if (approver2 == null)
@@ -1714,7 +1726,7 @@ namespace AttendanceManagement.Services
                                     applicationTypeId: reimbursementRequest.ApplicationTypeId,
                                     recipientEmail: approver2.OfficialEmail,
                                     recipientId: approver2.Id,
-                                    recipientName: $"{approver2.FirstName} {approver2.LastName}",
+                                    recipientName: $"{approver2.FirstName}{(string.IsNullOrWhiteSpace(approver2.LastName) ? "" : " " + approver2.LastName)}",
                                     staffName: staffName,
                                     requestDate: requestedTime,
                                     billDate: reimbursementRequest.BillDate,
@@ -1732,6 +1744,12 @@ namespace AttendanceManagement.Services
                 }
             }
             return message;
+        }
+
+        private async Task AttendanceFreeze(int staffId)
+        {
+            var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false && f.StaffId == staffId);
+            if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
         }
     }
 }

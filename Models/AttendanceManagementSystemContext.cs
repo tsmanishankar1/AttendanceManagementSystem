@@ -169,6 +169,10 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<PerformanceRatingScale> PerformanceRatingScales { get; set; }
 
+    public virtual DbSet<PerformanceReport> PerformanceReports { get; set; }
+
+    public virtual DbSet<PerformanceUploadType> PerformanceUploadTypes { get; set; }
+
     public virtual DbSet<PermissionRequistion> PermissionRequistions { get; set; }
 
     public virtual DbSet<PermissionType> PermissionTypes { get; set; }
@@ -3000,6 +3004,85 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceRatingScaleUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK__Performan__Updat__66960AE6");
+        });
+
+        modelBuilder.Entity<PerformanceReport>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC073435951D");
+
+            entity.ToTable("PerformanceReport");
+
+            entity.Property(e => e.AttendanceGrade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.AttendancePercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.AttendanceScore).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Comments).IsUnicode(false);
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.EmpId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalGrade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Name)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.ProdGrade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.ProdPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ProdScore).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.QualityGrade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.QualityScore).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Score).HasColumnType("decimal(6, 2)");
+            entity.Property(e => e.TotalScore).HasColumnType("decimal(6, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PerformanceReportCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CREPRId");
+
+            entity.HasOne(d => d.EmpDivision).WithMany(p => p.PerformanceReports)
+                .HasForeignKey(d => d.EmpDivisionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PRDIVId");
+
+            entity.HasOne(d => d.PerformanceType).WithMany(p => p.PerformanceReports)
+                .HasForeignKey(d => d.PerformanceTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PUTId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceReportUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPEPRId");
+        });
+
+        modelBuilder.Entity<PerformanceUploadType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PerformanceUpl__869767EADE6795EB");
+
+            entity.ToTable("PerformanceUploadType");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PerformanceUploadTypeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRPUTId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceUploadTypeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPPUTId");
         });
 
         modelBuilder.Entity<PermissionRequistion>(entity =>

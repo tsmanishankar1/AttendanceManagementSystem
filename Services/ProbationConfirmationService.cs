@@ -68,7 +68,7 @@ namespace AttendanceManagement.Services
                         var probationer = await dbContext.StaffCreations.FirstOrDefaultAsync(s => s.Id == probation.StaffCreationId && s.IsActive == true, stoppingToken);
                         if(probationer  != null)
                         {
-                            await emailService.SendProbationNotificationToHrAsync($"{probationer.FirstName} {probationer.LastName}", probation.ProbationStartDate, probation.FinalEndDate);
+                            await emailService.SendProbationNotificationToHrAsync($"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}", probation.ProbationStartDate, probation.FinalEndDate);
 
                         }
                     }

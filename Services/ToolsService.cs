@@ -21,7 +21,7 @@ namespace AttendanceManagement.Services
                 .Select(s => new StaffInfoDto
                 {
                     StaffId = s.Id,
-                    StaffName = $"{s.FirstName} {s.LastName}",
+                    StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                     DepartmentName = s.Department.Name
                 })
                 .ToListAsync();
@@ -61,7 +61,7 @@ namespace AttendanceManagement.Services
                 select new
                 {
                     StaffId = staff.Id,
-                    StaffName = $"{staff.FirstName} {staff.LastName}",
+                    StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                     OrganizationTypeId = staff.OrganizationTypeId,
                     LeaveTypeId = leave != null ? leave.Id : (int?)null,
                     LeaveTypeName = leave != null ? leave.Name : null,
