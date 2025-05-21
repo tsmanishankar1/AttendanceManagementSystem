@@ -246,6 +246,7 @@ namespace AttendanceManagement.Services
             var attendanceData = await _atrakContext.SmaxTransactions.Where(st => st.TrDate == today).ToListAsync();
             var result = await (from sc in _context.StaffCreations
                                 join dm in _context.DepartmentMasters on sc.DepartmentId equals dm.Id
+                                where sc.IsActive == true && dm.IsActive
                                 select new
                                 {
                                     sc.StaffId,
@@ -273,19 +274,8 @@ namespace AttendanceManagement.Services
 
         public async Task<List<object>> GetUpcomingShiftsForStaffAsync(int staffId)
         {
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow); 
-            var currentShift = await _context.AssignShifts
-                .Where(asg => asg.StaffId == staffId && asg.IsActive && asg.FromDate <= today && asg.ToDate >= today)
-                .OrderBy(asg => asg.FromDate)
-                .Select(asg => new { asg.ToDate })
-                .FirstOrDefaultAsync();
-            if (currentShift == null)
-            {
-                return new List<object>(); 
-            }
-            DateOnly currentShiftEndDate = currentShift.ToDate;
             var upcomingShifts = await _context.AssignShifts
-                .Where(asg => asg.IsActive && asg.FromDate > currentShiftEndDate && asg.StaffId == staffId) 
+                .Where(asg => asg.IsActive && asg.IsUpcomingShift && asg.StaffId == staffId) 
                 .OrderBy(asg => asg.FromDate)
                 .Select(asg => new
                 {

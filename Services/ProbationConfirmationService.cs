@@ -43,6 +43,16 @@ namespace AttendanceManagement.Services
                         shift.UpdatedBy = 1;
                         shift.UpdatedUtc = DateTime.UtcNow;
                     }
+
+                    var outdatedUpcomingShifts = await dbContext.AssignShifts
+                    .Where(a => a.IsUpcomingShift && a.FromDate <= DateOnly.FromDateTime(DateTime.Today))
+                    .ToListAsync();
+                    foreach (var outdated in outdatedUpcomingShifts)
+                    {
+                        outdated.IsUpcomingShift = false;
+                        outdated.UpdatedBy = 1;
+                        outdated.UpdatedUtc = DateTime.UtcNow;
+                    }
                     await dbContext.SaveChangesAsync();
 
                     // Probation initiation

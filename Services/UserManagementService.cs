@@ -20,16 +20,16 @@ public class UserManagementService
         }
         var staffWithOrgType = await (from s in _context.StaffCreations
                                       join o in _context.OrganizationTypes on s.OrganizationTypeId equals o.Id
-                                      where s.Id == userRequest.StaffCreationId
+                                      where s.Id == userRequest.StaffCreationId && s.IsActive == true && o.IsActive
                                       select new { s.Id, o.ShortName }).FirstOrDefaultAsync();
         if (staffWithOrgType == null)
         {
-            throw new MessageNotFoundException("StaffCreationId not found.");
+            throw new MessageNotFoundException("Staff not found");
         }
         var userExists = await _context.UserManagements.AnyAsync(u => u.StaffCreationId == userRequest.StaffCreationId && u.IsActive);
         if (userExists)
         {
-            throw new ConflictException("User is already exists.");
+            throw new ConflictException("Selected user is already registered");
         }
         var user = new UserManagement
         {
@@ -49,7 +49,7 @@ public class UserManagementService
     public async Task<object> GetUserByUserId(int StaffId)
     {
         var user = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == StaffId && u.IsActive == true);
-        if (user == null) throw new MessageNotFoundException("User not found.");
+        if (user == null) throw new MessageNotFoundException("User not found");
         return new
         {
             StaffCreationId = user.Id,
@@ -60,19 +60,23 @@ public class UserManagementService
 
     public async Task<string> ChangePasswordAsync(ChangePasswordModel model)
     {
-        var message = "Password changed successfully.";
+        var message = "Password changed successfully";
         var user = await _context.UserManagements.FirstOrDefaultAsync(u => u.StaffCreationId == model.UserId && u.IsActive);
         if (user == null)
         {
-            throw new MessageNotFoundException("User not found.");
+            throw new MessageNotFoundException("User not found");
         }
         if (user.Password != model.CurrentPassword)
         {
-            throw new InvalidOperationException("Current password is incorrect.");
+            throw new InvalidOperationException("Current password is incorrect");
+        }
+        if (model.CurrentPassword == model.NewPassword)
+        {
+            throw new InvalidOperationException("Current password and New password should not match");
         }
         if (model.NewPassword != model.ConfirmPassword)
         {
-            throw new ArgumentException("New password and confirm password must match.");
+            throw new ArgumentException("New password and confirm password must match");
         }
         var passwordHistory = await _context.PasswordHistories
             .Join(_context.UserManagements,
@@ -92,7 +96,7 @@ public class UserManagementService
         var usageCount = passwordHistory.Count(ph => ph.NewPassword == model.NewPassword);
         if (usageCount >= 1) 
         {
-            throw new InvalidOperationException("You cannot reuse this password immediately. Try a different one.");
+            throw new InvalidOperationException("You have recently used this password. Please choose a different one");
         }
         var passwordHistoryEntry = new PasswordHistory
         {
@@ -135,7 +139,7 @@ public class UserManagementService
                 CreatedBy = s.CreatedBy
             })
             .FirstOrDefault(u => u.StaffName == staffname);
-        if (user == null) throw new MessageNotFoundException("Staff not found.");
+        if (user == null) throw new MessageNotFoundException("Staff not found");
         return user;
     }
 

@@ -25,6 +25,8 @@ public partial class AssignShift
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public bool IsUpcomingShift { get; set; }
+
     public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;

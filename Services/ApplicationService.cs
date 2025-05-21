@@ -1067,8 +1067,7 @@ public class ApplicationService
                                                   permission.StartTime,
                                                   permission.EndTime,
                                                   permission.TotalHours,
-                                                  permission.Remarks,
-                                                  permission.Status1,
+                                                  permission.Remarks
                                               }).ToListAsync();
 
             if (!getCommonPermissions.Any())
@@ -1135,8 +1134,6 @@ public class ApplicationService
                                             punch.InPunch,
                                             punch.OutPunch,
                                             punch.Remarks,
-                                            punch.Status1,
-                                            punch.Status2,
                                             punch.IsActive,
                                             punch.CreatedBy
                                         }).ToListAsync();
@@ -1194,8 +1191,6 @@ public class ApplicationService
                                                    duty.StartTime,
                                                    duty.EndTime,
                                                    duty.Reason,
-                                                   duty.Status1,
-                                                   duty.Status2,
                                                    duty.CreatedBy
                                                }).ToListAsync();
 
@@ -1252,8 +1247,6 @@ public class ApplicationService
                                                 travel.FromTime,
                                                 travel.ToTime,
                                                 travel.Reason,
-                                                travel.Status1,
-                                                travel.Status2,
                                                 travel.CreatedBy
                                             }).ToListAsync();
 
@@ -1310,8 +1303,6 @@ public class ApplicationService
                                               workFromHome.FromTime,
                                               workFromHome.ToTime,
                                               workFromHome.Reason,
-                                              workFromHome.Status1,
-                                              workFromHome.Status2,
                                               workFromHome.CreatedBy
                                           }).ToListAsync();
 
@@ -1365,8 +1356,6 @@ public class ApplicationService
                                              shiftChange.FromDate,
                                              shiftChange.ToDate,
                                              shiftChange.Reason,
-                                             shiftChange.Status1,
-                                             shiftChange.Status2,
                                              shiftChange.CreatedBy,
                                              ShiftName = shift.Name
                                          }).ToListAsync();
@@ -1422,8 +1411,6 @@ public class ApplicationService
                                                 shiftExtension.BeforeShiftHours,
                                                 shiftExtension.AfterShiftHours,
                                                 shiftExtension.Remarks,
-                                                shiftExtension.Status1,
-                                                shiftExtension.Status2,
                                                 shiftExtension.CreatedBy
                                             }).ToListAsync();
 
@@ -1478,8 +1465,6 @@ public class ApplicationService
                                                         holidayWorking.ShiftId,
                                                         holidayWorking.ShiftInTime,
                                                         holidayWorking.ShiftOutTime,
-                                                        holidayWorking.Status1,
-                                                        holidayWorking.Status2,
                                                         holidayWorking.CreatedBy
                                                     }).ToListAsync();
 
@@ -1536,8 +1521,6 @@ public class ApplicationService
                                              compOff.ToDuration,
                                              compOff.Reason,
                                              compOff.TotalDays,
-                                             compOff.Status1,
-                                             compOff.Status2,
                                              compOff.CreatedBy
                                          }).ToListAsync();
 
@@ -1588,8 +1571,6 @@ public class ApplicationService
                                               compOff.WorkedDate,
                                               compOff.TotalDays,
                                               compOff.Reason,
-                                              compOff.Status1,
-                                              compOff.Status2,
                                               compOff.CreatedBy
                                           }).ToListAsync();
 
@@ -1643,9 +1624,7 @@ public class ApplicationService
                                                : $"{creatorStaff.FirstName} {(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                reimbursement.Status1,
                                                reimbursement.Status2,
-/*                                               Status = reimbursement.CancelledOn.HasValue ? "Cancelled" :
-                                                        reimbursement.Status1.HasValue ? (reimbursement.Status1.Value ? "Approved" : "Rejected") : "Pending",
-*/                                               reimbursement.CreatedUtc,
+                                               reimbursement.CreatedUtc,
                                                reimbursement.CreatedBy
                                            }).ToListAsync();
 
@@ -2470,7 +2449,7 @@ public class ApplicationService
             if (existingLeave.FromDate <= request.ToDate &&
                 existingLeave.ToDate >= request.FromDate)
             {
-                throw new ConflictException("shift Change request already exists");
+                throw new ConflictException("Shift Change request already exists");
             }
         }
         var shiftChange = new ShiftChange
@@ -2535,10 +2514,13 @@ public class ApplicationService
                 throw new ConflictException("Shift Extension request already exists");
             }
         }
+        var shift = await _context.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == staffOrCreatorId && a.IsActive && !a.IsUpcomingShift);
+        if (shift == null) throw new MessageNotFoundException("Shift not found");
         var shiftExtension = new ShiftExtension
         {
             ApplicationTypeId = request.ApplicationTypeId,
             StaffId = request.StaffId,
+            ShiftId = shift.ShiftId,
             TransactionDate = request.TransactionDate,
             DurationHours = request.DurationHours,
             BeforeShiftHours = request.BeforeShiftHours,

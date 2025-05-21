@@ -1647,6 +1647,8 @@
 			<param name="ApproverUpdateRequest">approver for staff member.</param>
 			<returns>The Updated the Approver for staff member.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="404">Returned when staff members or approvers are not found.</response>
+			<response code="409">Returned when approver levels conflict (e.g., same approver selected for both levels).</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.AddStaff(AttendanceManagement.Input_Models.StaffCreationInputModel)">

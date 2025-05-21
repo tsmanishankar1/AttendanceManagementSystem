@@ -34,6 +34,10 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateApproversAsync(List<int> staffIds, int? approverId1, int? approverId2, int updatedBy)
         {
             var message = "Approvers updated successfully";
+            if (approverId1.HasValue && approverId2.HasValue && approverId1 == approverId2)
+            {
+                throw new InvalidOperationException("Approver Level 1 and Approver Level 2 cannot be the same person");
+            }
             var staffList = await _context.StaffCreations.Where(s => staffIds.Contains(s.Id)).ToListAsync();
             if(approverId2 != null)
             {
@@ -376,6 +380,10 @@ namespace AttendanceManagement.Services
             {
                 throw new ConflictException($"Staff ID {staffInput.StaffId} already exists.");
             }
+            if (staffInput.ApprovalLevel2.HasValue && staffInput.ApprovalLevel1 == staffInput.ApprovalLevel2)
+            {
+                throw new InvalidOperationException("Approver Level 1 and Approver Level 2 cannot be the same person");
+            }
             var message = "The staff member has been successfully created.";
             string profilePhotoPath = string.Empty;
             string aadharCardPath = string.Empty;
@@ -384,8 +392,8 @@ namespace AttendanceManagement.Services
             string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             async Task<string> SaveFile(IFormFile file, string folderName)
             {
-                if (file == null) throw new ArgumentNullException(nameof(file), "File cannot be null.");
-                if (file.Length == 0) throw new InvalidOperationException("Uploaded file is empty.");
+                if (file == null) throw new ArgumentNullException(nameof(file), "File cannot be null");
+                if (file.Length == 0) throw new InvalidOperationException("Uploaded file is empty");
                 string directoryPath = Path.Combine(baseDirectory, folderName);
                 if (!Directory.Exists(directoryPath))
                 {
@@ -552,6 +560,10 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateStaffCreationAsync(UpdateStaff updatedStaff)
         {
             var message = "Staff updated successfully";
+            if (updatedStaff.ApprovalLevel2.HasValue && updatedStaff.ApprovalLevel1 == updatedStaff.ApprovalLevel2)
+            {
+                throw new InvalidOperationException("Approver Level 1 and Approver Level 2 cannot be the same person");
+            }
             var existingStaff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == updatedStaff.StaffCreationId && s.IsActive == true);
             if (existingStaff == null) throw new MessageNotFoundException("Staff not found");
             var departmentId = await _context.DepartmentMasters.AnyAsync(d => d.Id == updatedStaff.DepartmentId && d.IsActive);
@@ -714,7 +726,7 @@ namespace AttendanceManagement.Services
             var isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == currentApprovar1 && s.IsActive == true);
             var isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == currentApprovar1 && s.IsActive == true);
             var records = await _context.StaffCreations
-                .Where(s => (isSuperAdmin || (isApprovalLevel1 && s.ApprovalLevel1 == currentApprovar1) || (isApprovalLevel2 && s.ApprovalLevel2 == currentApprovar1)) && s.IsActive == true)
+                .Where(s => (isSuperAdmin || (isApprovalLevel1 && s.ApprovalLevel1 == currentApprovar1 && s.ApprovalLevel2 != currentApprovar1) || (isApprovalLevel2 && s.ApprovalLevel2 == currentApprovar1 && s.ApprovalLevel1 != currentApprovar1)) && s.IsActive == true)
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,

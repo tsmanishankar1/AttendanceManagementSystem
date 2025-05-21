@@ -79,7 +79,6 @@ public class StaffCreationController : ControllerBase
                 Success = true,
                 Message = success
             };
-
             await _loggingService.AuditLog("Update Staff", "POST", "/api/StaffCreation/UpdateStaffCreation", success, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
             return Ok(response);
         }
@@ -94,6 +93,11 @@ public class StaffCreationController : ControllerBase
             return ErrorClass.BadResponse(ex.Message);
         }
         catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Update Staff", "POST", "/api/StaffCreation/UpdateStaffCreation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Update Staff", "POST", "/api/StaffCreation/UpdateStaffCreation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedStaff.UpdatedBy, JsonSerializer.Serialize(updatedStaff));
             return ErrorClass.ConflictResponse(ex.Message);
@@ -231,6 +235,11 @@ public class StaffCreationController : ControllerBase
         {
             await _loggingService.LogError("Update Staff Approver", "POST", "/api/StaffCreation/UpdateApprovers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _loggingService.LogError("Update Staff Approver", "POST", "/api/StaffCreation/UpdateApprovers", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

@@ -129,6 +129,7 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return message;
         }
+
         public async Task<string> AssignShiftToStaffAsync(AssignShiftRequest assignShift)
         {
             var message = "Shift assigned successfully";
@@ -141,22 +142,37 @@ namespace AttendanceManagement.Services
                 if (staff == null) throw new MessageNotFoundException("Staff not found");
                 var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                 var existingAssignedShift = await _context.AssignShifts
-                    .Where(a => a.FromDate == assignShift.FromDate && a.ToDate == assignShift.ToDate && a.StaffId == item.Id && a.IsActive)
+                    .Where(a => a.FromDate == assignShift.FromDate &&
+                                a.ToDate == assignShift.ToDate &&
+                                a.ShiftId == assignShift.ShiftId &&
+                                a.StaffId == item.Id &&
+                                a.IsActive)
                     .ToListAsync();
-                if(existingAssignedShift.Count > 0)
+                if (existingAssignedShift.Count > 0)
                 {
                     throw new ConflictException($"Shift already assigned for staff {staffName}");
                 }
-                var existingAssignments = await _context.AssignShifts
-                           .Where(a => a.StaffId == item.Id && a.IsActive)
-                           .ToListAsync();
+                var existingAssignShift = await _context.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == item.Id && a.FromDate == assignShift.FromDate && a.ToDate == assignShift.ToDate && a.IsActive);
+                if (existingAssignShift != null)
+                {
+                    existingAssignShift.IsActive = false;
+                }
+                var existingAssignments = await _context.AssignShifts.Where(a => a.StaffId == item.Id && a.IsActive).ToListAsync();
                 foreach (var existingShift in existingAssignments)
                 {
-                    if (existingShift.ToDate >= assignShift.FromDate)
+                    if (existingShift.ToDate >= assignShift.FromDate && existingShift.FromDate <= assignShift.ToDate)
                     {
-                        if (existingShift.FromDate < assignShift.FromDate && existingShift.ToDate >= assignShift.FromDate)
+                        if (existingShift.FromDate < assignShift.FromDate && existingShift.ToDate > assignShift.ToDate)
                         {
                             existingShift.ToDate = assignShift.FromDate.AddDays(-1);
+                        }
+                        else if (existingShift.FromDate < assignShift.FromDate && existingShift.ToDate <= assignShift.ToDate)
+                        {
+                            existingShift.ToDate = assignShift.FromDate.AddDays(-1);
+                        }
+                        else if (existingShift.FromDate >= assignShift.FromDate && existingShift.ToDate > assignShift.ToDate)
+                        {
+                            existingShift.FromDate = assignShift.ToDate.AddDays(1);
                         }
                         else
                         {
@@ -166,6 +182,16 @@ namespace AttendanceManagement.Services
                         existingShift.UpdatedUtc = DateTime.UtcNow;
                     }
                 }
+                var outdatedUpcomingShifts = await _context.AssignShifts
+                    .Where(a => a.StaffId == item.Id && a.IsUpcomingShift && a.FromDate <= DateOnly.FromDateTime(DateTime.Today))
+                    .ToListAsync();
+                foreach (var outdated in outdatedUpcomingShifts)
+                {
+                    outdated.IsUpcomingShift = false;
+                    outdated.UpdatedBy = assignShift.CreatedBy;
+                    outdated.UpdatedUtc = DateTime.UtcNow;
+                }
+                bool isUpcoming = assignShift.FromDate > DateOnly.FromDateTime(DateTime.Today);
                 var shiftAssign = new AssignShift
                 {
                     FromDate = assignShift.FromDate,
@@ -173,6 +199,7 @@ namespace AttendanceManagement.Services
                     ShiftId = assignShift.ShiftId,
                     StaffId = item.Id,
                     IsActive = true,
+                    IsUpcomingShift = isUpcoming,
                     CreatedBy = assignShift.CreatedBy,
                     CreatedUtc = DateTime.UtcNow
                 };
