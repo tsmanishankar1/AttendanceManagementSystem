@@ -65,7 +65,8 @@ public class ExcelImportService
             }
             var expectedFileName = excelImportType.Name;
             var uploadedFileName = Path.GetFileNameWithoutExtension(excelImportDto.File.FileName);
-            if (!string.Equals(expectedFileName, uploadedFileName, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Please upload the correct Excel template File");
+            var pattern = $"^{Regex.Escape(expectedFileName)}( \\(\\d+\\))?$";
+            if (!Regex.IsMatch(uploadedFileName, pattern, RegexOptions.IgnoreCase)) throw new ArgumentException("Please upload the correct Excel template file");
             var staffExists = await _context.StaffCreations.AnyAsync(s => s.Id == excelImportDto.CreatedBy && s.IsActive == true);
             if (!staffExists) throw new MessageNotFoundException($"Staff not found");
             using (var stream = new MemoryStream())

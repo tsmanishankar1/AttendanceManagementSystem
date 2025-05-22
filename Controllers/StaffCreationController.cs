@@ -200,11 +200,11 @@ public class StaffCreationController : ControllerBase
     }
 
     [HttpGet("GetStaffRecordsByApprovalLevel")]
-    public async Task<IActionResult> GetStaffRecordsByApprovalLevel(int currentApprover1)
+    public async Task<IActionResult> GetStaffRecordsByApprovalLevel(int currentApprover1, bool? isApprovalLevel1, bool? isApprovalLevel2)
     {
         try
         {
-            var records = await _service.GetStaffRecordsByApprovalLevelAsync(currentApprover1);
+            var records = await _service.GetStaffRecordsByApprovalLevelAsync(currentApprover1, isApprovalLevel1, isApprovalLevel2);
             var response = new
             {
                 Success = true,

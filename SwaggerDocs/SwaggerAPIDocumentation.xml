@@ -9,7 +9,6 @@
 				Controller for handling application-related operations.
 			</summary>
 		</member>
-
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.#ctor(AttendanceManagement.Services.ApplicationService,AttendanceManagement.Services.ApproveApplicationService,AttendanceManagement.Services.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ApplicationController"/> class.
@@ -1663,15 +1662,19 @@
 			<response code="409">The uploaded file is empty or conflicts with existing data.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetStaffRecordsByApprovalLevel(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetStaffRecordsByApprovalLevel(System.Int32,System.Nullable{System.Boolean},System.Nullable{System.Boolean})">
 			<summary>
-				Retrieves staff records by the approval level.
+				Retrieves active staff records based on the approval level of the current approver.
 			</summary>
-			<param name="currentApprover1">The name of the current approver.</param>
-			<returns>The staff records with the specified approval level.</returns>
-			<response code="200">Returns the staff records</response>
-			<response code="404">If no staff records are found</response>
-			<response code="500">If there is an internal server error</response>
+			<param name="currentApprover1">The unique ID of the current approver (staff ID).</param>
+			<param name="isApprovalLevel1">A boolean value indicating whether to retrieve records where the approver is at Approval Level 1.</param>
+			<param name="isApprovalLevel2">A boolean value indicating whether to retrieve records where the approver is at Approval Level 2.</param>
+			<returns>
+				A JSON response containing a list of staff records where the current user is assigned as an approver based on the selected approval level(s).
+			</returns>
+			<response code="200">Returns a list of staff records matching the specified approval criteria.</response>
+			<response code="404">Returned if no staff records are found for the specified approver and approval levels.</response>
+			<response code="500">Returned if there is an internal server error while processing the request.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffCreationController.GetMyProfile(System.Int32)">
 			<summary>

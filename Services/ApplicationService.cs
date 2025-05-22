@@ -2407,23 +2407,43 @@ public class ApplicationService
 
     public async Task<List<object>> GetShiftsByStaffAndDateRange(int staffId, DateOnly fromDate, DateOnly toDate)
     {
-        var shifts = await _context.AssignShifts
-            .Include(a => a.Shift)
-            .Where(a => a.StaffId == staffId &&
-                        a.FromDate >= fromDate &&
-                        a.ToDate <= toDate &&
-                        a.IsActive)
-            .Select(a => new
+        var shifts = await (from asg in _context.AssignShifts
+                            join sh in _context.Shifts on asg.ShiftId equals sh.Id
+                            where asg.StaffId == staffId &&
+                                  asg.IsActive &&
+                                  sh.IsActive &&
+                                  asg.FromDate <= toDate && asg.ToDate >= fromDate
+                            select new
+                            {
+                                FromDate = asg.FromDate,
+                                ToDate = asg.ToDate,
+                                ShortName = sh.ShortName,
+                                StartTime = sh.StartTime,
+                                EndTime = sh.EndTime
+                            }).ToListAsync();
+
+        if (shifts.Count == 0)
+            throw new MessageNotFoundException("Shifts not found between the date range for the staff");
+
+        var result = new List<object>();
+
+        foreach (var shift in shifts)
+        {
+            var currentFrom = shift.FromDate < fromDate ? fromDate : shift.FromDate;
+            var currentTo = shift.ToDate > toDate ? toDate : shift.ToDate;
+
+            for (var date = currentFrom; date <= currentTo; date = date.AddDays(1))
             {
-                a.FromDate,
-                a.ToDate,
-                ShiftName = a.Shift.Name,
-                StartTime = a.Shift.StartTime,
-                EndTime = a.Shift.EndTime
-            })
-            .ToListAsync<object>();
-        if (shifts.Count == 0) throw new MessageNotFoundException("Shifts not found between the date range for the staff");
-        return shifts;
+                result.Add(new
+                {
+                    Date = date.ToString("dd/MM/yyyy"),
+                    Shift = shift.ShortName,
+                    Time = $"{shift.StartTime} {shift.EndTime}"
+                });
+            }
+        }
+
+        return result;
     }
 
     public async Task<string> CreateShiftChangeAsync(ShiftChangeDto request)

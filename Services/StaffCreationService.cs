@@ -714,7 +714,7 @@ namespace AttendanceManagement.Services
             return $"/{folderName}/{fileName}";
         }
 
-        public async Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1)
+        public async Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1, bool? isApprovalLevel1, bool? isApprovalLevel2)
         {
             var approver = await _context.StaffCreations
                 .Where(x => x.Id == currentApprovar1 && x.IsActive == true)
@@ -723,10 +723,15 @@ namespace AttendanceManagement.Services
             bool isSuperAdmin = approver == "SUPER ADMIN";
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == currentApprovar1 && s.IsActive == true);
             if (staff == null) throw new MessageNotFoundException("Approver not found");
-            var isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == currentApprovar1 && s.IsActive == true);
-            var isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == currentApprovar1 && s.IsActive == true);
-            var records = await _context.StaffCreations
-                .Where(s => (isSuperAdmin || (isApprovalLevel1 && s.ApprovalLevel1 == currentApprovar1 && s.ApprovalLevel2 != currentApprovar1) || (isApprovalLevel2 && s.ApprovalLevel2 == currentApprovar1 && s.ApprovalLevel1 != currentApprovar1)) && s.IsActive == true)
+            var query = _context.StaffCreations
+                   .Where(s => s.IsActive == true &&
+                   (
+                       isSuperAdmin ||
+                       (isApprovalLevel1 == true && isApprovalLevel2 == null && s.ApprovalLevel1 == currentApprovar1) ||
+                       (isApprovalLevel2 == true && isApprovalLevel1 == null && s.ApprovalLevel2 == currentApprovar1) ||
+                       (isApprovalLevel1 == null && isApprovalLevel2 == null && (s.ApprovalLevel1 == currentApprovar1 || s.ApprovalLevel2 == currentApprovar1))
+                   ));
+            var records = await query
                 .Select(s => new StaffCreationResponse
                 {
                     StaffId = s.Id,

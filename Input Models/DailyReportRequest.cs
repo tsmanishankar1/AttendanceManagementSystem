@@ -55,8 +55,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public DateOnly? TransactionDate { get; set; }
         public int AttendanceStatus { get; set; }
     }
@@ -66,8 +66,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
         public int TotalDays { get; set; }
@@ -78,8 +78,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public DateOnly WorkedDate { get; set; }
         public DateOnly FromDate { get; set; }
         public string FromDuration { get; set; } = null!;
@@ -102,8 +102,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public DateOnly WorkedDate { get; set; }
         public int? Credit { get; set; }
         public string? Reason { get; set; }
@@ -126,8 +126,8 @@ namespace AttendanceManagement.Input_Models
         public string Name { get; set; } = null!;
         public string ShiftName { get; set; } = null!;
         public DateOnly ShiftInDate { get; set; }
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public TimeOnly? InTime { get; set; }
         public TimeOnly? OutTime { get; set; }
         public TimeOnly? TotalHoursWorked { get; set; }
@@ -139,8 +139,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string ShiftName { get; set; } = null!;
         public DateOnly Date { get; set; }
         public TimeOnly? InTime { get; set; }
@@ -161,8 +161,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string PunchType { get; set; } = null!;
         public DateTime? InTime { get; set; }
         public DateTime? OutTime { get; set; }
@@ -183,8 +183,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public DateOnly? SwipeDate { get; set; }
         public string Shift { get; set; } = null!;
         public TimeOnly? SwipeIn { get; set; }
@@ -198,8 +198,8 @@ namespace AttendanceManagement.Input_Models
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
         public int BranchId { get; set; }
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string Shift { get; set; } = null!;
         public TimeOnly? InTime { get; set; }
     }
@@ -222,8 +222,8 @@ namespace AttendanceManagement.Input_Models
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
         public int Plant { get; set; }
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public int CategoryId { get; set; }
         public DateOnly? Date { get; set; }
         public int NightShiftCount { get; set; }
@@ -234,8 +234,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public decimal CLCredits { get; set; }
         public decimal PLCredits { get; set; }
         public decimal SLCredits { get; set; }
@@ -252,8 +252,8 @@ namespace AttendanceManagement.Input_Models
         public int? StaffId { get; set; }
         public string? StaffCreationId { get; set; }
         public string Name { get; set; } = null!;
-        public int? DepartmentId { get; set; }
-        public int? DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string? FromDuration { get; set; }
         public string? ToDuration { get; set; }
         public string? Duration { get; set; }
@@ -278,8 +278,8 @@ namespace AttendanceManagement.Input_Models
         public int? StaffId { get; set; }
         public string? StaffCreationId { get; set; }
         public string? Name { get; set; } 
-        public int? DepartmentId { get; set; }
-        public int? DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string? VaccinationDate { get; set; }
         public string? SecondVaccinatedDate { get; set; }
         public string? VaccinationNumber { get; set; }
@@ -295,8 +295,8 @@ namespace AttendanceManagement.Input_Models
         public int? StaffId { get; set; }  
         public string? StaffCreationId { get; set; }
         public string? Name { get; set; }
-        public int? DepartmentId { get; set; }  
-        public int? DesignationId { get; set; }  
+        public string Department { get; set; } = null!;  
+        public string Designation { get; set; } = null!;  
         public DateTime? AttendanceDate { get; set; } 
         public DateTime? ShiftIn { get; set; }  
         public DateTime? ShiftOut { get; set; }
@@ -317,8 +317,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public DateOnly? Date { get; set; }
         public int AttendanceStatus { get;set; }
     }
@@ -328,8 +328,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string Duration { get; set; } = null!;
         public string From { get; set; } = null!;
         public string FromDuration { get; set; } = null!;
@@ -354,8 +354,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string StartDuration { get; set; } = null!;
         public string? EndDuration { get; set; }
         public int LeaveTypeId { get; set; }
@@ -380,8 +380,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public decimal CLAvailed { get; set; }
         public decimal SLAvailed { get; set; }
         public decimal NCLTaken { get; set; }
@@ -394,8 +394,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public DateOnly PermissionDate { get; set; }
         public string PermissionType { get; set; } = null!;
         public DateTime From { get; set; }
@@ -419,8 +419,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public string Duration { get; set; } = null!;
         public string From { get; set; } = null!;
         public string FromDuration { get; set; } = null!;
@@ -445,8 +445,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public decimal CLBalance { get; set; }
         public decimal PLBalance { get; set; }
         public decimal SLBalance { get; set; }
@@ -457,8 +457,8 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int DepartmentId { get; set; }
-        public int DesignationId { get; set; }
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
         public int ShiftId { get; set; }
         public string TxnDate { get; set; } = null!;
         public string DurationOfHoursExtension { get; set; } = null!;

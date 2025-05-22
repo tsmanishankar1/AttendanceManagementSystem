@@ -2,15 +2,19 @@
 using AttendanceManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace AttendanceManagement.Services;
 
 public class BranchMasterService
 {
     private readonly AttendanceManagementSystemContext _context;
-    public BranchMasterService(AttendanceManagementSystemContext context)
+    private readonly IConfiguration _configuration;
+    public BranchMasterService(AttendanceManagementSystemContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
+
     }
 
     public async Task<List<BranchMasterResponse>> GetAllBranches()
@@ -45,6 +49,43 @@ public class BranchMasterService
             throw new MessageNotFoundException("No branches found");
         }
         return allBranch;
+    }
+
+    public async Task<object> GetExcelTemplates()
+    {
+        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "ExcelTemplates");
+
+        if (!Directory.Exists(folderPath))
+        {
+            throw new  MessageNotFoundException("ExcelTemplates folder not found.");
+        }
+
+        var files = Directory.GetFiles(folderPath)
+                             .Select(file => new
+                             {
+                                 FileName = Path.GetFileName(file),
+                                 Extension = Path.GetExtension(file),
+                                 SizeInKB = new FileInfo(file).Length / 1024,
+                                 FullPath = file
+                             })
+                             .ToList();
+
+        return await Task.FromResult(files);
+    }
+
+    public Task<Dictionary<string, string>> GetAppSettings()
+    {
+        var settings = new Dictionary<string, string>();
+
+        foreach (var kvp in _configuration.AsEnumerable())
+        {
+            if (!string.IsNullOrEmpty(kvp.Value))
+            {
+                settings[kvp.Key] = kvp.Value!;
+            }
+        }
+
+        return Task.FromResult(settings);
     }
 
     public async Task<string> CreateBranch(BranchMasterRequest branchMasterRequest)
