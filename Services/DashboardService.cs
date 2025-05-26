@@ -274,20 +274,22 @@ namespace AttendanceManagement.Services
 
         public async Task<List<object>> GetUpcomingShiftsForStaffAsync(int staffId)
         {
+            var tomorrow = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
             var upcomingShifts = await _context.AssignShifts
-                .Where(asg => asg.IsActive && asg.IsUpcomingShift && asg.StaffId == staffId) 
+                .Where(asg => asg.IsActive &&
+                              asg.StaffId == staffId &&
+                              asg.FromDate == tomorrow)
                 .OrderBy(asg => asg.FromDate)
                 .Select(asg => new
                 {
-                    asg.Shift.Id,
-                    asg.Shift.Name,
-                    asg.Shift.StartTime,
-                    asg.Shift.EndTime,
-                    asg.FromDate,
-                    asg.ToDate
+                   ShiftId = asg.Shift.Id,
+                   ShiftName = asg.Shift.Name,
+                   StartTime = asg.Shift.StartTime,
+                   EndTime = asg.Shift.EndTime,
+                   Date = asg.FromDate
                 })
                 .ToListAsync();
-            if (upcomingShifts.Count == 0) throw new MessageNotFoundException("No upcoming shifts found");
+            if (upcomingShifts.Count == 0) throw new MessageNotFoundException("No upcoming shift found");
             return upcomingShifts.Cast<object>().ToList();
         }
     }

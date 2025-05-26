@@ -181,11 +181,31 @@ public class ExcelImportService
                     }
                     else if(excelImportDto.ExcelImportId == 21)
                     {
-                        requiredHeaders = new List<string>
+                        if(excelImportDto.PerformanceTypeId == 1)
                         {
-                            "Emp ID", "Name", "EMP Division", "Prod %", "Prod Score", "Prod Grade", "Qual %", "Qual Score", "Qual Grade", "No of Abs", "Attd %",
-                            "Attd Score", "Attd Grade", "Total Score", "Working months", "Score", "Final %", "Final Grade", "Comments"
-                        };
+                            requiredHeaders = new List<string>
+                            {
+                                "Employee Code", "Employee Name", "Designation", "Productivity Score", "Quality Score", "Present Score", "Total Score", "Productivity %", "Quality %",
+                                "Present %", "Final %", "Grade", "Total Absents", "Reporting Head", "Tenure Years", "HR Comments"
+                            };
+                        }
+                    }
+                    else if(excelImportDto.ExcelImportId == 22)
+                    {
+                        if (excelImportDto.PerformanceTypeId == 2)
+                        {
+                            requiredHeaders = new List<string>
+                            {
+                                "Employee Code", "Employee Name", "Designation", "Tenure Years", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments"
+                            };
+                        }
+                        else if (excelImportDto.PerformanceTypeId == 3)
+                        {
+                            requiredHeaders = new List<string>
+                            {
+                                "Employee Code", "Employee Name", "Designation", "Tenure Years", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments"
+                            };
+                        }
                     }
                     else
                     {
@@ -1543,59 +1563,155 @@ public class ExcelImportService
                             }
                             else if(excelImportDto.ExcelImportId == 21)
                             {
-                                var performances = new List<PerformanceReport>();
-                                for (int row = 2; row <= rowCount; row++)
+                                if(excelImportDto.PerformanceTypeId == 1)
                                 {
-                                    var employeeId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
-                                    var employeeName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
-                                    var employee = _context.StaffCreations.Where(s => s.IsActive == true)
-                                        .AsEnumerable()
-                                        .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
-                                    if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
-                                    var designationName = worksheet.Cells[row, columnIndexes["EMP Division"]].Text.Trim();
-                                    if (string.IsNullOrEmpty(designationName))
+                                    var monthlyPerformances = new List<MonthlyPerformance>();
+                                    for (int row = 2; row <= rowCount; row++)
                                     {
-                                        continue;
+                                        var employeeId = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim();
+                                        var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
+                                        var employee = _context.StaffCreations.Where(s => s.IsActive == true)
+                                            .AsEnumerable()
+                                            .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
+                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                        var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
+                                        if (string.IsNullOrEmpty(designationName))
+                                        {
+                                            continue;
+                                        }
+                                        var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
+                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                        var addMonthlyPerformance = new MonthlyPerformance
+                                        {
+                                            EmployeeCode = employeeId,
+                                            EmployeeName = employeeName,
+                                            Designation = designationName,
+                                            ProductivityScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity Score"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
+                                            QualityScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality Score"]].Text.Trim(), out decimal basicArradj) ? basicArradj : 0m,
+                                            PresentScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Present Score"]].Text.Trim(), out decimal presentScore) ? presentScore : 0m,
+                                            TotalScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Score"]].Text.Trim(), out decimal hraArradj) ? hraArradj : 0m,
+                                            ProductivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
+                                            QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out decimal qualPer) ? qualPer : 0m,
+                                            PresentPercentage = int.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text, out var postalCode) ? postalCode : 0,
+                                            FinalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out decimal medAllowArradj) ? medAllowArradj : 0m,
+                                            Grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim(),
+                                            TotalAbsents = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Absents"]].Text.Trim(), out decimal totalAbs) ? totalAbs : 0m,
+                                            ReportingHead = worksheet.Cells[row, columnIndexes["Reporting Head"]].Text.Trim(),
+                                            TenureYears = int.TryParse(worksheet.Cells[row, columnIndexes["Tenure Years"]].Text.Trim(), out var postal) ? postal : 0,
+                                            HrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim(),
+                                            PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
+                                            IsActive = true,
+                                            CreatedBy = excelImportDto.CreatedBy,
+                                            CreatedUtc = DateTime.UtcNow
+                                        };
+                                        monthlyPerformances.Add(addMonthlyPerformance);
                                     }
-                                    var designation = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
-                                    if (designation == null) throw new MessageNotFoundException($"Division '{designationName}' not found");
-                                    var addPerformance = new PerformanceReport
+                                    if (monthlyPerformances.Count > 0)
                                     {
-                                        EmpId = employeeId,
-                                        Name = employeeName,
-                                        EmpDivisionId = designation.Id,
-                                        ProdPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod %"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
-                                        ProdScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod Score"]].Text.Trim(), out decimal basicArradj) ? basicArradj : 0m,
-                                        ProdGrade = worksheet.Cells[row, columnIndexes["Prod Grade"]].Text.Trim(),
-                                        QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Qual %"]].Text.Trim(), out decimal hraArradj) ? hraArradj : 0m,
-                                        QualityScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Qual Score"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
-                                        QualityGrade = worksheet.Cells[row, columnIndexes["Qual Grade"]].Text.Trim(),
-                                        NoOfAbsents = int.TryParse(worksheet.Cells[row, columnIndexes["No of Abs"]].Text, out var postalCode) ? postalCode : 0,
-                                        AttendancePercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd %"]].Text.Trim(), out decimal medAllowArradj) ? medAllowArradj : 0m,
-                                        AttendanceScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Attd Score"]].Text.Trim(), out decimal splAllowEarned) ? splAllowEarned : 0m,
-                                        AttendanceGrade = worksheet.Cells[row, columnIndexes["Attd Grade"]].Text.Trim(),
-                                        TotalScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Score"]].Text.Trim(), out decimal medAllowArra) ? medAllowArra : 0m,
-                                        WorkingMonths = int.TryParse(worksheet.Cells[row, columnIndexes["Working months"]].Text.Trim(), out var postal) ? postal : 0,
-                                        Score = decimal.TryParse(worksheet.Cells[row, columnIndexes["Score"]].Text.Trim(), out var score) ? score : 0,
-                                        FinalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out var final) ? final : 0,
-                                        FinalGrade = worksheet.Cells[row, columnIndexes["Final Grade"]].Text.Trim(),
-                                        Comments = worksheet.Cells[row, columnIndexes["Comments"]].Text.Trim(),
-                                        PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
-                                        IsActive = true,
-                                        CreatedBy = excelImportDto.CreatedBy,
-                                        CreatedUtc = DateTime.UtcNow
-                                    };
-                                    performances.Add(addPerformance);
+                                        await _context.MonthlyPerformances.AddRangeAsync(monthlyPerformances);
+                                    }
+                                    else
+                                    {
+                                        throw new MessageNotFoundException("File is empty");
+                                    }
                                 }
-                                if (performances.Count > 0)
+                            }
+                            else if(excelImportDto.ExcelImportId == 22)
+                            {
+                                if (excelImportDto.PerformanceTypeId == 2)
                                 {
-                                    await _context.PerformanceReports.AddRangeAsync(performances);
+                                    var quarterlyPerformances = new List<QuarterlyPerformance>();
+                                    for (int row = 2; row <= rowCount; row++)
+                                    {
+                                        var employeeId = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim();
+                                        var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
+                                        var employee = _context.StaffCreations.Where(s => s.IsActive == true)
+                                            .AsEnumerable()
+                                            .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
+                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                        var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
+                                        if (string.IsNullOrEmpty(designationName))
+                                        {
+                                            continue;
+                                        }
+                                        var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
+                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                        var addQuarterlyPerformance = new QuarterlyPerformance
+                                        {
+                                            EmployeeCode = employeeId,
+                                            EmployeeName = employeeName,
+                                            Designation = designationName,
+                                            TenureYears = int.TryParse(worksheet.Cells[row, columnIndexes["Tenure Years"]].Text.Trim(), out var postal) ? postal : 0,
+                                            ProductivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
+                                            QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out decimal qualPer) ? qualPer : 0m,
+                                            PresentPercentage = int.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text, out var postalCode) ? postalCode : 0,
+                                            FinalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out decimal medAllowArradj) ? medAllowArradj : 0m,
+                                            Grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim(),
+                                            AbsentDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
+                                            HrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim(),
+                                            PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
+                                            IsActive = true,
+                                            CreatedBy = excelImportDto.CreatedBy,
+                                            CreatedUtc = DateTime.UtcNow
+                                        };
+                                        quarterlyPerformances.Add(addQuarterlyPerformance);
+                                    }
+                                    if (quarterlyPerformances.Count > 0)
+                                    {
+                                        await _context.QuarterlyPerformances.AddRangeAsync(quarterlyPerformances);
+                                    }
+                                    else
+                                    {
+                                        throw new MessageNotFoundException("File is empty");
+                                    }
                                 }
-                                else
+                                else if (excelImportDto.PerformanceTypeId == 3)
                                 {
-                                    throw new MessageNotFoundException("File is empty");
+                                    var quarterlyPerformances = new List<QuarterlyPerformance>();
+                                    for (int row = 2; row <= rowCount; row++)
+                                    {
+                                        var employeeId = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim();
+                                        var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
+                                        var employee = _context.StaffCreations.Where(s => s.IsActive == true)
+                                            .AsEnumerable()
+                                            .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
+                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                        var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
+                                        if (string.IsNullOrEmpty(designationName))
+                                        {
+                                            continue;
+                                        }
+                                        var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
+                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                        var addQuarterlyPerformance = new QuarterlyPerformance
+                                        {
+                                            EmployeeCode = employeeId,
+                                            EmployeeName = employeeName,
+                                            Designation = designationName,
+                                            TenureYears = int.TryParse(worksheet.Cells[row, columnIndexes["Tenure Years"]].Text.Trim(), out var postal) ? postal : 0,
+                                            ProductivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
+                                            QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out decimal qualPer) ? qualPer : 0m,
+                                            PresentPercentage = int.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text, out var postalCode) ? postalCode : 0,
+                                            FinalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out decimal medAllowArradj) ? medAllowArradj : 0m,
+                                            Grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim(),
+                                            AbsentDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
+                                            HrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim(),
+                                            PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
+                                            IsActive = true,
+                                            CreatedBy = excelImportDto.CreatedBy,
+                                            CreatedUtc = DateTime.UtcNow
+                                        };
+                                        quarterlyPerformances.Add(addQuarterlyPerformance);
+                                    }
+                                    if (quarterlyPerformances.Count > 0)
+                                    {
+                                        await _context.QuarterlyPerformances.AddRangeAsync(quarterlyPerformances);
+                                    }
+                                    else
+                                    {
+                                        throw new MessageNotFoundException("File is empty");
+                                    }
                                 }
-
                             }
                             await _context.SaveChangesAsync();
                             await transaction.CommitAsync();

@@ -2412,38 +2412,21 @@ public class ApplicationService
                             where asg.StaffId == staffId &&
                                   asg.IsActive &&
                                   sh.IsActive &&
-                                  asg.FromDate <= toDate && asg.ToDate >= fromDate
+                                  asg.FromDate >= fromDate && asg.FromDate <= toDate
                             select new
                             {
-                                FromDate = asg.FromDate,
-                                ToDate = asg.ToDate,
+                                Date = asg.FromDate,
                                 ShortName = sh.ShortName,
                                 StartTime = sh.StartTime,
                                 EndTime = sh.EndTime
                             }).ToListAsync();
-
-        if (shifts.Count == 0)
-            throw new MessageNotFoundException("Shifts not found between the date range for the staff");
-
-        var result = new List<object>();
-
-        foreach (var shift in shifts)
+        if (shifts.Count == 0) throw new MessageNotFoundException("Shifts not found between the date range for the staff");
+        var result = shifts.Select(shift => new
         {
-            var currentFrom = shift.FromDate < fromDate ? fromDate : shift.FromDate;
-            var currentTo = shift.ToDate > toDate ? toDate : shift.ToDate;
-
-            for (var date = currentFrom; date <= currentTo; date = date.AddDays(1))
-            {
-                result.Add(new
-                {
-                    Date = date.ToString("dd/MM/yyyy"),
-                    Shift = shift.ShortName,
-                    Time = $"{shift.StartTime} {shift.EndTime}"
-                });
-            }
-        }
-
-        return result;
+            Date = shift.Date.ToString("dd/MM/yyyy"),
+            Shift = shift.ShortName,
+            Time = $"{shift.StartTime} {shift.EndTime}"
+        }).Cast<object>().ToList(); return result;
     }
 
     public async Task<string> CreateShiftChangeAsync(ShiftChangeDto request)
@@ -2534,7 +2517,7 @@ public class ApplicationService
                 throw new ConflictException("Shift Extension request already exists");
             }
         }
-        var shift = await _context.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == staffOrCreatorId && a.IsActive && !a.IsUpcomingShift);
+        var shift = await _context.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == staffOrCreatorId && a.IsActive);
         if (shift == null) throw new MessageNotFoundException("Shift not found");
         var shiftExtension = new ShiftExtension
         {

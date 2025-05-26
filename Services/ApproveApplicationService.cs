@@ -986,6 +986,14 @@ namespace AttendanceManagement.Services
                             shiftChange.IsActive = false;
                             shiftChange.UpdatedBy = approveLeaveRequest.ApprovedBy;
                             shiftChange.UpdatedUtc = DateTime.UtcNow;
+
+                            var existingShift = await _context.AssignShifts.Where(a => a.FromDate >= shiftChange.FromDate && a.FromDate <= shiftChange.ToDate && a.IsActive).ToListAsync();
+                            foreach (var shift in existingShift)
+                            {
+                                shift.ShiftId = shiftChange.ShiftId;
+                                shift.UpdatedBy = approveLeaveRequest.ApprovedBy;
+                                shift.UpdatedUtc = DateTime.UtcNow;
+                            }
                         }
                     }
                     if (approver2 != null)
@@ -1018,6 +1026,14 @@ namespace AttendanceManagement.Services
                             shiftChange.IsActive = false;
                             shiftChange.ApprovedBy = approveLeaveRequest.ApprovedBy;
                             shiftChange.ApprovedOn = DateTime.UtcNow;
+
+                            var existingShift = await _context.AssignShifts.Where(a => a.FromDate >= shiftChange.FromDate && a.FromDate <= shiftChange.ToDate && a.IsActive).ToListAsync();
+                            foreach (var shift in existingShift)
+                            {
+                                shift.ShiftId = shiftChange.ShiftId;
+                                shift.UpdatedBy = approveLeaveRequest.ApprovedBy;
+                                shift.UpdatedUtc = DateTime.UtcNow;
+                            }
                         }
                         if (shiftChange != null && shiftChange.Status1 == null)
                         {

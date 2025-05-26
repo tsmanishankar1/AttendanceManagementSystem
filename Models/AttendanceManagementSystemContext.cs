@@ -85,6 +85,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<EmergencyContact> EmergencyContacts { get; set; }
 
+    public virtual DbSet<EmployeePerformance> EmployeePerformances { get; set; }
+
     public virtual DbSet<EmploymentHistory> EmploymentHistories { get; set; }
 
     public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
@@ -149,6 +151,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<MonthRange> MonthRanges { get; set; }
 
+    public virtual DbSet<MonthlyPerformance> MonthlyPerformances { get; set; }
+
     public virtual DbSet<MyApplication> MyApplications { get; set; }
 
     public virtual DbSet<OnBehalfApplicationApproval> OnBehalfApplicationApprovals { get; set; }
@@ -194,6 +198,8 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<ProfessionalCertification> ProfessionalCertifications { get; set; }
 
     public virtual DbSet<PunchRegularizationApproval> PunchRegularizationApprovals { get; set; }
+
+    public virtual DbSet<QuarterlyPerformance> QuarterlyPerformances { get; set; }
 
     public virtual DbSet<ReaderConfiguration> ReaderConfigurations { get; set; }
 
@@ -1556,6 +1562,34 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_UPEMER");
         });
 
+        modelBuilder.Entity<EmployeePerformance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07C6F1946B");
+
+            entity.ToTable("EmployeePerformance");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Designation)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Grade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.HrComments).IsUnicode(false);
+            entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<EmploymentHistory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Employme__3214EC07B743F2F8");
@@ -2554,6 +2588,56 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_UPMRAId");
         });
 
+        modelBuilder.Entity<MonthlyPerformance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__MonthlyP__3214EC07CF558459");
+
+            entity.ToTable("MonthlyPerformance");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Designation)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Grade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.HrComments).IsUnicode(false);
+            entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.PresentScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ProductivityScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.QualityScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ReportingHead)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.TotalAbsents).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TotalScore).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.MonthlyPerformanceCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRMPId");
+
+            entity.HasOne(d => d.PerformanceType).WithMany(p => p.MonthlyPerformances)
+                .HasForeignKey(d => d.PerformanceTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UPMPUTId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.MonthlyPerformanceUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPMPId");
+        });
+
         modelBuilder.Entity<MyApplication>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__MyApplic__3214EC07445E925C");
@@ -3477,6 +3561,49 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.UserManagementId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__PunchRegu__UserM__628FA481");
+        });
+
+        modelBuilder.Entity<QuarterlyPerformance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Quarterl__3214EC0723D89AD8");
+
+            entity.ToTable("QuarterlyPerformance");
+
+            entity.Property(e => e.AbsentDays).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Designation)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Grade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.HrComments).IsUnicode(false);
+            entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.QuarterlyPerformanceCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRQPId");
+
+            entity.HasOne(d => d.PerformanceType).WithMany(p => p.QuarterlyPerformances)
+                .HasForeignKey(d => d.PerformanceTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UPQPUTId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.QuarterlyPerformanceUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPQPId");
         });
 
         modelBuilder.Entity<ReaderConfiguration>(entity =>

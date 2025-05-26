@@ -44,8 +44,8 @@ public class DailyReportsService
 
     public async Task<object> GetDailyReports(DailyReportRequest request)
     {
-        var reportName = await _context.TypesOfReports.AnyAsync(s => s.Id == request.DailyReportsId && s.IsActive == true);
-        if (!reportName) throw new MessageNotFoundException("Report type not found");
+        var reportName = await _context.TypesOfReports.FirstOrDefaultAsync(s => s.Id == request.DailyReportsId && s.IsActive == true);
+        if (reportName == null) throw new MessageNotFoundException("Report type not found");
         var user = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == request.CreatedBy && s.IsActive == true);
         if (user == null) throw new MessageNotFoundException("User not found");
         var staffIds = request.StaffIds != null && request.StaffIds.Any() ? string.Join(",", request.StaffIds) : (object)DBNull.Value;
@@ -80,7 +80,7 @@ public class DailyReportsService
             toDateTime = request.ToDateTime.Value;
         }
 
-        var reportName1 = reportName;
+        var reportName1 = reportName.Name;
         var fromDate1 = fromDate != default
         ? fromDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture)
         : fromDateTime.ToString("dd-MMM-yyyy h:mm tt", CultureInfo.InvariantCulture);
@@ -422,7 +422,7 @@ public class DailyReportsService
                     StaffId = report.StaffId,
                     StaffCreationId = report.StaffCreationId,
                     Name = report.Name,
-                    BranchId = report.BranchId,
+                    Branch = report.Branch,
                     Department = report.Department,
                     Designation = report.Designation,
                     Shift = report.Shift,
@@ -716,7 +716,7 @@ public class DailyReportsService
                     StaffId = report.StaffId,
                     StaffCreationId = report.StaffCreationId,
                     Name = report.Name,
-                    CategoryId = report.CategoryId,
+                    Category = report.Category,
                     Department = report.Department,
                     Designation = report.Designation,
                     Plant = report.Plant,

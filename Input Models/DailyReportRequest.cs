@@ -5,7 +5,6 @@ namespace AttendanceManagement.Input_Models
     public class ReportTypeResponse
     {
         public int Id { get; set; }
-        [MaxLength(100)]
         public string Name { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
@@ -70,7 +69,7 @@ namespace AttendanceManagement.Input_Models
         public string Designation { get; set; } = null!;
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
-        public int TotalDays { get; set; }
+        public int? TotalDays { get; set; }
     }
 
     public class CompOffAvailResponse
@@ -84,7 +83,7 @@ namespace AttendanceManagement.Input_Models
         public DateOnly FromDate { get; set; }
         public string FromDuration { get; set; } = null!;
         public DateOnly ToDate { get; set; }
-        public string ToDuration { get; set; } = null!;
+        public string? ToDuration { get; set; }
         public string AppliedOn { get; set; } = null!;
         public string? Approval1Status { get; set; }
         public string? Approved1On { get; set; }
@@ -142,7 +141,7 @@ namespace AttendanceManagement.Input_Models
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string ShiftName { get; set; } = null!;
-        public DateOnly Date { get; set; }
+        public DateOnly? Date { get; set; }
         public TimeOnly? InTime { get; set; }
         public TimeOnly? OutTime { get; set; }
         public TimeOnly? TotalHoursWorked { get; set; }
@@ -166,15 +165,15 @@ namespace AttendanceManagement.Input_Models
         public string PunchType { get; set; } = null!;
         public DateTime? InTime { get; set; }
         public DateTime? OutTime { get; set; }
-        public DateTime? AppliedOn { get; set; }
+        public string? AppliedOn { get; set; }
         public string? Approval1Status { get; set; }
         public string? Approved1On { get; set; }
         public int? Approved1By { get; set; }
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public int? Approved2By { get; set; }
-        public bool IsCancelled { get; set; }
-        public DateTime? CancelledOn { get; set; }
+        public string? IsCancelled { get; set; }
+        public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
 
@@ -197,7 +196,7 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int BranchId { get; set; }
+        public string Branch { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string Shift { get; set; } = null!;
@@ -213,7 +212,7 @@ namespace AttendanceManagement.Input_Models
         public TimeOnly? SwipeTime { get; set; }
         public string ReaderName { get; set; } = null!;
         public string PunchType { get; set; } = null!;
-        public int SwipeLocation { get; set; }
+        public string SwipeLocation { get; set; } = null!;
     }
 
     public class NightShiftCountResponse
@@ -221,10 +220,10 @@ namespace AttendanceManagement.Input_Models
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public int Plant { get; set; }
+        public string Plant { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public int CategoryId { get; set; }
+        public string Category { get; set; } = null!;
         public DateOnly? Date { get; set; }
         public int NightShiftCount { get; set; }
     }
@@ -275,14 +274,14 @@ namespace AttendanceManagement.Input_Models
 
     public class VaccinationReportResponse
     {
-        public int? StaffId { get; set; }
-        public string? StaffCreationId { get; set; }
-        public string? Name { get; set; } 
+        public int StaffId { get; set; }
+        public string StaffCreationId { get; set; } = null!;
+        public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string? VaccinationDate { get; set; }
         public string? SecondVaccinatedDate { get; set; }
-        public string? VaccinationNumber { get; set; }
+        public int? VaccinationNumber { get; set; }
         public bool? IsExempted { get; set; }
         public string? Comments { get; set; }
         public string? ApprovedOn { get; set; }
@@ -292,9 +291,9 @@ namespace AttendanceManagement.Input_Models
 
     public class WeeklyOffHolidayWorkingResponse
     {
-        public int? StaffId { get; set; }  
-        public string? StaffCreationId { get; set; }
-        public string? Name { get; set; }
+        public int StaffId { get; set; }  
+        public string StaffCreationId { get; set; } = null!;
+        public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;  
         public string Designation { get; set; } = null!;  
         public DateTime? AttendanceDate { get; set; } 
@@ -308,7 +307,7 @@ namespace AttendanceManagement.Input_Models
         public string? Approved2On { get; set; }
         public int? Approved2By { get; set; }
         public string? IsCancelled { get; set; }  
-        public DateTime? CancelledOn { get; set; }  
+        public string? CancelledOn { get; set; }  
         public int? CancelledBy { get; set; }
     }
 
@@ -330,7 +329,7 @@ namespace AttendanceManagement.Input_Models
         public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public string Duration { get; set; } = null!;
+        public string? Duration { get; set; }
         public string From { get; set; } = null!;
         public string FromDuration { get; set; } = null!;
         public string? To { get; set; }

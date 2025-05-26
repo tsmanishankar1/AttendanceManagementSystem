@@ -11,7 +11,7 @@ public partial class AssignShift
 
     public DateOnly FromDate { get; set; }
 
-    public DateOnly ToDate { get; set; }
+    public DateOnly? ToDate { get; set; }
 
     public int StaffId { get; set; }
 
@@ -24,8 +24,6 @@ public partial class AssignShift
     public int? UpdatedBy { get; set; }
 
     public DateTime? UpdatedUtc { get; set; }
-
-    public bool IsUpcomingShift { get; set; }
 
     public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
 

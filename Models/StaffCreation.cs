@@ -535,6 +535,10 @@ public partial class StaffCreation
 
     public virtual ICollection<MonthRange> MonthRangeUpdatedByNavigations { get; set; } = new List<MonthRange>();
 
+    public virtual ICollection<MonthlyPerformance> MonthlyPerformanceCreatedByNavigations { get; set; } = new List<MonthlyPerformance>();
+
+    public virtual ICollection<MonthlyPerformance> MonthlyPerformanceUpdatedByNavigations { get; set; } = new List<MonthlyPerformance>();
+
     public virtual ICollection<MyApplication> MyApplicationCreatedByNavigations { get; set; } = new List<MyApplication>();
 
     public virtual ICollection<MyApplication> MyApplicationUpdatedByNavigations { get; set; } = new List<MyApplication>();
@@ -646,6 +650,10 @@ public partial class StaffCreation
     public virtual ICollection<PunchRegularizationApproval> PunchRegularizationApprovalCreatedByNavigations { get; set; } = new List<PunchRegularizationApproval>();
 
     public virtual ICollection<PunchRegularizationApproval> PunchRegularizationApprovalUpdatedByNavigations { get; set; } = new List<PunchRegularizationApproval>();
+
+    public virtual ICollection<QuarterlyPerformance> QuarterlyPerformanceCreatedByNavigations { get; set; } = new List<QuarterlyPerformance>();
+
+    public virtual ICollection<QuarterlyPerformance> QuarterlyPerformanceUpdatedByNavigations { get; set; } = new List<QuarterlyPerformance>();
 
     public virtual ICollection<ReaderConfiguration> ReaderConfigurationCreatedByNavigations { get; set; } = new List<ReaderConfiguration>();
 

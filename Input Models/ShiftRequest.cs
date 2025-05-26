@@ -40,8 +40,7 @@ namespace AttendanceManagement.Input_Models
     public class AssignedShiftResponse
     {
         public string ShiftName { get; set; } = null!;
-        public DateOnly FromDate { get; set; }
-        public DateOnly ToDate { get; set; }
+        public DateOnly Date { get; set; }
         public string StaffName { get; set; } = null!;
     }
 
