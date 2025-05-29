@@ -19,15 +19,38 @@ public class ProbationController : ControllerBase
     }
 
     [HttpGet("GetAllProbations")]
-    public async Task<IActionResult> GetAllProbations(int approverId)
+    public async Task<IActionResult> GetAllProbations()
     {
         try
         {
-            var probations = await _probationService.GetAllProbationsAsync(approverId);
+            var probations = await _probationService.GetAllProbationsAsync();
             var response = new
             {
                 Success = true,
                 Message = probations
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpGet("GetAllManagers")]
+    public async Task<IActionResult> GetAllManagers()
+    {
+        try
+        {
+            var managers = await _probationService.GetAllManagers();
+            var response = new
+            {
+                Success = true,
+                Message = managers
             };
             return Ok(response);
         }
@@ -321,15 +344,20 @@ public class ProbationController : ControllerBase
     }
 
     [HttpGet("DownloadConfirmationLetter")]
-    public async Task<IActionResult> DownloadPdf(int staffCreationId)
+    public async Task<IActionResult> DownloadPdf(int staffCreationId, int fileId)
     {
         try
         {
-            var filePath = await _probationService.GetPdfFilePath(staffCreationId);
-            var fileBytes = System.IO.File.ReadAllBytes(filePath);
-            var fileName = System.IO.Path.GetFileName(filePath);
+            var filePath = await _probationService.GetPdfFilePath(staffCreationId, fileId);
+            if (!System.IO.File.Exists(filePath))
+            {
+                return ErrorClass.NotFoundResponse("Confirmation letter not found");
+            }
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            var file = Path.GetFileName(filePath);
+            var contentType = "application/pdf";
 
-            return File(fileBytes, "application/pdf", fileName);
+            return File(fileBytes, contentType, file);
         }
         catch (MessageNotFoundException ex)
         {

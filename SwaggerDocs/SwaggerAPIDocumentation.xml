@@ -1250,7 +1250,7 @@
 			<response code="404">If no payslip is found for the given staff ID</response>
 			<response code="500">If an internal server error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySheet(System.Int32,System.Int32,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySheet(AttendanceManagement.Input_Models.GeneratePaySheetRequest)">
 			<summary>
 				Generates the paysheet PDF for a specified staff member for a given month and year.
 			</summary>
@@ -1287,6 +1287,50 @@
 			<returns>Returns a list of all salary structures.</returns>
 			<response code="200">Returns the list of salary structures</response>
 			<response code="500">If an internal server error occurs</response>
+		</member>
+		<member name="T:AttendanceManagement.Controllers.PerformanceReviewController">
+			<summary>
+				Controller for handling performance review and appraisal-related operations.
+			</summary>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.#ctor(PerformanceReviewService,LoggingService)">
+			<summary>
+				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.PerformanceReviewController"/> class.
+			</summary>
+			<param name="service">The performance review service.</param>
+			<param name="loggingService">The logging service for audit and error logging.</param>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.GenerateAppraisalLetter(AttendanceManagement.Input_Models.GenerateAppraisalLetterRequest)">
+			<summary>
+				Generates an appraisal letter PDF for a specified employee and returns it as a downloadable file.
+			</summary>
+			<param name="generateAppraisalLetterRequest">The request object containing appraisal letter details.</param>
+			<returns>The generated appraisal letter as a PDF file.</returns>
+			<response code="200">Returns the appraisal letter PDF file</response>
+			<response code="404">If the appraisal letter information is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.DownloadAppraisalLetter(System.Int32,System.Int32)">
+			<summary>
+				Downloads the appraisal letter as a PDF.
+			</summary>
+			<param name="staffId">The ID of the staff.</param>
+			<param name="fileId">The ID of the file to download.</param>
+			<returns>The appraisal letter as a downloadable PDF file.</returns>
+			<response code="200">Returns the PDF file.</response>
+			<response code="404">If the appraisal letter is not found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.ViewAppraisalLetter(System.Int32,System.Int32)">
+			<summary>
+				Displays the appraisal letter as a PDF in the browser.
+			</summary>
+			<param name="staffId">The ID of the staff.</param>
+			<param name="fileId">The ID of the file to view.</param>
+			<returns>The appraisal letter streamed as a PDF file.</returns>
+			<response code="200">Returns the streamed PDF file for inline viewing.</response>
+			<response code="404">If the appraisal letter is not found.</response>
+			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.PrefixAndSuffixController">
 			<summary>
@@ -1376,13 +1420,22 @@
 			<param name="probationService">The probation service.</param>
 			<param name="context">The attendance management system context.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.GetAllProbations(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.GetAllProbations">
 			<summary>
 				Retrieves all probations.
 			</summary>
 			<returns>All probations.</returns>
 			<response code="200">Returns the list of probations</response>
 			<response code="404">If no probations are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ProbationController.GetAllManagers">
+			<summary>
+				Retrieves a list of all managers involved in the probation workflow.
+			</summary>
+			<returns>List of managers.</returns>
+			<response code="200">Returns the list of managers</response>
+			<response code="404">If no managers are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ProbationController.GetProbationById(System.Int32)">
@@ -1505,7 +1558,7 @@
 			<response code="200">Returns the confirmation letter content</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.DownloadPdf(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.DownloadPdf(System.Int32,System.Int32)">
 			<summary>
 				Downloads the confirmation letter as a PDF.
 			</summary>

@@ -19,6 +19,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<ApplicationType> ApplicationTypes { get; set; }
 
+    public virtual DbSet<AppraisalAnnexureA> AppraisalAnnexureAs { get; set; }
+
     public virtual DbSet<Approval> Approvals { get; set; }
 
     public virtual DbSet<ApprovalLevel> ApprovalLevels { get; set; }
@@ -174,6 +176,10 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<PerformanceRatingScale> PerformanceRatingScales { get; set; }
 
     public virtual DbSet<PerformanceReport> PerformanceReports { get; set; }
+
+    public virtual DbSet<PerformanceReviewCycle> PerformanceReviewCycles { get; set; }
+
+    public virtual DbSet<PerformanceReviewEmployee> PerformanceReviewEmployees { get; set; }
 
     public virtual DbSet<PerformanceUploadType> PerformanceUploadTypes { get; set; }
 
@@ -420,6 +426,42 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ApplicationTypeUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_ATUPID");
+        });
+
+        modelBuilder.Entity<AppraisalAnnexureA>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Appraisa__3214EC07A7D394CB");
+
+            entity.ToTable("AppraisalAnnexureA");
+
+            entity.Property(e => e.AppraisalAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Basic).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Conveyance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeEsiContribution).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EmployeeGroupMedicalInsurance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EmployeePfContribution).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EmployerEsiContribution).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EmployerGroupMedicalInsurance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EmployerPfContribution).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GroupPersonalAccident).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Hra).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedicalAllowance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ProfessionalTax).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SpecialAllowance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AppraisalAnnexureACreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRANId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.AppraisalAnnexureAUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPANId");
         });
 
         modelBuilder.Entity<Approval>(entity =>
@@ -2358,6 +2400,7 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
+            entity.Property(e => e.FileName).IsUnicode(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LetterPath).HasMaxLength(500);
             entity.Property(e => e.UpdatedUtc)
@@ -3145,6 +3188,60 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceReportUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPEPRId");
+        });
+
+        modelBuilder.Entity<PerformanceReviewCycle>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC07AA445CB0");
+
+            entity.ToTable("PerformanceReviewCycle");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.From)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.To)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PerformanceReviewCycleCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRPRC");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceReviewCycleUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPPRC");
+        });
+
+        modelBuilder.Entity<PerformanceReviewEmployee>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC074EC334CF");
+
+            entity.ToTable("PerformanceReviewEmployee");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PerformanceReviewEmployeeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRPRE");
+
+            entity.HasOne(d => d.PerformanceCycle).WithMany(p => p.PerformanceReviewEmployees)
+                .HasForeignKey(d => d.PerformanceCycleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PCPRE");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.PerformanceReviewEmployeeStaffs)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SIPRE");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceReviewEmployeeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPPRE");
         });
 
         modelBuilder.Entity<PerformanceUploadType>(entity =>

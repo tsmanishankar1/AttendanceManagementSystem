@@ -219,17 +219,17 @@ namespace AttendanceManagement.Services
             return paySlip;
         }
 
-        public async Task<PaysheetResponse> GeneratePaySheet(int staffId, int month, int year)
+        public async Task<PaysheetResponse> GeneratePaySheet(GeneratePaySheetRequest generatePaySheetRequest)
         {
-            var staffs = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            var staffs = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == generatePaySheetRequest.StaffId && s.IsActive == true);
             if (staffs == null) throw new MessageNotFoundException("Staff not found");
-            string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+            string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(generatePaySheetRequest.Month);
             var paySheet = await (from pay in _context.PaySheets
                                   join staff in _context.StaffCreations on pay.StaffId equals staff.StaffId
                                   join designation in _context.DesignationMasters on pay.DesignationId equals designation.Id
                                   join department in _context.DepartmentMasters on pay.DepartmentId equals department.Id
                                   where staff.IsActive == true && designation.IsActive && department.IsActive && pay.IsActive
-                                  && pay.StaffId == staffs.StaffId && pay.Month == month && pay.Year == year
+                                  && pay.StaffId == staffs.StaffId && pay.Month == generatePaySheetRequest.Month && pay.Year == generatePaySheetRequest.Year
                                   select new PaysheetResponse
                                   {
                                       StaffId = staff.StaffId,
@@ -237,7 +237,7 @@ namespace AttendanceManagement.Services
                                       GroupName = pay.GroupName,
                                       DisplayNameInReports = pay.DisplayNameInReports,
                                       Month = monthName,
-                                      Year = year,
+                                      Year = generatePaySheetRequest.Year,
                                       DateOfJoining = pay.DateOfJoining,
                                       EmployeeNumber = pay.EmployeeNumber,
                                       Designation = designation.Name,

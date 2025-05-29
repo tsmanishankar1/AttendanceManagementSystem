@@ -16,6 +16,7 @@ using System.Web;
 using System.Text.Json;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 using Microsoft.AspNetCore.Http.HttpResults;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AttendanceManagement.Services;
 
@@ -691,6 +692,7 @@ public class ApplicationService
                                      select new CompOffCreditResponseDto
                                      {
                                          Id = c.Id,
+                                         StaffId = c.StaffId ?? c.CreatedBy,
                                          ApplicationTypeId = c.ApplicationTypeId,
                                          WorkedDate = c.WorkedDate,
                                          TotalDays = c.TotalDays,
@@ -704,7 +706,7 @@ public class ApplicationService
     {
         var message = "CompOff Credit request submitted successfully";
         var staffOrCreatorId = compOffCreditDto.StaffId ?? compOffCreditDto.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreezeDate(staffOrCreatorId, compOffCreditDto.WorkedDate);
         await NotFoundMethod(compOffCreditDto.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -770,7 +772,7 @@ public class ApplicationService
     {
         var message = "CompOff Avail request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreeze(staffOrCreatorId, request.FromDate, request.ToDate);
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -915,7 +917,7 @@ public class ApplicationService
                               select new CompOffAvailDto
                               {
                                   Id = compOff.Id,
-                                  staffId = compOff.StaffId,
+                                  staffId = compOff.StaffId ?? compOff.CreatedBy,
                                   ApplicationTypeId = compOff.ApplicationTypeId,
                                   WorkedDate = compOff.WorkedDate,
                                   FromDate = compOff.FromDate,
@@ -1682,7 +1684,7 @@ public class ApplicationService
     {
         var message = "Leave request submitted successfully.";
         var staffOrCreatorId = leaveRequisitionRequest.StaffId ?? leaveRequisitionRequest.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreeze(staffOrCreatorId, leaveRequisitionRequest.FromDate, leaveRequisitionRequest.ToDate);
         await NotFoundMethod(leaveRequisitionRequest.ApplicationTypeId);
         var individualLeave = await _context.IndividualLeaveCreditDebits
         .Where(l => l.StaffCreationId == staffOrCreatorId
@@ -1827,7 +1829,7 @@ public class ApplicationService
     {
         var message = "Common Permission request submitted successfully.";
         var staffOrCreatorId = commonPermissionRequest.StaffId ?? commonPermissionRequest.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreezeDate(staffOrCreatorId, commonPermissionRequest.PermissionDate);
         await NotFoundMethod(commonPermissionRequest.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -1999,7 +2001,7 @@ public class ApplicationService
     {
         var message = "Manual Punch request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        //await AttendanceFreeze(staffOrCreatorId);
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -2045,10 +2047,16 @@ public class ApplicationService
         return message;
     }
 
-    private async Task AttendanceFreeze(int staffId)
+    public async Task AttendanceFreeze(int staffId, DateOnly startDate, DateOnly endDate)
     {
-        var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false && f.StaffId == staffId);
-        if (!hasUnfreezed) throw new InvalidOperationException("Your request cannot proceed attendance records are frozen");
+        var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.StaffId == staffId && f.AttendanceDate >= startDate && f.AttendanceDate <= endDate);
+        if (hasUnfreezed) throw new InvalidOperationException("Your request cannot proceed attendance records are frozen");
+    }
+
+    public async Task AttendanceFreezeDate(int staffId, DateOnly date)
+    {
+        var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.StaffId == staffId && f.AttendanceDate == date);
+        if (hasUnfreezed) throw new InvalidOperationException("Your request cannot proceed attendance records are frozen");
     }
 
     private async Task NotFoundMethod(int applicationTypeId)
@@ -2061,7 +2069,14 @@ public class ApplicationService
     {
         var message = "On Duty request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        if(request.StartDate != null && request.EndDate != null)
+        {
+            await AttendanceFreeze(staffOrCreatorId, (DateOnly)request.StartDate, (DateOnly)request.EndDate);
+        }
+        if(request.StartTime != null && request.EndTime != null)
+        {
+            await AttendanceFreeze(staffOrCreatorId, DateOnly.FromDateTime(request.StartTime.Value), DateOnly.FromDateTime(request.EndTime.Value));
+        }
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -2177,7 +2192,14 @@ public class ApplicationService
     {
         var message = "Business Travel request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        if (request.FromDate != null && request.ToDate != null)
+        {
+            await AttendanceFreeze(staffOrCreatorId, (DateOnly)request.FromDate, (DateOnly)request.ToDate);
+        }
+        if (request.FromTime != null && request.ToTime != null)
+        {
+            await AttendanceFreeze(staffOrCreatorId, DateOnly.FromDateTime(request.FromTime.Value), DateOnly.FromDateTime(request.ToTime.Value));
+        }
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -2293,7 +2315,14 @@ public class ApplicationService
     {
         var message = "Work From Home request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        if (request.FromDate != null && request.ToDate != null)
+        {
+            await AttendanceFreeze(staffOrCreatorId, (DateOnly)request.FromDate, (DateOnly)request.ToDate);
+        }
+        if (request.FromTime != null && request.ToTime != null)
+        {
+            await AttendanceFreeze(staffOrCreatorId, DateOnly.FromDateTime(request.FromTime.Value), DateOnly.FromDateTime(request.ToTime.Value));
+        }
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -2433,7 +2462,7 @@ public class ApplicationService
     {
         var message = "Shift Change request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreeze(staffOrCreatorId, request.FromDate, request.ToDate);
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -2500,7 +2529,7 @@ public class ApplicationService
     {
         var message = "Shift Extension request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreezeDate(staffOrCreatorId, request.TransactionDate);
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -2566,7 +2595,7 @@ public class ApplicationService
     {
         var message = "Weekly Off/ Holiday Working request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreezeDate(staffOrCreatorId, request.TxnDate);
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
@@ -2631,7 +2660,7 @@ public class ApplicationService
     {
         var message = "Reimbursement request submitted successfully";
         var staffOrCreatorId = request.StaffId ?? request.CreatedBy;
-        await AttendanceFreeze(staffOrCreatorId);
+        await AttendanceFreezeDate(staffOrCreatorId, request.BillDate);
         await NotFoundMethod(request.ApplicationTypeId);
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");

@@ -69,15 +69,14 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpGet("GeneratePaySheet")]
-        public async Task<IActionResult> GeneratePaySheet(int staffId, int month, int year)
+        [HttpPost("GeneratePaySheet")]
+        public async Task<IActionResult> GeneratePaySheet(GeneratePaySheetRequest generatePaySheetRequest)
         {
             try
             {
-                var paysheet = await _payrollService.GeneratePaySheet(staffId, month, year);
+                var paysheet = await _payrollService.GeneratePaySheet(generatePaySheetRequest);
                 var pdfBytes = PayslipPdfGenerator.GeneratePaysheetPdf(paysheet);
                 string fileName = $"Paysheet_{paysheet.StaffId}_{paysheet.Month}_{paysheet.Year}.pdf";
-
                 return File(pdfBytes, "application/pdf", fileName);
             }
             catch (MessageNotFoundException ex)

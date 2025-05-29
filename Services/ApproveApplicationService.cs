@@ -34,17 +34,17 @@ namespace AttendanceManagement.Services
 /*                var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
                 if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
 */                if (approveLeaveRequest.ApplicationTypeId == 1)
-                {
+                  {
                     var leave = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == item.Id);
+                    if (leave == null) throw new MessageNotFoundException("Leave request not found");
+                    var staffOrCreatorId = leave.StaffId ?? leave.CreatedBy;
+                    await AttendanceFreeze(staffOrCreatorId, leave.FromDate, leave.ToDate);
                     //if (leave == null) throw new MessageNotFoundException("Leave request not found");
                     /*                var leave1 = await _context.LeaveRequisitions.Where(l => l.Id == item.Id && (l.Status1 == false || l.Status2 == false) && l.IsActive == true).FirstOrDefaultAsync();
                                     if (leave1 != null) throw new ConflictException("Leave request already rejected");
                     */
-                    if (leave == null) throw new MessageNotFoundException("Leave request not found");
                     var leaveType = await _context.LeaveTypes.Where(l => l.Id == leave.LeaveTypeId && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
                     if (leaveType == null) throw new MessageNotFoundException("Leave type not found");
-                    var staffOrCreatorId = leave.StaffId ?? leave.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -343,7 +343,7 @@ namespace AttendanceManagement.Services
                     if (permissionRequest == null) throw new MessageNotFoundException("Common Permission request not found");
                     var permissionType = await _context.PermissionTypes.Where(l => l.Name == permissionRequest.PermissionType && l.IsActive).Select(l => l.Name).FirstOrDefaultAsync();
                     var staffOrCreatorId = permissionRequest.StaffId ?? permissionRequest.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreezeDate(staffOrCreatorId, permissionRequest.PermissionDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -469,7 +469,7 @@ namespace AttendanceManagement.Services
                     if (manualPunch == null) throw new MessageNotFoundException("Manual Punch request not found");
                     //var punchType = manualPunch.SelectPunch;
                     var staffOrCreatorId = manualPunch.StaffId ?? manualPunch.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    //await _applicationService.AttendanceFreeze(staffOrCreatorId);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -590,7 +590,14 @@ namespace AttendanceManagement.Services
                     var onDuty = await _context.OnDutyRequisitions.FirstOrDefaultAsync(o => o.Id == item.Id);
                     if (onDuty == null) throw new MessageNotFoundException("On Duty request not found");
                     var staffOrCreatorId = onDuty.StaffId ?? onDuty.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    if (onDuty.StartDate != null && onDuty.EndDate != null)
+                    {
+                        await AttendanceFreeze(staffOrCreatorId, (DateOnly)onDuty.StartDate, (DateOnly)onDuty.EndDate);
+                    }
+                    if (onDuty.StartTime != null && onDuty.EndTime != null)
+                    {
+                        await AttendanceFreeze(staffOrCreatorId, DateOnly.FromDateTime(onDuty.StartTime.Value), DateOnly.FromDateTime(onDuty.EndTime.Value));
+                    }
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -711,7 +718,14 @@ namespace AttendanceManagement.Services
                     var businessTravel = await _context.BusinessTravels.FirstOrDefaultAsync(l => l.Id == item.Id);
                     if (businessTravel == null) throw new MessageNotFoundException("Business Travel request not found");
                     var staffOrCreatorId = businessTravel.StaffId ?? businessTravel.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    if (businessTravel.FromDate != null && businessTravel.ToDate != null)
+                    {
+                        await AttendanceFreeze(staffOrCreatorId, (DateOnly)businessTravel.FromDate, (DateOnly)businessTravel.ToDate);
+                    }
+                    if (businessTravel.FromTime != null && businessTravel.ToTime != null)
+                    {
+                        await AttendanceFreeze(staffOrCreatorId, DateOnly.FromDateTime(businessTravel.FromTime.Value), DateOnly.FromDateTime(businessTravel.ToTime.Value));
+                    }
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -835,7 +849,14 @@ namespace AttendanceManagement.Services
                     var workFromHome = await _context.WorkFromHomes.FirstOrDefaultAsync(l => l.Id == item.Id);
                     if (workFromHome == null) throw new MessageNotFoundException("Work From Home request not found");
                     var staffOrCreatorId = workFromHome.StaffId ?? workFromHome.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    if (workFromHome.FromDate != null && workFromHome.ToDate != null)
+                    {
+                        await AttendanceFreeze(staffOrCreatorId, (DateOnly)workFromHome.FromDate, (DateOnly)workFromHome.ToDate);
+                    }
+                    if (workFromHome.FromTime != null && workFromHome.ToTime != null)
+                    {
+                        await AttendanceFreeze(staffOrCreatorId, DateOnly.FromDateTime(workFromHome.FromTime.Value), DateOnly.FromDateTime(workFromHome.ToTime.Value));
+                    }
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -959,7 +980,7 @@ namespace AttendanceManagement.Services
                     var shiftChange = await _context.ShiftChanges.FirstOrDefaultAsync(l => l.Id == item.Id);
                     if (shiftChange == null) throw new MessageNotFoundException("Shift Change request not found");
                     var staffOrCreatorId = shiftChange.StaffId ?? shiftChange.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreeze(staffOrCreatorId, shiftChange.FromDate, shiftChange.ToDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -1098,7 +1119,7 @@ namespace AttendanceManagement.Services
                     var shiftExtension = await _context.ShiftExtensions.FirstOrDefaultAsync(s => s.Id == item.Id);
                     if (shiftExtension == null) throw new MessageNotFoundException("Shift Extension request not found");
                     var staffOrCreatorId = shiftExtension.StaffId ?? shiftExtension.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreezeDate(staffOrCreatorId, shiftExtension.TransactionDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -1220,7 +1241,7 @@ namespace AttendanceManagement.Services
                     var weeklyOffHoliday = await _context.WeeklyOffHolidayWorkings.FirstOrDefaultAsync(w => w.Id == item.Id);
                     if (weeklyOffHoliday == null) throw new MessageNotFoundException("Weekly Off/ Holiday Working request not found");
                     var staffOrCreatorId = weeklyOffHoliday.StaffId ?? weeklyOffHoliday.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreezeDate(staffOrCreatorId, weeklyOffHoliday.TxnDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -1344,7 +1365,7 @@ namespace AttendanceManagement.Services
                     var compOffAvail = await _context.CompOffAvails.FirstOrDefaultAsync(c => c.Id == item.Id);
                     if (compOffAvail == null) throw new MessageNotFoundException("CompOff Avail request not found");
                     var staffOrCreatorId = compOffAvail.StaffId ?? compOffAvail.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreeze(staffOrCreatorId, compOffAvail.FromDate, compOffAvail.ToDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -1503,7 +1524,7 @@ namespace AttendanceManagement.Services
                     var compOffCredit = await _context.CompOffCredits.FirstOrDefaultAsync(c => c.Id == item.Id);
                     if (compOffCredit == null) throw new MessageNotFoundException("Compoff Credit request not found");
                     var staffOrCreatorId = compOffCredit.StaffId ?? compOffCredit.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreezeDate(staffOrCreatorId, compOffCredit.WorkedDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -1641,7 +1662,7 @@ namespace AttendanceManagement.Services
                     var reimbursementRequest = await _context.Reimbursements.FirstOrDefaultAsync(r => r.Id == item.Id);
                     if (reimbursementRequest == null) throw new MessageNotFoundException("Reimbursement request not found");
                     var staffOrCreatorId = reimbursementRequest.StaffId ?? reimbursementRequest.CreatedBy;
-                    await AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreezeDate(staffOrCreatorId, reimbursementRequest.BillDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -1762,10 +1783,16 @@ namespace AttendanceManagement.Services
             return message;
         }
 
-        private async Task AttendanceFreeze(int staffId)
+        public async Task AttendanceFreeze(int staffId, DateOnly startDate, DateOnly endDate)
         {
-            var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false && f.StaffId == staffId);
-            if (!hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
+            var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.StaffId == staffId && f.AttendanceDate >= startDate && f.AttendanceDate <= endDate);
+            if (hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
+        }
+
+        public async Task AttendanceFreezeDate(int staffId, DateOnly date)
+        {
+            var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.StaffId == staffId && f.AttendanceDate == date);
+            if (hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
         }
     }
 }

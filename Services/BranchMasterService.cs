@@ -51,43 +51,6 @@ public class BranchMasterService
         return allBranch;
     }
 
-    public async Task<object> GetExcelTemplates()
-    {
-        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "ExcelTemplates");
-
-        if (!Directory.Exists(folderPath))
-        {
-            throw new  MessageNotFoundException("ExcelTemplates folder not found.");
-        }
-
-        var files = Directory.GetFiles(folderPath)
-                             .Select(file => new
-                             {
-                                 FileName = Path.GetFileName(file),
-                                 Extension = Path.GetExtension(file),
-                                 SizeInKB = new FileInfo(file).Length / 1024,
-                                 FullPath = file
-                             })
-                             .ToList();
-
-        return await Task.FromResult(files);
-    }
-
-    public Task<Dictionary<string, string>> GetAppSettings()
-    {
-        var settings = new Dictionary<string, string>();
-
-        foreach (var kvp in _configuration.AsEnumerable())
-        {
-            if (!string.IsNullOrEmpty(kvp.Value))
-            {
-                settings[kvp.Key] = kvp.Value!;
-            }
-        }
-
-        return Task.FromResult(settings);
-    }
-
     public async Task<string> CreateBranch(BranchMasterRequest branchMasterRequest)
     {
         var message = "Branch created successfully.";

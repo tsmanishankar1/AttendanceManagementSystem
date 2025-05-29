@@ -40,15 +40,16 @@ public class LoginController : ControllerBase
     }
 
     [HttpPost("RefreshToken")]
-    public IActionResult RefreshToken(RefreshTokenDto refreshTokenDto)
+    public async Task<IActionResult> RefreshToken(RefreshTokenDto refreshTokenDto)
     {
         try
         {
-            var newAccessToken = _loginService.RefreshAccessToken(refreshTokenDto.RefreshToken);
+            var (newAccessToken, refreshToken) = await _loginService.RefreshAccessToken(refreshTokenDto);
             var response = new
             {
                 Success = true,
-                AccessToken = newAccessToken
+                AccessToken = newAccessToken,
+                RefreshToken = refreshToken
             };
             return Ok(response);
         }

@@ -23,6 +23,8 @@ public partial class LetterGeneration
 
     public bool IsActive { get; set; }
 
+    public string? FileName { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual StaffCreation StaffCreation { get; set; } = null!;

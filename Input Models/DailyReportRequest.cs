@@ -235,6 +235,9 @@ namespace AttendanceManagement.Input_Models
         public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
+        public decimal OpeningCl { get; set; }
+        public decimal OpeningPl { get; set; }
+        public decimal OpeningSl { get; set; }
         public decimal CLCredits { get; set; }
         public decimal PLCredits { get; set; }
         public decimal SLCredits { get; set; }

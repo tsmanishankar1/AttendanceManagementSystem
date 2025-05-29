@@ -144,4 +144,94 @@
         public decimal GrossDed { get; set; }
         public decimal NetPay { get; set; }
     }
+
+    public class AppraisalLetterModel
+    {
+        public string EmployeeName { get; set; } = null!;
+        public string EmployeeCode { get; set; } = null!;
+        public string NewDesignation { get; set; } = null!;
+        public decimal IncrementAmount { get; set; }
+        public string IncrementAmountInWords { get; set; } = null!;
+        public DateTime EffectiveDate { get; set; }
+        public DateTime LetterDate { get; set; }
+        public string NextAppraisalMonthYear { get; set; } = null!;
+        public string CurrentBasic { get; set; } = null!;
+        public string NewBasic { get; set; } = null!;
+        public string CurrentHRA { get; set; } = null!;
+        public string NewHRA { get; set; } = null!;
+        public string CurrentSpecialAllowance { get; set; } = null!;
+        public string NewSpecialAllowance { get; set; } = null!;
+        public string CurrentGross { get; set; } = null!;
+        public string NewGross { get; set; } = null!;
+    }
+
+    public class AppraisalAnnexureResponse
+    {
+        public string EmployeeName { get; set; } = null!;
+        public string EmployeeCode { get; set; } = null!;
+        public string Designation { get; set; } = null!;
+        public string Title { get; set; } = null!;
+        public bool IsDesignationChange { get; set; }
+        public PreviousYearAppraisal? CurrentSalary { get; set; }
+        public CurrentYearAppraisal? SalaryAfterAppraisal { get; set; }
+    }
+
+    public class PreviousYearAppraisal
+    {
+        public decimal Basic { get; set; }
+        public decimal Hra { get; set; }
+        public decimal Conveyance { get; set; }
+        public decimal MedicalAllowance { get; set; }
+        public decimal SpecialAllowance { get; set; }
+        public decimal Gross { get; set; }
+        public decimal EmployerPfContribution { get; set; }
+        public decimal EmployerEsiContribution { get; set; }
+        public decimal EmployerGroupMedicalInsurance { get; set; }
+        public decimal GroupPersonalAccident { get; set; }
+        public decimal Ctc { get; set; }
+        public decimal EmployeePfContribution { get; set; }
+        public decimal EmployeeEsiContribution { get; set; }
+        public decimal ProfessionalTax { get; set; }
+        public decimal EmployeeGroupMedicalInsurance { get; set; }
+        public decimal NetTakeHome { get; set; }
+        public decimal AppraisalAmount { get; set; }
+        public int AppraisalYear { get; set; }
+    }
+
+    public class CurrentYearAppraisal
+    {
+        public decimal Basic { get; set; }
+        public decimal Hra { get; set; }
+        public decimal Conveyance { get; set; }
+        public decimal MedicalAllowance { get; set; }
+        public decimal SpecialAllowance { get; set; }
+        public decimal Gross { get; set; }
+        public decimal EmployerPfContribution { get; set; }
+        public decimal EmployerEsiContribution { get; set; }
+        public decimal EmployerGroupMedicalInsurance { get; set; }
+        public decimal GroupPersonalAccident { get; set; }
+        public decimal Ctc { get; set; }
+        public decimal EmployeePfContribution { get; set; }
+        public decimal EmployeeEsiContribution { get; set; }
+        public decimal ProfessionalTax { get; set; }
+        public decimal EmployeeGroupMedicalInsurance { get; set; }
+        public decimal NetTakeHome { get; set; }
+        public decimal AppraisalAmount { get; set; }
+        public int AppraisalYear { get; set; }
+    }
+
+    public class GeneratePaySheetRequest
+    {
+        public int StaffId { get; set; }
+        public int Month { get; set; }
+        public int Year { get; set; }
+        public int CreatedBy { get; set; }
+    }
+
+    public class GenerateAppraisalLetterRequest
+    {
+        public string StaffId { get; set; } = null!;
+        public int? DesignationId { get; set; }
+        public int CreatedBy { get; set; }
+    }
 }

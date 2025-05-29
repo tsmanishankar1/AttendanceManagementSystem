@@ -207,6 +207,15 @@ public class ExcelImportService
                             };
                         }
                     }
+                    else if(excelImportDto.ExcelImportId == 23)
+                    {
+                        requiredHeaders = new List<string>
+                        {
+                            "Employee Code", "Basic", "HRA", "Conveyance", "Medical Allowance", "Special Allowance", "Employer PF Contribution", "Employer ESI Contribution",
+                            "Employer Group Medical Insurance", "Group Personal Accident", "Employee PF Contribution", "Employee ESI Contribution", "Professional Tax",
+                            "Employee Group Medical Insurance", "Appraisal Amount"
+                        };
+                    }
                     else
                     {
                         throw new MessageNotFoundException("Excel import type not found");
@@ -1713,6 +1722,44 @@ public class ExcelImportService
                                     }
                                 }
                             }
+                            else if(excelImportDto.ExcelImportId == 23)
+                            {
+                                var appraisals = new List<AppraisalAnnexureA>();
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var addAppraisal = new AppraisalAnnexureA
+                                    {
+                                        EmployeeCode = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim(),
+                                        Basic = decimal.TryParse(worksheet.Cells[row, columnIndexes["Basic"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
+                                        Hra = decimal.TryParse(worksheet.Cells[row, columnIndexes["HRA"]].Text.Trim(), out decimal hra) ? hra : 0m,
+                                        Conveyance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Conveyance"]].Text.Trim(), out decimal conve) ? conve : 0m,
+                                        MedicalAllowance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Medical Allowance"]].Text.Trim(), out decimal medAllow) ? medAllow : 0m,
+                                        SpecialAllowance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Special Allowance"]].Text.Trim(), out decimal splAllow) ? splAllow : 0m,
+                                        EmployerPfContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employer PF Contribution"]].Text.Trim(), out decimal otherAllow) ? otherAllow : 0m,
+                                        EmployerEsiContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employer ESI Contribution"]].Text.Trim(), out decimal gross) ? gross : 0m,
+                                        EmployerGroupMedicalInsurance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employer Group Medical Insurance"]].Text.Trim(), out decimal pf) ? pf : 0m,
+                                        GroupPersonalAccident = decimal.TryParse(worksheet.Cells[row, columnIndexes["Group Personal Accident"]].Text.Trim(), out decimal esi) ? esi : 0m,
+                                        EmployeePfContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employee PF Contribution"]].Text.Trim(), out decimal lwf) ? lwf : 0m,
+                                        EmployeeEsiContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employee ESI Contribution"]].Text.Trim(), out decimal pt) ? pt : 0m,
+                                        ProfessionalTax = decimal.TryParse(worksheet.Cells[row, columnIndexes["Professional Tax"]].Text.Trim(), out decimal tax) ? tax : 0m,
+                                        EmployeeGroupMedicalInsurance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employee Group Medical Insurance"]].Text.Trim(), out decimal medical) ? medical : 0m,
+                                        AppraisalAmount = decimal.TryParse(worksheet.Cells[row, columnIndexes["Appraisal Amount"]].Text.Trim(), out decimal amount) ? amount :0m,
+                                        AppraisalYear = excelImportDto.ProductivityYear ?? 0,
+                                        IsActive = true,
+                                        CreatedBy = excelImportDto.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    appraisals.Add(addAppraisal);
+                                }
+                                if (appraisals.Count > 0)
+                                {
+                                    await _context.AppraisalAnnexureAs.AddRangeAsync(appraisals);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("File is empty");
+                                }
+                            }
                             await _context.SaveChangesAsync();
                             await transaction.CommitAsync();
                         }
@@ -1724,7 +1771,7 @@ public class ExcelImportService
                     }
                 }
             }
-            return "Excel data imported successfully.";
+            return "Excel data imported successfully";
         }
         catch (Exception ex)
         {

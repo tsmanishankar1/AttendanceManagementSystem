@@ -84,6 +84,7 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<StaffTransactionService>();
 builder.Services.AddScoped<ApproveApplicationService>();
 builder.Services.AddScoped<StatutoryReportService>();
+builder.Services.AddScoped<PerformanceReviewService>();
 builder.Services.AddHostedService<ProbationConfirmationService>();
 builder.Services.AddHttpContextAccessor();
 

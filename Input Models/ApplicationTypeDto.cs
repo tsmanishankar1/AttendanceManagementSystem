@@ -109,6 +109,7 @@ namespace AttendanceManagement.Input_Models
     public class CompOffCreditResponseDto
     {
         public int Id { get; set; }
+        public int StaffId { get; set; }
         public int ApplicationTypeId { get; set; }
         public DateOnly WorkedDate { get; set; }
         public decimal TotalDays { get; set; }

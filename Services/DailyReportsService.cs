@@ -1269,6 +1269,9 @@ public class DailyReportsService
                     Name = report.Name,
                     Department = report.Department,
                     Designation = report.Designation,
+                    OpeningCl = report.OpeningCl,
+                    OpeningPl = report.OpeningPl,
+                    OpeningSl = report.OpeningSl,
                     CLCredits = report.CLCredits,
                     PLCredits = report.PLCredits,
                     SLCredits = report.SLCredits,
@@ -1504,18 +1507,36 @@ public class DailyReportsService
                     command.Parameters.AddWithValue("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value);
 
                     var reader = await command.ExecuteReaderAsync();
+                    var records = new List<Dictionary<string, object>>();
                     var result = new List<Dictionary<string, object>>();
+                    Dictionary<string, object> grandTotalRow = null;
+
                     while (await reader.ReadAsync())
                     {
                         var row = new Dictionary<string, object>();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-#pragma warning disable CS8601 // Possible null reference assignment.
                             row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
                         }
-                        result.Add(row);
+
+                        if (row["Emp ID"]?.ToString() == "Grand Total")
+                        {
+                            grandTotalRow = row;
+                        }
+                        else
+                        {
+                            result.Add(row);
+                        }
                     }
-                    if (result.Count == 0) throw new MessageNotFoundException("No records found");
+
+                    if (result.Count == 0 && grandTotalRow == null)
+                        throw new MessageNotFoundException("No records found");
+
+                    // Extract only the date and "Grand Total" columns for column_Totals
+                    var columnTotals = grandTotalRow
+                        .Where(kvp => DateTime.TryParse(kvp.Key, out _) || kvp.Key == "Grand Total")
+                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
                     finalResponse = new
                     {
                         ReportName = reportName1,
@@ -1525,7 +1546,8 @@ public class DailyReportsService
                         UserId = userId,
                         UserCreationId = userCreationId,
                         UserName = userName,
-                        Records = result
+                        Records = result,
+                        Column_Totals = columnTotals
                     };
                 }
             }

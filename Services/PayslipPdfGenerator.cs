@@ -304,5 +304,93 @@ namespace AttendanceManagement.Services
 
             return stream.ToArray();
         }
+
+        /*        public static byte[] GenerateAppraisalLetter(AppraisalLetterModel model)
+                {
+                    using var stream = new MemoryStream();
+                    var document = new Document(PageSize.A4, 36, 36, 54, 36);
+                    var writer = PdfWriter.GetInstance(document, stream);
+                    document.Open();
+
+                    // Fonts
+                    var regularFont = FontFactory.GetFont(FontFactory.HELVETICA, 11);
+                    var boldFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                    var italicFont = FontFactory.GetFont(FontFactory.HELVETICA_OBLIQUE, 10);
+                    var underlineFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, Font.UNDERLINE);
+                    var smallFont = FontFactory.GetFont(FontFactory.HELVETICA, 9);
+
+                    // Header Section
+                    document.Add(new Paragraph($"Date: {model.LetterDate:dd MMMM, yyyy}", regularFont) { SpacingAfter = 20 });
+
+                    document.Add(new Paragraph($"Dear {model.EmployeeName},", regularFont) { SpacingAfter = 10 });
+
+                    var body = $@"
+                        We would like to congratulate you on your performance over the last one year. In recognition of your performance and contribution to the organization, we are glad to inform you that you have been promoted as {model.NewDesignation} with an increment of ₹{model.IncrementAmount:N0} /-PA ({model.IncrementAmountInWords}) on your existing gross salary with effect from {model.EffectiveDate:MMMM d, yyyy}.
+
+                        Detailed revised salary structure is enclosed in Annexure A.
+
+                        Next appraisals would be held in {model.NextAppraisalMonthYear} if the company does well commercially. Parameters for the next appraisal shall be on the following basis:
+                        a) 40 points for Attendance
+                        b) 40 points for Production
+                        c) 20 points for Quality
+
+                        In addition to the above, you will also be evaluated on the following:
+                        a) Your contribution on the team’s target
+                        b) Cross Training
+                        c) Bench Contribution
+
+                        Other terms and conditions as mentioned in your Appointment Letter continue to apply.
+
+                        Thanks again for putting in your best efforts and looking forward to a mutually rewarding time ahead!
+
+                        Kindly sign the copy of the letter as a token of your acceptance.
+                        ";
+
+                    document.Add(new Paragraph(body, regularFont) { SpacingAfter = 20 });
+
+                    document.Add(new Paragraph("Sincerely,", regularFont));
+                    document.Add(new Paragraph("For VLead Design Services Private Limited", regularFont) { SpacingAfter = 30 });
+
+                    document.Add(new Paragraph("Nirmala Thamarai", boldFont));
+                    document.Add(new Paragraph("Manager - HR", regularFont));
+
+                    document.NewPage();
+
+                    // Annexure A – Salary Breakdown (can be expanded with table if needed)
+                    document.Add(new Paragraph("Annexure A", underlineFont) { Alignment = Element.ALIGN_CENTER, SpacingAfter = 20 });
+
+                    var salaryTable = new PdfPTable(3) { WidthPercentage = 100 };
+                    salaryTable.SetWidths(new float[] { 40, 30, 30 });
+
+                    void AddSalaryRow(string label, string before, string after)
+                    {
+                        salaryTable.AddCell(new PdfPCell(new Phrase(label, boldFont)) { PaddingBottom = 4 });
+                        salaryTable.AddCell(new PdfPCell(new Phrase(before, regularFont)) { PaddingBottom = 4, HorizontalAlignment = Element.ALIGN_RIGHT });
+                        salaryTable.AddCell(new PdfPCell(new Phrase(after, regularFont)) { PaddingBottom = 4, HorizontalAlignment = Element.ALIGN_RIGHT });
+                    }
+
+                    // Example rows
+                    AddSalaryRow("Basic", model.CurrentBasic, model.NewBasic);
+                    AddSalaryRow("HRA", model.CurrentHRA, model.NewHRA);
+                    AddSalaryRow("Special Allowance", model.CurrentSpecialAllowance, model.NewSpecialAllowance);
+                    AddSalaryRow("Gross Salary", model.CurrentGross, model.NewGross);
+
+                    document.Add(salaryTable);
+
+                    document.Add(new Paragraph("\nNote: All the salary components associated with your employment in VLead like Special Value Payment (SVP), Variable Component, Bonus, Commission, etc. stand cancelled.", smallFont) { SpacingBefore = 15 });
+
+                    document.Add(new Paragraph("\nSincerely,", regularFont));
+                    document.Add(new Paragraph("For VLead Design Services Private Limited", regularFont) { SpacingAfter = 30 });
+
+                    document.Add(new Paragraph(model.EmployeeName, boldFont));
+                    document.Add(new Paragraph($"Employee Code: {model.EmployeeCode}", regularFont));
+
+                    document.Add(new Paragraph("\nNirmala Thamarai", boldFont));
+                    document.Add(new Paragraph("Manager - HR", regularFont));
+
+                    document.Close();
+                    return stream.ToArray();
+                }
+        */
     }
 }

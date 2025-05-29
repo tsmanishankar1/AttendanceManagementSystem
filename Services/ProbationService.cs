@@ -19,6 +19,9 @@ using PdfWriter = iTextSharp.text.pdf.PdfWriter;
 using Font = iTextSharp.text.Font;
 using iText.IO.Font;
 using Microsoft.Win32.SafeHandles;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Paragraph = iTextSharp.text.Paragraph;
+using PageSize = iTextSharp.text.PageSize;
 
 namespace AttendanceManagement.Services
 {
@@ -26,21 +29,20 @@ namespace AttendanceManagement.Services
     {
         private readonly AttendanceManagementSystemContext _context;
         private readonly EmailService _emailService;
-
-        public ProbationService(AttendanceManagementSystemContext context, EmailService emailService)
+        private readonly string _workspacePath;
+        public ProbationService(AttendanceManagementSystemContext context, EmailService emailService, IWebHostEnvironment env)
         {
             _context = context;
             _emailService = emailService;
-
+            _workspacePath = Path.Combine(env.ContentRootPath, "GeneratedLetters");
+            if (!Directory.Exists(_workspacePath))
+            {
+                Directory.CreateDirectory(_workspacePath);
+            }
         }
 
-        public async Task<List<ProbationResponse>> GetAllProbationsAsync(int approverId)
+        public async Task<List<ProbationResponse>> GetAllProbationsAsync()
         {
-            var approver = await _context.StaffCreations
-                .Where(x => x.Id == approverId && x.IsActive == true)
-                .Select(x => x.AccessLevel)
-                .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN";
             var allProbation = await (
                 from p in _context.Probations
                 join s in _context.StaffCreations on p.StaffCreationId equals s.Id
@@ -51,7 +53,7 @@ namespace AttendanceManagement.Services
                     .Where(f => f.ProbationId == p.Id && f.IsActive)
                     .OrderByDescending(f => f.Id)
                     .FirstOrDefault()
-                where p.IsActive && s.IsActive == true && (isSuperAdmin || s.ApprovalLevel1 == approverId || s.ApprovalLevel2 == approverId)
+                where p.IsActive && s.IsActive == true
                 select new ProbationResponse
                 {
                     ProbationId = p.Id,
@@ -71,6 +73,20 @@ namespace AttendanceManagement.Services
                 throw new MessageNotFoundException("No Probations found");
             }
             return allProbation;
+        }
+
+        public async Task<object> GetAllManagers()
+        {
+            var managers = await _context.StaffCreations.Where(s => s.AccessLevel == "REPORTING MANAGER" && s.IsActive == true)
+                .Select(s => new
+                {
+                   Id = s.Id,
+                   StaffId = s.StaffId,
+                   Name = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
+                   OfficialMail = s.OfficialEmail
+                }).ToListAsync();
+            if(managers.Count == 0) throw new MessageNotFoundException("No Managers found");
+            return managers;
         }
 
         public async Task<ProbationResponse> GetProbationByIdAsync(int probationId)
@@ -395,7 +411,8 @@ namespace AttendanceManagement.Services
             {
                 endDate = feedback.ExtensionPeriod.Value.ToString("dd MMMM yyyy");
             }
-            var pdfPath = GeneratePdf(staffCreationId, designation.Name, staffId.Title, startDate, endDate);
+            var fileName = $"Confirmation_Letter_{staffId.StaffId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+            var pdfPath = GeneratePdf(staffCreationId, designation.Name, staffId.Title, startDate, endDate, fileName);
             byte[] pdfBytes = System.IO.File.ReadAllBytes(pdfPath);
             string base64Pdf = Convert.ToBase64String(pdfBytes);
             var letterGeneration = new LetterGeneration
@@ -403,6 +420,7 @@ namespace AttendanceManagement.Services
                 LetterPath = pdfPath,
                 LetterContent = Convert.FromBase64String(base64Pdf),
                 StaffCreationId = staffCreationId,
+                FileName = fileName,
                 CreatedBy = hrConfirmation.CreatedBy,
                 CreatedUtc = DateTime.UtcNow,
                 IsActive = true
@@ -412,14 +430,13 @@ namespace AttendanceManagement.Services
             return pdfPath;
         }
 
-        private string GeneratePdf(int staffCreationId, string designation, string title, string startDate, string endDate)
+        private string GeneratePdf(int staffCreationId, string designation, string title, string startDate, string endDate, string fileName)
         {
             var staff = _context.StaffCreations.FirstOrDefault(s => s.Id == staffCreationId && s.IsActive == true);
             if (staff == null)
             {
                 throw new MessageNotFoundException($"Staff with ID {staffCreationId} not found.");
             }
-            var fileName = $"Confirmation_Letter_{staff.StaffId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
             var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
             if (!Directory.Exists(directoryPath))
             {
@@ -522,19 +539,19 @@ namespace AttendanceManagement.Services
             return filePath;
         }
 
-        public async Task<string> GetPdfFilePath(int staffCreationId)
+        public async Task<string> GetPdfFilePath(int staffCreationId, int fileId)
         {
-            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
-            if (letterGeneration == null)
+            var probation = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.StaffCreationId == staffCreationId && x.Id == fileId && x.IsActive == true);
+            if (probation == null)
             {
-                throw new MessageNotFoundException("Letter generation record not found.");
+                throw new MessageNotFoundException("Confirmation letter not found");
             }
-            var filePath = letterGeneration.LetterPath;
-            if (!File.Exists(filePath))
+            string file = probation.FileName ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(file))
             {
-                throw new MessageNotFoundException("PDF file not found.");
+                throw new MessageNotFoundException("File name is empty");
             }
-            return filePath;
+            return Path.Combine(_workspacePath, file);
         }
 
         public async Task<string> GetPdfContent(int staffCreationId)
@@ -542,7 +559,7 @@ namespace AttendanceManagement.Services
             var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Letter generation record not found for the provided StaffCreationId.");
+                throw new MessageNotFoundException("Letter generation record not found for the provided StaffCreationId");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))

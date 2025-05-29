@@ -84,12 +84,12 @@ public class LoginService
         }
     }
 
-    public string RefreshAccessToken(string refreshToken)
+    public async Task<(string AccessToken, string RefreshToken)> RefreshAccessToken(RefreshTokenDto refreshTokenDto)
     {
-        if (string.IsNullOrEmpty(refreshToken)) throw new ArgumentException("Refresh token cannot be null or empty", nameof(refreshToken));
-        var refreshTokenData = RefreshTokenStore.GetRefreshToken(refreshToken);
+        if (string.IsNullOrEmpty(refreshTokenDto.RefreshToken)) throw new ArgumentException("Refresh token cannot be null or empty", nameof(refreshTokenDto.RefreshToken));
+        var refreshTokenData = RefreshTokenStore.GetRefreshToken(refreshTokenDto.RefreshToken);
         if (refreshTokenData == null || refreshTokenData.Value.ExpiryDate < DateTime.UtcNow) throw new InvalidOperationException("Invalid or expired refresh token");
-        var user = _context.UserManagements.FirstOrDefault(u => u.Id == refreshTokenData.Value.UserId);
+        var user = await _context.UserManagements.FirstOrDefaultAsync(u => u.Id == refreshTokenData.Value.UserId);
         if (user == null)
         {
             throw new Exception("User not found");
@@ -99,8 +99,9 @@ public class LoginService
         var designation = _context.DesignationMasters.FirstOrDefault(d => d.Id == staff.DesignationId);
         if (designation == null) throw new MessageNotFoundException("Designation not found");
         var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name);
+        var refreshToken1 = GenerateRefreshToken(user.StaffCreationId);
 
-        return newAccessToken;
+        return (newAccessToken, refreshToken1);
     }
 
     public static class RefreshTokenStore

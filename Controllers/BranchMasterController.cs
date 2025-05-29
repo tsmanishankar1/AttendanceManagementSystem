@@ -42,54 +42,6 @@ public class BranchMasterController : ControllerBase
         }
     }
 
-    [HttpGet("GetExcelTemplates")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public async Task<IActionResult> GetExcelTemplates()
-    {
-        try
-        {
-            var result = await _service.GetExcelTemplates();
-            var response = new
-            {
-                Success = true,
-                Message = result
-            };
-            return Ok(response);
-        }
-        catch(MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch(Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
-    [HttpGet("GetAppSettings")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public async Task<IActionResult> GetAppSettings()
-    {
-        try
-        {
-            var result = await _service.GetAppSettings();
-            var response = new
-            {
-                Success = true,
-                Message = result
-            };
-            return Ok(response);
-        }
-        catch (MessageNotFoundException ex)
-        {
-            return ErrorClass.NotFoundResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return ErrorClass.ErrorResponse(ex.Message);
-        }
-    }
-
     [HttpPost("CreateBranch")]
     public async Task<IActionResult> Create(BranchMasterRequest branchMasterRequest)
     {

@@ -193,6 +193,10 @@ public partial class StaffCreation
 
     public virtual ICollection<ApplicationType> ApplicationTypeUpdatedByNavigations { get; set; } = new List<ApplicationType>();
 
+    public virtual ICollection<AppraisalAnnexureA> AppraisalAnnexureACreatedByNavigations { get; set; } = new List<AppraisalAnnexureA>();
+
+    public virtual ICollection<AppraisalAnnexureA> AppraisalAnnexureAUpdatedByNavigations { get; set; } = new List<AppraisalAnnexureA>();
+
     public virtual ICollection<Approval> ApprovalCreatedByNavigations { get; set; } = new List<Approval>();
 
     public virtual StaffCreation ApprovalLevel1Navigation { get; set; } = null!;
@@ -592,6 +596,16 @@ public partial class StaffCreation
     public virtual ICollection<PerformanceReport> PerformanceReportCreatedByNavigations { get; set; } = new List<PerformanceReport>();
 
     public virtual ICollection<PerformanceReport> PerformanceReportUpdatedByNavigations { get; set; } = new List<PerformanceReport>();
+
+    public virtual ICollection<PerformanceReviewCycle> PerformanceReviewCycleCreatedByNavigations { get; set; } = new List<PerformanceReviewCycle>();
+
+    public virtual ICollection<PerformanceReviewCycle> PerformanceReviewCycleUpdatedByNavigations { get; set; } = new List<PerformanceReviewCycle>();
+
+    public virtual ICollection<PerformanceReviewEmployee> PerformanceReviewEmployeeCreatedByNavigations { get; set; } = new List<PerformanceReviewEmployee>();
+
+    public virtual ICollection<PerformanceReviewEmployee> PerformanceReviewEmployeeStaffs { get; set; } = new List<PerformanceReviewEmployee>();
+
+    public virtual ICollection<PerformanceReviewEmployee> PerformanceReviewEmployeeUpdatedByNavigations { get; set; } = new List<PerformanceReviewEmployee>();
 
     public virtual ICollection<PerformanceUploadType> PerformanceUploadTypeCreatedByNavigations { get; set; } = new List<PerformanceUploadType>();
 
