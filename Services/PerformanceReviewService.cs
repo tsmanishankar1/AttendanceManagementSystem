@@ -104,6 +104,7 @@ namespace AttendanceManagement.Services
                     return message;
                 }
         */
+
         public async Task<string> GenerateAppraisalLetter(GenerateAppraisalLetterRequest generateAppraisalLetterRequest)
         {
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == generateAppraisalLetterRequest.StaffId && s.IsActive == true);
@@ -128,20 +129,18 @@ namespace AttendanceManagement.Services
             }
             var newDesignation = designation.Name;
             int currentYear = DateTime.Now.Year;
-
             var appraisals = await (from app in _context.AppraisalAnnexureAs
                                     where app.EmployeeCode == employeeCode && app.IsActive
                                     select app).ToListAsync();
-
             var previousAppraisal = appraisals
                 .Where(x => x.AppraisalYear == currentYear - 1)
                 .OrderByDescending(x => x.Id)
                 .FirstOrDefault();
-
             var currentAppraisal = appraisals
                 .Where(x => x.AppraisalYear == currentYear)
                 .OrderByDescending(x => x.Id)
                 .FirstOrDefault();
+            if (currentAppraisal == null) throw new MessageNotFoundException("Current appraisal not found");
             var title = staff.Title;
             var appraisal = new AppraisalAnnexureResponse
             {
@@ -175,7 +174,7 @@ namespace AttendanceManagement.Services
                     AppraisalAmount = previousAppraisal.AppraisalAmount,
                     AppraisalYear = previousAppraisal.AppraisalYear
                 } : null,
-                SalaryAfterAppraisal = currentAppraisal != null ? new CurrentYearAppraisal
+                SalaryAfterAppraisal = new CurrentYearAppraisal
                 {
                     Basic = currentAppraisal.Basic,
                     Hra = currentAppraisal.Hra,
@@ -199,7 +198,7 @@ namespace AttendanceManagement.Services
                                    currentAppraisal.EmployeeGroupMedicalInsurance),
                     AppraisalAmount = currentAppraisal.AppraisalAmount,
                     AppraisalYear = currentAppraisal.AppraisalYear
-                } : null
+                }
             };
             if (appraisal == null) throw new MessageNotFoundException("Appraisal annexure not found");
             var file = GenerateAppraisalLetter(appraisal, fileName);
@@ -873,10 +872,8 @@ namespace AttendanceManagement.Services
                         words += " " + unitsMap[number % 10];
                 }
             }
-
             return words.Trim();
         }
-
 
         public async Task<string> DownloadAppraisalLetter(int staffId, int fileId)
         {
@@ -896,19 +893,22 @@ namespace AttendanceManagement.Services
         public async Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId, int fileId)
         {
             var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffId && lg.Id == fileId && lg.IsActive);
+
             if (letterGeneration == null)
             {
-                throw new FileNotFoundException("Letter generation record not found.");
+                throw new FileNotFoundException("Letter generation record not found");
             }
+
             var filePath = letterGeneration.LetterPath;
 
-            if (!System.IO.File.Exists(filePath))
+            if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
             {
-                throw new FileNotFoundException("PDF file not found on disk.");
+                throw new FileNotFoundException("PDF file not found at the specified path");
             }
 
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = Path.GetFileName(filePath);
+
             return (stream, fileName);
         }
     }

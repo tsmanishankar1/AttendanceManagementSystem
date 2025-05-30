@@ -173,7 +173,7 @@
         public string Title { get; set; } = null!;
         public bool IsDesignationChange { get; set; }
         public PreviousYearAppraisal? CurrentSalary { get; set; }
-        public CurrentYearAppraisal? SalaryAfterAppraisal { get; set; }
+        public CurrentYearAppraisal SalaryAfterAppraisal { get; set; } = null!;
     }
 
     public class PreviousYearAppraisal

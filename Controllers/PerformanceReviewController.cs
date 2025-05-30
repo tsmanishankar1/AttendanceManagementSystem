@@ -166,8 +166,12 @@ namespace AttendanceManagement.Controllers
             try
             {
                 var (stream, fileName) = await _service.ViewAppraisalLetter(staffId, fileId);
-                Response.Headers.Add("Content-Disposition", $"inline; filename={fileName}");
+                Response.Headers.Add("Content-Disposition", $"inline; filename=\"{fileName}\"");
                 return File(stream, "application/pdf");
+            }
+            catch (FileNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (MessageNotFoundException ex)
             {

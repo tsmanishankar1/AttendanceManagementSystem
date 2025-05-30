@@ -539,6 +539,27 @@ namespace AttendanceManagement.Services
             return filePath;
         }
 
+        public async Task<List<GeneratedLetterResponse>> GetGeneratedLetters(int staffId)
+        {
+            var letterGenerations = await (from letter in _context.LetterGenerations
+                                           join staff in _context.StaffCreations on letter.StaffCreationId equals staff.Id
+                                           where letter.StaffCreationId == staffId && letter.IsActive
+                                           select new GeneratedLetterResponse
+                                           {
+                                               Id = letter.Id,
+                                               StaffId = letter.StaffCreationId,
+                                               StaffCreationId = staff.StaffId,
+                                               FileName = letter.FileName,
+                                               LetterPath = letter.LetterPath,
+                                               LetterContent = letter.LetterContent
+                                           }).ToListAsync();
+            if (letterGenerations.Count == 0)
+            {
+                throw new MessageNotFoundException("No PDF files found");
+            }
+            return letterGenerations;
+        }
+
         public async Task<string> GetPdfFilePath(int staffCreationId, int fileId)
         {
             var probation = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.StaffCreationId == staffCreationId && x.Id == fileId && x.IsActive == true);

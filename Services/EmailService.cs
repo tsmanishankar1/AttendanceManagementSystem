@@ -808,7 +808,7 @@ namespace AttendanceManagement.Services
 
         public async Task SendWeeklyOffHolidayWorkingRequestEmail(
         string recipientEmail, int recipientId, string recipientName, string staffName, string selectShiftType, int id, int applicationTypeId,
-        DateOnly txnDate, string shiftName, DateTime? shiftInTime, DateTime? shiftOutTime, string requestDate, int createdBy)
+        DateOnly txnDate, string? shiftName, DateTime? shiftInTime, DateTime? shiftOutTime, string requestDate, int createdBy)
         {
             if (!string.IsNullOrEmpty(recipientEmail))
             {
@@ -857,13 +857,14 @@ namespace AttendanceManagement.Services
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
-                        <p>A new Weekly Off/ Holiday Working request has been submitted.</p>
-                        <p><strong>Shift:</strong> {shiftName}</p>
+                        <p>A new Weekly Off/ Holiday Working request has been submitted.</p>";
+                        if (shiftName != null)
+                            emailBody += $@"
+                        <p><strong>Shift:</strong> {shiftName}</p>";
+                        emailBody += $@"
                         <p><strong>Transaction Date:</strong> {txnDate:dd-MMM-yyyy}</p>";
-
                         if (shiftInTime.HasValue)
                             emailBody += $"<p><strong>Shift In Time:</strong> {shiftInTimeFormatted}</p>";
-
                         if (shiftOutTime.HasValue)
                             emailBody += $"<p><strong>Shift Out Time:</strong> {shiftOutTimeFormatted}</p>";
 

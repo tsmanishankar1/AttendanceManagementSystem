@@ -1491,7 +1491,6 @@ public class DailyReportsService
             using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
             {
                 await connection.OpenAsync();
-
                 using (var command = new SqlCommand("EXEC DailyReport @DailyReportId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", connection))
                 {
                     command.Parameters.AddWithValue("@DailyReportId", request.DailyReportsId);
@@ -1509,16 +1508,15 @@ public class DailyReportsService
                     var reader = await command.ExecuteReaderAsync();
                     var records = new List<Dictionary<string, object>>();
                     var result = new List<Dictionary<string, object>>();
-                    Dictionary<string, object> grandTotalRow = null;
+                    Dictionary<string, object>? grandTotalRow = null;
 
                     while (await reader.ReadAsync())
                     {
                         var row = new Dictionary<string, object>();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
+                            row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? DBNull.Value : reader.GetValue(i);
                         }
-
                         if (row["Emp ID"]?.ToString() == "Grand Total")
                         {
                             grandTotalRow = row;
@@ -1528,14 +1526,10 @@ public class DailyReportsService
                             result.Add(row);
                         }
                     }
-
-                    if (result.Count == 0 && grandTotalRow == null)
-                        throw new MessageNotFoundException("No records found");
-
-                    // Extract only the date and "Grand Total" columns for column_Totals
-                    var columnTotals = grandTotalRow
-                        .Where(kvp => DateTime.TryParse(kvp.Key, out _) || kvp.Key == "Grand Total")
-                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                    if (result.Count == 0 && grandTotalRow == null) throw new MessageNotFoundException("No records found");
+                    var columnTotals = grandTotalRow != null ? grandTotalRow
+                            .Where(kvp => DateTime.TryParse(kvp.Key, out _) || kvp.Key == "Grand Total")
+                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value) : new Dictionary<string, object>();
 
                     finalResponse = new
                     {

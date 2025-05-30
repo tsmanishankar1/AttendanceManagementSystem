@@ -343,6 +343,29 @@ public class ProbationController : ControllerBase
         }
     }
 
+    [HttpGet("GetGeneratedLetters")]
+    public async Task<IActionResult> GetGeneratedLetters(int staffId)
+    {
+        try
+        {
+            var filePath = await _probationService.GetGeneratedLetters(staffId);
+            var response = new
+            {
+                Success = true,
+                Message = filePath
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpGet("DownloadConfirmationLetter")]
     public async Task<IActionResult> DownloadPdf(int staffCreationId, int fileId)
     {

@@ -2600,8 +2600,15 @@ public class ApplicationService
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
-        var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
-        if (shiftName == null) throw new MessageNotFoundException("Shift not found");
+        string? shiftName = null;
+        if (request.ShiftId.HasValue)
+        {
+            shiftName = await _context.Shifts
+                .Where(s => s.Id == request.ShiftId.Value && s.IsActive)
+                .Select(s => s.Name)
+                .FirstOrDefaultAsync();
+            if (string.IsNullOrEmpty(shiftName)) throw new MessageNotFoundException("Shift not found");
+        }
         var existingLeaves = await _context.WeeklyOffHolidayWorkings
         .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                      (lr.TxnDate == request.TxnDate))

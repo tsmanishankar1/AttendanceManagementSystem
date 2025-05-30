@@ -39,4 +39,14 @@ namespace AttendanceManagement.Input_Models
         public bool? IsCompleted { get; set; }
         public int UpdatedBy { get; set; }
     }
+
+    public class GeneratedLetterResponse
+    {
+        public int Id { get; set; }
+        public string LetterPath { get; set; } = null!;
+        public byte[]? LetterContent { get; set; }
+        public int StaffId { get; set; }
+        public string StaffCreationId { get; set; } = null!;
+        public string? FileName { get; set; }
+    }
 }

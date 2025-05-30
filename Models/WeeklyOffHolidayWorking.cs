@@ -13,7 +13,7 @@ public partial class WeeklyOffHolidayWorking
 
     public DateOnly TxnDate { get; set; }
 
-    public int ShiftId { get; set; }
+    public int? ShiftId { get; set; }
 
     public DateTime? ShiftInTime { get; set; }
 

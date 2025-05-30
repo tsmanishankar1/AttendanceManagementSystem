@@ -34,7 +34,7 @@ namespace AttendanceManagement.Services
                 {
                     WeeklyOffMasterId = weeklyOffMaster.Id,
                     MarkWeeklyOff = mark,
-                    IsActive = weeklyOffRequest.IsActive,
+                    IsActive = true,
                     CreatedBy = weeklyOffRequest.CreatedBy,
                     CreatedUtc = DateTime.UtcNow
                 }).ToList();
@@ -71,21 +71,13 @@ namespace AttendanceManagement.Services
         public async Task<string> UpdateWeeklyOffAsync(UpdateWeeklyOff updatedWeeklyOff)
         {
             var message = "Weekly off updated successfully";
-
-            // Step 1: Fetch and validate the master record
-            var existingWeeklyOffMaster = await _context.WeeklyOffMasters
-                .FirstOrDefaultAsync(w => w.Id == updatedWeeklyOff.WeeklyOffId);
-
-            if (existingWeeklyOffMaster == null)
-                throw new MessageNotFoundException("Weekly off not found");
-
-            // Step 2: Update master fields
+            var existingWeeklyOffMaster = await _context.WeeklyOffMasters.FirstOrDefaultAsync(w => w.Id == updatedWeeklyOff.WeeklyOffId);
+            if (existingWeeklyOffMaster == null) throw new MessageNotFoundException("Weekly off not found");
             existingWeeklyOffMaster.WeeklyOffName = updatedWeeklyOff.WeeklyOffName;
             existingWeeklyOffMaster.IsActive = updatedWeeklyOff.IsActive;
             existingWeeklyOffMaster.UpdatedBy = updatedWeeklyOff.UpdatedBy;
             existingWeeklyOffMaster.UpdatedUtc = DateTime.UtcNow;
 
-            // Step 3: Deactivate all existing details (clean slate)
             var existingDetails = await _context.WeeklyOffDetails
                 .Where(d => d.WeeklyOffMasterId == updatedWeeklyOff.WeeklyOffId)
                 .ToListAsync();
@@ -96,12 +88,10 @@ namespace AttendanceManagement.Services
                 detail.UpdatedBy = updatedWeeklyOff.UpdatedBy;
                 detail.UpdatedUtc = DateTime.UtcNow;
             }
-
-            // Step 4: Insert new weekly offs
             if (updatedWeeklyOff.MarkWeeklyOff != null && updatedWeeklyOff.MarkWeeklyOff.Any())
             {
                 var newDetails = updatedWeeklyOff.MarkWeeklyOff
-                    .Distinct() // Avoid duplicates
+                    .Distinct()
                     .Select(mark => new WeeklyOffDetail
                     {
                         WeeklyOffMasterId = updatedWeeklyOff.WeeklyOffId,
@@ -113,8 +103,6 @@ namespace AttendanceManagement.Services
 
                 await _context.WeeklyOffDetails.AddRangeAsync(newDetails);
             }
-
-            // Step 5: Save all changes
             await _context.SaveChangesAsync();
 
             return message;
