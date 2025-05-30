@@ -8,7 +8,7 @@ namespace AttendanceManagement.Input_Models
         [MaxLength(100)]
         public string SelectShiftType { get; set; } = null!;
         public DateOnly TxnDate { get; set; }
-        public int? ShiftId { get; set; }
+        public int ShiftId { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public DateTime? ShiftInTime { get; set; }

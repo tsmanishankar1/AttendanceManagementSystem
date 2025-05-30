@@ -1268,6 +1268,14 @@ namespace AttendanceManagement.Services
                             weeklyOffHoliday.IsActive = false;
                             weeklyOffHoliday.UpdatedBy = approveLeaveRequest.ApprovedBy;
                             weeklyOffHoliday.UpdatedUtc = DateTime.UtcNow;
+
+                            var existingShift = await _context.AssignShifts.Where(a => a.FromDate >= weeklyOffHoliday.TxnDate && a.FromDate <= weeklyOffHoliday.TxnDate && a.IsActive).ToListAsync();
+                            foreach (var shift in existingShift)
+                            {
+                                shift.ShiftId = weeklyOffHoliday.ShiftId;
+                                shift.UpdatedBy = approveLeaveRequest.ApprovedBy;
+                                shift.UpdatedUtc = DateTime.UtcNow;
+                            }
                         }
                     }
                     if (approver2 != null)
@@ -1300,6 +1308,14 @@ namespace AttendanceManagement.Services
                             weeklyOffHoliday.IsActive = false;
                             weeklyOffHoliday.ApprovedBy = approveLeaveRequest.ApprovedBy;
                             weeklyOffHoliday.ApprovedOn = DateTime.UtcNow;
+
+                            var existingShift = await _context.AssignShifts.Where(a => a.FromDate >= weeklyOffHoliday.TxnDate && a.FromDate <= weeklyOffHoliday.TxnDate && a.IsActive).ToListAsync();
+                            foreach (var shift in existingShift)
+                            {
+                                shift.ShiftId = weeklyOffHoliday.ShiftId;
+                                shift.UpdatedBy = approveLeaveRequest.ApprovedBy;
+                                shift.UpdatedUtc = DateTime.UtcNow;
+                            }
                         }
                         if (weeklyOffHoliday != null && weeklyOffHoliday.Status1 == null)
                         {
