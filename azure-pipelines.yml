@@ -70,8 +70,8 @@ stages:
   - deployment: DeployToVM
     displayName: 'Deploy WebApp to Windows VM'
     environment:
-      name: 'Vlead'
-      resourceName: 'HA-1'  # Ensure this matches the VM name in the environment
+      name: 'Vlead_UAT'
+      resourceName: 'VLEADVAM'  # Ensure this matches the VM name in the environment
       resourceType: 'virtualMachine'
     strategy:
       runOnce:
@@ -93,7 +93,7 @@ stages:
                 
                 # Define paths
                 $zipFilePath = "$(Pipeline.Workspace)\drop\s.zip"
-                $extractPath = "E:\Vlead_Projects\Attendance\API"
+                $extractPath = "C:\inetpub\wwwroot\VAM_UAT_API"
 
                 # Ensure the ZIP file exists
                 if (!(Test-Path $zipFilePath)) {
