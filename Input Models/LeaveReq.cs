@@ -59,6 +59,8 @@ namespace AttendanceManagement.Input_Models
         public DateOnly? EndDate { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
+        public decimal? TotalDays { get; set; }
+        public string? TotalHours { get; set; }
         public string Reason { get; set; } = null!;
     }
 
@@ -75,6 +77,8 @@ namespace AttendanceManagement.Input_Models
         public DateTime? ToTime { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
+        public decimal? TotalDays { get; set; }
+        public string? TotalHours { get; set; }
         public string Reason { get; set; } = null!;
     }
 
@@ -91,6 +95,8 @@ namespace AttendanceManagement.Input_Models
         public DateTime? ToTime { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
+        public decimal? TotalDays { get; set; }
+        public string? TotalHours { get; set; }
         public string Reason { get; set; } = null!;
     }
 

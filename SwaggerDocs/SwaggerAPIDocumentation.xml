@@ -2149,6 +2149,7 @@
 			<param name="request">The attendance status details to update.</param>
 			<returns>The result of the attendance status update.</returns>
 			<response code="200">Returns the result of the attendance status update</response>
+			<response code="404">If staff not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateAttendanceStatusColor(AttendanceManagement.Input_Models.AttendanceStatusColorDto)">

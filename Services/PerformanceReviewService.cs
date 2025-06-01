@@ -13,6 +13,7 @@ namespace AttendanceManagement.Services
     {
         private readonly AttendanceManagementSystemContext _context;
         private readonly string _workspacePath;
+        private readonly string _workspacePathLogo;
         public PerformanceReviewService(AttendanceManagementSystemContext context, IWebHostEnvironment env)
         {
             _context = context;
@@ -21,7 +22,12 @@ namespace AttendanceManagement.Services
             {
                 Directory.CreateDirectory(_workspacePath);
             }
-        }
+/*            _workspacePathLogo = Path.Combine(env.ContentRootPath, "wwwroot\\VLeadLogo");
+            if (!Directory.Exists(_workspacePathLogo))
+            {
+                Directory.CreateDirectory(_workspacePathLogo);
+            }
+*/        }
 
         /*        public async Task<List<PerformanceReviewDto>> GetPerformanceReviewCycle()
                 {
@@ -201,7 +207,7 @@ namespace AttendanceManagement.Services
                 }
             };
             if (appraisal == null) throw new MessageNotFoundException("Appraisal annexure not found");
-            var file = GenerateAppraisalLetter(appraisal, fileName);
+            var file = GenerateAppraisalLetterPdf(appraisal, fileName);
             byte[] pdfBytes = System.IO.File.ReadAllBytes(file);
             string base64Pdf = Convert.ToBase64String(pdfBytes);
             var letterGeneration = new LetterGeneration
@@ -218,7 +224,7 @@ namespace AttendanceManagement.Services
             return file;
         }
 
-        public static string GenerateAppraisalLetter(AppraisalAnnexureResponse model, string fileName)
+        public string GenerateAppraisalLetterPdf(AppraisalAnnexureResponse model, string fileName)
         {
             using var stream = new MemoryStream();
 
@@ -228,21 +234,21 @@ namespace AttendanceManagement.Services
             string filePath = "";
             if (model.IsDesignationChange)
             {
-                var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
+/*                var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
                 }
-                filePath = Path.Combine(directoryPath, fileName);
+*/                filePath = Path.Combine(_workspacePath, fileName);
             }
             else
             {
-                var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
+/*                var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
                 }
-                filePath = Path.Combine(directoryPath, fileName);
+*/                filePath = Path.Combine(_workspacePath, fileName);
             }
             // Create a custom rectangle
             Rectangle customPageSize = new Rectangle(customWidth, customHeight);
@@ -260,7 +266,32 @@ namespace AttendanceManagement.Services
                 var fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 11);
                 var fontSmall = FontFactory.GetFont(FontFactory.HELVETICA, 9);
                 var fontSmallBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9);
+                string fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
 
+                BaseFont unicodeBaseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                Font unicodeFont = new Font(unicodeBaseFont, 11, Font.NORMAL, BaseColor.BLACK);
+                Font unicodeBoldFont = new Font(unicodeBaseFont, 11, Font.BOLD, BaseColor.BLACK);
+
+/*                // Load logo image from workspace
+                string logoPath = Path.Combine(_workspacePathLogo, "VLead Logo.png");
+                if (File.Exists(logoPath))
+                {
+                    iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(logoPath);
+
+                    // Resize image (optional)
+                    logo.ScaleAbsoluteWidth(65f); // adjust width
+                    logo.ScaleAbsoluteHeight(50f); // adjust height
+
+                    // Align to left
+                    logo.Alignment = Element.ALIGN_LEFT;
+
+                    // Optional margin/padding
+                    logo.SpacingAfter = 10f;
+
+                    // Add to document
+                    doc.Add(logo);
+                }
+*/
                 // Add title
                 var title = new Paragraph("Appraisal Letter", fontTitle)
                 {
@@ -547,14 +578,14 @@ namespace AttendanceManagement.Services
                         table.AddCell(descCell);
 
                         // Current salary columns
-                        table.AddCell(new PdfPCell(new Phrase(currPA > 0 ? $"₹{currPA:N0}" : "-", font))
+                        table.AddCell(new PdfPCell(new Phrase(currPA > 0 ? $"₹ {currPA:N0}" : "-", unicodeFont))
                         {
                             Border = borderStyle,
                             Padding = 5f,
                             HorizontalAlignment = Element.ALIGN_RIGHT
                         });
 
-                        table.AddCell(new PdfPCell(new Phrase(currPA > 0 ? $"₹{currPA / 12:N0}" : "-", font))
+                        table.AddCell(new PdfPCell(new Phrase(currPA > 0 ? $"₹ {currPA / 12:N0}" : "-", unicodeFont))
                         {
                             Border = borderStyle,
                             Padding = 5f,
@@ -562,14 +593,14 @@ namespace AttendanceManagement.Services
                         });
 
                         // Revised salary columns
-                        table.AddCell(new PdfPCell(new Phrase(revPA > 0 ? $"₹{revPA:N0}" : "-", font))
+                        table.AddCell(new PdfPCell(new Phrase(revPA > 0 ? $"₹ {revPA:N0}" : "-", unicodeFont))
                         {
                             Border = borderStyle,
                             Padding = 5f,
                             HorizontalAlignment = Element.ALIGN_RIGHT
                         });
 
-                        table.AddCell(new PdfPCell(new Phrase(revPA > 0 ? $"₹{revPA / 12:N0}" : "-", font))
+                        table.AddCell(new PdfPCell(new Phrase(revPA > 0 ? $"₹ {revPA / 12:N0}" : "-", unicodeFont))
                         {
                             Border = borderStyle,
                             Padding = 5f,
@@ -605,7 +636,7 @@ namespace AttendanceManagement.Services
                 };
                 table.AddCell(grossRow);
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{c.Gross:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Gross:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -613,7 +644,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{c.Gross / 12:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Gross / 12:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -621,7 +652,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{r.Gross:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Gross:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -629,7 +660,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{r.Gross / 12:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Gross / 12:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -657,7 +688,7 @@ namespace AttendanceManagement.Services
                 };
                 table.AddCell(ctcRow);
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{c.Ctc:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Ctc:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -665,7 +696,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{c.Ctc / 12:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Ctc / 12:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -673,7 +704,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{r.Ctc:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Ctc:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -681,7 +712,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{r.Ctc / 12:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Ctc / 12:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -706,7 +737,7 @@ namespace AttendanceManagement.Services
                 };
                 table.AddCell(netRow);
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{c.NetTakeHome:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {c.NetTakeHome:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -714,7 +745,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{c.NetTakeHome / 12:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {c.NetTakeHome / 12:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -722,7 +753,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{r.NetTakeHome:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {r.NetTakeHome:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -730,7 +761,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹{r.NetTakeHome / 12:N0}", fontBold))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {r.NetTakeHome / 12:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,

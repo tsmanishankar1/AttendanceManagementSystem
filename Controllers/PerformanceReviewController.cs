@@ -150,12 +150,10 @@ namespace AttendanceManagement.Controllers
             }
             catch (MessageNotFoundException ex)
             {
-                //await _loggingService.LogError("Generate Appraisal Letter", "POST", "/api/PerformanceReview/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, staffId, JsonSerializer.Serialize(generateAppraisalLetterRequest));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                //await _loggingService.LogError("Generate Appraisal Letter", "POST", "/api/PerformanceReview/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, generateAppraisalLetterRequest.CreatedBy, JsonSerializer.Serialize(generateAppraisalLetterRequest));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -166,7 +164,7 @@ namespace AttendanceManagement.Controllers
             try
             {
                 var (stream, fileName) = await _service.ViewAppraisalLetter(staffId, fileId);
-                Response.Headers.Add("Content-Disposition", $"inline; filename=\"{fileName}\"");
+                Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
                 return File(stream, "application/pdf");
             }
             catch (FileNotFoundException ex)
