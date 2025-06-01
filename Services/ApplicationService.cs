@@ -229,6 +229,8 @@ public class ApplicationService
                         EndDate = tempWithSc.od.EndDate,
                         StartTime = tempWithSc.od.StartTime,
                         EndTime = tempWithSc.od.EndTime,
+                        TotalDays = tempWithSc.od.TotalDays,
+                        TotalHours = tempWithSc.od.TotalHours,
                         Reason = tempWithSc.od.Reason
                     })
                 .OrderByDescending(x => x.Id)
@@ -262,6 +264,8 @@ public class ApplicationService
                          ToTime = tempWithSc.bt.ToTime,
                          FromDate = tempWithSc.bt.FromDate,
                          ToDate = tempWithSc.bt.ToDate,
+                         TotalDays = tempWithSc.bt.TotalDays,
+                         TotalHours = tempWithSc.bt.TotalHours,
                          Reason = tempWithSc.bt.Reason
                      })
                  .OrderByDescending(x => x.Id)
@@ -294,6 +298,8 @@ public class ApplicationService
                            ToTime = tempWithSc.wfh.ToTime,
                            FromDate = tempWithSc.wfh.FromDate,
                            ToDate = tempWithSc.wfh.ToDate,
+                           TotalDays = tempWithSc.wfh.TotalDays,
+                           TotalHours = tempWithSc.wfh.TotalHours,
                            Reason = tempWithSc.wfh.Reason
                        })
                    .OrderByDescending(x => x.Id)

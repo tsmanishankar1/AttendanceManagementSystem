@@ -255,11 +255,14 @@ namespace AttendanceManagement.Services
 
         public async Task<string> UpdateAttendanceStatusAsync(UpdateAttendanceStatusRequest request)
         {
-            var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == null || f.IsFreezed == false);
-            if (!hasUnfreezed) throw new InvalidOperationException("Attendance records are frozen. Attendance regularization is not allowed.");
             var newRecords = new List<AttendanceStatus>();
             foreach (var staffId in request.StaffIds)
             {
+                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+                if (staff == null) throw new MessageNotFoundException($"Staff {staff?.StaffId} not found");
+                var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.AttendanceDate >= request.FromDate && f.AttendanceDate <= request.ToDate && f.StaffId == staffId);
+                if (hasUnfreezed) throw new InvalidOperationException($"Attendance regularization cannot proceed for staff {staff.StaffId} attendance records are frozen");
+
                 var attendanceRecords = await _context.AttendanceRecords
                     .Where(a => a.StaffId == staffId && (a.AttendanceDate >= request.FromDate && a.AttendanceDate <= request.ToDate))
                     .ToListAsync();

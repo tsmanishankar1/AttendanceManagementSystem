@@ -226,6 +226,11 @@ public class ToolsController : ControllerBase
             await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AtendanceStatus", result, request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
         }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
         catch (InvalidOperationException ex)
         {
             await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
