@@ -24,8 +24,8 @@ public class AttendanceService
     {
         var staff = await _attendanceContext.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
         if (staff == null) throw new MessageNotFoundException("Staff not found");
-        var assignedShift = await _attendanceContext.AssignShifts.Where(a => a.StaffId == staffId).OrderByDescending(a => a.FromDate).FirstOrDefaultAsync();
-        var shift = assignedShift != null ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.Id == assignedShift.ShiftId) : null;
+        var assignedShift = await _attendanceContext.AssignShifts.Where(a => a.StaffId == staffId && a.IsActive).OrderByDescending(a => a.FromDate).FirstOrDefaultAsync();
+        var shift = assignedShift != null ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.Id == assignedShift.ShiftId && s.IsActive) : null;
         string shiftName = shift?.Name ?? "Not Assigned";
         TimeSpan? fromTime = TimeSpan.TryParse(shift?.StartTime, out var from) ? from : (TimeSpan?)null;
         TimeSpan? toTime = TimeSpan.TryParse(shift?.EndTime, out var to) ? to : (TimeSpan?)null;
@@ -64,8 +64,8 @@ public class AttendanceService
         }
 
         if (!transactions.Any()) throw new MessageNotFoundException("No record found for the given Staff ID and shift timings.");
-        var checkIn = transactions.FirstOrDefault();
-        var checkOut = transactions.LastOrDefault();
+        var checkIn = transactions.LastOrDefault(t => t.TrOpName == "IN");
+        var checkOut = transactions.LastOrDefault(t => t.TrOpName == "OUT");
         string? trIpAddressIn = checkIn?.TrIpaddress;
         string? trIpAddressOut = checkOut?.TrIpaddress;
         var readerIn = trIpAddressIn != null ? await _attendanceContext.ReaderConfigurations.FirstOrDefaultAsync(r => r.ReaderIpAddress == trIpAddressIn) : null;
