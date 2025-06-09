@@ -37,7 +37,7 @@ public class CostCentreMasterService
     {
         var message = "Cost centre created successfully";
         var isDuplicate = await _context.CostCentreMasters.AnyAsync(c => c.Name.ToLower() == costCentreMaster.FullName.ToLower());
-        if (isDuplicate) throw new ValidationException("Cost centre name already exists");
+        if (isDuplicate) throw new ConflictException("Cost centre name already exists");
         CostCentreMaster costMaster = new CostCentreMaster();
         costMaster.Name = costCentreMaster.FullName;
         costMaster.ShortName = costCentreMaster.ShortName;
@@ -61,7 +61,7 @@ public class CostCentreMasterService
         if (!string.IsNullOrWhiteSpace(costCentreMaster.FullName))
         {
             var isDuplicate = await _context.CostCentreMasters.AnyAsync(c => c.Id != costCentreMaster.CostCentreMasterId && c.Name.ToLower() == costCentreMaster.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Cost centre name already exists");
+            if (isDuplicate) throw new ConflictException("Cost centre name already exists");
         }
         existingCostCentre.Name = costCentreMaster.FullName ?? existingCostCentre.Name;
         existingCostCentre.ShortName = costCentreMaster.ShortName ?? existingCostCentre.ShortName;

@@ -37,7 +37,7 @@ public class SubFunctionMasterService
     {
         var message = "Sub function added successfully";
         var isDuplicate = await _context.SubFunctionMasters.AnyAsync(s => s.FullName.ToLower() == subFunctionMaster.FullName.ToLower());
-        if (isDuplicate) throw new ValidationException("Sub function name already exists");
+        if (isDuplicate) throw new ConflictException("Sub function name already exists");
         var subFunction = new SubFunctionMaster
         {
             FullName = subFunctionMaster.FullName,
@@ -62,7 +62,7 @@ public class SubFunctionMasterService
         if (!string.IsNullOrWhiteSpace(subFunctionMaster.FullName))
         {
             var isDuplicate = await _context.SubFunctionMasters.AnyAsync(s => s.Id != subFunctionMaster.SubFunctionMasterId && s.FullName.ToLower() == subFunctionMaster.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Sub function name already exists");
+            if (isDuplicate) throw new ConflictException("Sub function name already exists");
         }
         existingSubFunction.FullName = subFunctionMaster.FullName;
         existingSubFunction.ShortName = subFunctionMaster.ShortName;

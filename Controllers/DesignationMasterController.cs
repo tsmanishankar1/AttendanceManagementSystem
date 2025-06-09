@@ -57,6 +57,11 @@ public class DesignationMasterController : ControllerBase
             await _loggingService.AuditLog("Designation Master", "POST", "/api/DesignationMaster/CreateDesignation", createdDesignation, designation.CreatedBy, JsonSerializer.Serialize(designation));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Designation Master", "POST", "/api/DesignationMaster/CreateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.CreatedBy, JsonSerializer.Serialize(designation));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Designation Master", "POST", "/api/DesignationMaster/CreateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.CreatedBy, JsonSerializer.Serialize(designation));
@@ -82,6 +87,11 @@ public class DesignationMasterController : ControllerBase
         {
             await _loggingService.LogError("Designation Master", "POST", "/api/DesignationMaster/UpdateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.UpdatedBy, JsonSerializer.Serialize(designation));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Designation Master", "POST", "/api/DesignationMaster/UpdateDesignation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, designation.UpdatedBy, JsonSerializer.Serialize(designation));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

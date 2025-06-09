@@ -40,7 +40,7 @@ namespace AttendanceManagement.Services
         {
             var message = "Designation created successfully";
             var isDuplicate = await _context.DesignationMasters.AnyAsync(d => d.Name.ToLower() == designationRequest.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Designation name already exists");
+            if (isDuplicate) throw new ConflictException("Designation name already exists");
             DesignationMaster designation = new DesignationMaster
             {
                 Name = designationRequest.FullName,
@@ -65,7 +65,7 @@ namespace AttendanceManagement.Services
             if (!string.IsNullOrWhiteSpace(designation.FullName))
             {
                 var isDuplicate = await _context.DesignationMasters.AnyAsync(d => d.Id != designation.DesignationMasterId && d.Name.ToLower() == designation.FullName.ToLower());
-                if (isDuplicate) throw new ValidationException("Designation name already exists");
+                if (isDuplicate) throw new ConflictException("Designation name already exists");
             }
             existingDesignation.Name = designation.FullName;
             existingDesignation.ShortName = designation.ShortName;

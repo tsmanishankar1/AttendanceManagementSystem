@@ -36,7 +36,7 @@ namespace AttendanceManagement.Services
         {
             var message = "Location added successfully";
             var isDuplicate = await _context.LocationMasters.AnyAsync(l => l.Name.ToLower() == locationMaster.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Location name already exists");
+            if (isDuplicate) throw new ConflictException("Location name already exists");
             var location = new LocationMaster
             {
                 Name = locationMaster.FullName,
@@ -60,7 +60,7 @@ namespace AttendanceManagement.Services
             if (!string.IsNullOrWhiteSpace(locationMaster.FullName))
             {
                 var isDuplicate = await _context.LocationMasters.AnyAsync(l => l.Id != locationMaster.LocationMasterId && l.Name.ToLower() == locationMaster.FullName.ToLower());
-                if (isDuplicate) throw new ValidationException("Location name already exists");
+                if (isDuplicate) throw new ConflictException("Location name already exists");
             }
             existingLocation.Name = locationMaster.FullName;
             existingLocation.ShortName = locationMaster.ShortName;

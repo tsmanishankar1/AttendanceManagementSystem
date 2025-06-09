@@ -61,6 +61,11 @@ public class WeeklyOffController : ControllerBase
             await _loggingService.LogError("Create WeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Create WeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Create WeeklyOff", "POST", "/api/WeeklyOff/AddWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, weeklyOff.CreatedBy, JsonSerializer.Serialize(weeklyOff));
@@ -86,6 +91,11 @@ public class WeeklyOffController : ControllerBase
         {
             await _loggingService.LogError("Update WeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Update WeeklyOff", "POST", "/api/WeeklyOff/UpdateWeeklyOff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWeeklyOff.UpdatedBy, JsonSerializer.Serialize(updatedWeeklyOff));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

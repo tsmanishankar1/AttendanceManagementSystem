@@ -38,7 +38,7 @@ namespace AttendanceManagement.Services
         {
             var message = "Division created successfully";
             var isDuplicate = await _context.DivisionMasters.AnyAsync(d => d.Name.ToLower() == divisionRequest.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Division name already exists");
+            if (isDuplicate) throw new ConflictException("Division name already exists");
             DivisionMaster division = new DivisionMaster
             {
                 Name = divisionRequest.FullName,
@@ -63,7 +63,7 @@ namespace AttendanceManagement.Services
             if (!string.IsNullOrWhiteSpace(division.FullName))
             {
                 var isDuplicate = await _context.DivisionMasters.AnyAsync(d => d.Id != division.DivisionMasterId && d.Name.ToLower() == division.FullName.ToLower());
-                if (isDuplicate) throw new ValidationException("Division name already exists");
+                if (isDuplicate) throw new ConflictException("Division name already exists");
             }
             existingDivision.Name = division.FullName ?? existingDivision.Name;
             existingDivision.ShortName = division.ShortName ?? existingDivision.ShortName;

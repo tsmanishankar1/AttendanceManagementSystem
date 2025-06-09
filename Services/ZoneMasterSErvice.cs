@@ -37,7 +37,7 @@ public class ZoneMasterService
     {
         var message = "Zone added successfully.";
         var isDuplicate = await _context.ZoneMasters.AnyAsync(z => z.FullName.ToLower() == zoneMaster.FullName.ToLower());
-        if (isDuplicate) throw new ValidationException("Zone name already exists");
+        if (isDuplicate) throw new ConflictException("Zone name already exists");
         var zone = new ZoneMaster
         {
             FullName = zoneMaster.FullName,
@@ -62,7 +62,7 @@ public class ZoneMasterService
         if (!string.IsNullOrWhiteSpace(zoneMaster.FullName))
         {
             var isDuplicate = await _context.ZoneMasters.AnyAsync(z => z.Id != zoneMaster.ZoneMasterId && z.FullName.ToLower() == zoneMaster.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Zone name already exists");
+            if (isDuplicate) throw new ConflictException("Zone name already exists");
         }
         existingZone.FullName = zoneMaster.FullName;
         existingZone.ShortName = zoneMaster.ShortName;

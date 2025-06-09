@@ -37,7 +37,7 @@ public class WorkstationMasterService
     {
         var message = "Workstation added successfully.";
         var isDuplicate = await _context.WorkstationMasters.AnyAsync(ws => ws.Name.ToLower() == workstationRequest.FullName.ToLower());
-        if (isDuplicate) throw new ValidationException("Workstation name already exists");
+        if (isDuplicate) throw new ConflictException("Workstation name already exists");
         var workstation = new WorkstationMaster
         {
             Name = workstationRequest.FullName,
@@ -59,7 +59,7 @@ public class WorkstationMasterService
         if (!string.IsNullOrWhiteSpace(updatedWorkstation.FullName))
         {
             var isDuplicate = await _context.WorkstationMasters.AnyAsync(ws => ws.Id != updatedWorkstation.WorkstationMasterId && ws.Name.ToLower() == updatedWorkstation.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Workstation name already exists");
+            if (isDuplicate) throw new ConflictException("Workstation name already exists");
         }
         workstation.Name = updatedWorkstation.FullName;
         workstation.IsActive = updatedWorkstation.IsActive;

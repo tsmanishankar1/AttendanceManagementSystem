@@ -39,7 +39,7 @@ public class DepartmentMasterService
     {
         var message = "Department created successfully";
         var isDuplicate = await _context.DepartmentMasters.AnyAsync(d => d.Name.ToLower() == departmentRequest.FullName.ToLower());
-        if (isDuplicate) throw new ValidationException("Department name already exists");
+        if (isDuplicate) throw new ConflictException("Department name already exists");
         DepartmentMaster department = new DepartmentMaster();
         department.Name = departmentRequest.FullName;
         department.ShortName = departmentRequest.ShortName;
@@ -63,7 +63,7 @@ public class DepartmentMasterService
         if (!string.IsNullOrWhiteSpace(department.FullName))
         {
             var isDuplicate = await _context.DepartmentMasters.AnyAsync(d => d.Id != department.DepartmentMasterId && d.Name.ToLower() == department.FullName.ToLower());
-            if (isDuplicate) throw new ValidationException("Department name already exists");
+            if (isDuplicate) throw new ConflictException("Department name already exists");
         }
         existingDepartment.Name = department.FullName;
         existingDepartment.ShortName = department.ShortName;

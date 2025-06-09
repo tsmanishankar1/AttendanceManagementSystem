@@ -588,6 +588,7 @@
 			<returns>The created branch.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If company not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.BranchMasterController.Update(AttendanceManagement.Input_Models.UpdateBranch)">
@@ -598,6 +599,7 @@
 			<returns>The updated branch.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the branch is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.CategoryMasterController">
@@ -628,6 +630,7 @@
 			<param name="category">The category details to create.</param>
 			<returns>The created category.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.UpdateCategory(AttendanceManagement.Input_Models.UpdateCategory)">
@@ -638,6 +641,7 @@
 			<returns>The updated category.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the category is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.CompanyMasterController">
@@ -668,6 +672,7 @@
 			<param name="companyMaster">The company details to create.</param>
 			<returns>The created company.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.UpdateCompanyMaster(AttendanceManagement.Input_Models.CompanyMasterDto)">
@@ -678,6 +683,7 @@
 			<returns>The updated company.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the company is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.CostCentreMasterController">
@@ -708,6 +714,7 @@
 			<param name="costCentreMaster">The cost centre details to create.</param>
 			<returns>The created cost centre.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.UpdateCostCentre(AttendanceManagement.Input_Models.UpdateCostMaster)">
@@ -718,6 +725,7 @@
 			<returns>The updated cost centre.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the cost centre is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>	
 		<member name="T:DailyReportsController">
@@ -877,6 +885,7 @@
 			<param name="department">The department details to create.</param>
 			<returns>The created department.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.UpdateDepartment(AttendanceManagement.Input_Models.UpdateDepartment)">
@@ -887,6 +896,7 @@
 			<returns>The updated department.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the department is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.DesignationMasterController">
@@ -917,6 +927,7 @@
 			<param name="designation">The designation details to create.</param>
 			<returns>The created designation.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.UpdateDesignation(AttendanceManagement.Input_Models.UpdateDesignation)">
@@ -927,6 +938,7 @@
 			<returns>The updated designation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the designation is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.DivisionMasterController">
@@ -957,6 +969,7 @@
 			<param name="division">The division details to create.</param>
 			<returns>The created division.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.UpdateDivision(AttendanceManagement.Input_Models.UpdateDivision)">
@@ -967,6 +980,7 @@
 			<returns>The updated division.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the division is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.ExcelImportController">
@@ -1030,6 +1044,7 @@
 			<param name="gradeMaster">The grade details to create.</param>
 			<returns>The created grade.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.GradeMasterController.Update(AttendanceManagement.Input_Models.UpdateGradeMaster)">
@@ -1040,6 +1055,7 @@
 			<returns>The updated grade.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the grade is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.HolidayController">
@@ -1305,6 +1321,7 @@
 			<param name="location">The location details to create.</param>
 			<returns>The created location.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.LocationMasterController.UpdateLocation(AttendanceManagement.Input_Models.UpdateLocation)">
@@ -1315,6 +1332,7 @@
 			<returns>The updated location.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the location is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.LoginController">
@@ -1772,6 +1790,7 @@
 			<param name="newShift">The shift details to create.</param>
 			<returns>The created shift.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ShiftController.UpdateShift(AttendanceManagement.Input_Models.UpdateShift)">
@@ -1782,6 +1801,7 @@
 			<returns>The updated shift.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the shift is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ShiftController.CreateRegularShift(AttendanceManagement.Input_Models.RegularShiftRequest)">
@@ -2189,6 +2209,7 @@
 			<param name="subFunctionMaster">The sub function details to create.</param>
 			<returns>The created sub function.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.Update(AttendanceManagement.Input_Models.UpdateSubFunction)">
@@ -2199,6 +2220,7 @@
 			<returns>The updated sub function.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the sub function is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.ToolsController">
@@ -2366,6 +2388,7 @@
 			<returns>The created weekly off.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If no weekly off selected</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.UpdateWeeklyOff(AttendanceManagement.Input_Models.UpdateWeeklyOff)">
@@ -2376,6 +2399,7 @@
 			<returns>The updated weekly off.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the weekly off is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.WorkstationMasterController">
@@ -2406,6 +2430,7 @@
 			<param name="workstation">The workstation details to create.</param>
 			<returns>The created workstation.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.UpdateWorkstation(AttendanceManagement.Input_Models.UpdateWorkStation)">
@@ -2416,6 +2441,7 @@
 			<returns>The updated workstation.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the workstation is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.ZoneMasterController">
@@ -2446,6 +2472,7 @@
 			<param name="zoneMaster">The zone details to create.</param>
 			<returns>The created zone.</returns>
 			<response code="200">Returns the success message</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.Update(AttendanceManagement.Input_Models.UpdateZoneMaster)">
@@ -2456,6 +2483,7 @@
 			<returns>The updated zone.</returns>
 			<response code="200">Returns the success message</response>
 			<response code="404">If the zone is not found</response>
+			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:UserManagementController">

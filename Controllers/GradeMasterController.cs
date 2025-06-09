@@ -55,6 +55,11 @@ public class GradeMasterController : ControllerBase
             await _loggingService.AuditLog("Grade Master", "POST", "/api/GradeMaster/CreateGrade", createdGrade, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Grade Master", "POST", "/api/GradeMaster/CreateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Grade Master", "POST", "/api/GradeMaster/CreateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.CreatedBy, JsonSerializer.Serialize(gradeMaster));
@@ -80,6 +85,11 @@ public class GradeMasterController : ControllerBase
         {
             await _loggingService.LogError("Grade Master", "POST", "/api/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Grade Master", "POST", "/api/GradeMaster/UpdateGrade", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, gradeMaster.UpdatedBy, JsonSerializer.Serialize(gradeMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

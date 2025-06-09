@@ -34,7 +34,7 @@ public class CategoryMasterService
     {
         var message = "Category created successfully";
         var duplicateCategory = await _context.CategoryMasters.AnyAsync(c => c.Name.ToLower() == request.FullName.ToLower());
-        if (duplicateCategory) throw new ValidationException("Category name already exists");
+        if (duplicateCategory) throw new ConflictException("Category name already exists");
         var newCategory = new CategoryMaster
         {
             Name = request.FullName,
@@ -59,7 +59,7 @@ public class CategoryMasterService
         if (!string.IsNullOrWhiteSpace(request.FullName))
         {
             var duplicateCategory = await _context.CategoryMasters.AnyAsync(c => c.Id != request.CategoryMasterId &&c.Name.ToLower() == request.FullName.ToLower());
-            if (duplicateCategory) throw new ValidationException("Category name already exists");
+            if (duplicateCategory) throw new ConflictException("Category name already exists");
         }
         existingCategory.Name = request.FullName ?? existingCategory.Name;
         existingCategory.ShortName = request.ShortName ?? existingCategory.ShortName;

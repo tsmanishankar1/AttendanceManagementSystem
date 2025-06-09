@@ -54,6 +54,11 @@ public class LocationMasterController : ControllerBase
             await _loggingService.AuditLog("Location Master", "POST", "/api/Location/CreateLocation", createdLocation, location.CreatedBy, JsonSerializer.Serialize(location));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Location Master", "POST", "/api/Location/CreateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.CreatedBy, JsonSerializer.Serialize(location));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Location Master", "POST", "/api/Location/CreateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.CreatedBy, JsonSerializer.Serialize(location));
@@ -79,6 +84,11 @@ public class LocationMasterController : ControllerBase
         {
             await _loggingService.LogError("Location Master", "POST", "/api/Location/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Location Master", "POST", "/api/Location/UpdateLocation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, location.UpdatedBy, JsonSerializer.Serialize(location));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

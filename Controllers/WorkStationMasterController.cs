@@ -60,6 +60,11 @@ public class WorkstationMasterController : ControllerBase
             await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/CreateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, workstation.CreatedBy, JsonSerializer.Serialize(workstation));
@@ -85,6 +90,11 @@ public class WorkstationMasterController : ControllerBase
         {
             await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Workstation Master", "POST", "/api/WorkstationMaster/UpdateWorkstation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedWorkstation.UpdatedBy, JsonSerializer.Serialize(updatedWorkstation));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
