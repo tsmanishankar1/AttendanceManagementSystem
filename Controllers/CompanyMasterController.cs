@@ -57,6 +57,11 @@ public class CompanyMasterController : ControllerBase
             await _loggingService.AuditLog("Company Master", "POST", "/api/CompanyMaster/CreateCompany", createdCompany, companyMaster.CreatedBy, JsonSerializer.Serialize(companyMaster));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Company Master", "POST", "/api/CompanyMaster/CreateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.CreatedBy, JsonSerializer.Serialize(companyMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Company Master", "POST", "/api/CompanyMaster/CreateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.CreatedBy, JsonSerializer.Serialize(companyMaster));
@@ -82,6 +87,11 @@ public class CompanyMasterController : ControllerBase
         {
             await _loggingService.LogError("Company Master", "POST", "/api/CompanyMaster/UpdateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Company Master", "POST", "/api/CompanyMaster/UpdateCompany", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, companyMaster.UpdatedBy, JsonSerializer.Serialize(companyMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

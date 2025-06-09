@@ -12,11 +12,9 @@ namespace AttendanceManagement.Controllers
     public class PerformanceReviewController : ControllerBase
     {
         private readonly PerformanceReviewService _service;
-        private readonly LoggingService _loggingService;
-        public PerformanceReviewController(PerformanceReviewService service, LoggingService loggingService)
+        public PerformanceReviewController(PerformanceReviewService service)
         {
             _service = service;
-            _loggingService = loggingService;
         }
 
         /*        [HttpGet("GetPerformanceReviewCycle")]
@@ -108,45 +106,18 @@ namespace AttendanceManagement.Controllers
                 }
         */
 
-        [HttpPost("GenerateAppraisalLetter")]
-        public async Task<IActionResult> GenerateAppraisalLetter(GenerateAppraisalLetterRequest generateAppraisalLetterRequest)
+        [HttpGet("GetMonthlyPerformance")]
+        public async Task<IActionResult> GetMonthlyPerformance(int year, int month)
         {
             try
             {
-                var appraisal = await _service.GenerateAppraisalLetter(generateAppraisalLetterRequest);
-                var fileBytes = await System.IO.File.ReadAllBytesAsync(appraisal);
-                var fileName = Path.GetFileName(appraisal);
-                var contentType = "application/pdf";
-                await _loggingService.AuditLog("Generate Appraisal Letter", "POST", "/api/PerformanceReview/GenerateAppraisalLetter", "Appraisal letter generated successfully", generateAppraisalLetterRequest.CreatedBy, JsonSerializer.Serialize(generateAppraisalLetterRequest));
-                return File(fileBytes, contentType, fileName);
-            }
-            catch (MessageNotFoundException ex)
-            {
-                await _loggingService.LogError("Generate Appraisal Letter", "POST", "/api/PerformanceReview/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, generateAppraisalLetterRequest.CreatedBy, JsonSerializer.Serialize(generateAppraisalLetterRequest));
-                return ErrorClass.NotFoundResponse(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                await _loggingService.LogError("Generate Appraisal Letter", "POST", "/api/PerformanceReview/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, generateAppraisalLetterRequest.CreatedBy, JsonSerializer.Serialize(generateAppraisalLetterRequest));
-                return ErrorClass.ErrorResponse(ex.Message);
-            }
-        }
-
-        [HttpPost("DownloadAppraisalLetter")]
-        public async Task<IActionResult> DownloadAppraisalLetter(int staffId, int fileId)
-        {
-            try
-            {
-                var filePath = await _service.DownloadAppraisalLetter(staffId, fileId);
-                if (!System.IO.File.Exists(filePath))
+                var performance = await _service.GetMonthlyPerformance(year, month);
+                var response = new
                 {
-                    return ErrorClass.NotFoundResponse("Appraisal letter not found");
-                }
-                var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-                var file = Path.GetFileName(filePath);
-                var contentType = "application/pdf";
-
-                return File(fileBytes, contentType, file);
+                    Success = true,
+                    Message = performance
+                };
+                return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
@@ -158,18 +129,41 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpGet("ViewAppraisalLetter")]
-        public async Task<IActionResult> ViewAppraisalLetter(int staffId, int fileId)
+        [HttpGet("GetQuarterlyPerformance")]
+        public async Task<IActionResult> GetQuarterlyPerformance(int year, string quarterType)
         {
             try
             {
-                var (stream, fileName) = await _service.ViewAppraisalLetter(staffId, fileId);
-                Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
-                return File(stream, "application/pdf");
+                var performance = await _service.GetQuarterlyPerformance(year, quarterType);
+                var response = new
+                {
+                    Success = true,
+                    Message = performance
+                };
+                return Ok(response);
             }
-            catch (FileNotFoundException ex)
+            catch (MessageNotFoundException ex)
             {
                 return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetYearlyPerformance")]
+        public async Task<IActionResult> GetYearlyPerformance(int year)
+        {
+            try
+            {
+                var performance = await _service.GetYearlyPerformance(year);
+                var response = new
+                {
+                    Success = true,
+                    Message = performance
+                };
+                return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {

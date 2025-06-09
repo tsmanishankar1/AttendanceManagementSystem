@@ -147,6 +147,29 @@ public class ProbationController : ControllerBase
         }
     }
 
+    [HttpGet("GetProbationReportsByApproverLevel")]
+    public async Task<IActionResult> GetProbationReportsByApproverLevel(int approverLevelId, int year)
+    {
+        try
+        {
+            var result = await _probationService.GetProbationReportsByApproverLevel(approverLevelId, year);
+            var response = new
+            {
+                Success = true,
+                Message = result
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpGet("GetProbationDetailsByApproverLevel")]
     public async Task<IActionResult> GetProbationDetailsByApproverLevel(int approverLevelId)
     {

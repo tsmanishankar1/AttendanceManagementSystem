@@ -61,6 +61,11 @@ public class BranchMasterController : ControllerBase
             await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/CreateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMasterRequest.CreatedBy, JsonSerializer.Serialize(branchMasterRequest));
@@ -86,6 +91,11 @@ public class BranchMasterController : ControllerBase
         {
             await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/UpdateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Branch Master", "POST", "/api/BranchMaster/UpdateBranch", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, branchMaster.UpdatedBy, JsonSerializer.Serialize(branchMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

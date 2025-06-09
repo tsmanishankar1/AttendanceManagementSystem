@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services
 {
@@ -19,6 +20,8 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No weekly off selected.");
             }
+            var isDuplicate = await _context.WeeklyOffMasters.AnyAsync(w => w.WeeklyOffName.ToLower() == weeklyOffRequest.WeeklyOffName.ToLower());
+            if (isDuplicate) throw new ValidationException("Weekly off name already exists");
             var weeklyOffMaster = new WeeklyOffMaster
             {
                 WeeklyOffName = weeklyOffRequest.WeeklyOffName,
@@ -73,6 +76,11 @@ namespace AttendanceManagement.Services
             var message = "Weekly off updated successfully";
             var existingWeeklyOffMaster = await _context.WeeklyOffMasters.FirstOrDefaultAsync(w => w.Id == updatedWeeklyOff.WeeklyOffId);
             if (existingWeeklyOffMaster == null) throw new MessageNotFoundException("Weekly off not found");
+            if (!string.IsNullOrWhiteSpace(updatedWeeklyOff.WeeklyOffName))
+            {
+                var isDuplicate = await _context.WeeklyOffMasters.AnyAsync(w => w.Id != updatedWeeklyOff.WeeklyOffId && w.WeeklyOffName.ToLower() == updatedWeeklyOff.WeeklyOffName.ToLower());
+                if (isDuplicate) throw new ValidationException("Weekly off name already exists");
+            }
             existingWeeklyOffMaster.WeeklyOffName = updatedWeeklyOff.WeeklyOffName;
             existingWeeklyOffMaster.IsActive = updatedWeeklyOff.IsActive;
             existingWeeklyOffMaster.UpdatedBy = updatedWeeklyOff.UpdatedBy;

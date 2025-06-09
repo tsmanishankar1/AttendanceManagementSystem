@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -35,6 +36,8 @@ public class CostCentreMasterService
     public async Task<string> CreateCostCentre(CostMasterRequest costCentreMaster)
     {
         var message = "Cost centre created successfully";
+        var isDuplicate = await _context.CostCentreMasters.AnyAsync(c => c.Name.ToLower() == costCentreMaster.FullName.ToLower());
+        if (isDuplicate) throw new ConflictException("Cost centre name already exists");
         CostCentreMaster costMaster = new CostCentreMaster();
         costMaster.Name = costCentreMaster.FullName;
         costMaster.ShortName = costCentreMaster.ShortName;
@@ -54,6 +57,11 @@ public class CostCentreMasterService
         if (existingCostCentre == null)
         {
             throw new MessageNotFoundException("Cost centre not found");
+        }
+        if (!string.IsNullOrWhiteSpace(costCentreMaster.FullName))
+        {
+            var isDuplicate = await _context.CostCentreMasters.AnyAsync(c => c.Id != costCentreMaster.CostCentreMasterId && c.Name.ToLower() == costCentreMaster.FullName.ToLower());
+            if (isDuplicate) throw new ConflictException("Cost centre name already exists");
         }
         existingCostCentre.Name = costCentreMaster.FullName ?? existingCostCentre.Name;
         existingCostCentre.ShortName = costCentreMaster.ShortName ?? existingCostCentre.ShortName;

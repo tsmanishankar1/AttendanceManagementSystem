@@ -57,6 +57,11 @@ public class CostCentreMasterController : ControllerBase
             await _loggingService.AuditLog("Cost Centre Master", "POST", "/api/CostCentreMaster/CreateCostCentre", createdCostCentre, costCentreMaster.CreatedBy, JsonSerializer.Serialize(costCentreMaster));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Cost Centre Master", "POST", "/api/CostCentreMaster/CreateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.CreatedBy, JsonSerializer.Serialize(costCentreMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Cost Centre Master", "POST", "/api/CostCentreMaster/CreateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.CreatedBy, JsonSerializer.Serialize(costCentreMaster));
@@ -82,6 +87,11 @@ public class CostCentreMasterController : ControllerBase
         {
             await _loggingService.LogError("Cost Centre Master", "POST", "/api/CostCentreMaster/UpdateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Cost Centre Master", "POST", "/api/CostCentreMaster/UpdateCostCentre", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, costCentreMaster.UpdatedBy, JsonSerializer.Serialize(costCentreMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

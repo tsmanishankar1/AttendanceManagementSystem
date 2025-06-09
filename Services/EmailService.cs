@@ -9,6 +9,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Org.BouncyCastle.Cms;
 using DocumentFormat.OpenXml.Wordprocessing;
+using iText.StyledXmlParser.Jsoup.Safety;
 
 namespace AttendanceManagement.Services
 {
@@ -1119,9 +1120,6 @@ namespace AttendanceManagement.Services
                 </ul>
 
                 <p>Please initiate the confirmation process at your earliest convenience.</p>
-                <p>
-                    <a href='{approvalLink}' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;'>Approve</a>
-                </p>
                 <p>Regards,<br/>Attendance Management System</p>";
 
                 await SendApprovalEmail(toEmail, subject, body, createdBy);
@@ -1204,6 +1202,79 @@ namespace AttendanceManagement.Services
 
                     await SendApprovalEmail(recipientEmail, subject, emailBody, approvedBy);
                 }
+            }
+        }
+
+        public async Task SendMailToMis(string dropDown, int createdBy, List<SelectedEmployeesForAppraisal> staffList)
+        {
+            var recipientEmail = _configuration["Smtp:mis"];
+            if (!string.IsNullOrEmpty(recipientEmail))
+            {
+                var recipient = await _context.StaffCreations.FirstOrDefaultAsync(u => u.OfficialEmail == recipientEmail && u.IsActive == true);
+                if (recipient != null)
+                {
+                    var subject = $"Selected Employees Moved to MIS - {dropDown}";
+                    var bodyBuilder = new StringBuilder();
+                    bodyBuilder.AppendLine("The following employees have been moved to MIS:<br/><ul>");
+                    foreach (var staff in staffList)
+                    {
+                        bodyBuilder.AppendLine($"<li>{staff.EmployeeId} - {staff.EmployeeName} ({staff.Department})</li>");
+                    }
+                    bodyBuilder.AppendLine("</ul>");
+                    await SendApprovalEmail(recipientEmail, subject, bodyBuilder.ToString(), createdBy);
+                }
+            }
+        }
+
+        public async Task SendMisUploadNotificationToHr(int createdBy, string name, string dropDown)
+        {
+            var hrEmail = _configuration["Smtp:hr"];
+            if (!string.IsNullOrEmpty(hrEmail))
+            {
+                var subject = $"MIS Sheet Uploaded for {dropDown}";
+                var body = $@"
+                Dear HR Team,<br/><br/>
+                The MIS sheet has been successfully uploaded.<br/><br/>
+                <b>Uploaded By:</b> {name}<br/>
+                Please review and proceed with the necessary steps.<br/><br/>
+                Regards,<br/>
+                Attendance Management System";
+
+                await SendApprovalEmail(hrEmail, subject, body, createdBy);
+            }
+        }
+
+        public async Task SendAgmApprovalNotification(int createdBy, string? recipientEmail, string name)
+        {
+            if (!string.IsNullOrEmpty(recipientEmail))
+            {
+                var subject = $"Employees Moved to AGM Approval";
+                var body = $@"
+                Dear {name},<br/><br/>
+                The following staff member's appraisal records have been moved for AGM approval.<br/><br/>
+                Kindly proceed with the next level of approval.<br/><br/>
+                Regards,<br/>
+                HR Team";
+
+                await SendApprovalEmail(recipientEmail, subject, body, createdBy);
+            }
+        }
+
+        public async Task SendHrApprovalNotification(int approvedBy, string approver)
+        {
+            var recipientEmail = _configuration["Smtp:hr"];
+            if (!string.IsNullOrEmpty(recipientEmail))
+            {
+                var subject = $"AGM Approved - Employee Appraisal";
+                var body = $@"
+                Dear HR Team,<br/><br/>
+                The following employee's performance review has been approved by AGM and is ready for final HR processing<br/><br/>
+                <b>Approved By:</b> {approver}<br/><br/>
+                Please proceed with the final HR actions.<br/><br/>
+                Regards,<br/>
+                Attendance Management System";
+
+                await SendApprovalEmail(recipientEmail, subject, body, approvedBy);
             }
         }
     }

@@ -6,6 +6,14 @@
         public int CreatedBy { get; set; }
     }
 
+    public class PaySlipGenerate
+    {
+        public int StaffId { get; set; }
+        public int Month { get; set; }
+        public int Year { get; set; }
+        public int CreatedBy { get; set; }
+    }
+
     public class PayslipResponse
     {
         public int Id { get; set; }

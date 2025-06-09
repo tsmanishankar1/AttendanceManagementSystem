@@ -28,4 +28,6 @@ public partial class PerformanceUploadType
     public virtual ICollection<QuarterlyPerformance> QuarterlyPerformances { get; set; } = new List<QuarterlyPerformance>();
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
+
+    public virtual ICollection<YearlyPerformance> YearlyPerformances { get; set; } = new List<YearlyPerformance>();
 }

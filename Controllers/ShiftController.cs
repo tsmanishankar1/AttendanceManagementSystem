@@ -83,6 +83,11 @@ public class ShiftController : ControllerBase
             await _loggingService.LogError("Shift", "POST", "/api/Shift/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
             return ErrorClass.NotFoundResponse(ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Shift", "POST", "/api/Shift/CreateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, newShift.CreatedBy, newShift);
@@ -108,6 +113,11 @@ public class ShiftController : ControllerBase
         {
             await _loggingService.LogError("Shift", "POST", "/api/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Shift", "POST", "/api/Shift/UpdateShift", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedShift.UpdatedBy, updatedShift);
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

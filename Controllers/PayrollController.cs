@@ -14,12 +14,10 @@ namespace AttendanceManagement.Controllers
     {
         private readonly PayrollService _payrollService;
         private readonly LoggingService _loggingService;
-        private readonly AttendanceManagementSystemContext _context;
-        public PayrollController(PayrollService payrollService, LoggingService loggingService, AttendanceManagementSystemContext context)
+        public PayrollController(PayrollService payrollService, LoggingService loggingService)
         {
             _payrollService = payrollService;
             _loggingService = loggingService;
-            _context = context;
         }
 
         [HttpPost("UploadPaySlip")]
@@ -48,16 +46,16 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpGet("GetPaySlip")]
-        public async Task<IActionResult> GetPaySlip(int staffId, int month, int year)
+        [HttpPost("GeneratePaySlip")]
+        public async Task<IActionResult> GeneratePaySlip(GeneratePaySheetRequest paySlipGenerate)
         {
             try
             {
-                var payslip = await _payrollService.GetPaySlip(staffId, month, year);
-                var pdfBytes = PayslipPdfGenerator.Generate(payslip);
-                string fileName = $"Payslip_{payslip.StaffCreationId}_{payslip.SalaryMonth}_{payslip.SalaryYear}.pdf";
-
-                return File(pdfBytes, "application/pdf", fileName);
+                var payslip = await _payrollService.GeneratePaySlip(paySlipGenerate);
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(payslip);
+                var fileName = Path.GetFileName(payslip);
+                var contentType = "application/pdf";
+                return File(fileBytes, contentType, fileName);
             }
             catch (MessageNotFoundException ex)
             {
@@ -75,9 +73,10 @@ namespace AttendanceManagement.Controllers
             try
             {
                 var paysheet = await _payrollService.GeneratePaySheet(generatePaySheetRequest);
-                var pdfBytes = PayslipPdfGenerator.GeneratePaysheetPdf(paysheet);
-                string fileName = $"Paysheet_{paysheet.StaffId}_{paysheet.Month}_{paysheet.Year}.pdf";
-                return File(pdfBytes, "application/pdf", fileName);
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(paysheet);
+                var fileName = Path.GetFileName(paysheet);
+                var contentType = "application/pdf";
+                return File(fileBytes, contentType, fileName);
             }
             catch (MessageNotFoundException ex)
             {

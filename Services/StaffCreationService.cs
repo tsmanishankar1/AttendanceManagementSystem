@@ -23,13 +23,18 @@ namespace AttendanceManagement.Services
         private readonly StoredProcedureDbContext _storedProcedureDbContext;
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
-        public StaffCreationService(AttendanceManagementSystemContext context, IConfiguration configuration, StoredProcedureDbContext storedProcedureDbContext, EmailService emailService)
+        private readonly string _workspacePath;
+        public StaffCreationService(AttendanceManagementSystemContext context, IConfiguration configuration, StoredProcedureDbContext storedProcedureDbContext, EmailService emailService, IWebHostEnvironment env)
         {
             _context = context;
             _configuration = configuration;
             _storedProcedureDbContext = storedProcedureDbContext;
             _emailService = emailService;
-
+            _workspacePath = Path.Combine(env.ContentRootPath, "wwwroot");
+            if (!Directory.Exists(_workspacePath))
+            {
+                Directory.CreateDirectory(_workspacePath);
+            }
         }
         public async Task<string> UpdateApproversAsync(List<int> staffIds, int? approverId1, int? approverId2, int updatedBy)
         {
@@ -389,7 +394,7 @@ namespace AttendanceManagement.Services
             string aadharCardPath = string.Empty;
             string panCardPath = string.Empty;
             string drivingLicensePath = string.Empty;
-            string baseDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            string baseDirectory = Path.Combine(_workspacePath);
             async Task<string> SaveFile(IFormFile file, string folderName)
             {
                 if (file == null) throw new ArgumentNullException(nameof(file), "File cannot be null");
@@ -449,8 +454,8 @@ namespace AttendanceManagement.Services
             if (!statusId) throw new MessageNotFoundException("Status not found");
             var holidayCalanderId = await _context.HolidayCalendarConfigurations.AnyAsync(d => d.Id == staffInput.HolidayCalendarId && d.IsActive);
             if (!holidayCalanderId) throw new MessageNotFoundException("Branch not found");
-            var approvalLevel1 = await _context.StaffCreations.AnyAsync(d => d.Id == staffInput.ApprovalLevel1 && d.IsActive == true);
-            if (!approvalLevel1) throw new MessageNotFoundException("Approval level 1 not found");
+            var approvalLevel1 = await _context.StaffCreations.FirstOrDefaultAsync(d => d.Id == staffInput.ApprovalLevel1 && d.IsActive == true);
+            if (approvalLevel1 == null) throw new MessageNotFoundException("Approval level 1 not found");
             if(staffInput.ApprovalLevel2 != null)
             {
                 var approvalLevel2 = await _context.StaffCreations.AnyAsync(d => d.Id == staffInput.ApprovalLevel2 && d.IsActive == true);
@@ -540,16 +545,7 @@ namespace AttendanceManagement.Services
             await _context.StaffCreations.AddAsync(staff);
             await _context.SaveChangesAsync();
 
-            var reportingManager = await _context.StaffCreations
-                .Where(u => (u.Id == staffInput.ApprovalLevel1 || u.Id == staffInput.ApprovalLevel2) && u.IsActive == true)
-                .Join(_context.AccessLevels,
-                      staff => staff.AccessLevel,
-                      access => access.Name,
-                      (staff, access) => new { staff.OfficialEmail, access.Name })
-                .Where(x => x.Name == "REPORTING MANAGER")
-                .Select(x => x.OfficialEmail)
-                .FirstOrDefaultAsync();
-
+            var reportingManager = approvalLevel1.OfficialEmail;
             if (!string.IsNullOrEmpty(reportingManager))
             {
                 await _emailService.SendPendingStaffRequestEmail(reportingManager, staff);
@@ -988,34 +984,33 @@ namespace AttendanceManagement.Services
                 if (staffApprove != null)
                 {
                     var employee = staffApprove.StaffId;
-                    DateOnly probationEndDate;
-                    if (employee.StartsWith("VL") && !employee.StartsWith("VLC"))
+                    if (staff.OrganizationTypeId != 1)
                     {
-                        probationEndDate = staffApprove.JoiningDate.AddMonths(6);
+                        DateOnly probationEndDate;
+                        if (staffApprove.OrganizationTypeId == 2)
+                        {
+                            probationEndDate = staffApprove.JoiningDate.AddMonths(6);
+                        }
+                        else if (staffApprove.OrganizationTypeId == 3)
+                        {
+                            probationEndDate = staffApprove.JoiningDate.AddMonths(3);
+                        }
+                        else
+                        {
+                            probationEndDate = staffApprove.JoiningDate.AddMonths(3);
+                        }
+                        var probation = new Probation
+                        {
+                            StaffCreationId = staffApprove.Id,
+                            ProbationStartDate = staffApprove.JoiningDate,
+                            ProbationEndDate = probationEndDate,
+                            IsActive = true,
+                            CreatedBy = staffApprove.CreatedBy,
+                            CreatedUtc = DateTime.UtcNow
+                        };
+                        await _context.Probations.AddAsync(probation);
+                        await _context.SaveChangesAsync();
                     }
-                    else if (employee.StartsWith("VLC"))
-                    {
-                        probationEndDate = staffApprove.JoiningDate.AddMonths(3);
-                    }
-                    else if (employee.StartsWith("TK"))
-                    {
-                        probationEndDate = staffApprove.JoiningDate.AddYears(1);
-                    }
-                    else
-                    {
-                        probationEndDate = staffApprove.JoiningDate.AddYears(2);
-                    }
-                    var probation = new Probation
-                    {
-                        StaffCreationId = staffApprove.Id,
-                        ProbationStartDate = staffApprove.JoiningDate,
-                        ProbationEndDate = probationEndDate,
-                        IsActive = true,
-                        CreatedBy = staffApprove.CreatedBy,
-                        CreatedUtc = DateTime.UtcNow
-                    };
-                    await _context.Probations.AddAsync(probation);
-                    await _context.SaveChangesAsync();
                 }
                 var createdByUser = await _context.StaffCreations.FirstOrDefaultAsync(u => u.Id == staff.CreatedBy && u.IsActive == true);
                 if (createdByUser != null)
@@ -1130,7 +1125,8 @@ namespace AttendanceManagement.Services
                 {1041, new HolidayMaster() },
                 {1042, new LeaveType() },
                 {1043, new AttendanceStatusColor() },
-                {1044, new PerformanceUploadType() }
+                {1044, new PerformanceUploadType() },
+                {1045, new AppraisalSelectionDropDown() }
             };
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var entity))
             {
@@ -1204,7 +1200,8 @@ namespace AttendanceManagement.Services
                 { 1041, _context.HolidayMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1042, _context.LeaveTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1043, _context.AttendanceStatusColors.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1044, _context.PerformanceUploadTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
+                { 1044, _context.PerformanceUploadTypes.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1045, _context.AppraisalSelectionDropDowns.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) }
             };
 
             if (!dropDownQueries.TryGetValue(id, out var query))
@@ -1276,7 +1273,8 @@ namespace AttendanceManagement.Services
                 { 1041, async () => await _context.HolidayMasters.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1042, async () => await _context.LeaveTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
                 { 1043, async () => await _context.AttendanceStatusColors.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
-                { 1044, async () => await _context.PerformanceUploadTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
+                { 1044, async () => await _context.PerformanceUploadTypes.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) },
+                { 1045, async () => await _context.AppraisalSelectionDropDowns.FirstOrDefaultAsync(ws => ws.Id == dropDownDetailsRequest.DropDownDetailId && ws.IsActive) }
             };
 
             if (!entityMapping.TryGetValue(dropDownDetailsRequest.DropDownMasterId, out var getEntity))

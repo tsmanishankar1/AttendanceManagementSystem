@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services
 {
@@ -45,6 +46,8 @@ namespace AttendanceManagement.Services
         public async Task<string> Add(CompanyMasterRequest companyMasterRequest)
         {
             var message = "Company created successfully";
+            var duplicateCompany = await _context.CompanyMasters.AnyAsync(c => c.Name.ToLower() == companyMasterRequest.FullName.ToLower());
+            if (duplicateCompany) throw new ConflictException("Company name already exists");
             CompanyMaster company = new CompanyMaster();
             company.Name = companyMasterRequest.FullName;
             company.ShortName = companyMasterRequest.ShortName;
@@ -74,6 +77,11 @@ namespace AttendanceManagement.Services
             if (existingCompany == null)
             {
                 throw new MessageNotFoundException("Category not found");
+            }
+            if (!string.IsNullOrWhiteSpace(companyMaster.FullName))
+            {
+                var duplicateCompany = await _context.CompanyMasters.AnyAsync(c => c.Id != companyMaster.CompanyMasterId && c.Name.ToLower() == companyMaster.FullName.ToLower());
+                if (duplicateCompany) throw new ConflictException("Company name already exists");
             }
             existingCompany.Name = companyMaster.FullName ?? existingCompany.Name;
             existingCompany.ShortName = companyMaster.ShortName ?? existingCompany.ShortName;

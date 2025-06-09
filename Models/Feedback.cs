@@ -25,6 +25,8 @@ public partial class Feedback
 
     public DateOnly? ExtensionPeriod { get; set; }
 
+    public bool? IsNotificationSent { get; set; }
+
     public virtual ICollection<Approval> Approvals { get; set; } = new List<Approval>();
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;

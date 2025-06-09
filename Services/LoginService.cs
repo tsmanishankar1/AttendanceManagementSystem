@@ -48,7 +48,12 @@ public class LoginService
             {
                 throw new MessageNotFoundException("Designation not found");
             }
-            var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name);
+            var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Id == staff.DepartmentId && d.IsActive);
+            if (department == null)
+            {
+                throw new MessageNotFoundException("Department not found");
+            }
+            var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name);
             var refreshToken = GenerateRefreshToken(user.StaffCreationId);
             var tokenResponse = new
             {
@@ -96,9 +101,11 @@ public class LoginService
         }
         var staff = _context.StaffCreations.FirstOrDefault(s => s.Id == user.StaffCreationId && s.IsActive == true);
         if (staff == null) throw new MessageNotFoundException("Staff not found");
-        var designation = _context.DesignationMasters.FirstOrDefault(d => d.Id == staff.DesignationId);
+        var designation = _context.DesignationMasters.FirstOrDefault(d => d.Id == staff.DesignationId && d.IsActive);
         if (designation == null) throw new MessageNotFoundException("Designation not found");
-        var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name);
+        var department = _context.DepartmentMasters.FirstOrDefault(d => d.Id == staff.DepartmentId && d.IsActive);
+        if (department == null) throw new MessageNotFoundException("Department not found");
+        var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name);
         var refreshToken1 = GenerateRefreshToken(user.StaffCreationId);
 
         return (newAccessToken, refreshToken1);
@@ -123,7 +130,7 @@ public class LoginService
         }
     }
 
-    private string GenerateJwtToken(string userName, int staffId, int designationId, string designation)
+    private string GenerateJwtToken(string userName, int staffId, int designationId, string designation, int departmentId, string department)
     {
         try
         {
@@ -173,8 +180,10 @@ public class LoginService
                     new Claim("StaffCreationId", staff.StaffId),
                     new Claim("DesignationId", designationId.ToString()),
                     new Claim("DesignationName", designation),
+                    new Claim("DepartmentId", departmentId.ToString()),
+                    new Claim("DepartmentName", department),
                     new Claim("RoleId", role.Id.ToString()),
-                    new Claim("Role", role.Name.ToString()),
+                    new Claim("Role", role.Name),
                     new Claim("ProfilePhoto", profilePhoto),
                     new Claim("ApproverId", staff.ApprovalLevel1.ToString()), 
                     new Claim("ApproverName", approverFullName)

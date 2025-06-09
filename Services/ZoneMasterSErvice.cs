@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -35,6 +36,8 @@ public class ZoneMasterService
     public async Task<string> CreateZoneAsync(ZoneMasterRequest zoneMaster)
     {
         var message = "Zone added successfully.";
+        var isDuplicate = await _context.ZoneMasters.AnyAsync(z => z.FullName.ToLower() == zoneMaster.FullName.ToLower());
+        if (isDuplicate) throw new ConflictException("Zone name already exists");
         var zone = new ZoneMaster
         {
             FullName = zoneMaster.FullName,
@@ -55,6 +58,11 @@ public class ZoneMasterService
         if (existingZone == null)
         {
             throw new MessageNotFoundException("Zone not found");
+        }
+        if (!string.IsNullOrWhiteSpace(zoneMaster.FullName))
+        {
+            var isDuplicate = await _context.ZoneMasters.AnyAsync(z => z.Id != zoneMaster.ZoneMasterId && z.FullName.ToLower() == zoneMaster.FullName.ToLower());
+            if (isDuplicate) throw new ConflictException("Zone name already exists");
         }
         existingZone.FullName = zoneMaster.FullName;
         existingZone.ShortName = zoneMaster.ShortName;

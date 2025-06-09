@@ -33,6 +33,10 @@ public partial class Probation
 
     public DateTime? AssignedOn { get; set; }
 
+    public bool? IsAssigned { get; set; }
+
+    public bool? IsNotificationSent { get; set; }
+
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
 
     public virtual StaffCreation? AssignedByNavigation { get; set; }

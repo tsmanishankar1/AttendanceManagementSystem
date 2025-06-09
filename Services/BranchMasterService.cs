@@ -3,6 +3,7 @@ using AttendanceManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -56,6 +57,8 @@ public class BranchMasterService
         var message = "Branch created successfully.";
         var companyId = await _context.CompanyMasters.AnyAsync(d => d.Id == branchMasterRequest.CompanyMasterId && d.IsActive);
         if (!companyId) throw new MessageNotFoundException("Company not found");
+        var duplicateBranch = await _context.BranchMasters.AnyAsync(b => b.Name.ToLower() == branchMasterRequest.FullName.ToLower());
+        if (duplicateBranch) throw new ConflictException("Branch name already exists");
         var branchMaster = new BranchMaster
         {
             Name = branchMasterRequest.FullName,
@@ -89,6 +92,11 @@ public class BranchMasterService
         if (existingBranch == null)
         {
             throw new MessageNotFoundException("Branch not found");
+        }
+        if (!string.IsNullOrWhiteSpace(branchMasterRequest.FullName))
+        {
+            var duplicateBranch = await _context.BranchMasters.AnyAsync(b => b.Id != branchMasterRequest.BranchMasterId && b.Name.ToLower() == branchMasterRequest.FullName.ToLower());
+            if (duplicateBranch) throw new ConflictException("Branch name already exists");
         }
         existingBranch.Name = branchMasterRequest.FullName ?? existingBranch.Name;
         existingBranch.ShortName = branchMasterRequest.ShortName ?? existingBranch.ShortName;

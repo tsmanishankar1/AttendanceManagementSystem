@@ -51,6 +51,10 @@ public partial class MonthlyPerformance
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public int Month { get; set; }
+
+    public int Year { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual PerformanceUploadType PerformanceType { get; set; } = null!;

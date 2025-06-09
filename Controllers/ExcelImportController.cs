@@ -19,11 +19,11 @@ public class ExcelImportController : ControllerBase
     }
 
     [HttpGet("DownloadExcelTemplates")]
-    public async Task<IActionResult> DownloadExcelTemplates(int excelImportId)
+    public async Task<IActionResult> DownloadExcelTemplates(int excelImportId, int performanceId)
     {
         try
         {
-            var filePath = await _excelImportService.GetExcelTemplateFilePath(excelImportId);
+            var filePath = await _excelImportService.GetExcelTemplateFilePath(excelImportId, performanceId);
             if (!System.IO.File.Exists(filePath))
             {
                 return ErrorClass.NotFoundResponse("Excel template file not found");

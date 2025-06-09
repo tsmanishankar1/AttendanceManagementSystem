@@ -317,7 +317,7 @@ public class ApplicationService
                       {
                           Id = tempWithSc.tempWithS.temp.sc.Id,
                           ApplicationTypeId = tempWithSc.tempWithS.temp.sc.ApplicationTypeId,
-                          ApplicationTypeName = tempWithSc.tempWithS.temp.at.Name,
+                         ApplicationTypeName = tempWithSc.tempWithS.temp.at.Name,
                           ShiftName = tempWithSc.tempWithS.s.Name,
                           FromDate = tempWithSc.tempWithS.temp.sc.FromDate,
                           ToDate = tempWithSc.tempWithS.temp.sc.ToDate,

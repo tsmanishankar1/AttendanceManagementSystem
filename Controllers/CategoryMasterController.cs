@@ -57,6 +57,11 @@ public class CategoryMasterController : ControllerBase
             await _loggingService.AuditLog("Category Master", "POST", "/api/CategoryMaster/CreateCategory", createdCategory, category.CreatedBy, JsonSerializer.Serialize(category));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Category Master", "POST", "/api/CategoryMaster/CreateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, category.CreatedBy, JsonSerializer.Serialize(category));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Category Master", "POST", "/api/CategoryMaster/CreateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, category.CreatedBy, JsonSerializer.Serialize(category));
@@ -82,6 +87,11 @@ public class CategoryMasterController : ControllerBase
         {
             await _loggingService.LogError("Category Master", "POST", "/api/CategoryMaster/UpdateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Category Master", "POST", "/api/CategoryMaster/UpdateCategory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedCategory.UpdatedBy, JsonSerializer.Serialize(updatedCategory));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

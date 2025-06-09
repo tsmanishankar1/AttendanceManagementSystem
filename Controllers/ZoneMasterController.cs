@@ -55,6 +55,11 @@ public class ZoneMasterController : ControllerBase
             await _loggingService.AuditLog("Zone Master", "POST", "/api/ZoneMaster/CreateZone", createdZone, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Zone Master", "POST", "/api/ZoneMaster/CreateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Zone Master", "POST", "/api/ZoneMaster/CreateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.CreatedBy, JsonSerializer.Serialize(zoneMaster));
@@ -76,6 +81,11 @@ public class ZoneMasterController : ControllerBase
         {
             await _loggingService.LogError("Zone Master", "POST", "/api/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Zone Master", "POST", "/api/ZoneMaster/UpdateZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, zoneMaster.UpdatedBy, JsonSerializer.Serialize(zoneMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

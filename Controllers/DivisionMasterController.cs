@@ -57,6 +57,11 @@ public class DivisionMasterController : ControllerBase
             await _loggingService.AuditLog("Division Master", "POST", "/api/DivisionMaster/CreateDivision", addDivision, division.CreatedBy, JsonSerializer.Serialize(division));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Division Master", "POST", "/api/DivisionMaster/CreateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.CreatedBy, JsonSerializer.Serialize(division));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Division Master", "POST", "/api/DivisionMaster/CreateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.CreatedBy, JsonSerializer.Serialize(division));
@@ -82,6 +87,11 @@ public class DivisionMasterController : ControllerBase
         {
             await _loggingService.LogError("Division Master", "POST", "/api/DivisionMaster/UpdateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.UpdatedBy, JsonSerializer.Serialize(division));
             return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Division Master", "POST", "/api/DivisionMaster/UpdateDivision", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, division.UpdatedBy, JsonSerializer.Serialize(division));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {

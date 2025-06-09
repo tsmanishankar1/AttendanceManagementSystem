@@ -1,26 +1,42 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using iTextSharp.text.pdf.draw;
 
 namespace AttendanceManagement.Services
 {
     public class PayrollService
     {
         private readonly AttendanceManagementSystemContext _context;
-
-        public PayrollService(AttendanceManagementSystemContext context)
+        private readonly string _excelWorkspacePath;
+        private readonly LetterGenerationService _letterGenerationService;
+        public PayrollService(AttendanceManagementSystemContext context, IWebHostEnvironment env, LetterGenerationService letterGenerationService)
         {
             _context = context;
+            _excelWorkspacePath = Path.Combine(env.ContentRootPath, "wwwroot\\UploadedExcel");
+            if (!Directory.Exists(_excelWorkspacePath))
+            {
+                Directory.CreateDirectory(_excelWorkspacePath);
+            }
+            _letterGenerationService = letterGenerationService;
         }
 
         public async Task<string> UploadPaySlip(IFormFile file, int createdBy)
         {
             var message = "Payslip uploaded successfully";
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            string uploadFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
+            string uploadFilePath = Path.Combine(_excelWorkspacePath, uploadFileName);
+            using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
             using (var stream = new MemoryStream())
             {
                 await file.CopyToAsync(stream);
@@ -162,15 +178,16 @@ namespace AttendanceManagement.Services
             return message;
         }
 
-        public async Task<PayslipResponse> GetPaySlip(int staffId, int month, int year)
+        public async Task<string> GeneratePaySlip(GeneratePaySheetRequest paySlipGenerate)
         {
-            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == paySlipGenerate.StaffId && s.IsActive == true);
             if (staff == null) throw new MessageNotFoundException("Staff not found");
-            string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+            string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(paySlipGenerate.Month);
+            string fileName = $"Payslip_{staff.StaffId}_{monthName}_{paySlipGenerate.Year}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
             var paySlip = await (from payslip in _context.PaySlips
                                  join s in _context.StaffCreations on payslip.StaffId equals s.Id
-                                 where payslip.StaffId == staffId && payslip.SalaryMonth == monthName
-                                 && payslip.SalaryYear == year && payslip.IsActive == true
+                                 where payslip.StaffId == paySlipGenerate.StaffId && payslip.SalaryMonth == monthName
+                                 && payslip.SalaryYear == paySlipGenerate.Year && payslip.IsActive == true
                                  select new PayslipResponse
                                  {
                                      Id = payslip.Id,
@@ -216,14 +233,32 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("Payslip not found");
             }
-            return paySlip;
+
+            var file = _letterGenerationService.GeneratePaySlip(paySlip, fileName);
+            byte[] pdfBytes = System.IO.File.ReadAllBytes(file);
+            string base64Pdf = Convert.ToBase64String(pdfBytes);
+            var letterGeneration = new LetterGeneration
+            {
+                LetterPath = file,
+                LetterContent = Convert.FromBase64String(base64Pdf),
+                StaffCreationId = staff.Id,
+                FileName = fileName,
+                CreatedBy = paySlipGenerate.CreatedBy,
+                CreatedUtc = DateTime.UtcNow,
+                IsActive = true
+            };
+            await _context.LetterGenerations.AddAsync(letterGeneration);
+            await _context.SaveChangesAsync();
+
+            return file;
         }
 
-        public async Task<PaysheetResponse> GeneratePaySheet(GeneratePaySheetRequest generatePaySheetRequest)
+        public async Task<string> GeneratePaySheet(GeneratePaySheetRequest generatePaySheetRequest)
         {
             var staffs = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == generatePaySheetRequest.StaffId && s.IsActive == true);
             if (staffs == null) throw new MessageNotFoundException("Staff not found");
             string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(generatePaySheetRequest.Month);
+            string fileName = $"Paysheet_{staffs.StaffId}_{monthName}_{generatePaySheetRequest.Year}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
             var paySheet = await (from pay in _context.PaySheets
                                   join staff in _context.StaffCreations on pay.StaffId equals staff.StaffId
                                   join designation in _context.DesignationMasters on pay.DesignationId equals designation.Id
@@ -292,8 +327,26 @@ namespace AttendanceManagement.Services
                                   })
                                   .FirstOrDefaultAsync();
             if (paySheet == null) throw new MessageNotFoundException("Paysheet not found");
-            return paySheet;
+
+            var file = _letterGenerationService.GeneratePaysheetPdf(paySheet, fileName);
+            byte[] pdfBytes = System.IO.File.ReadAllBytes(file);
+            string base64Pdf = Convert.ToBase64String(pdfBytes);
+            var letterGeneration = new LetterGeneration
+            {
+                LetterPath = file,
+                LetterContent = Convert.FromBase64String(base64Pdf),
+                StaffCreationId = staffs.Id,
+                FileName = fileName,
+                CreatedBy = generatePaySheetRequest.CreatedBy,
+                CreatedUtc = DateTime.UtcNow,
+                IsActive = true
+            };
+            await _context.LetterGenerations.AddAsync(letterGeneration);
+            await _context.SaveChangesAsync();
+
+            return file;
         }
+
         public async Task<List<PayslipResponse>> GetAllPaySlip()
         {
             var paySlip = await (from payslip in _context.PaySlips
@@ -351,6 +404,12 @@ namespace AttendanceManagement.Services
         {
             var message = "Salary structure uploaded successfully";
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            string uploadFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
+            string uploadFilePath = Path.Combine(_excelWorkspacePath, uploadFileName);
+            using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
             using (var stream = new MemoryStream())
             {
                 await file.CopyToAsync(stream);

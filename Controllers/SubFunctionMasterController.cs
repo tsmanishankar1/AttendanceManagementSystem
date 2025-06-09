@@ -54,6 +54,11 @@ public class SubFunctionMasterController : ControllerBase
             await _loggingService.AuditLog("SubFunction Master", "POST", "/api/SubFunctionMaster/CreateSubFunction", createdSubFunction, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("SubFunction Master", "POST", "/api/SubFunctionMaster/CreateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("SubFunction Master", "POST", "/api/SubFunctionMaster/CreateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.CreatedBy, JsonSerializer.Serialize(subFunctionMaster));
@@ -74,6 +79,11 @@ public class SubFunctionMasterController : ControllerBase
             };
             await _loggingService.AuditLog("SubFunction Master", "POST", "/api/SubFunctionMaster/UpdateSubFunction", updatedSubFunction, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
             return Ok(response);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("SubFunction Master", "POST", "/api/SubFunctionMaster/UpdateSubFunction", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, subFunctionMaster.UpdatedBy, JsonSerializer.Serialize(subFunctionMaster));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (MessageNotFoundException ex)
         {
