@@ -3,6 +3,7 @@ using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace AttendanceManagement.Services
@@ -70,6 +71,8 @@ namespace AttendanceManagement.Services
             var message = "Shift created successfully";
             var shiftType = await _context.Shifts.AnyAsync(p => p.ShiftTypeId == newShift.ShiftTypeId && p.IsActive);
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
+            var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Name.ToLower() == newShift.ShiftName.ToLower());
+            if (duplicateShiftName) throw new ConflictException("Shift name already exists");
             var shift = new Shift
             {
                 Name = newShift.ShiftName,
@@ -93,6 +96,8 @@ namespace AttendanceManagement.Services
             if (existingShift == null) throw new MessageNotFoundException("Shift not found");
             var shiftType = await _context.Shifts.AnyAsync(p => p.ShiftTypeId == updatedShift.ShiftTypeId && p.IsActive);
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
+            var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Id != updatedShift.ShiftId && s.Name.ToLower() == updatedShift.ShiftName.ToLower());
+            if (duplicateShiftName) throw new ConflictException("Shift name already exists");
             existingShift.Name = updatedShift.ShiftName;
             existingShift.ShortName = updatedShift.ShortName;
             existingShift.ShiftTypeId = updatedShift.ShiftTypeId;

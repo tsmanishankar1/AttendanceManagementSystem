@@ -83,12 +83,12 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("CompOff Availability","POST","/api/Application/CreateCompOffAvail",result,request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.AuditLog("CompOff Availability", "POST", "/api/Application/CreateCompOffAvail",result,request.CreatedBy,JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("CompOff Availability","POST","/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.LogError("CompOff Availability", "POST", "/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (ConflictException ex)
@@ -103,7 +103,7 @@ public class ApplicationController : ControllerBase
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("CompOff Availability","POST","/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.LogError("CompOff Availability", "POST","/api/Application/CreateCompOffAvail",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -119,7 +119,7 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = "Application request cancelled successfully"
             };
-            await _loggingService.AuditLog("Application Cancellation","POST","/api/Application/CancelAppliedLeave","Application request cancelled successfully",cancel.UpdatedBy,JsonSerializer.Serialize(cancel));
+            await _loggingService.AuditLog("Application Cancellation", "POST", "/api/Application/CancelAppliedLeave", "Application request cancelled successfully",cancel.UpdatedBy,JsonSerializer.Serialize(cancel));
             return Ok(response);
         }
         catch(MessageNotFoundException ex)
@@ -173,12 +173,12 @@ public class ApplicationController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("CompOff Credit","POST","/api/Application/CreateCompOffCredit",result,request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.AuditLog("CompOff Credit", "POST", "/api/Application/CreateCompOffCredit",result,request.CreatedBy,JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("CompOff Credit","POST","/api/Application/CreateCompOffCredit",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.LogError("CompOff Credit", "POST", "/api/Application/CreateCompOffCredit",ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (InvalidOperationException ex)
@@ -188,7 +188,7 @@ public class ApplicationController : ControllerBase
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("CompOff Credit","POST","/api/Application/CreateCompOffCredit", ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
+            await _loggingService.LogError("CompOff Credit", "POST", "/api/Application/CreateCompOffCredit", ex.Message,ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,request.CreatedBy,JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

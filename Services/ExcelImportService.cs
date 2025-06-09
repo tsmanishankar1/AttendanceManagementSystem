@@ -13,13 +13,19 @@ public class ExcelImportService
 {
     private readonly AttendanceManagementSystemContext _context;
     private readonly string _workspacePath;
+    private readonly string _excelWorkspacePath;
     public ExcelImportService(AttendanceManagementSystemContext context, IWebHostEnvironment env)
     {
         _context = context;
-        _workspacePath = Path.Combine(env.ContentRootPath, "ExcelTemplates");
+        _workspacePath = Path.Combine(env.ContentRootPath, "wwwroot\\ExcelTemplates");
         if (!Directory.Exists(_workspacePath))
         {
             Directory.CreateDirectory(_workspacePath);
+        }
+        _excelWorkspacePath = Path.Combine(env.ContentRootPath, "wwwroot\\UploadedExcel");
+        if (!Directory.Exists(_excelWorkspacePath))
+        {
+            Directory.CreateDirectory(_excelWorkspacePath);
         }
     }
 
@@ -40,14 +46,29 @@ public class ExcelImportService
         }
     */
 
-    public async Task<string> GetExcelTemplateFilePath(int excelImportId)
+    public async Task<string> GetExcelTemplateFilePath(int excelImportId, int performanceId)
     {
         var excelTemplate = await _context.ExcelImports.FirstOrDefaultAsync(x => x.Id == excelImportId && x.IsActive == true);
         if (excelTemplate == null)
         {
             throw new MessageNotFoundException("Excel template not found");
         }
-        string fileName = $"{excelTemplate.Name}.xlsx";
+        string fileName;
+
+        if (excelImportId == 21)
+        {
+            fileName = performanceId switch
+            {
+                1 => "Monthly Performance.xlsx",
+                2 => "Quarterly Performance.xlsx",
+                3 => "Yearly Performance.xlsx",
+                _ => throw new ArgumentException("Invalid performance type ID")
+            };
+        }
+        else
+        {
+            fileName = $"{excelTemplate.Name}.xlsx";
+        }
         return Path.Combine(_workspacePath, fileName);
     }
 
@@ -59,16 +80,43 @@ public class ExcelImportService
             var excelImportType = await _context.ExcelImports.FirstOrDefaultAsync(e => e.Id == excelImportDto.ExcelImportId && e.IsActive);
             if (excelImportType == null) throw new MessageNotFoundException("Excel import type not found");
             var fileExtension = Path.GetExtension(excelImportDto.File.FileName);
-            if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Please upload the correct Excel template file");
+            string expectedFileName = string.Empty;
+            if (excelImportDto.ExcelImportId == 21)
             {
-                throw new ArgumentException("Please upload the correct Excel template File");
+                switch (excelImportDto.PerformanceTypeId)
+                {
+                    case 1:
+                        expectedFileName = "Monthly Performance";
+                        break;
+                    case 2:
+                        expectedFileName = "Quarterly Performance";
+                        break;
+                    case 3:
+                        expectedFileName = "Yearly Performance";
+                        break;
+                    default:
+                        throw new ArgumentException("Invalid performance type");
+                }
             }
-            var expectedFileName = excelImportType.Name;
+            else
+            {
+                expectedFileName = excelImportType.Name;
+            }
             var uploadedFileName = Path.GetFileNameWithoutExtension(excelImportDto.File.FileName);
             var pattern = $"^{Regex.Escape(expectedFileName)}( \\(\\d+\\))?$";
-            if (!Regex.IsMatch(uploadedFileName, pattern, RegexOptions.IgnoreCase)) throw new ArgumentException("Please upload the correct Excel template file");
+            if (!Regex.IsMatch(uploadedFileName, pattern, RegexOptions.IgnoreCase))
+            {
+                throw new ArgumentException("Please upload the correct Excel template file");
+            }
             var staffExists = await _context.StaffCreations.AnyAsync(s => s.Id == excelImportDto.CreatedBy && s.IsActive == true);
             if (!staffExists) throw new MessageNotFoundException($"Staff not found");
+            string uploadFileName = $"{Path.GetFileNameWithoutExtension(excelImportDto.File.FileName)}_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
+            string uploadFilePath = Path.Combine(_excelWorkspacePath, uploadFileName);
+            using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
+            {
+                await excelImportDto.File.CopyToAsync(fileStream);
+            }
             using (var stream = new MemoryStream())
             {
                 await excelImportDto.File.CopyToAsync(stream);
@@ -122,7 +170,7 @@ public class ExcelImportService
                     }
                     else if (excelImportDto.ExcelImportId == 11)
                     {
-                        requiredHeaders = new List<string> {"StaffId", "Shift", "FromDate", "ToDate" };
+                        requiredHeaders = new List<string> {"Name", "Short Name", "Start Time", "End Time", "Shift Type" };
                     }
                     else if (excelImportDto.ExcelImportId == 12)
                     {
@@ -189,10 +237,7 @@ public class ExcelImportService
                                 "Present %", "Final %", "Grade", "Total Absents", "Reporting Head", "Tenure Years", "HR Comments"
                             };
                         }
-                    }
-                    else if(excelImportDto.ExcelImportId == 22)
-                    {
-                        if (excelImportDto.PerformanceTypeId == 2)
+                        else if (excelImportDto.PerformanceTypeId == 2)
                         {
                             requiredHeaders = new List<string>
                             {
@@ -211,9 +256,25 @@ public class ExcelImportService
                     {
                         requiredHeaders = new List<string>
                         {
-                            "Employee Code", "Basic", "HRA", "Conveyance", "Medical Allowance", "Special Allowance", "Employer PF Contribution", "Employer ESI Contribution",
-                            "Employer Group Medical Insurance", "Group Personal Accident", "Employee PF Contribution", "Employee ESI Contribution", "Professional Tax",
-                            "Employee Group Medical Insurance", "Appraisal Amount"
+                            "EmployeeCode", "EmployeeName", "Designation", "RevisedDesignation", "Department", "AppraisalYear", "BasicCurrentPerAnnum", "BasicCurrentPerMonth", "BasicCurrentPerAnnumAfterApp",
+                            "BasicCurrentPerMonthAfterApp", "HRAPerAnnum", "HRAPerMonth", "HRAPerAnnumAfterApp", "HRAPerMonthAfterApp", "ConveyancePerAnnum", "ConveyancePerMonth",
+                            "ConveyancePerAnnumAfterApp", "ConveyancePerMonthAfterApp", "MedicalAllowancePerAnnum", "MedicalAllowancePerMonth", "MedicalAllowancePerAnnumAfterApp",
+                            "MedicalAllowancePerMonthAfterApp", "SpecialAllowancePerAnnum", "SpecialAllowancePerMonth", "SpecialAllowancePerAnnumAfterApp", "SpecialAllowancePerMonthAfterApp",
+                            "EmployerPFContributionPerAnnum", "EmployerPFContributionPerMonth", "EmployerPFContributionPerAnnumAfterApp", "EmployerPFContributionPerMonthAfterApp",
+                            "EmployerESIContributionPerAnnum", "EmployerESIContributionPerMonth", "EmployerESIContributionPerAnnumAfterApp", "EmployerESIContributionPerMonthAfterApp",
+                            "GroupPersonalAccidentPerAnnum", "GroupPersonalAccidentPerMonth", "GroupPersonalAccidentPerAnnumAfterApp", "GroupPersonalAccidentPerMonthAfterApp",
+                            "EmployeePFContributionPerAnnum", "EmployeePFContributionPerMonth", "EmployeePFContributionPerAnnumAfterApp", "EmployeePFContributionPerMonthAfterApp",
+                            "EmployeeESIContributionPerAnnum", "EmployeeESIContributionPerMonth", "EmployeeESIContributionPerAnnumAfterApp", "EmployeeESIContributionPerMonthAfterApp",
+                            "ProfessionalTaxPerAnnum", "ProfessionalTaxPerMonth", "ProfessionalTaxPerAnnumAfterApp", "ProfessionalTaxPerMonthAfterApp", "EmployeeSalutation", "TotalAppraisal",
+                            "GMCPerAnnum", "GMCPerMonth", "GMCPerAnnumAfterApp", "GMCPerMonthAfterApp", "EmployerGMCPerAnnum", "EmployerGMCPerMonth", "EmployerGMCPerAnnumAfterApp",
+                            "EmployerGMCPerMonthAfterApp"
+                        };
+                    }
+                    else if(excelImportDto.ExcelImportId == 24)
+                    {
+                        requiredHeaders = new List<string>
+                        {
+                            "Date", "StaffId", "ShiftName"
                         };
                     }
                     else
@@ -850,56 +911,19 @@ public class ExcelImportService
                             }
                             else if (excelImportDto.ExcelImportId == 11)
                             {
-                                var shiftMasters = new List<AssignShift>();
+                                var shiftMasters = new List<Shift>();
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
-                                    int? staffId = null;
-                                    if (!string.IsNullOrEmpty(staffIdText))
+                                    var shiftType = worksheet.Cells[row, columnIndexes["Shift Type"]].Text.Trim();
+                                    var shiftTypeId = await _context.ShiftTypeDropDowns.FirstOrDefaultAsync(s => s.Name == shiftType && s.IsActive);
+                                    if (shiftTypeId == null) throw new MessageNotFoundException("Shift type not found");
+                                    var shiftMaster = new Shift
                                     {
-                                        var match = System.Text.RegularExpressions.Regex.Match(staffIdText, @"^([A-Za-z]+)(\d+)$");
-                                        if (match.Success)
-                                        {
-                                            var staffExist = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                            if (staffExist == null) throw new MessageNotFoundException("Staff not found");
-                                            bool staffExistsInOrg = await _context.StaffCreations.AnyAsync(s => s.Id == staffExist.Id && s.IsActive == true);
-                                            if (!staffExistsInOrg)
-                                            {
-                                                throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
-                                            }
-                                            staffId = staffExist.Id;
-                                        }
-                                        else
-                                        {
-                                            throw new ArgumentException($"Invalid Staff Id format '{staffIdText}'");
-                                        }
-                                    }
-                                    var shift = worksheet.Cells[row, columnIndexes["Shift"]].Text.Trim();
-                                    if (string.IsNullOrEmpty(shift))
-                                    {
-                                        continue;
-                                    }
-                                    var shiftId = await _context.Shifts
-                                        .Where(d => d.Name.Trim().ToLower() == shift.Trim().ToLower() && d.IsActive)
-                                        .Select(d => d.Id)
-                                        .FirstOrDefaultAsync();
-
-                                    DateOnly fromDate;
-                                    DateOnly toDate;
-                                    if (!DateOnly.TryParse(worksheet.Cells[row, columnIndexes["FromDate"]].Text, out fromDate))
-                                    {
-                                        throw new FormatException($"Invalid FromDate");
-                                    }
-                                    if (!DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ToDate"]].Text, out toDate))
-                                    {
-                                        throw new FormatException($"Invalid ToDate");
-                                    }
-                                    var shiftMaster = new AssignShift
-                                    {
-                                        StaffId = staffId ?? throw new Exception($"Staff Id is required"),
-                                        ShiftId = shiftId,
-                                        FromDate = fromDate,
-                                        ToDate = toDate,
+                                        Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
+                                        ShortName = worksheet.Cells[row, columnIndexes["Short Name"]].Text.Trim(),
+                                        StartTime = worksheet.Cells[row, columnIndexes["Start Time"]].Text.Trim(),
+                                        EndTime = worksheet.Cells[row, columnIndexes["End Time"]].Text.Trim(),
+                                        ShiftTypeId = shiftTypeId.Id,
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
@@ -908,7 +932,7 @@ public class ExcelImportService
                                 }
                                 if(shiftMasters.Count > 0)
                                 {
-                                    await _context.AssignShifts.AddRangeAsync(shiftMasters);
+                                    await _context.Shifts.AddRangeAsync(shiftMasters);
                                 }
                                 else
                                 {
@@ -1394,7 +1418,7 @@ public class ExcelImportService
                                         ProductionAchievedPercentageOct = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Oct"]]?.Text.Trim(), out decimal oct) ? oct : (decimal?)null,
                                         ProductionAchievedPercentageNov = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Nov"]]?.Text.Trim(), out decimal nov) ? nov : (decimal?)null,
                                         ProductionAchievedPercentageDec = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Dec"]]?.Text.Trim(), out decimal dec) ? dec : (decimal?)null,
-                                        ProductivityYear = excelImportDto.ProductivityYear ?? 0,
+                                        ProductivityYear = excelImportDto.Year ?? 0,
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
@@ -1440,7 +1464,7 @@ public class ExcelImportService
                                         Oct = decimal.TryParse(worksheet.Cells[row, columnIndexes["Oct"]]?.Text.Trim(), out decimal oct) ? oct : (decimal?)null,
                                         Nov = decimal.TryParse(worksheet.Cells[row, columnIndexes["Nov"]]?.Text.Trim(), out decimal nov) ? nov : (decimal?)null,
                                         Dec = decimal.TryParse(worksheet.Cells[row, columnIndexes["Dec"]]?.Text.Trim(), out decimal dec) ? dec : (decimal?)null,
-                                        ProductivityYear = excelImportDto.ProductivityYear ?? 0,
+                                        ProductivityYear = excelImportDto.Year ?? 0,
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
@@ -1554,7 +1578,7 @@ public class ExcelImportService
                                         GrossDed = decimal.TryParse(worksheet.Cells[row, columnIndexes["GROSS_DED"]].Text.Trim(), out decimal grossDed) ? grossDed : 0m,
                                         NetPay = decimal.TryParse(worksheet.Cells[row, columnIndexes["NET_PAY"]].Text.Trim(), out decimal netPay) ? netPay : 0m,
                                         Month = excelImportDto.Month ?? 0,
-                                        Year = excelImportDto.ProductivityYear ?? 0,
+                                        Year = excelImportDto.Year ?? 0,
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
@@ -1609,6 +1633,8 @@ public class ExcelImportService
                                             TenureYears = int.TryParse(worksheet.Cells[row, columnIndexes["Tenure Years"]].Text.Trim(), out var postal) ? postal : 0,
                                             HrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim(),
                                             PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
+                                            Month = excelImportDto.Month ?? 0,
+                                            Year = excelImportDto.Year ?? 0,
                                             IsActive = true,
                                             CreatedBy = excelImportDto.CreatedBy,
                                             CreatedUtc = DateTime.UtcNow
@@ -1624,10 +1650,7 @@ public class ExcelImportService
                                         throw new MessageNotFoundException("File is empty");
                                     }
                                 }
-                            }
-                            else if(excelImportDto.ExcelImportId == 22)
-                            {
-                                if (excelImportDto.PerformanceTypeId == 2)
+                                else if (excelImportDto.PerformanceTypeId == 2)
                                 {
                                     var quarterlyPerformances = new List<QuarterlyPerformance>();
                                     for (int row = 2; row <= rowCount; row++)
@@ -1659,6 +1682,8 @@ public class ExcelImportService
                                             AbsentDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
                                             HrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim(),
                                             PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
+                                            Quarter = excelImportDto.QuarterType ?? string.Empty,
+                                            Year = excelImportDto.Year ?? 0,
                                             IsActive = true,
                                             CreatedBy = excelImportDto.CreatedBy,
                                             CreatedUtc = DateTime.UtcNow
@@ -1676,7 +1701,7 @@ public class ExcelImportService
                                 }
                                 else if (excelImportDto.PerformanceTypeId == 3)
                                 {
-                                    var quarterlyPerformances = new List<QuarterlyPerformance>();
+                                    var quarterlyPerformances = new List<YearlyPerformance>();
                                     for (int row = 2; row <= rowCount; row++)
                                     {
                                         var employeeId = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim();
@@ -1692,7 +1717,7 @@ public class ExcelImportService
                                         }
                                         var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
                                         if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
-                                        var addQuarterlyPerformance = new QuarterlyPerformance
+                                        var addQuarterlyPerformance = new YearlyPerformance
                                         {
                                             EmployeeCode = employeeId,
                                             EmployeeName = employeeName,
@@ -1706,6 +1731,7 @@ public class ExcelImportService
                                             AbsentDays = decimal.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out decimal basicEarned) ? basicEarned : 0m,
                                             HrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim(),
                                             PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
+                                            Year = excelImportDto.Year ?? 0,
                                             IsActive = true,
                                             CreatedBy = excelImportDto.CreatedBy,
                                             CreatedUtc = DateTime.UtcNow
@@ -1714,7 +1740,7 @@ public class ExcelImportService
                                     }
                                     if (quarterlyPerformances.Count > 0)
                                     {
-                                        await _context.QuarterlyPerformances.AddRangeAsync(quarterlyPerformances);
+                                        await _context.YearlyPerformances.AddRangeAsync(quarterlyPerformances);
                                     }
                                     else
                                     {
@@ -1722,38 +1748,120 @@ public class ExcelImportService
                                     }
                                 }
                             }
-                            else if(excelImportDto.ExcelImportId == 23)
+                            else if (excelImportDto.ExcelImportId == 23)
                             {
-                                var appraisals = new List<AppraisalAnnexureA>();
+                                var appraisals = new List<EmployeeAppraisalSheet>();
+
                                 for (int row = 2; row <= rowCount; row++)
                                 {
-                                    var addAppraisal = new AppraisalAnnexureA
+                                    var appraisal = new EmployeeAppraisalSheet
                                     {
-                                        EmployeeCode = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim(),
-                                        Basic = decimal.TryParse(worksheet.Cells[row, columnIndexes["Basic"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
-                                        Hra = decimal.TryParse(worksheet.Cells[row, columnIndexes["HRA"]].Text.Trim(), out decimal hra) ? hra : 0m,
-                                        Conveyance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Conveyance"]].Text.Trim(), out decimal conve) ? conve : 0m,
-                                        MedicalAllowance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Medical Allowance"]].Text.Trim(), out decimal medAllow) ? medAllow : 0m,
-                                        SpecialAllowance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Special Allowance"]].Text.Trim(), out decimal splAllow) ? splAllow : 0m,
-                                        EmployerPfContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employer PF Contribution"]].Text.Trim(), out decimal otherAllow) ? otherAllow : 0m,
-                                        EmployerEsiContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employer ESI Contribution"]].Text.Trim(), out decimal gross) ? gross : 0m,
-                                        EmployerGroupMedicalInsurance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employer Group Medical Insurance"]].Text.Trim(), out decimal pf) ? pf : 0m,
-                                        GroupPersonalAccident = decimal.TryParse(worksheet.Cells[row, columnIndexes["Group Personal Accident"]].Text.Trim(), out decimal esi) ? esi : 0m,
-                                        EmployeePfContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employee PF Contribution"]].Text.Trim(), out decimal lwf) ? lwf : 0m,
-                                        EmployeeEsiContribution = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employee ESI Contribution"]].Text.Trim(), out decimal pt) ? pt : 0m,
-                                        ProfessionalTax = decimal.TryParse(worksheet.Cells[row, columnIndexes["Professional Tax"]].Text.Trim(), out decimal tax) ? tax : 0m,
-                                        EmployeeGroupMedicalInsurance = decimal.TryParse(worksheet.Cells[row, columnIndexes["Employee Group Medical Insurance"]].Text.Trim(), out decimal medical) ? medical : 0m,
-                                        AppraisalAmount = decimal.TryParse(worksheet.Cells[row, columnIndexes["Appraisal Amount"]].Text.Trim(), out decimal amount) ? amount :0m,
-                                        AppraisalYear = excelImportDto.ProductivityYear ?? 0,
+                                        EmployeeCode = worksheet.Cells[row, columnIndexes["EmployeeCode"]].Text.Trim(),
+                                        EmployeeName = worksheet.Cells[row, columnIndexes["EmployeeName"]].Text.Trim(),
+                                        Designation = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim(),
+                                        RevisedDesignation = worksheet.Cells[row, columnIndexes["RevisedDesignation"]].Text.Trim(),
+                                        Department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim(),
+                                        AppraisalYear = int.TryParse(worksheet.Cells[row, columnIndexes["AppraisalYear"]].Text, out var postalCode) ? postalCode : 0,
+                                        BasicCurrentPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["BasicCurrentPerAnnum"]].Text),
+                                        BasicCurrentPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["BasicCurrentPerMonth"]].Text),
+                                        BasicCurrentPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["BasicCurrentPerAnnumAfterApp"]].Text),
+                                        BasicCurrentPerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["BasicCurrentPerMonthAfterApp"]].Text),
+                                        HraperAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["HRAPerAnnum"]].Text),
+                                        HraperMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["HRAPerMonth"]].Text),
+                                        HraperAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["HRAPerAnnumAfterApp"]].Text),
+                                        HraperMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["HRAPerMonthAfterApp"]].Text),
+                                        ConveyancePerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["ConveyancePerAnnum"]].Text),
+                                        ConveyancePerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["ConveyancePerMonth"]].Text),
+                                        ConveyancePerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["ConveyancePerAnnumAfterApp"]].Text),
+                                        ConveyancePerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["ConveyancePerMonthAfterApp"]].Text),
+                                        MedicalAllowancePerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["MedicalAllowancePerAnnum"]].Text),
+                                        MedicalAllowancePerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["MedicalAllowancePerMonth"]].Text),
+                                        MedicalAllowancePerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["MedicalAllowancePerAnnumAfterApp"]].Text),
+                                        MedicalAllowancePerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["MedicalAllowancePerMonthAfterApp"]].Text),
+                                        SpecialAllowancePerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowancePerAnnum"]].Text),
+                                        SpecialAllowancePerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowancePerMonth"]].Text),
+                                        SpecialAllowancePerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowancePerAnnumAfterApp"]].Text),
+                                        SpecialAllowancePerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowancePerMonthAfterApp"]].Text),
+                                        EmployerPfcontributionPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerPFContributionPerAnnum"]].Text),
+                                        EmployerPfcontributionPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerPFContributionPerMonth"]].Text),
+                                        EmployerPfcontributionPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerPFContributionPerAnnumAfterApp"]].Text),
+                                        EmployerPfcontributionPerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerPFContributionPerMonthAfterApp"]].Text),
+                                        EmployerEsicontributionPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerESIContributionPerAnnum"]].Text),
+                                        EmployerEsicontributionPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerESIContributionPerMonth"]].Text),
+                                        EmployerEsicontributionPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerESIContributionPerAnnumAfterApp"]].Text),
+                                        EmployerEsicontributionPerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerESIContributionPerMonthAfterApp"]].Text),
+                                        GroupPersonalAccidentPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["GroupPersonalAccidentPerAnnum"]].Text),
+                                        GroupPersonalAccidentPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["GroupPersonalAccidentPerMonth"]].Text),
+                                        GroupPersonalAccidentPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["GroupPersonalAccidentPerAnnumAfterApp"]].Text),
+                                        GroupPersonalAccidentPerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["GroupPersonalAccidentPerMonthAfterApp"]].Text),
+                                        EmployeePfcontributionPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeePFContributionPerAnnum"]].Text),
+                                        EmployeePfcontributionPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeePFContributionPerMonth"]].Text),
+                                        EmployeePfcontributionPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeePFContributionPerAnnumAfterApp"]].Text),
+                                        EmployeePfcontributionPerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeePFContributionPerMonthAfterApp"]].Text),
+                                        EmployeeEsicontributionPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeeESIContributionPerAnnum"]].Text),
+                                        EmployeeEsicontributionPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeeESIContributionPerMonth"]].Text),
+                                        EmployeeEsicontributionPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeeESIContributionPerAnnumAfterApp"]].Text),
+                                        EmployeeEsicontributionPerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployeeESIContributionPerMonthAfterApp"]].Text),
+                                        ProfessionalTaxPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["ProfessionalTaxPerAnnum"]].Text),
+                                        ProfessionalTaxPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["ProfessionalTaxPerMonth"]].Text),
+                                        ProfessionalTaxPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["ProfessionalTaxPerAnnumAfterApp"]].Text),
+                                        ProfessionalTaxPerMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["ProfessionalTaxPerMonthAfterApp"]].Text),
+                                        EmployeeSalutation = worksheet.Cells[row, columnIndexes["EmployeeSalutation"]].Text.Trim(),
+                                        TotalAppraisal = ParseDecimal(worksheet.Cells[row, columnIndexes["TotalAppraisal"]].Text),
+                                        GmcperAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["GMCPerAnnum"]].Text),
+                                        GmcperMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["GMCPerMonth"]].Text),
+                                        GmcperAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["GMCPerAnnumAfterApp"]].Text),
+                                        GmcperMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["GMCPerMonthAfterApp"]].Text),
+                                        EmployerGmcperAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerGMCPerAnnum"]].Text),
+                                        EmployerGmcperMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerGMCPerMonth"]].Text),
+                                        EmployerGmcperAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerGMCPerAnnumAfterApp"]].Text),
+                                        EmployerGmcperMonthAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["EmployerGMCPerMonthAfterApp"]].Text),
                                         IsActive = true,
                                         CreatedBy = excelImportDto.CreatedBy,
                                         CreatedUtc = DateTime.UtcNow
                                     };
-                                    appraisals.Add(addAppraisal);
+                                    appraisals.Add(appraisal);
                                 }
-                                if (appraisals.Count > 0)
+                                if (appraisals.Any())
                                 {
-                                    await _context.AppraisalAnnexureAs.AddRangeAsync(appraisals);
+                                    await _context.EmployeeAppraisalSheets.AddRangeAsync(appraisals);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("File is empty");
+                                }
+                            }
+                            else if(excelImportDto.ExcelImportId == 24)
+                            {
+                                var assignShifts = new List<AssignShift>();
+
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var employeeId = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
+                                    var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == employeeId && s.IsActive == true);
+                                    if (staff == null) throw new MessageNotFoundException("Staff not found");
+                                    var shift = worksheet.Cells[row, columnIndexes["ShiftName"]].Text.Trim();
+                                    var shiftId = await _context.Shifts.FirstOrDefaultAsync(s => s.Name == shift && s.IsActive == true);
+                                    if (shiftId == null) throw new MessageNotFoundException("Shift not found");
+                                    var dateText = worksheet.Cells[row, columnIndexes["Date"]]?.Text?.Trim();
+                                    if (string.IsNullOrWhiteSpace(dateText) || !DateOnly.TryParse(dateText, out var confirmationDate))
+                                    {
+                                        throw new InvalidOperationException($"'Date' is required and must be valid in row {row}.");
+                                    }
+                                    var assignShift = new AssignShift
+                                    {
+                                        ShiftId = shiftId.Id,
+                                        StaffId = staff.Id,
+                                        FromDate = confirmationDate,
+                                        IsActive = true,
+                                        CreatedBy = excelImportDto.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    assignShifts.Add(assignShift);
+                                }
+                                if (assignShifts.Any())
+                                {
+                                    await _context.AssignShifts.AddRangeAsync(assignShifts);
                                 }
                                 else
                                 {
@@ -1777,5 +1885,10 @@ public class ExcelImportService
         {
             throw new Exception(ex.Message);
         }
+    }
+
+    private decimal ParseDecimal(string value)
+    {
+        return decimal.TryParse(value.Trim(), out var result) ? result : 0m;
     }
 }

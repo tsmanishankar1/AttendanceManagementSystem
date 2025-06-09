@@ -41,6 +41,10 @@ public partial class QuarterlyPerformance
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public string Quarter { get; set; } = null!;
+
+    public int Year { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual PerformanceUploadType PerformanceType { get; set; } = null!;

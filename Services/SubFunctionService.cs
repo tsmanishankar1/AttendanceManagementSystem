@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -35,6 +36,8 @@ public class SubFunctionMasterService
     public async Task<string> CreateSubFunctionAsync(SubFunctionRequest subFunctionMaster)
     {
         var message = "Sub function added successfully";
+        var isDuplicate = await _context.SubFunctionMasters.AnyAsync(s => s.FullName.ToLower() == subFunctionMaster.FullName.ToLower());
+        if (isDuplicate) throw new ValidationException("Sub function name already exists");
         var subFunction = new SubFunctionMaster
         {
             FullName = subFunctionMaster.FullName,
@@ -55,6 +58,11 @@ public class SubFunctionMasterService
         if (existingSubFunction == null)
         {
             throw new MessageNotFoundException("Sub function not found");
+        }
+        if (!string.IsNullOrWhiteSpace(subFunctionMaster.FullName))
+        {
+            var isDuplicate = await _context.SubFunctionMasters.AnyAsync(s => s.Id != subFunctionMaster.SubFunctionMasterId && s.FullName.ToLower() == subFunctionMaster.FullName.ToLower());
+            if (isDuplicate) throw new ValidationException("Sub function name already exists");
         }
         existingSubFunction.FullName = subFunctionMaster.FullName;
         existingSubFunction.ShortName = subFunctionMaster.ShortName;

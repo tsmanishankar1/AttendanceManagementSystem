@@ -81,17 +81,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = updatedMessage
                 };
-                await _loggingService.AuditLog("Academic Detail", "POST", "/api/AcademicDetail/UpdateAcademicDetails", updatedMessage, academicDetailsRequests.UpdatedBy, JsonSerializer.Serialize(academicDetailsRequests));
+                await _loggingService.AuditLog("Academic Detail", "POST", "/api/StaffTransaction/UpdateAcademicDetails", updatedMessage, academicDetailsRequests.UpdatedBy, JsonSerializer.Serialize(academicDetailsRequests));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Academic Detail", "POST", "/api/AcademicDetail/UpdateAcademicDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, academicDetailsRequests.UpdatedBy, JsonSerializer.Serialize(academicDetailsRequests));
+                await _loggingService.LogError("Academic Detail", "POST", "/api/StaffTransaction/UpdateAcademicDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, academicDetailsRequests.UpdatedBy, JsonSerializer.Serialize(academicDetailsRequests));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Academic Detail", "POST", "/api/AcademicDetail/UpdateAcademicDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, academicDetailsRequests.UpdatedBy, JsonSerializer.Serialize(academicDetailsRequests));
+                await _loggingService.LogError("Academic Detail", "POST", "/api/StaffTransaction/UpdateAcademicDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, academicDetailsRequests.UpdatedBy, JsonSerializer.Serialize(academicDetailsRequests));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -107,17 +107,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = isDeleted
                 };
-                await _loggingService.AuditLog("Delete Academic Detail", "POST", "/api/StaffTransaction/DeleteAcademicdetails", isDeleted, deletedBy, JsonSerializer.Serialize(new { academicDetailId, deletedBy }));
+                await _loggingService.AuditLog("Academic Detail", "POST", "/api/StaffTransaction/DeleteAcademicdetails", isDeleted, deletedBy, JsonSerializer.Serialize(new { academicDetailId, deletedBy }));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Delete Academic Detail", "POST", "/api/StaffTransaction/DeleteAcademicdetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { academicDetailId, deletedBy }));
+                await _loggingService.LogError("Academic Detail", "POST", "/api/StaffTransaction/DeleteAcademicdetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { academicDetailId, deletedBy }));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Delete Academic Detail", "POST", "/api/StaffTransaction/DeleteAcademicdetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { academicDetailId, deletedBy }));
+                await _loggingService.LogError("Academic Detail", "POST", "/api/StaffTransaction/DeleteAcademicdetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { academicDetailId, deletedBy }));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -156,12 +156,12 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = createdMessage
                 };
-                await _loggingService.AuditLog( "Create Certification Detail","POST","/api/StaffTransaction/CreateCertificationDetails", createdMessage, certificationCourseRequests.CreatedBy, JsonSerializer.Serialize(certificationCourseRequests));
+                await _loggingService.AuditLog( "Certification Detail", "POST","/api/StaffTransaction/CreateCertificationDetails", createdMessage, certificationCourseRequests.CreatedBy, JsonSerializer.Serialize(certificationCourseRequests));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError(" Create Certification Detail", "POST", "/api/StaffTransaction/CreateCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty,  certificationCourseRequests.CreatedBy,  JsonSerializer.Serialize(certificationCourseRequests));
+                await _loggingService.LogError("Certification Detail", "POST", "/api/StaffTransaction/CreateCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty,  certificationCourseRequests.CreatedBy,  JsonSerializer.Serialize(certificationCourseRequests));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -182,12 +182,12 @@ namespace AttendanceManagement.Controllers
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Certification Detail", "POST", "/api/StaffTransaction/UpdateCertificationDetails",  ex.Message, ex.StackTrace ?? string.Empty,  ex.InnerException?.ToString() ?? string.Empty,  certificationCourses.UpdatedBy,    JsonSerializer.Serialize(certificationCourses));
+                await _loggingService.LogError("Certification Detail", "POST", "/api/StaffTransaction/UpdateCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty,  ex.InnerException?.ToString() ?? string.Empty,  certificationCourses.UpdatedBy,    JsonSerializer.Serialize(certificationCourses));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError( "Update Certification Detail", "POST", "/api/StaffTransaction/UpdateCertificationDetails",  ex.Message, ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty, certificationCourses.UpdatedBy, JsonSerializer.Serialize(certificationCourses));
+                await _loggingService.LogError( "Certification Detail", "POST", "/api/StaffTransaction/UpdateCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty, certificationCourses.UpdatedBy, JsonSerializer.Serialize(certificationCourses));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -203,17 +203,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = deleted
                 };
-                await _loggingService.AuditLog("Delete Certification Detail", "POST", "/api/StaffTransaction/DeleteCertificationDetails", deleted, deletedBy, JsonSerializer.Serialize(new {certificationCourseId,deletedBy}));
+                await _loggingService.AuditLog("Certification Detail", "POST", "/api/StaffTransaction/DeleteCertificationDetails", deleted, deletedBy, JsonSerializer.Serialize(new {certificationCourseId,deletedBy}));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Delete Certification Detail", "POST", "/api/StaffTransaction/DeleteCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { certificationCourseId, deletedBy }));
+                await _loggingService.LogError("Certification Detail", "POST", "/api/StaffTransaction/DeleteCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { certificationCourseId, deletedBy }));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Delete Certification Detaiy,", "POST", "/api/StaffTransaction/DeleteCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { certificationCourseId, deletedBy }));
+                await _loggingService.LogError("Certification Detail", "POST", "/api/StaffTransaction/DeleteCertificationDetails", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, deletedBy, JsonSerializer.Serialize(new { certificationCourseId, deletedBy }));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -273,17 +273,17 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = message
                 };
-                await _loggingService.AuditLog("WorkHistory Detail", "POST", "/api/WorkHistory/UpdateWorkHistory", message,previousEmploymentUpdateRequest.UpdatedBy,JsonSerializer.Serialize(previousEmploymentUpdateRequest));
+                await _loggingService.AuditLog("WorkHistory Detail", "POST", "/api/StaffTransaction/UpdateWorkHistory", message,previousEmploymentUpdateRequest.UpdatedBy,JsonSerializer.Serialize(previousEmploymentUpdateRequest));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("WorkHistory Detail", "POST", " /api/StaffTransaction/UpdateWorkHistory",ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty,previousEmploymentUpdateRequest.UpdatedBy,JsonSerializer.Serialize(previousEmploymentUpdateRequest));
+                await _loggingService.LogError("WorkHistory Detail", "POST", "/api/StaffTransaction/UpdateWorkHistory", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty,previousEmploymentUpdateRequest.UpdatedBy,JsonSerializer.Serialize(previousEmploymentUpdateRequest));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("WorkHistory Detail", "POST", "/api/WorkHistory/UpdateWorkHistory",ex.Message, ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,previousEmploymentUpdateRequest.UpdatedBy,JsonSerializer.Serialize(previousEmploymentUpdateRequest));
+                await _loggingService.LogError("WorkHistory Detail", "POST", "/api/StaffTransaction/UpdateWorkHistory", ex.Message, ex.StackTrace ?? string.Empty,ex.InnerException?.ToString() ?? string.Empty,previousEmploymentUpdateRequest.UpdatedBy,JsonSerializer.Serialize(previousEmploymentUpdateRequest));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -36,6 +37,8 @@ public class GradeMasterService
     public async Task<string> CreateGrade(GradeMasterRequest gradeMasterRequest)
     {
         var message = "Grade added successfully";
+        var isDuplicate = await _context.GradeMasters.AnyAsync(g => g.Name.ToLower() == gradeMasterRequest.FullName.ToLower());
+        if (isDuplicate) throw new ValidationException("Grade name already exists");
         var gradeMaster = new GradeMaster
         {
             Name = gradeMasterRequest.FullName,
@@ -56,6 +59,11 @@ public class GradeMasterService
         if (existingGrade == null)
         {
             throw new MessageNotFoundException("Grade not found");
+        }
+        if (!string.IsNullOrWhiteSpace(gradeMaster.FullName))
+        {
+            var isDuplicate = await _context.GradeMasters.AnyAsync(g => g.Id != gradeMaster.GradeMasterId && g.Name.ToLower() == gradeMaster.FullName.ToLower());
+            if (isDuplicate) throw new ValidationException("Grade name already exists");
         }
         existingGrade.Name = gradeMaster.FullName;
         existingGrade.ScreenOption = gradeMaster.ScreenOption;

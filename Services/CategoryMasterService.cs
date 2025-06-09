@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -32,6 +33,8 @@ public class CategoryMasterService
     public async Task<string> CreateCategoryAsync(CategoryMasterRequest request)
     {
         var message = "Category created successfully";
+        var duplicateCategory = await _context.CategoryMasters.AnyAsync(c => c.Name.ToLower() == request.FullName.ToLower());
+        if (duplicateCategory) throw new ValidationException("Category name already exists");
         var newCategory = new CategoryMaster
         {
             Name = request.FullName,
@@ -52,6 +55,11 @@ public class CategoryMasterService
         if (existingCategory == null)
         {
             throw new MessageNotFoundException("Category not found");
+        }
+        if (!string.IsNullOrWhiteSpace(request.FullName))
+        {
+            var duplicateCategory = await _context.CategoryMasters.AnyAsync(c => c.Id != request.CategoryMasterId &&c.Name.ToLower() == request.FullName.ToLower());
+            if (duplicateCategory) throw new ValidationException("Category name already exists");
         }
         existingCategory.Name = request.FullName ?? existingCategory.Name;
         existingCategory.ShortName = request.ShortName ?? existingCategory.ShortName;

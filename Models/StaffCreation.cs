@@ -189,6 +189,10 @@ public partial class StaffCreation
 
     public virtual ICollection<AddressVerification> AddressVerificationUpdatedByNavigations { get; set; } = new List<AddressVerification>();
 
+    public virtual ICollection<AgmApproval> AgmApprovalCreatedByNavigations { get; set; } = new List<AgmApproval>();
+
+    public virtual ICollection<AgmApproval> AgmApprovalUpdatedByNavigations { get; set; } = new List<AgmApproval>();
+
     public virtual ICollection<ApplicationType> ApplicationTypeCreatedByNavigations { get; set; } = new List<ApplicationType>();
 
     public virtual ICollection<ApplicationType> ApplicationTypeUpdatedByNavigations { get; set; } = new List<ApplicationType>();
@@ -196,6 +200,10 @@ public partial class StaffCreation
     public virtual ICollection<AppraisalAnnexureA> AppraisalAnnexureACreatedByNavigations { get; set; } = new List<AppraisalAnnexureA>();
 
     public virtual ICollection<AppraisalAnnexureA> AppraisalAnnexureAUpdatedByNavigations { get; set; } = new List<AppraisalAnnexureA>();
+
+    public virtual ICollection<AppraisalSelectionDropDown> AppraisalSelectionDropDownCreatedByNavigations { get; set; } = new List<AppraisalSelectionDropDown>();
+
+    public virtual ICollection<AppraisalSelectionDropDown> AppraisalSelectionDropDownUpdatedByNavigations { get; set; } = new List<AppraisalSelectionDropDown>();
 
     public virtual ICollection<Approval> ApprovalCreatedByNavigations { get; set; } = new List<Approval>();
 
@@ -380,6 +388,18 @@ public partial class StaffCreation
     public virtual ICollection<EmergencyContact> EmergencyContactStaffCreations { get; set; } = new List<EmergencyContact>();
 
     public virtual ICollection<EmergencyContact> EmergencyContactUpdatedByNavigations { get; set; } = new List<EmergencyContact>();
+
+    public virtual ICollection<EmployeeAcceptance> EmployeeAcceptanceCreatedByNavigations { get; set; } = new List<EmployeeAcceptance>();
+
+    public virtual ICollection<EmployeeAcceptance> EmployeeAcceptanceUpdatedByNavigations { get; set; } = new List<EmployeeAcceptance>();
+
+    public virtual ICollection<EmployeeAppraisalSheet> EmployeeAppraisalSheetCreatedByNavigations { get; set; } = new List<EmployeeAppraisalSheet>();
+
+    public virtual ICollection<EmployeeAppraisalSheet> EmployeeAppraisalSheetUpdatedByNavigations { get; set; } = new List<EmployeeAppraisalSheet>();
+
+    public virtual ICollection<EmployeePerformanceReview> EmployeePerformanceReviewCreatedByNavigations { get; set; } = new List<EmployeePerformanceReview>();
+
+    public virtual ICollection<EmployeePerformanceReview> EmployeePerformanceReviewUpdatedByNavigations { get; set; } = new List<EmployeePerformanceReview>();
 
     public virtual ICollection<EmploymentHistory> EmploymentHistoryCreatedByNavigations { get; set; } = new List<EmploymentHistory>();
 
@@ -711,6 +731,10 @@ public partial class StaffCreation
 
     public virtual ICollection<SalaryStructure> SalaryStructureUpdatedByNavigations { get; set; } = new List<SalaryStructure>();
 
+    public virtual ICollection<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisalCreatedByNavigations { get; set; } = new List<SelectedEmployeesForAppraisal>();
+
+    public virtual ICollection<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisalUpdatedByNavigations { get; set; } = new List<SelectedEmployeesForAppraisal>();
+
     public virtual ICollection<ShiftChange> ShiftChangeApprovedByNavigations { get; set; } = new List<ShiftChange>();
 
     public virtual ICollection<ShiftChange> ShiftChangeCreatedByNavigations { get; set; } = new List<ShiftChange>();
@@ -858,6 +882,10 @@ public partial class StaffCreation
     public virtual ICollection<WorkstationMaster> WorkstationMasterCreatedByNavigations { get; set; } = new List<WorkstationMaster>();
 
     public virtual ICollection<WorkstationMaster> WorkstationMasterUpdatedByNavigations { get; set; } = new List<WorkstationMaster>();
+
+    public virtual ICollection<YearlyPerformance> YearlyPerformanceCreatedByNavigations { get; set; } = new List<YearlyPerformance>();
+
+    public virtual ICollection<YearlyPerformance> YearlyPerformanceUpdatedByNavigations { get; set; } = new List<YearlyPerformance>();
 
     public virtual ICollection<ZoneMaster> ZoneMasterCreatedByNavigations { get; set; } = new List<ZoneMaster>();
 

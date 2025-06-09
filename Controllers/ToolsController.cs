@@ -223,22 +223,22 @@ public class ToolsController : ControllerBase
                 Success = true,
                 Message = result
             };
-            await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AtendanceStatus", result, request.CreatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AttendanceRegularization", result, request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceRegularization", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
-            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceRegularization", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/AttendanceRegularization", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -256,12 +256,12 @@ public class ToolsController : ControllerBase
                 Message = createdAttendanceStatus
             };
 
-            await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/AttendanceStatus", JsonSerializer.Serialize(response), dto.CreatedBy, JsonSerializer.Serialize(dto));
+            await _loggingService.AuditLog("Attendance Status Color", "POST", "/api/Tools/AttendanceStatusColor", JsonSerializer.Serialize(response), dto.CreatedBy, JsonSerializer.Serialize(dto));
             return Ok(response);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError( "Attendance Regularization", "POST", "/api/Tools/AttendanceStatus",  ex.Message, ex.StackTrace ?? string.Empty,    ex.InnerException?.ToString() ?? string.Empty,dto.CreatedBy,   JsonSerializer.Serialize(dto)  );
+            await _loggingService.LogError( "Attendance Status Color", "POST", "/api/Tools/AttendanceStatusColor",  ex.Message, ex.StackTrace ?? string.Empty,    ex.InnerException?.ToString() ?? string.Empty,dto.CreatedBy,   JsonSerializer.Serialize(dto)  );
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -300,17 +300,17 @@ public class ToolsController : ControllerBase
                 Success = true,
                 Message = createdAttendanceStatus
             };
-            await _loggingService.AuditLog("Attendance Regularization", "POST", "/api/Tools/UpdateAttendanceStatusColor", JsonSerializer.Serialize(response), dto.UpdatedBy, JsonSerializer.Serialize(dto));
+            await _loggingService.AuditLog("Attendance Status Color", "POST", "/api/Tools/UpdateAttendanceStatusColor", JsonSerializer.Serialize(response), dto.UpdatedBy, JsonSerializer.Serialize(dto));
             return Ok(response);
         }
         catch(MessageNotFoundException ex)
         {
-            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/UpdateAttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.UpdatedBy, JsonSerializer.Serialize(dto));
+            await _loggingService.LogError("Attendance Status Color", "POST", "/api/Tools/UpdateAttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.UpdatedBy, JsonSerializer.Serialize(dto));
             return ErrorClass.NotFoundResponse(ex.Message);
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError("Attendance Regularization", "POST", "/api/Tools/UpdateAttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.UpdatedBy, JsonSerializer.Serialize(dto));
+            await _loggingService.LogError("Attendance Status Color", "POST", "/api/Tools/UpdateAttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.UpdatedBy, JsonSerializer.Serialize(dto));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

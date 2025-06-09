@@ -30,15 +30,17 @@ namespace AttendanceManagement.Services
         private readonly AttendanceManagementSystemContext _context;
         private readonly EmailService _emailService;
         private readonly string _workspacePath;
-        public ProbationService(AttendanceManagementSystemContext context, EmailService emailService, IWebHostEnvironment env)
+        private readonly LetterGenerationService _letterGenerationService;
+        public ProbationService(AttendanceManagementSystemContext context, EmailService emailService, IWebHostEnvironment env, LetterGenerationService letterGenerationService)
         {
             _context = context;
             _emailService = emailService;
-            _workspacePath = Path.Combine(env.ContentRootPath, "GeneratedLetters");
+            _workspacePath = Path.Combine(env.ContentRootPath, "wwwroot\\GeneratedLetters\\ConfirmationLetter");
             if (!Directory.Exists(_workspacePath))
             {
                 Directory.CreateDirectory(_workspacePath);
             }
+            _letterGenerationService = letterGenerationService;
         }
 
         public async Task<List<ProbationResponse>> GetAllProbationsAsync()
@@ -53,7 +55,7 @@ namespace AttendanceManagement.Services
                     .Where(f => f.ProbationId == p.Id && f.IsActive)
                     .OrderByDescending(f => f.Id)
                     .FirstOrDefault()
-                where p.IsActive && s.IsActive == true
+                where p.IsActive && s.IsActive == true && (p.ProbationEndDate >= DateOnly.FromDateTime(DateTime.UtcNow) || latestFeedback.ExtensionPeriod >= DateOnly.FromDateTime(DateTime.UtcNow))
                 select new ProbationResponse
                 {
                     ProbationId = p.Id,
@@ -65,6 +67,10 @@ namespace AttendanceManagement.Services
                     ProbationEndDate = latestFeedback != null && latestFeedback.ExtensionPeriod != null
                         ? latestFeedback.ExtensionPeriod.Value
                         : p.ProbationEndDate,
+                    IsAssigned = p.IsAssigned,
+                    ManagerId = p.ManagerId,
+                    IsApproved = latestFeedback.IsApproved,
+                    FeedBackText = latestFeedback.FeedbackText,
                     CreatedBy = p.CreatedBy,
                     ProbationReport = report
                 }).ToListAsync();
@@ -77,15 +83,23 @@ namespace AttendanceManagement.Services
 
         public async Task<object> GetAllManagers()
         {
-            var managers = await _context.StaffCreations.Where(s => s.AccessLevel == "REPORTING MANAGER" && s.IsActive == true)
-                .Select(s => new
+            var approvalLevel1Ids = await _context.StaffCreations
+                .Where(s => s.IsActive == true)
+                .Select(s => s.ApprovalLevel1)
+                .Distinct()
+                .ToListAsync();
+            var managers = await _context.StaffCreations
+                .Where(m => approvalLevel1Ids.Contains(m.Id) && m.IsActive == true)
+                .Select(m => new
                 {
-                   Id = s.Id,
-                   StaffId = s.StaffId,
-                   Name = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
-                   OfficialMail = s.OfficialEmail
-                }).ToListAsync();
-            if(managers.Count == 0) throw new MessageNotFoundException("No Managers found");
+                    Id = m.Id,
+                    StaffId = m.StaffId,
+                    Name = $"{m.FirstName}{(string.IsNullOrWhiteSpace(m.LastName) ? "" : " " + m.LastName)}",
+                    OfficialMail = m.OfficialEmail
+                })
+                .ToListAsync();
+            if (managers.Count == 0) throw new MessageNotFoundException("No Managers found");
+
             return managers;
         }
 
@@ -126,9 +140,10 @@ namespace AttendanceManagement.Services
             var manager = await _context.StaffCreations.FirstOrDefaultAsync(m => m.Id == assignManagerRequest.ManagerId && m.IsActive == true);
             if (manager == null) throw new MessageNotFoundException("Manager not found");
             if (manager.OfficialEmail == null) throw new MessageNotFoundException("Manager email not found");
-            if (probation.ManagerId != null) throw new ConflictException("Manager already assigned");
+            //if (probation.ManagerId != null) throw new ConflictException("Manager already assigned");
             var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f => f.ProbationId == probation.Id && f.IsActive);
             var effectiveEndDate = feedback?.ExtensionPeriod ?? probation.ProbationEndDate;
+            probation.IsAssigned = true;
             probation.ManagerId = assignManagerRequest.ManagerId;
             probation.AssignedBy = assignManagerRequest.CreatedBy;
             probation.AssignedOn = DateTime.UtcNow;
@@ -181,14 +196,79 @@ namespace AttendanceManagement.Services
             return message;
         }
 
+        public async Task<List<ProbationReportResponse>> GetProbationReportsByApproverLevel(int approverLevel, int year)
+        {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == approverLevel && x.IsActive == true)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN";
+            var matchingProbations = await (from p in _context.Probations
+                                            join s in _context.StaffCreations on p.StaffCreationId equals s.Id
+                                            join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
+                                            join r in _context.ProbationReports on s.StaffId equals r.EmpId into reportGroup
+                                            from report in reportGroup.DefaultIfEmpty()
+                                            let latestFeedback = _context.Feedbacks
+                                            .Where(f => f.ProbationId == p.Id && f.IsActive)
+                                            .OrderByDescending(f => f.Id)
+                                            .FirstOrDefault()
+                                            where s.IsActive == true && d.IsActive && report.ProductivityYear == year && (isSuperAdmin || p.ManagerId == approverLevel)
+                                            select new ProbationReportResponse
+                                            {
+                                                EmpId = s.StaffId,
+                                                Name = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
+                                                Department = d.Name,
+                                                ProdScore = report.ProdScore,
+                                                ProdPercentage = report.ProdPercentage,
+                                                ProdGrade = report.ProdGrade,
+                                                QualityScore = report.QualityScore,
+                                                QualityPercentage = report.QualityPercentage,
+                                                NoOfAbsent = report.NoOfAbsent,
+                                                AttendanceScore = report.AttendanceScore,
+                                                AttendancePercentage = report.AttendancePercentage,
+                                                AttendanceGrade = report.AttendanceGrade,
+                                                FinalTotal = report.FinalTotal,
+                                                TotalScore = report.TotalScore,
+                                                FinalScorePercentage = report.FinalScorePercentage,
+                                                FinalGrade = report.FinalGrade,
+                                                ProductionAchievedPercentageJan = report.ProductionAchievedPercentageJan,
+                                                ProductionAchievedPercentageFeb = report.ProductionAchievedPercentageFeb,
+                                                ProductionAchievedPercentageMar = report.ProductionAchievedPercentageMar,
+                                                ProductionAchievedPercentageApr = report.ProductionAchievedPercentageApr,
+                                                ProductionAchievedPercentageMay = report.ProductionAchievedPercentageMay,
+                                                ProductionAchievedPercentageJun = report.ProductionAchievedPercentageJun,
+                                                ProductionAchievedPercentageJul = report.ProductionAchievedPercentageJul,
+                                                ProductionAchievedPercentageAug = report.ProductionAchievedPercentageAug,
+                                                ProductionAchievedPercentageSep = report.ProductionAchievedPercentageSep,
+                                                ProductionAchievedPercentageOct = report.ProductionAchievedPercentageOct,
+                                                ProductionAchievedPercentageNov = report.ProductionAchievedPercentageNov,
+                                                ProductionAchievedPercentageDec = report.ProductionAchievedPercentageDec,
+                                                ProductivityYear = report.ProductivityYear
+                                            }).ToListAsync();
+            if (!matchingProbations.Any())
+            {
+                throw new MessageNotFoundException("No Probation reports found");
+            }
+            return matchingProbations;
+        }
         public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId)
         {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == approverLevelId && x.IsActive == true)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN";
+
             var matchingProbations = await (from p in _context.Probations
                                       join s in _context.StaffCreations on p.StaffCreationId equals s.Id
                                       join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
                                       join r in _context.ProbationReports on s.StaffId equals r.EmpId into reportGroup
                                       from report in reportGroup.DefaultIfEmpty()
-                                      where p.IsActive && s.IsActive == true && (s.ApprovalLevel1 == approverLevelId || s.ApprovalLevel2 == approverLevelId || s.AccessLevel == "SUPER ADMIN")
+                                      let latestFeedback = _context.Feedbacks
+                                      .Where(f => f.ProbationId == p.Id && f.IsActive)
+                                      .OrderByDescending(f => f.Id)
+                                      .FirstOrDefault()
+                                      where p.IsActive && s.IsActive == true && d.IsActive && (isSuperAdmin || p.ManagerId == approverLevelId) && (p.ProbationEndDate >= DateOnly.FromDateTime(DateTime.UtcNow) || latestFeedback.ExtensionPeriod >= DateOnly.FromDateTime(DateTime.UtcNow))
                                       select new ProbationResponse
                                       {
                                           ProbationId = p.Id,
@@ -198,6 +278,8 @@ namespace AttendanceManagement.Services
                                           DepartmentName = d.Name,
                                           ProbationStartDate = p.ProbationStartDate,
                                           ProbationEndDate = p.ProbationEndDate,
+                                          FeedBackText = latestFeedback.FeedbackText,
+                                          IsApproved = latestFeedback.IsApproved,
                                           CreatedBy = p.CreatedBy,
                                           ProbationReport = report
                                       }).ToListAsync();
@@ -412,7 +494,13 @@ namespace AttendanceManagement.Services
                 endDate = feedback.ExtensionPeriod.Value.ToString("dd MMMM yyyy");
             }
             var fileName = $"Confirmation_Letter_{staffId.StaffId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
-            var pdfPath = GeneratePdf(staffCreationId, designation.Name, staffId.Title, startDate, endDate, fileName);
+            var staffs = _context.StaffCreations.FirstOrDefault(s => s.Id == staffCreationId && s.IsActive == true);
+            if (staffs == null)
+            {
+                throw new MessageNotFoundException($"Staff with ID {staffCreationId} not found.");
+            }
+            var name = $"{staffs.FirstName}{(string.IsNullOrWhiteSpace(staffs.LastName) ? "" : " " + staffs.LastName)}";
+            var pdfPath = _letterGenerationService.GenerateConfirmationPdf(staffCreationId, designation.Name, staffId.Title, startDate, endDate, fileName, name, staffs.StaffId);
             byte[] pdfBytes = System.IO.File.ReadAllBytes(pdfPath);
             string base64Pdf = Convert.ToBase64String(pdfBytes);
             var letterGeneration = new LetterGeneration
@@ -428,115 +516,6 @@ namespace AttendanceManagement.Services
             await _context.LetterGenerations.AddAsync(letterGeneration);
             await _context.SaveChangesAsync();
             return pdfPath;
-        }
-
-        private string GeneratePdf(int staffCreationId, string designation, string title, string startDate, string endDate, string fileName)
-        {
-            var staff = _context.StaffCreations.FirstOrDefault(s => s.Id == staffCreationId && s.IsActive == true);
-            if (staff == null)
-            {
-                throw new MessageNotFoundException($"Staff with ID {staffCreationId} not found.");
-            }
-            var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedLetters");
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-            var filePath = Path.Combine(directoryPath, fileName);
-
-            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            using (var pdfDoc = new Document(PageSize.A4, 50, 50, 80, 50))
-            {
-                PdfWriter.GetInstance(pdfDoc, fs);
-                pdfDoc.Open();
-
-                // Fonts
-                var underlineFont = new Font(Font.FontFamily.HELVETICA, 14, Font.UNDERLINE | Font.BOLD);
-                var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
-                var boldFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
-                var redFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.RED);
-
-                // Date
-                var dateLine = new Paragraph();
-                dateLine.Add(new Chunk("Date: ", boldFont));
-                dateLine.Add(new Chunk(DateTime.UtcNow.ToString("dd MMMM yyyy"), bodyFont));
-                pdfDoc.Add(dateLine);
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Name
-                var nameLine = new Paragraph();
-                nameLine.Add(new Chunk("Name: ", boldFont));
-                nameLine.Add(new Chunk($"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}", bodyFont));
-                pdfDoc.Add(nameLine);
-
-                // Employee Code
-                var codeLine = new Paragraph();
-                codeLine.Add(new Chunk("Employee Code: ", boldFont));
-                codeLine.Add(new Chunk(staff.StaffId, bodyFont));
-                pdfDoc.Add(codeLine);
-
-                // Designation
-                var desigLine = new Paragraph();
-                desigLine.Add(new Chunk("Designation: ", boldFont));
-                desigLine.Add(new Chunk(designation, bodyFont));
-                pdfDoc.Add(desigLine);
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Salutation (Dear ...)
-                var dearLine = new Paragraph();
-                dearLine.Add(new Chunk("Dear ", boldFont));
-                dearLine.Add(new Chunk($"{title} {staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)},", bodyFont));
-                pdfDoc.Add(dearLine);
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Subject - centered and underlined
-                var subjectParagraph = new Paragraph("Sub: Service Confirmation", underlineFont)
-                {
-                    Alignment = Element.ALIGN_CENTER
-                };
-                pdfDoc.Add(subjectParagraph);
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Paragraph 1 with red VLead
-                var para1 = new Paragraph();
-                para1.Add(new Chunk("V", redFont));
-                para1.Add(new Chunk($"Lead Design Services appreciates your continuous participation and involvement in the organizational growth. Based on the review of your performance for the period from {startDate} to {endDate}, we are pleased to inform and confirm your services with effect from ", bodyFont));
-                para1.Add(new Chunk(DateTime.UtcNow.ToString("dd MMMM yyyy"), bodyFont));
-                para1.Add(new Chunk(" in the organization.", bodyFont));
-                pdfDoc.Add(para1);
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Paragraph 2
-                pdfDoc.Add(new Paragraph("All other terms and conditions as per your appointment order will remain unchanged.", bodyFont));
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Paragraph 3
-                pdfDoc.Add(new Paragraph("Please sign and return the enclosed copy of this letter as a token of acknowledgement.", bodyFont));
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Paragraph 4 with red VLead
-                var para4 = new Paragraph();
-                para4.Add(new Chunk("We wish you all the best in your assignments with ", bodyFont));
-                para4.Add(new Chunk("V", redFont));
-                para4.Add(new Chunk("Lead Design Services.", bodyFont));
-                pdfDoc.Add(para4);
-                pdfDoc.Add(new Paragraph(" "));
-
-                // Signature block in one line with red V
-                var signature = new Paragraph();
-                signature.Add(new Chunk("For ", bodyFont));
-                signature.Add(new Chunk("V", redFont));
-                signature.Add(new Chunk("Lead Design Services Private Limited", bodyFont));
-                pdfDoc.Add(signature);
-
-                pdfDoc.Add(new Paragraph(" "));
-                pdfDoc.Add(new Paragraph("Nirmala Thamarai", bodyFont));
-                pdfDoc.Add(new Paragraph("Manager - HR", bodyFont));
-
-                pdfDoc.Close();
-            }
-
-            return filePath;
         }
 
         public async Task<List<GeneratedLetterResponse>> GetGeneratedLetters(int staffId)

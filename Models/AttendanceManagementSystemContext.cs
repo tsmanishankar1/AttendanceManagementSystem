@@ -17,9 +17,13 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<AddressVerification> AddressVerifications { get; set; }
 
+    public virtual DbSet<AgmApproval> AgmApprovals { get; set; }
+
     public virtual DbSet<ApplicationType> ApplicationTypes { get; set; }
 
     public virtual DbSet<AppraisalAnnexureA> AppraisalAnnexureAs { get; set; }
+
+    public virtual DbSet<AppraisalSelectionDropDown> AppraisalSelectionDropDowns { get; set; }
 
     public virtual DbSet<Approval> Approvals { get; set; }
 
@@ -87,7 +91,13 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<EmergencyContact> EmergencyContacts { get; set; }
 
+    public virtual DbSet<EmployeeAcceptance> EmployeeAcceptances { get; set; }
+
+    public virtual DbSet<EmployeeAppraisalSheet> EmployeeAppraisalSheets { get; set; }
+
     public virtual DbSet<EmployeePerformance> EmployeePerformances { get; set; }
+
+    public virtual DbSet<EmployeePerformanceReview> EmployeePerformanceReviews { get; set; }
 
     public virtual DbSet<EmploymentHistory> EmploymentHistories { get; set; }
 
@@ -223,6 +233,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<SalaryStructure> SalaryStructures { get; set; }
 
+    public virtual DbSet<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisals { get; set; }
+
     public virtual DbSet<Shift> Shifts { get; set; }
 
     public virtual DbSet<ShiftChange> ShiftChanges { get; set; }
@@ -284,6 +296,8 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<WorkingTypeAmount> WorkingTypeAmounts { get; set; }
 
     public virtual DbSet<WorkstationMaster> WorkstationMasters { get; set; }
+
+    public virtual DbSet<YearlyPerformance> YearlyPerformances { get; set; }
 
     public virtual DbSet<ZoneMaster> ZoneMasters { get; set; }
 
@@ -406,6 +420,30 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_UPD");
         });
 
+        modelBuilder.Entity<AgmApproval>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AgmAppro__3214EC07C5019607");
+
+            entity.ToTable("AgmApproval");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AgmApprovalCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EPRAId");
+
+            entity.HasOne(d => d.EmployeePerformanceReview).WithMany(p => p.AgmApprovals)
+                .HasForeignKey(d => d.EmployeePerformanceReviewId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EPRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.AgmApprovalUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_AEPRId");
+        });
+
         modelBuilder.Entity<ApplicationType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__2821513AB21B7CCC");
@@ -462,6 +500,28 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.AppraisalAnnexureAUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPANId");
+        });
+
+        modelBuilder.Entity<AppraisalSelectionDropDown>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__AppraisalDropD__869767EADE6795EB");
+
+            entity.ToTable("AppraisalSelectionDropDown");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AppraisalSelectionDropDownCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRASDId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.AppraisalSelectionDropDownUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPASDId");
         });
 
         modelBuilder.Entity<Approval>(entity =>
@@ -1604,6 +1664,183 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_UPEMER");
         });
 
+        modelBuilder.Entity<EmployeeAcceptance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0787DB0808");
+
+            entity.ToTable("EmployeeAcceptance");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Department)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Division)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmpId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmpName)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.EmployeeAcceptanceCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EACRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.EmployeeAcceptanceUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_EAUPId");
+        });
+
+        modelBuilder.Entity<EmployeeAppraisalSheet>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC077410E977");
+
+            entity.ToTable("EmployeeAppraisalSheet");
+
+            entity.Property(e => e.BasicCurrentPerAnnum).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BasicCurrentPerAnnumAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BasicCurrentPerMonth).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BasicCurrentPerMonthAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConveyancePerAnnum).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConveyancePerAnnumAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConveyancePerMonth).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ConveyancePerMonthAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Department)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Designation)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeEsicontributionPerAnnum)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeeESIContributionPerAnnum");
+            entity.Property(e => e.EmployeeEsicontributionPerAnnumAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeeESIContributionPerAnnumAfterApp");
+            entity.Property(e => e.EmployeeEsicontributionPerMonth)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeeESIContributionPerMonth");
+            entity.Property(e => e.EmployeeEsicontributionPerMonthAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeeESIContributionPerMonthAfterApp");
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeePfcontributionPerAnnum)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeePFContributionPerAnnum");
+            entity.Property(e => e.EmployeePfcontributionPerAnnumAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeePFContributionPerAnnumAfterApp");
+            entity.Property(e => e.EmployeePfcontributionPerMonth)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeePFContributionPerMonth");
+            entity.Property(e => e.EmployeePfcontributionPerMonthAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployeePFContributionPerMonthAfterApp");
+            entity.Property(e => e.EmployeeSalutation)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployerEsicontributionPerAnnum)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerESIContributionPerAnnum");
+            entity.Property(e => e.EmployerEsicontributionPerAnnumAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerESIContributionPerAnnumAfterApp");
+            entity.Property(e => e.EmployerEsicontributionPerMonth)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerESIContributionPerMonth");
+            entity.Property(e => e.EmployerEsicontributionPerMonthAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerESIContributionPerMonthAfterApp");
+            entity.Property(e => e.EmployerGmcperAnnum)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerGMCPerAnnum");
+            entity.Property(e => e.EmployerGmcperAnnumAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerGMCPerAnnumAfterApp");
+            entity.Property(e => e.EmployerGmcperMonth)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerGMCPerMonth");
+            entity.Property(e => e.EmployerGmcperMonthAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerGMCPerMonthAfterApp");
+            entity.Property(e => e.EmployerPfcontributionPerAnnum)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerPFContributionPerAnnum");
+            entity.Property(e => e.EmployerPfcontributionPerAnnumAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerPFContributionPerAnnumAfterApp");
+            entity.Property(e => e.EmployerPfcontributionPerMonth)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerPFContributionPerMonth");
+            entity.Property(e => e.EmployerPfcontributionPerMonthAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("EmployerPFContributionPerMonthAfterApp");
+            entity.Property(e => e.GmcperAnnum)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("GMCPerAnnum");
+            entity.Property(e => e.GmcperAnnumAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("GMCPerAnnumAfterApp");
+            entity.Property(e => e.GmcperMonth)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("GMCPerMonth");
+            entity.Property(e => e.GmcperMonthAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("GMCPerMonthAfterApp");
+            entity.Property(e => e.GroupPersonalAccidentPerAnnum).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GroupPersonalAccidentPerAnnumAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GroupPersonalAccidentPerMonth).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.GroupPersonalAccidentPerMonthAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.HraperAnnum)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("HRAPerAnnum");
+            entity.Property(e => e.HraperAnnumAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("HRAPerAnnumAfterApp");
+            entity.Property(e => e.HraperMonth)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("HRAPerMonth");
+            entity.Property(e => e.HraperMonthAfterApp)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("HRAPerMonthAfterApp");
+            entity.Property(e => e.MedicalAllowancePerAnnum).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedicalAllowancePerAnnumAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedicalAllowancePerMonth).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MedicalAllowancePerMonthAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ProfessionalTaxPerAnnum).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ProfessionalTaxPerAnnumAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ProfessionalTaxPerMonth).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ProfessionalTaxPerMonthAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.RevisedDesignation)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.SpecialAllowancePerAnnum).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SpecialAllowancePerAnnumAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SpecialAllowancePerMonth).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SpecialAllowancePerMonthAfterApp).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TotalAppraisal).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.EmployeeAppraisalSheetCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EASCRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.EmployeeAppraisalSheetUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_EASUPId");
+        });
+
         modelBuilder.Entity<EmployeePerformance>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07C6F1946B");
@@ -1630,6 +1867,54 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<EmployeePerformanceReview>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07E67937AE");
+
+            entity.ToTable("EmployeePerformanceReview");
+
+            entity.Property(e => e.AbsentDays).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Department)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Division)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmpId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmpName)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Grade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ReportingManagers)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appraisal).WithMany(p => p.EmployeePerformanceReviews)
+                .HasForeignKey(d => d.AppraisalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ASDEPRId");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.EmployeePerformanceReviewCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EPRCRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.EmployeePerformanceReviewUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_EPRUPId");
         });
 
         modelBuilder.Entity<EmploymentHistory>(entity =>
@@ -2400,7 +2685,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
-            entity.Property(e => e.FileName).IsUnicode(false);
+            entity.Property(e => e.FileName)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LetterPath).HasMaxLength(500);
             entity.Property(e => e.UpdatedUtc)
@@ -3685,6 +3972,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Quarter)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
@@ -4006,6 +4296,46 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SalaryStructureUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK__SalaryStr__Updat__54AC64D5");
+        });
+
+        modelBuilder.Entity<SelectedEmployeesForAppraisal>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Selected__3214EC07C82DC83F");
+
+            entity.ToTable("SelectedEmployeesForAppraisal");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Department)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Division)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.ReportingManagers)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appraisal).WithMany(p => p.SelectedEmployeesForAppraisals)
+                .HasForeignKey(d => d.AppraisalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ASDId");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SelectedEmployeesForAppraisalCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRSEId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SelectedEmployeesForAppraisalUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPSEId");
         });
 
         modelBuilder.Entity<Shift>(entity =>
@@ -5120,6 +5450,49 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.WorkstationMasterUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPWORK");
+        });
+
+        modelBuilder.Entity<YearlyPerformance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__YearlyPe__3214EC0775BB2705");
+
+            entity.ToTable("YearlyPerformance");
+
+            entity.Property(e => e.AbsentDays).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Designation)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Grade)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.HrComments).IsUnicode(false);
+            entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.YearlyPerformanceCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRYPId");
+
+            entity.HasOne(d => d.PerformanceType).WithMany(p => p.YearlyPerformances)
+                .HasForeignKey(d => d.PerformanceTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UPYPUTId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.YearlyPerformanceUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPYPId");
         });
 
         modelBuilder.Entity<ZoneMaster>(entity =>

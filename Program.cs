@@ -85,6 +85,8 @@ builder.Services.AddScoped<StaffTransactionService>();
 builder.Services.AddScoped<ApproveApplicationService>();
 builder.Services.AddScoped<StatutoryReportService>();
 builder.Services.AddScoped<PerformanceReviewService>();
+builder.Services.AddScoped<AppraisalManagementService>();
+builder.Services.AddScoped<LetterGenerationService>();
 builder.Services.AddHostedService<ProbationConfirmationService>();
 builder.Services.AddHttpContextAccessor();
 

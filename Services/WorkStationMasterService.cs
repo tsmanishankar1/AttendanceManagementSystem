@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -35,6 +36,8 @@ public class WorkstationMasterService
     public async Task<string> CreateWorkstationAsync(WorkStationRequest workstationRequest)
     {
         var message = "Workstation added successfully.";
+        var isDuplicate = await _context.WorkstationMasters.AnyAsync(ws => ws.Name.ToLower() == workstationRequest.FullName.ToLower());
+        if (isDuplicate) throw new ValidationException("Workstation name already exists");
         var workstation = new WorkstationMaster
         {
             Name = workstationRequest.FullName,
@@ -53,7 +56,11 @@ public class WorkstationMasterService
         var message = "Workstation updated successfully.";
         var workstation = await _context.WorkstationMasters.FirstOrDefaultAsync(ws => ws.Id == updatedWorkstation.WorkstationMasterId);
         if (workstation == null) throw new MessageNotFoundException("WorkStation not found");
-
+        if (!string.IsNullOrWhiteSpace(updatedWorkstation.FullName))
+        {
+            var isDuplicate = await _context.WorkstationMasters.AnyAsync(ws => ws.Id != updatedWorkstation.WorkstationMasterId && ws.Name.ToLower() == updatedWorkstation.FullName.ToLower());
+            if (isDuplicate) throw new ValidationException("Workstation name already exists");
+        }
         workstation.Name = updatedWorkstation.FullName;
         workstation.IsActive = updatedWorkstation.IsActive;
         workstation.ShortName = updatedWorkstation.ShortName;

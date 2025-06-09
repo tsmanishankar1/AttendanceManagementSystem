@@ -2,6 +2,7 @@
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services
 {
@@ -36,6 +37,8 @@ namespace AttendanceManagement.Services
         public async Task<string> AddDivision(DivisionRequest divisionRequest)
         {
             var message = "Division created successfully";
+            var isDuplicate = await _context.DivisionMasters.AnyAsync(d => d.Name.ToLower() == divisionRequest.FullName.ToLower());
+            if (isDuplicate) throw new ValidationException("Division name already exists");
             DivisionMaster division = new DivisionMaster
             {
                 Name = divisionRequest.FullName,
@@ -56,6 +59,11 @@ namespace AttendanceManagement.Services
             if (existingDivision == null)
             {
                 throw new MessageNotFoundException("Division not found");
+            }
+            if (!string.IsNullOrWhiteSpace(division.FullName))
+            {
+                var isDuplicate = await _context.DivisionMasters.AnyAsync(d => d.Id != division.DivisionMasterId && d.Name.ToLower() == division.FullName.ToLower());
+                if (isDuplicate) throw new ValidationException("Division name already exists");
             }
             existingDivision.Name = division.FullName ?? existingDivision.Name;
             existingDivision.ShortName = division.ShortName ?? existingDivision.ShortName;

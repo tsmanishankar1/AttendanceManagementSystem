@@ -1,0 +1,738 @@
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using SharePointWebApp.Models;
+using SharePointWebApp.ViewModels;
+using System.Globalization;
+using User = SharePointWebApp.Models.User;
+
+namespace SharePointWebApp.Service
+{
+    public class BackUpService
+    {
+        private readonly GraphServiceClient _graphServiceClient;
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly SharePointContext _context;
+        private readonly string _blobContainerName;
+        public BackUpService(GraphServiceClient graphServiceClient, BlobServiceClient blobServiceClient, SharePointContext context, IConfiguration configuration)
+        {
+            _graphServiceClient = graphServiceClient;
+            _blobServiceClient = blobServiceClient;
+            _context = context;
+            _blobContainerName = configuration["BlobStorage:ContainerName"];
+        }
+        public async Task<string> BackupFiles(BackupRequest migrate)
+        {
+            var message = "Backup completed successfully.";
+
+            foreach (var request in migrate.selectedRows)
+            {
+                var sites = await _graphServiceClient.Sites.GetAsync();
+
+                DriveItem fileItem = null;
+                Drive foundDrive = null;
+                Site foundSite = null;
+                BlobClient blobClient = null;
+
+                foreach (var site in sites.Value)
+                {
+                    var drives = await _graphServiceClient.Sites[site.Id].Drives.GetAsync();
+
+                    User newUser = null;
+                    User existingUser = null;
+
+                    foreach (var drive in drives.Value)
+                    {
+                        // Fetch the list of files (items) in the drive
+                        var items = await _graphServiceClient.Drives[drive.Id].Root
+                            .GetAsync(config => config.QueryParameters.Expand = new[] { "children" });
+
+                        if (items?.Children != null)
+                        {
+                            // Handle file or folder migration
+                            fileItem = items.Children
+                                .FirstOrDefault(item => item.Name.Equals(request.fileName, StringComparison.OrdinalIgnoreCase));
+
+                            if (fileItem != null)
+                            {
+                                if (fileItem.File != null)
+                                {
+                                    await MigrateFile(request, fileItem, drive, site, newUser, existingUser, blobClient);
+                                }
+                                else if (fileItem.Folder != null)
+                                {
+                                    await MigrateFolder(request, fileItem, drive, site, newUser, existingUser, blobClient);
+                                }
+
+                                foundDrive = drive;
+                                foundSite = site;
+
+                                break;
+                            }
+                        }
+                    }
+
+                    if (fileItem != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (fileItem == null || foundDrive == null || foundSite == null)
+                {
+                    throw new Exception("File or site not found.");
+                }
+            }
+
+            return message;
+        }
+
+        // Method to migrate individual files to blob storage with folder path
+        private async Task MigrateFile(BackupRequest request, DriveItem fileItem, Drive drive, Site site, User newUser, User existingUser, BlobClient blobClient)
+        {
+            var user = fileItem.CreatedBy.User;
+            var userId = user.Id;
+            var userName = user.DisplayName;
+            var graphUser = await _graphServiceClient.Users[userId].GetAsync();
+            var userEmail = graphUser.Mail;
+            var lastUpdated = LastUpdateFormatter.FormatLastUpdated(fileItem.LastModifiedDateTime);
+
+            // Check if the user already exists in the SharePointUsers table
+            existingUser = _context.Users.FirstOrDefault(u => u.UserId == userId);
+
+            if (existingUser == null)
+            {
+                newUser = new User
+                {
+                    UserId = userId,
+                    Name = userName,
+                    Email = userEmail,
+                    AllocatedStorage = await GetUserAllocatedStorage(userId),
+                    Usage = UsageFormatter.FormatUsage((long)fileItem.Size),
+                    LastUpdated = lastUpdated,
+                    IsActive = true,
+                    CreatedBy = userName,
+                    CreatedUtc = DateTime.UtcNow
+                };
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                long totalUsage = await _context.UserTransactions
+                    .Where(ut => ut.UserId == existingUser.Id)
+                    .SumAsync(ut => (long?)ut.FileSize) ?? 0;
+
+                // Format total usage including the new file's size
+                string formattedTotalUsage = UsageFormatter.FormatUsage(totalUsage + (long)fileItem.Size);
+
+                existingUser.Usage = formattedTotalUsage;
+                existingUser.UpdatedBy = userName;
+                existingUser.UpdatedUtc = DateTime.UtcNow;
+                _context.Users.Update(existingUser);
+                await _context.SaveChangesAsync();
+            }
+
+            // Retrieve the file versions
+            var fileVersions = await _graphServiceClient.Drives[drive.Id].Items[fileItem.Id].Versions.GetAsync();
+            var latestVersion = fileVersions.Value.FirstOrDefault(); // Get the latest version
+
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+            string blobFileName = $"{Path.GetFileNameWithoutExtension(request.fileName)}({request.guid}){Path.GetExtension(fileItem.Name)}";
+            blobClient = blobContainerClient.GetBlobClient(blobFileName);
+
+            // Add the transaction for this file backup
+            var userTransaction = new UserTransaction
+            {
+                UserId = existingUser?.Id ?? newUser.Id,
+                FileId = fileItem.Id,
+                FileName = Path.GetFileNameWithoutExtension(request.fileName),
+                Type = fileItem.File?.MimeType,
+                FileSize = (long)fileItem.Size,
+                LastUpdated = GetRelativeTime(fileItem.LastModifiedDateTime ?? DateTimeOffset.UtcNow),
+                UploadedDate = (fileItem.CreatedDateTime?.DateTime ?? DateTime.UtcNow).ToString("d MMM yyyy", CultureInfo.InvariantCulture),
+                SiteName = site.DisplayName,
+                DriveName = drive.Name,
+                UniqueFileGuid = request.guid,
+                Version = latestVersion?.Id ?? "0",
+                FilePath = blobClient.Uri.ToString(),
+                SiteUrl = site.WebUrl,
+                ProcessType = "Backup",
+                IsActive = true,
+                CreatedBy = userId,
+                CreatedUtc = DateTime.UtcNow
+            };
+
+            _context.UserTransactions.Add(userTransaction);
+            await _context.SaveChangesAsync();
+
+            // Download the file from SharePoint
+            var stream = await _graphServiceClient.Drives[drive.Id].Items[fileItem.Id].Content.GetAsync();
+
+            // Upload the file to Azure Blob Storage
+            await blobClient.UploadAsync(stream, overwrite: true);
+        }
+        // Method to migrate folders and their contents to blob storage
+        private async Task MigrateFolder(BackupRequest request, DriveItem folderItem, Drive drive, Site site, User newUser, User existingUser, BlobClient blobClient)
+        {
+            var user = folderItem.CreatedBy.User;
+            var userId = user.Id;
+            var userName = user.DisplayName;
+            var graphUser = await _graphServiceClient.Users[userId].GetAsync();
+            var userEmail = graphUser.Mail;
+
+            // Iterate over all items in the folder
+            var itemsInFolder = await _graphServiceClient.Drives[drive.Id].Items[folderItem.Id].Children.GetAsync();
+
+            foreach (var item in itemsInFolder.Value)
+            {
+                // If it's a file, migrate it
+                if (item.File != null)
+                {
+                    // Append folder path and guid to file name for uniqueness
+                    var updatedRequest = new BackupRequest
+                    {
+                        fileName = $"{folderItem.Name}/{item.Name}", // Prefix the folder name to ensure uniqueness
+                        guid = Guid.NewGuid()
+                    };
+                    await MigrateFile(updatedRequest, item, drive, site, newUser, existingUser, blobClient);
+                }
+                // If it's a subfolder, recursively migrate its contents
+                else if (item.Folder != null)
+                {
+                    await MigrateFolder(request, item, drive, site, newUser, existingUser, blobClient);
+                }
+            }
+        }
+
+        public async Task<string> BackupFiles(string userId, DateTime fromDate, DateTime toDate)
+        {
+            var message = "Backup completed successfully.";
+            var sites = await _graphServiceClient.Sites.GetAsync();
+            fromDate = fromDate.Date;
+            toDate = toDate.Date.AddDays(1).AddTicks(-1);
+
+            foreach (var site in sites.Value)
+            {
+                var documentLibraries = await _graphServiceClient.Sites[site.Id].Drives.GetAsync();
+
+                foreach (var library in documentLibraries.Value)
+                {
+                    var items = await _graphServiceClient.Drives[library.Id].Root
+                        .GetAsync(config => config.QueryParameters.Expand = new[] { "children" });
+
+                    if (items?.Children != null)
+                    {
+                        var matchingFiles = items.Children
+                            .Where(item => item.File != null &&
+                                           item.LastModifiedDateTime.HasValue &&
+                                           item.LastModifiedDateTime >= fromDate &&
+                                           item.LastModifiedDateTime <= toDate &&
+                                           item.LastModifiedBy.User.Id == userId)
+                            .ToList();
+
+                        foreach (var file in matchingFiles)
+                        {
+                            // Retrieve file versions
+                            var fileVersions = await _graphServiceClient.Drives[library.Id].Items[file.Id]
+                                .Versions.GetAsync();
+
+                            foreach (var fileVersion in fileVersions.Value)
+                            {
+                                var user = file.CreatedBy.User;
+                                var userName = user.DisplayName;
+
+                                // Create or update user in the database
+                                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+                                if (existingUser == null)
+                                {
+                                    existingUser = new User
+                                    {
+                                        UserId = userId,
+                                        Name = userName,
+                                        Email = (await _graphServiceClient.Users[userId].GetAsync()).Mail,
+                                        AllocatedStorage = await GetUserAllocatedStorage(userId),
+                                        Usage = UsageFormatter.FormatUsage((long)file.Size),
+                                        LastUpdated = LastUpdateFormatter.FormatLastUpdated(file.LastModifiedDateTime),
+                                        IsActive = true,
+                                        CreatedBy = userName,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    _context.Users.Add(existingUser);
+                                }
+                                else
+                                {
+                                    existingUser.Usage = UsageFormatter.FormatUsage((long)file.Size);
+                                    existingUser.UpdatedBy = userName;
+                                    existingUser.UpdatedUtc = DateTime.UtcNow;
+                                    _context.Users.Update(existingUser);
+                                }
+                                await _context.SaveChangesAsync();
+
+                                // Set up Blob storage backup for the version
+                                var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+                                var fileGuid = Guid.NewGuid();
+                                string blobFileName = $"{Path.GetFileNameWithoutExtension(file.Name)}_{fileVersion.Id}_{fileGuid}{Path.GetExtension(file.Name)}";
+                                var blobClient = blobContainerClient.GetBlobClient(blobFileName);
+
+                                // Log user transaction
+                                var userTransaction = new UserTransaction
+                                {
+                                    UserId = existingUser.Id,
+                                    FileId = file.Id,
+                                    FileName = Path.GetFileNameWithoutExtension(file.Name),
+                                    Type = file.File?.MimeType,
+                                    FileSize = (long)fileVersion.Size,
+                                    UniqueFileGuid = fileGuid,
+                                    Version = fileVersion.Id, // Set version field to the version ID
+                                    LastUpdated = GetRelativeTime(fileVersion.LastModifiedDateTime ?? DateTimeOffset.UtcNow),
+                                    UploadedDate = DateTime.UtcNow.ToString("d MMM yyyy", CultureInfo.InvariantCulture),
+                                    SiteName = site.DisplayName,
+                                    DriveName = library.Name,
+                                    FilePath = blobClient.Uri.ToString(),
+                                    SiteUrl = site.WebUrl,
+                                    ProcessType = "Backup",
+                                    IsActive = true,
+                                    CreatedBy = user.Id,
+                                    CreatedUtc = DateTime.UtcNow,
+                                };
+
+                                _context.UserTransactions.Add(userTransaction);
+                                await _context.SaveChangesAsync();
+
+                                try
+                                {
+                                    // Attempt to retrieve content for the version
+                                    var stream = await _graphServiceClient.Drives[library.Id].Items[file.Id]
+                                        .Versions[fileVersion.Id].Content.GetAsync();
+
+                                    // Upload the version content to blob storage
+                                    await blobClient.UploadAsync(stream, overwrite: true);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Failed to Backup version {fileVersion.Id} for file {file.Name}: {ex.Message}");
+                                    continue; // Skip to the next version if an error occurs
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return message;
+        }
+        public async Task<string> BackupFilesAtScheduledTime(string userId, string fromDate, string toDate, string inputTime)
+        {
+            var message = "Backup scheduled successfully.";
+
+            // Parse the input time to DateTime format (HH:mm)
+            DateTime inputBackupTime;
+            if (!DateTime.TryParseExact(inputTime, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out inputBackupTime))
+            {
+                return "Invalid time format. Please use HH:mm format.";
+            }
+            DateTime parsedFromDate;
+            DateTime parsedToDate;
+
+            if (!DateTime.TryParse(fromDate, out parsedFromDate) || !DateTime.TryParse(toDate, out parsedToDate))
+            {
+                return "Invalid date format. Please use a valid date format (e.g., MM/dd/yyyy).";
+            }
+
+            // If toDate is in the future, set the backup at the current time for today
+            DateTime currentTime = DateTime.Now;
+            DateTime scheduledBackupTime;
+
+            // Determine the backup time based on the fromDate and toDate
+            if (parsedFromDate.Date < currentTime.Date)
+            {
+                // If the fromDate is in the past, set the backup at the specified inputTime on the last date (toDate)
+                scheduledBackupTime = new DateTime(parsedToDate.Year, parsedToDate.Month, parsedToDate.Day,
+                                                  inputBackupTime.Hour, inputBackupTime.Minute, 0);
+            }
+            else
+            {
+                // If fromDate is today or in the future, schedule it for the specified time on the fromDate
+                scheduledBackupTime = new DateTime(parsedFromDate.Year, parsedFromDate.Month, parsedFromDate.Day,
+                                                  inputBackupTime.Hour, inputBackupTime.Minute, 0);
+            }
+
+            // If the scheduled backup time has already passed today, schedule for the next day at the same time
+            if (scheduledBackupTime <= currentTime)
+            {
+                scheduledBackupTime = scheduledBackupTime.AddDays(1);
+            }
+
+            // Simulate saving the backup schedule in memory (this is where you would save it in a database in real scenarios)
+            Console.WriteLine($"Backup scheduled for {userId} from {parsedFromDate} to {parsedToDate} at {scheduledBackupTime}");
+
+            // Call the Backup method after the calculated delay (simulating scheduling)
+            var delay = scheduledBackupTime - currentTime;
+            await Task.Delay(delay);
+
+            // Now call the method to backup the files at the scheduled time
+            await BackupFiles(userId, parsedFromDate, parsedToDate, scheduledBackupTime);
+
+            return $"Backup has been scheduled for {scheduledBackupTime.ToString("HH:mm")}.";
+        }
+        private async Task BackupFiles(string userId, DateTime fromDate, DateTime toDate, DateTime scheduledBackupTime)
+        {
+            var sites = await _graphServiceClient.Sites.GetAsync();
+            fromDate = fromDate.Date;
+            toDate = toDate.Date.AddDays(1).AddTicks(-1);
+
+            foreach (var site in sites.Value)
+            {
+                var documentLibraries = await _graphServiceClient.Sites[site.Id].Drives.GetAsync();
+
+                foreach (var library in documentLibraries.Value)
+                {
+                    var items = await _graphServiceClient.Drives[library.Id].Root
+                        .GetAsync(config => config.QueryParameters.Expand = new[] { "children" });
+
+                    if (items?.Children != null)
+                    {
+                        var matchingFiles = items.Children
+                            .Where(item => item.File != null &&
+                                           item.LastModifiedDateTime.HasValue &&
+                                           item.LastModifiedDateTime >= fromDate &&
+                                           item.LastModifiedDateTime <= toDate &&
+                                           item.LastModifiedBy.User.Id == userId)
+                            .ToList();
+
+                        foreach (var file in matchingFiles)
+                        {
+                            // Backup process (e.g., upload to blob storage, store in DB, etc.)
+                            Console.WriteLine($"Backing up file: {file.Name} at {scheduledBackupTime}");
+
+                            // Example: Upload the file to Azure Blob Storage using BlobServiceClient
+                            using (var fileStream = await _graphServiceClient.Drives[library.Id].Items[file.Id].Content.GetAsync())
+                            {
+                                var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+                                var blobClient = blobContainerClient.GetBlobClient(file.Name);
+
+                                // Upload the file to the blob storage
+                                await blobClient.UploadAsync(fileStream, overwrite: true);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static class LastUpdateFormatter
+        {
+            public static string FormatLastUpdated(DateTimeOffset? lastModified)
+            {
+                if (lastModified == null)
+                    return "Unknown";
+
+                TimeSpan timeDifference = DateTimeOffset.Now - lastModified.Value;
+
+                if (timeDifference.TotalDays >= 1)
+                    return $"{(int)timeDifference.TotalDays} days ago";
+                else if (timeDifference.TotalHours >= 1)
+                    return $"{(int)timeDifference.TotalHours} hours ago";
+                else if (timeDifference.TotalMinutes >= 1)
+                    return $"{(int)timeDifference.TotalMinutes} minutes ago";
+                else
+                    return "Just now";
+            }
+        }
+
+        public static class UsageFormatter
+        {
+            public static string FormatUsage(long usageInBytes)
+            {
+                if (usageInBytes < 1024)
+                    return $"{usageInBytes} B";
+
+                if (usageInBytes < 1024 * 1024)
+                    return $"{Math.Round(usageInBytes / 1024.0, 2)} KB";
+
+                if (usageInBytes < 1024 * 1024 * 1024)
+                    return $"{Math.Round(usageInBytes / (1024.0 * 1024), 2)} MB";
+
+                return $"{Math.Round(usageInBytes / (1024.0 * 1024 * 1024), 2)} GB";
+            }
+        }
+        private async Task<string> GetUserAllocatedStorage(string userId)
+        {
+            // Get the user's OneDrive storage details
+            var userDrive = await _graphServiceClient.Users[userId]
+                .Drive
+
+                .GetAsync();
+
+            // Extract the total allocated storage (in bytes)
+            var allocatedStorage = userDrive.Quota.Total;
+
+            // Convert allocated storage from bytes to gigabytes
+            var allocatedStorageInGb = ConvertBytesToGigabytes((long)allocatedStorage);
+
+            return $"{allocatedStorageInGb} GB";
+        }
+
+        private string GetRelativeTime(DateTimeOffset dateTime)
+        {
+            var timeSpan = DateTime.UtcNow - dateTime.UtcDateTime;
+
+            if (timeSpan.TotalMinutes < 1)
+                return "just now";
+            if (timeSpan.TotalHours < 1)
+                return $"about {timeSpan.Minutes} minute{(timeSpan.Minutes == 1 ? "" : "s")} ago";
+            if (timeSpan.TotalHours < 24)
+                return $"about {timeSpan.Hours} hour{(timeSpan.Hours == 1 ? "" : "s")} ago";
+            if (timeSpan.TotalDays < 30)
+                return $"about {timeSpan.Days} day{(timeSpan.Days == 1 ? "" : "s")} ago";
+
+            return dateTime.ToString("d MMM yyyy", CultureInfo.InvariantCulture);
+        }
+
+        private double ConvertBytesToGigabytes(long bytes)
+        {
+            return Math.Round(bytes / (double)(1024 * 1024 * 1024), 2); 
+        }
+
+        public async Task<string> BackupInActiveFiles(string userId, DateTime date)
+        {
+            var message = "Backup completed successfully.";
+            Dictionary<string, UserInfo> userInfoDict = new Dictionary<string, UserInfo>();
+            //date = date.Date.AddDays(1).AddTicks(-1);
+
+            var sites = await _graphServiceClient.Sites.GetAsync();
+            BlobClient blobClient = null;
+
+            foreach (var site in sites.Value)
+            {
+                var drives = await _graphServiceClient.Sites[site.Id].Drives.GetAsync();
+
+                foreach (var drive in drives.Value)
+                {
+                    // Fetch the list of files (items) in the drive
+                    var items = await _graphServiceClient.Drives[drive.Id].Root
+                        .GetAsync(config => config.QueryParameters.Expand = new[] { "children" });
+
+                    if (items?.Children != null)
+                    {
+                        foreach (var fileItem in items.Children.Where(item => item.File != null))
+                        {
+                            // Check if the file's last modified date is before the specified date
+                            if (fileItem.LastModifiedDateTime.HasValue && fileItem.LastModifiedDateTime.Value < date && fileItem.LastModifiedBy?.User?.Id == userId)
+                            {
+                                var foundDrive = drive;
+                                var foundSite = site;
+                                var fileVersions = await _graphServiceClient.Drives[drive.Id].Items[fileItem.Id].Versions.GetAsync();
+                                var latestVersion = fileVersions.Value.FirstOrDefault(); // Get the latest version
+
+                                var user = fileItem.CreatedBy.User;
+                                var userName = user.DisplayName;
+                                var graphUser = await _graphServiceClient.Users[userId].GetAsync();
+                                var userEmail = graphUser.Mail;
+                                var lastUpdated = LastUpdateFormatter.FormatLastUpdated(fileItem.LastModifiedDateTime);
+
+                                // Check if the user already exists in the SharePointUsers table
+                                var existingUser = _context.Users.FirstOrDefault(u => u.UserId == userId);
+                                if (existingUser == null)
+                                {
+                                    var newUser = new User
+                                    {
+                                        UserId = userId,
+                                        Name = userName,
+                                        Email = userEmail,
+                                        AllocatedStorage = await GetUserAllocatedStorage(userId),
+                                        Usage = UsageFormatter.FormatUsage((long)fileItem.Size),
+                                        LastUpdated = lastUpdated,
+                                        IsActive = true,
+                                        CreatedBy = userName,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    _context.Users.Add(newUser);
+                                    await _context.SaveChangesAsync();
+                                    existingUser = newUser;
+                                }
+                                else
+                                {
+                                    long totalUsage = await _context.UserTransactions
+                                        .Where(ut => ut.UserId == existingUser.Id)
+                                        .SumAsync(ut => (long?)ut.FileSize) ?? 0;
+
+                                    existingUser.Usage = UsageFormatter.FormatUsage(totalUsage + (long)fileItem.Size);
+                                    existingUser.UpdatedBy = userName;
+                                    existingUser.UpdatedUtc = DateTime.UtcNow;
+                                    _context.Users.Update(existingUser);
+                                    await _context.SaveChangesAsync();
+                                }
+
+                                var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+                                var fileGuid = Guid.NewGuid();
+                                // Create blob file name with customization
+                                string blobFileName = $"{Path.GetFileNameWithoutExtension(fileItem.Name)}({fileGuid}){Path.GetExtension(fileItem.Name)}";
+                                blobClient = blobContainerClient.GetBlobClient(blobFileName);
+
+                                // Add the transaction for this file backup
+                                var userTransaction = new UserTransaction
+                                {
+                                    UserId = existingUser.Id,
+                                    FileId = fileItem.Id,
+                                    FileName = Path.GetFileNameWithoutExtension(fileItem.Name),
+                                    Type = fileItem.File?.MimeType,
+                                    FileSize = (long)fileItem.Size,
+                                    UniqueFileGuid = fileGuid,
+                                    LastUpdated = GetRelativeTime(fileItem.LastModifiedDateTime ?? DateTimeOffset.UtcNow),
+                                    UploadedDate = DateTime.UtcNow.ToString("d MMM yyyy", CultureInfo.InvariantCulture),
+                                    SiteName = foundSite.DisplayName,
+                                    Version = latestVersion?.Id ?? "0", // Set the version field to the latest version ID
+                                    DriveName = foundDrive.Name,
+                                    FilePath = blobClient.Uri.ToString(),
+                                    SiteUrl = foundSite.WebUrl,
+                                    ProcessType = "Migration",
+                                    IsActive = true,
+                                    CreatedBy = user.Id,
+                                    CreatedUtc = DateTime.UtcNow,
+                                };
+
+                                _context.UserTransactions.Add(userTransaction);
+                                await _context.SaveChangesAsync();
+
+                                var stream = await _graphServiceClient.Drives[foundDrive.Id].Items[fileItem.Id].Content.GetAsync();
+
+                                // Upload the file to Azure Blob Storage
+                                await blobClient.UploadAsync(stream, overwrite: true);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return message;
+        }
+
+        public async Task<string> BackupVersionFiles(string userId, int excludedVersionCount)
+        {
+            var message = "Backup completed successfully.";
+            var sites = await _graphServiceClient.Sites.GetAsync();
+
+            foreach (var site in sites.Value)
+            {
+                var drives = await _graphServiceClient.Sites[site.Id].Drives.GetAsync();
+
+                foreach (var drive in drives.Value)
+                {
+                    var items = await _graphServiceClient.Drives[drive.Id].Root
+                        .GetAsync(config => config.QueryParameters.Expand = new[] { "children" });
+
+                    if (items?.Children != null)
+                    {
+                        foreach (var fileItem in items.Children.Where(item => item.File != null))
+                        {
+                            if (fileItem.CreatedBy?.User?.Id == userId)
+                            {
+                                // Retrieve file versions
+                                var fileVersions = await _graphServiceClient.Drives[drive.Id].Items[fileItem.Id]
+                                    .Versions.GetAsync();
+
+
+                                var versionsToBackup = fileVersions.Value
+                                    .OrderByDescending(v => v.LastModifiedDateTime)
+                                    .Skip(excludedVersionCount)
+                                    .ToList();
+
+                                if (!versionsToBackup.Any())
+                                {
+                                    continue;
+                                }
+
+                                foreach (var fileVersion in versionsToBackup)
+                                {
+                                    var user = fileItem.CreatedBy.User;
+                                    var userName = user.DisplayName;
+                                    var versionId = fileVersion.Id;
+
+                                    var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+                                    if (existingUser == null)
+                                    {
+                                        existingUser = new User
+                                        {
+                                            UserId = userId,
+                                            Name = userName,
+                                            Email = (await _graphServiceClient.Users[userId].GetAsync()).Mail,
+                                            AllocatedStorage = await GetUserAllocatedStorage(userId),
+                                            Usage = UsageFormatter.FormatUsage((long)fileItem.Size),
+                                            LastUpdated = LastUpdateFormatter.FormatLastUpdated(fileVersion.LastModifiedDateTime),
+                                            IsActive = true,
+                                            CreatedBy = userName,
+                                            CreatedUtc = DateTime.UtcNow
+                                        };
+                                        _context.Users.Add(existingUser);
+                                    }
+                                    else
+                                    {
+                                        existingUser.Usage = UsageFormatter.FormatUsage((long)fileItem.Size);
+                                        existingUser.UpdatedBy = userName;
+                                        existingUser.UpdatedUtc = DateTime.UtcNow;
+                                        _context.Users.Update(existingUser);
+                                    }
+                                    await _context.SaveChangesAsync();
+
+                                    // Set up Blob storage backup for the version
+                                    var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+                                    var fileGuid = Guid.NewGuid();
+                                    string blobFileName = $"{Path.GetFileNameWithoutExtension(fileItem.Name)}({fileGuid}){Path.GetExtension(fileItem.Name)}";
+                                    var blobClient = blobContainerClient.GetBlobClient(blobFileName);
+
+                                    // Log user transaction
+                                    var userTransaction = new UserTransaction
+                                    {
+                                        UserId = existingUser.Id,
+                                        FileId = fileItem.Id,
+                                        FileName = Path.GetFileNameWithoutExtension(fileItem.Name),
+                                        Type = fileItem.File?.MimeType,
+                                        FileSize = (long)fileVersion.Size,
+                                        UniqueFileGuid = fileGuid,
+                                        Version = versionId,
+                                        LastUpdated = GetRelativeTime(fileVersion.LastModifiedDateTime ?? DateTimeOffset.UtcNow),
+                                        UploadedDate = DateTime.UtcNow.ToString("d MMM yyyy", CultureInfo.InvariantCulture),
+                                        SiteName = site.DisplayName,
+                                        DriveName = drive.Name,
+                                        FilePath = blobClient.Uri.ToString(),
+                                        SiteUrl = site.WebUrl,
+                                        ProcessType = "Backup",
+                                        IsActive = true,
+                                        CreatedBy = user.Id,
+                                        CreatedUtc = DateTime.UtcNow,
+                                    };
+
+                                    _context.UserTransactions.Add(userTransaction);
+                                    await _context.SaveChangesAsync();
+
+                                    try
+                                    {
+                                        // Attempt to retrieve content for the version
+                                        var stream = await _graphServiceClient.Drives[drive.Id].Items[fileItem.Id]
+                                            .Versions[versionId].Content.GetAsync();
+
+                                        // Upload the version content to blob storage
+                                        await blobClient.UploadAsync(stream, overwrite: true);
+
+
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Failed to Backup version {versionId} for file {fileItem.Name}: {ex.Message}");
+                                        continue; // Skip to the next version if an error occurs
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return message;
+        }
+    }
+}

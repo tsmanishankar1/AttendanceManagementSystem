@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Services;
 
@@ -37,6 +38,8 @@ public class DepartmentMasterService
     public async Task<string> CreateDepartment(DepartmentRequest departmentRequest)
     {
         var message = "Department created successfully";
+        var isDuplicate = await _context.DepartmentMasters.AnyAsync(d => d.Name.ToLower() == departmentRequest.FullName.ToLower());
+        if (isDuplicate) throw new ValidationException("Department name already exists");
         DepartmentMaster department = new DepartmentMaster();
         department.Name = departmentRequest.FullName;
         department.ShortName = departmentRequest.ShortName;
@@ -57,6 +60,11 @@ public class DepartmentMasterService
         var message = "Department updated successfully";
         var existingDepartment = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Id == department.DepartmentMasterId);
         if (existingDepartment == null) throw new MessageNotFoundException("Department not found");
+        if (!string.IsNullOrWhiteSpace(department.FullName))
+        {
+            var isDuplicate = await _context.DepartmentMasters.AnyAsync(d => d.Id != department.DepartmentMasterId && d.Name.ToLower() == department.FullName.ToLower());
+            if (isDuplicate) throw new ValidationException("Department name already exists");
+        }
         existingDepartment.Name = department.FullName;
         existingDepartment.ShortName = department.ShortName;
         existingDepartment.Phone = department.Phone;

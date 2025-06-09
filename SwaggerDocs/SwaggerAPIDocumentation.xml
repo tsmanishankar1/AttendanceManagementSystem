@@ -307,6 +307,152 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
+		<member name="T:AttendanceManagement.Controllers.AppraisalManagementController">
+			<summary>
+				Controller for handling operations related to the appraisal management process including staff selection, MIS uploads, AGM approvals, and appraisal acceptance.
+			</summary>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.#ctor(AttendanceManagement.Services.AppraisalManagementService,AttendanceManagement.Services.LoggingService)">
+			<summary>
+				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.AppraisalManagementController"/> class.
+			</summary>
+			<param name="service">The appraisal management service.</param>
+			<param name="logging">The logging service for capturing audit and error logs.</param>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetProductionEmployees(System.Int32)">
+			<summary>
+				Retrieves all production employees eligible for appraisal.
+			</summary>
+			<param name="appraisalId">The appraisal ID.</param>
+			<returns>List of eligible production employees.</returns>
+			<response code="200">Returns the list of production employees</response>
+			<response code="404">If no employees are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaffToMis(AttendanceManagement.Input_Models.SelectedEmployeesRequest)">
+			<summary>
+				Moves selected staff members to the MIS section for appraisal processing.
+			</summary>
+			<param name="selectedEmployeesRequest">The request containing selected employee data.</param>
+			<returns>Success message with MIS data.</returns>
+			<response code="200">If operation is successful</response>
+			<response code="404">If staff not found</response>
+			<response code="409">If conflict occurs while moving staff</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployees(System.Int32)">
+			<summary>
+				Retrieves the list of employees already selected for appraisal.
+			</summary>
+			<param name="appraisalId">The appraisal ID.</param>
+			<returns>List of selected employees.</returns>
+			<response code="200">Returns selected employee data</response>
+			<response code="404">If no data found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MisUploadSheet(AttendanceManagement.Input_Models.UploadMisSheetRequest)">
+			<summary>
+				Uploads MIS sheet for selected employees in the appraisal process.
+			</summary>
+			<param name="uploadMisSheetRequest">The uploaded MIS sheet request data.</param>
+			<returns>Result message after processing the upload.</returns>
+			<response code="200">If upload is successful</response>
+			<response code="404">If data not found</response>
+			<response code="500">If upload fails or an internal error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeReview(System.Int32)">
+			<summary>
+				Retrieves the review data of selected employees.
+			</summary>
+			<param name="appraisalId">The appraisal ID.</param>
+			<returns>Employee review data.</returns>
+			<response code="200">Returns review data</response>
+			<response code="404">If no data found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveToAgmApproval(AttendanceManagement.Input_Models.AgmApprovalTab)">
+			<summary>
+				Moves selected employee appraisal records to AGM approval stage.
+			</summary>
+			<param name="agmApprovalRequest">The AGM approval request data.</param>
+			<returns>Result message for the move operation.</returns>
+			<response code="200">If move to AGM is successful</response>
+			<response code="404">If data not found</response>
+			<response code="409">If there is a conflict or invalid state</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeAgmApproval(System.Int32)">
+			<summary>
+				Retrieves the list of employees sent for AGM approval.
+			</summary>
+			<param name="appraisalId">The appraisal ID.</param>
+			<returns>List of employees under AGM approval.</returns>
+			<response code="200">Returns AGM approval list</response>
+			<response code="404">If no data found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.AgmApproval(AttendanceManagement.Input_Models.AgmApprovalRequest)">
+			<summary>
+				Processes the AGM approval for selected employees.
+			</summary>
+			<param name="agmApprovalRequest">The AGM approval data.</param>
+			<returns>Approval confirmation message.</returns>
+			<response code="200">If approval is successful</response>
+			<response code="404">If data not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GenerateAppraisalLetter(AttendanceManagement.Input_Models.GenerateAppraisalLetterRequest)">
+			<summary>
+				Generates an appraisal letter PDF for a specified employee and returns it as a downloadable file.
+			</summary>
+			<param name="generateAppraisalLetterRequest">The request object containing appraisal letter details.</param>
+			<returns>The generated appraisal letter as a PDF file.</returns>
+			<response code="200">Returns the appraisal letter PDF file</response>
+			<response code="404">If the appraisal letter information is not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.DownloadAppraisalLetter(System.Int32,System.Int32)">
+			<summary>
+				Downloads the appraisal letter as a PDF.
+			</summary>
+			<param name="staffId">The ID of the staff.</param>
+			<param name="fileId">The ID of the file to download.</param>
+			<returns>The appraisal letter as a downloadable PDF file.</returns>
+			<response code="200">Returns the PDF file.</response>
+			<response code="404">If the appraisal letter is not found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.ViewAppraisalLetter(System.Int32,System.Int32)">
+			<summary>
+				Displays the appraisal letter as a PDF in the browser.
+			</summary>
+			<param name="staffId">The ID of the staff.</param>
+			<param name="fileId">The ID of the file to view.</param>
+			<returns>The appraisal letter streamed as a PDF file.</returns>
+			<response code="200">Returns the streamed PDF file for inline viewing.</response>
+			<response code="404">If the appraisal letter is not found.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.AcceptAppraisalLetter(AttendanceManagement.Input_Models.LetterAcceptance)">
+			<summary>
+				Accepts the appraisal letter by the employee.
+			</summary>
+			<param name="letterAcceptance">The letter acceptance request data.</param>
+			<returns>Confirmation of letter acceptance.</returns>
+			<response code="200">If letter is accepted successfully</response>
+			<response code="404">If data not found</response>
+			<response code="409">If the letter is already accepted or invalid state</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetAcceptedEmployees">
+			<summary>
+				Retrieves the list of employees who accepted their appraisal letters.
+			</summary>
+			<returns>List of accepted employees.</returns>
+			<response code="200">Returns accepted employee list</response>
+			<response code="404">If no accepted employees are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
 		<member name="T:AttendanceController">
 			<summary>
 				Controller for managing attendance-related operations.
@@ -846,7 +992,7 @@
 			<response code="409">Returned when there is a conflict during the import process.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ExcelImportController.DownloadExcelTemplates(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.ExcelImportController.DownloadExcelTemplates(System.Int32,System.Int32)">
 			<summary>
 				Downloads an Excel template based on the specified Excel import ID.
 			</summary>
@@ -1238,7 +1384,7 @@
 			<response code="404">If required data is not found</response>
 			<response code="500">If an internal server error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PayrollController.GetPaySlip(System.Int32,System.Int32,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySlip(AttendanceManagement.Input_Models.GeneratePaySheetRequest)">
 			<summary>
 				Retrieves a payslip for a specific staff member.
 			</summary>
@@ -1300,36 +1446,36 @@
 			<param name="service">The performance review service.</param>
 			<param name="loggingService">The logging service for audit and error logging.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.GenerateAppraisalLetter(AttendanceManagement.Input_Models.GenerateAppraisalLetterRequest)">
+		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.GetMonthlyPerformance(System.Int32,System.Int32)">
 			<summary>
-				Generates an appraisal letter PDF for a specified employee and returns it as a downloadable file.
+				Gets the monthly performance records for the specified year and month.
 			</summary>
-			<param name="generateAppraisalLetterRequest">The request object containing appraisal letter details.</param>
-			<returns>The generated appraisal letter as a PDF file.</returns>
-			<response code="200">Returns the appraisal letter PDF file</response>
-			<response code="404">If the appraisal letter information is not found</response>
-			<response code="500">If there is an internal server error</response>
-		</member>
-		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.DownloadAppraisalLetter(System.Int32,System.Int32)">
-			<summary>
-				Downloads the appraisal letter as a PDF.
-			</summary>
-			<param name="staffId">The ID of the staff.</param>
-			<param name="fileId">The ID of the file to download.</param>
-			<returns>The appraisal letter as a downloadable PDF file.</returns>
-			<response code="200">Returns the PDF file.</response>
-			<response code="404">If the appraisal letter is not found.</response>
+			<param name="year">The year for which performance data is requested.</param>
+			<param name="month">The month (1-12) for which performance data is requested.</param>
+			<returns>A list of monthly performance records.</returns>
+			<response code="200">Returns the list of monthly performance records.</response>
+			<response code="404">If no performance data is found for the specified year and month.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.ViewAppraisalLetter(System.Int32,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.GetQuarterlyPerformance(System.Int32,System.String)">
 			<summary>
-				Displays the appraisal letter as a PDF in the browser.
+				Gets the quarterly performance records for the specified year and quarter.
 			</summary>
-			<param name="staffId">The ID of the staff.</param>
-			<param name="fileId">The ID of the file to view.</param>
-			<returns>The appraisal letter streamed as a PDF file.</returns>
-			<response code="200">Returns the streamed PDF file for inline viewing.</response>
-			<response code="404">If the appraisal letter is not found.</response>
+			<param name="year">The year for which performance data is requested.</param>
+			<param name="quarterType">The quarter (e.g., "Q1", "Q2", "Q3", "Q4") for which performance data is requested.</param>
+			<returns>A list of quarterly performance records.</returns>
+			<response code="200">Returns the list of quarterly performance records.</response>
+			<response code="404">If no performance data is found for the specified year and quarter.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.PerformanceReviewController.GetYearlyPerformance(System.Int32)">
+			<summary>
+				Gets the yearly performance records for the specified year.
+			</summary>
+			<param name="year">The year for which performance data is requested.</param>
+			<returns>A list of yearly performance records.</returns>
+			<response code="200">Returns the list of yearly performance records.</response>
+			<response code="404">If no performance data is found for the specified year.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.PrefixAndSuffixController">
@@ -1466,6 +1612,17 @@
 			<response code="200">Returns the success message</response>
 			<response code="404">If the probation is not found</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ProbationController.GetProbationReportsByApproverLevel(System.Int32,System.Int32)">
+			<summary>
+				Gets probation reports based on the specified approver level and year.
+			</summary>
+			<param name="approverLevelId">The ID of the approver level (e.g., manager, HR, etc.).</param>
+			<param name="year">The year for which probation reports are requested.</param>
+			<returns>A list of probation reports filtered by approver level and year.</returns>
+			<response code="200">Returns the probation report list successfully.</response>
+			<response code="404">If no probation reports are found for the given criteria.</response>
+			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ProbationController.GetProbationDetailsByApproverLevel(System.Int32)">
 			<summary>
