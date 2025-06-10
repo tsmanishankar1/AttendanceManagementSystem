@@ -5,6 +5,9 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+- task: CmdLine@2
+  inputs:
+    script: 'curl http://172.16.36.253:9000/api/server/version'
 - task: SonarQubePrepare@7
   inputs:
     SonarQube: 'Sonarqube'
