@@ -2,7 +2,7 @@ trigger:
 - master
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: Sonarqube-Agent
 
 steps:
 - task: CmdLine@2
@@ -11,11 +11,8 @@ steps:
 - task: SonarQubePrepare@7
   inputs:
     SonarQube: 'Sonarqube'
-    scannerMode: 'cli'
-    configMode: 'manual'
-    cliProjectKey: 'Vlead-dotnet-ui'
-    cliProjectName: 'Vlead-dotnet-ui'
-    cliSources: '.'
+    scannerMode: 'dotnet'
+    projectKey: 'Vlead-dotnet-ui'
     
 - task: SonarQubeAnalyze@7
   inputs:
