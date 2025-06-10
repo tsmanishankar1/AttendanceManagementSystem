@@ -1,1 +1,23 @@
-.
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: SonarQubePrepare@7
+  inputs:
+    SonarQube: 'Sonarqube'
+    scannerMode: 'cli'
+    configMode: 'manual'
+    cliProjectKey: 'Vlead-dotnet-ui'
+    cliProjectName: 'Vlead-dotnet-ui'
+    cliSources: '.'
+    
+- task: SonarQubeAnalyze@7
+  inputs:
+    jdkversion: 'JAVA_HOME'
+
+- task: SonarQubePublish@7
+  inputs:
+    pollingTimeoutSec: '300'
