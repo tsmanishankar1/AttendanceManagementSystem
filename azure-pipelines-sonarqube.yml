@@ -4,6 +4,10 @@ trigger:
 pool:
   name: Sonarqube-Agent
 
+variables:
+  buildConfiguration: 'Release'
+  dotnetVersion: '9.0.x'
+
 steps:
 - task: CmdLine@2
   inputs:
