@@ -2,7 +2,7 @@ trigger:
 - master
 
 pool:
-  vmImage: Sonarqube-Agent
+  name: Sonarqube-Agent
 
 steps:
 - task: CmdLine@2
