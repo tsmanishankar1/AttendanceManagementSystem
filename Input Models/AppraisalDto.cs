@@ -24,11 +24,11 @@
         public bool? IsCompleted { get; set; }
     }
 
-/*    public class SelectedStaffResponse
-    {
-        public List<int> staffIds { get; set; } = new List<int>();
-    }
-*/
+    /*    public class SelectedStaffResponse
+        {
+            public List<int> staffIds { get; set; } = new List<int>();
+        }
+    */
     public class SelectedEmployeesRequest
     {
         public int AppraisalId { get; set; }
@@ -89,10 +89,16 @@
         public int ApprovedBy { get; set; }
     }
 
+    public class AgmDetails
+    {
+        public int Id {  get; set; }
+        public string Name { get; set; } = null!;
+    }
+
     public class AgmApprovalTab
     {
         public List<SelectedAgmApproval> SelectedRows { get; set; } = new List<SelectedAgmApproval>();
-        public int DesignationId { get; set; }
+        public int AgmId { get; set; }
         public int CreatedBy { get; set; }
     }
 

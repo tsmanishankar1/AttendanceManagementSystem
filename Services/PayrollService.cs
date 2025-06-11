@@ -62,11 +62,6 @@ namespace AttendanceManagement.Services
                         header => header,
                         header => headerRow.IndexOf(header) + 1
                     );
-                    var staffExists = await _context.StaffCreations.AnyAsync(s => s.Id == createdBy && s.IsActive == true);
-                    if (!staffExists)
-                    {
-                        throw new Exception($"StaffId {createdBy} not found in the database.");
-                    }
                     var rowCount = worksheet.Dimension.Rows;
                     var paySlips = new List<PaySlip>();
                     var paySlipComponents = new List<PaySlipComponent>();
@@ -76,20 +71,13 @@ namespace AttendanceManagement.Services
                         {
                             for (int row = 2; row <= rowCount; row++)
                             {
-                                var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
-                                var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
-                                var shortName = match.Groups[1].Value;
-                                var staffId = int.Parse(match.Groups[2].Value);
-                                var organization = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive);
-                                if (organization == null) throw new MessageNotFoundException($"Organization short name '{shortName}' not found at row {row}.");
-                                var staffCreation = await _context.StaffCreations
-                                    .FirstOrDefaultAsync(s => (s.OrganizationTypeId == organization.Id) && s.Id == staffId && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff Id '{staffId}' not found at row {row}.");
+                                var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
+                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}");
+                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
+                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
                                 var paySlip = new PaySlip
                                 {
-                                    StaffId = staffId,
+                                    StaffId = staffCreation.Id,
                                     Basic = ParseDecimal(worksheet.Cells[row, columnIndexes["Basic"]].Text, row, "Basic"),
                                     Hra = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["HRA"]].Text),
                                     Da = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["DA"]].Text),
@@ -125,15 +113,8 @@ namespace AttendanceManagement.Services
                             {
                                 var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
                                 if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
-                                var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
-                                var shortName = match.Groups[1].Value;
-                                var staffId = int.Parse(match.Groups[2].Value);
-                                var organization = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive);
-                                if (organization == null) throw new MessageNotFoundException($"Organization short name '{shortName}' not found at row {row}.");
-                                var staffCreation = await _context.StaffCreations
-                                    .FirstOrDefaultAsync(s => s.OrganizationTypeId == organization.Id && s.Id == staffId && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff Id '{staffId}' not found at row {row}.");
+                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
+                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
                                 var paySlip = paySlips.FirstOrDefault(ps => ps.StaffId == staffCreation.Id && ps.IsActive);
                                 if (paySlip == null) continue;
                                 var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
@@ -451,18 +432,11 @@ namespace AttendanceManagement.Services
                             {
                                 var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
                                 if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
-                                var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
-                                var shortName = match.Groups[1].Value;
-                                var staffId = int.Parse(match.Groups[2].Value);
-                                var organization = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive);
-                                if (organization == null) throw new MessageNotFoundException($"Organization short name '{shortName}' not found at row {row}.");
-                                var staffCreation = await _context.StaffCreations
-                                    .FirstOrDefaultAsync(s => (s.OrganizationTypeId == organization.Id || s.Id == organization.Id) && s.Id == staffId && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff Id '{staffId}' not found at row {row}.");
+                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
+                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
                                 var salaryStructure = new SalaryStructure
                                 {
-                                    StaffId = staffId,
+                                    StaffId = staffCreation.Id,
                                     Basic = ParseDecimal(worksheet.Cells[row, columnIndexes["Basic"]].Text, row, "Basic"),
                                     Hra = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["HRA"]].Text),
                                     Da = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["DA"]].Text),
@@ -501,15 +475,8 @@ namespace AttendanceManagement.Services
                             {
                                 var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
                                 if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
-                                var match = Regex.Match(staffCreationIdStr, @"([A-Za-z]+)(\d+)");
-                                if (!match.Success) throw new Exception($"Invalid StaffId format at row {row}.");
-                                var shortName = match.Groups[1].Value;
-                                var staffId = int.Parse(match.Groups[2].Value);
-                                var organization = await _context.OrganizationTypes.FirstOrDefaultAsync(o => o.ShortName.ToLower() == shortName.ToLower() && o.IsActive);
-                                if (organization == null) throw new MessageNotFoundException($"Organization short name '{shortName}' not found at row {row}.");
-                                var staffCreation = await _context.StaffCreations
-                                    .FirstOrDefaultAsync(s => s.OrganizationTypeId == organization.Id && s.Id == staffId && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff Id '{staffId}' not found at row {row}.");
+                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s =>s.StaffId == staffCreationIdStr && s.IsActive == true);
+                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
                                 var salaryStructure = salaryStructures.FirstOrDefault(ps => ps.StaffId == staffCreation.Id);
                                 if (salaryStructure == null) continue;
                                 var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();

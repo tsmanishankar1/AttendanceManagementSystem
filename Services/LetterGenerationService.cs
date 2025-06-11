@@ -516,7 +516,7 @@ namespace AttendanceManagement.Services
                 doc.Add(designationPara);
 
                 // Salutation
-                var salutation = new Paragraph($"Dear {model.Title} {model.EmployeeName},", fontNormal)
+                var salutation = new Paragraph($"Dear {model.EmployeeSalutation} {model.EmployeeName},", fontNormal)
                 {
                     SpacingAfter = 20f
                 };
@@ -542,14 +542,14 @@ namespace AttendanceManagement.Services
                 {
                     bodyPara2.Add(new Chunk("In recognition of your performance and contribution to the organization, we are glad to announce an increment of ", fontNormal));
                 }
-                bodyPara2.Add(new Chunk($"Rs.{model.SalaryAfterAppraisal.AppraisalAmount:N0}", fontBold));
-                bodyPara2.Add(new Chunk($"/- PA ({ConvertAmountToWords(model.SalaryAfterAppraisal.AppraisalAmount)} Rupees only) on your existing gross salary with effect from June 1st, {model.SalaryAfterAppraisal.AppraisalYear}. Detailed revised salary structure is enclosed in the Annexure A.", fontNormal));
+                bodyPara2.Add(new Chunk($"Rs.{model.TotalAppraisal:N0}", fontBold));
+                bodyPara2.Add(new Chunk($"/- PA ({ConvertAmountToWords(model.TotalAppraisal)} Rupees only) on your existing gross salary with effect from June 1st, {model.AppraisalYear}. Detailed revised salary structure is enclosed in the Annexure A.", fontNormal));
                 doc.Add(bodyPara2);
 
                 // Third paragraph (next appraisal info)
                 var bodyPara3 = new Paragraph();
                 bodyPara3.SpacingAfter = 10f;
-                bodyPara3.Add(new Chunk($"Next appraisals would be held in July {model.SalaryAfterAppraisal.AppraisalYear + 1} if the company does well commercially. Parameters for the next appraisal shall be on the following basis:", fontNormal));
+                bodyPara3.Add(new Chunk($"Next appraisals would be held in July {model.AppraisalYear + 1} if the company does well commercially. Parameters for the next appraisal shall be on the following basis:", fontNormal));
                 doc.Add(bodyPara3);
 
                 // Bullet points for parameters
@@ -683,7 +683,7 @@ namespace AttendanceManagement.Services
                 table.AddCell(currentHeader);
 
                 // Add Appraisal Salary header
-                var appraisalHeader = new PdfPCell(new Phrase($"Salary after Appraisal, June {model.SalaryAfterAppraisal.AppraisalYear}", fontBold))
+                var appraisalHeader = new PdfPCell(new Phrase($"Salary after Appraisal, June {model.AppraisalYear}", fontBold))
                 {
                     Colspan = 2,
                     Border = Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
@@ -734,13 +734,12 @@ namespace AttendanceManagement.Services
                 });
 
                 // MODIFIED AddRow function with proper formatting for section headers and right border
-                void AddRow(string label, decimal currPA, decimal revPA, bool isBold = false, bool isSectionHeader = false, bool isFirstRow = false)
+                void AddRow(string label, decimal currPA, decimal currPM, decimal revPA, decimal revPM, bool isBold = false, bool isSectionHeader = false, bool isFirstRow = false)
                 {
                     var font = isBold ? fontBold : fontNormal;
 
                     if (isSectionHeader)
                     {
-                        // Section headers: LEFT ALIGNED with all borders including right border
                         var cell = new PdfPCell(new Phrase(label, font))
                         {
                             Colspan = 5,
@@ -754,48 +753,44 @@ namespace AttendanceManagement.Services
                     }
                     else
                     {
-                        // Determine border style - add top border for first row
                         int borderStyle = Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER | Rectangle.BOTTOM_BORDER;
                         if (isFirstRow)
                         {
                             borderStyle |= Rectangle.TOP_BORDER;
                         }
 
-                        // Description column - LEFT ALIGNED with right border and proper word wrapping
                         var descCell = new PdfPCell(new Phrase(label, font))
                         {
                             Border = borderStyle,
                             Padding = 5f,
                             PaddingLeft = 8f,
                             HorizontalAlignment = Element.ALIGN_LEFT,
-                            NoWrap = label == "Employee ESI Contribution" // Force single line for ESI Contribution
+                            NoWrap = label == "Employee ESI Contribution"
                         };
                         table.AddCell(descCell);
 
-                        // Current salary columns
-                        table.AddCell(new PdfPCell(new Phrase(currPA > 0 ? $"₹ {currPA:N0}" : "-", unicodeFont))
+                        table.AddCell(new PdfPCell(new Phrase(currPA > 0 ? $"₹ {currPA:N0}" : "-", unicodeFont ?? fontNormal))
                         {
                             Border = borderStyle,
                             Padding = 5f,
                             HorizontalAlignment = Element.ALIGN_RIGHT
                         });
 
-                        table.AddCell(new PdfPCell(new Phrase(currPA > 0 ? $"₹ {currPA / 12:N0}" : "-", unicodeFont))
+                        table.AddCell(new PdfPCell(new Phrase(currPM > 0 ? $"₹ {currPM:N0}" : "-", unicodeFont ?? fontNormal))
                         {
                             Border = borderStyle,
                             Padding = 5f,
                             HorizontalAlignment = Element.ALIGN_RIGHT
                         });
 
-                        // Revised salary columns
-                        table.AddCell(new PdfPCell(new Phrase(revPA > 0 ? $"₹ {revPA:N0}" : "-", unicodeFont))
+                        table.AddCell(new PdfPCell(new Phrase(revPA > 0 ? $"₹ {revPA:N0}" : "-", unicodeFont ?? fontNormal))
                         {
                             Border = borderStyle,
                             Padding = 5f,
                             HorizontalAlignment = Element.ALIGN_RIGHT
                         });
 
-                        table.AddCell(new PdfPCell(new Phrase(revPA > 0 ? $"₹ {revPA / 12:N0}" : "-", unicodeFont))
+                        table.AddCell(new PdfPCell(new Phrase(revPM > 0 ? $"₹ {revPM:N0}" : "-", unicodeFont ?? fontNormal))
                         {
                             Border = borderStyle,
                             Padding = 5f,
@@ -804,22 +799,12 @@ namespace AttendanceManagement.Services
                     }
                 }
 
-                // Add data rows with proper null checking
-                var c = model.CurrentSalary;
-                var r = model.SalaryAfterAppraisal;
-
-                // Verify that the model data is not null
-                if (c == null || r == null)
-                {
-                    throw new ArgumentException("CurrentSalary or SalaryAfterAppraisal data is missing");
-                }
-
                 // Gross (A) section - Note the isFirstRow: true for Basic
-                AddRow("Basic", c.Basic, r.Basic, isFirstRow: true);
-                AddRow("HRA", c.Hra, r.Hra);
-                AddRow("Conveyance", c.Conveyance, r.Conveyance);
-                AddRow("Medical Allowance", c.MedicalAllowance, r.MedicalAllowance);
-                AddRow("Special Allowance", c.SpecialAllowance, r.SpecialAllowance);
+                AddRow("Basic", model.BasicCurrentPerAnnum, model.BasicCurrentPerMonth, model.BasicCurrentPerAnnumAfterApp, model.BasicCurrentPerMonthAfterApp, isFirstRow: true);
+                AddRow("HRA", model.HraperAnnum ?? 0, model.HraperMonth ?? 0, model.HraperAnnumAfterApp ?? 0, model.HraperMonthAfterApp ?? 0);
+                AddRow("Conveyance", model.ConveyancePerAnnum ?? 0, model.ConveyancePerMonth ?? 0, model.ConveyancePerAnnumAfterApp ?? 0, model.ConveyancePerMonthAfterApp ?? 0);
+                AddRow("Medical Allowance", model.MedicalAllowancePerAnnum ?? 0, model.MedicalAllowancePerMonth ?? 0, model.MedicalAllowancePerAnnumAfterApp ?? 0, model.MedicalAllowancePerMonthAfterApp ?? 0);
+                AddRow("Special Allowance", model.SpecialAllowancePerAnnum ?? 0, model.SpecialAllowancePerMonth ?? 0, model.SpecialAllowancePerAnnumAfterApp ?? 0, model.SpecialAllowancePerMonthAfterApp ?? 0);
 
                 // Add bottom border to last row before total
                 var grossRow = new PdfPCell(new Phrase("Gross (A)", fontBold))
@@ -831,7 +816,7 @@ namespace AttendanceManagement.Services
                 };
                 table.AddCell(grossRow);
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Gross:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.GrossPerAnnumCurrent:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -839,7 +824,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Gross / 12:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.GrossMonthCurrent:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -847,7 +832,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Gross:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.GrossPerAnnumAfterApp:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -855,7 +840,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Gross / 12:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.GrossMonthAfterApp:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -864,14 +849,18 @@ namespace AttendanceManagement.Services
                 });
 
                 // Benefits (B) section - with right border
-                AddRow("Benefits (B)", 0, 0, true, true);
-                AddRow("Employer PF Contribution", c.EmployerPfContribution, r.EmployerPfContribution, isFirstRow: true);
-                AddRow("Employer ESI Contribution", c.EmployerEsiContribution, r.EmployerEsiContribution);
+                AddRow("Benefits (B)", 0, 0, 0, 0, true, true);
+                AddRow("Employer PF Contribution", model.EmployerPfcontributionPerAnnum ?? 0, model.EmployerPfcontributionPerMonth ?? 0,
+                       model.EmployerPfcontributionPerAnnumAfterApp ?? 0, model.EmployerPfcontributionPerMonthAfterApp ?? 0, isFirstRow: true);
+                AddRow("Employer ESI Contribution", model.EmployerEsicontributionPerAnnum ?? 0, model.EmployerEsicontributionPerMonth ?? 0,
+                       model.EmployerEsicontributionPerAnnumAfterApp ?? 0, model.EmployerEsicontributionPerMonthAfterApp ?? 0);
 
                 // Benefits (C) section - with right border
-                AddRow("Benefits (C)", 0, 0, true, true);
-                AddRow("Group Medical Insurance", c.EmployerGroupMedicalInsurance, r.EmployerGroupMedicalInsurance, isFirstRow: true);
-                AddRow("Group Personal Accident", c.GroupPersonalAccident, r.GroupPersonalAccident);
+                AddRow("Benefits (C)", 0, 0, 0, 0, true, true);
+                AddRow("Group Medical Insurance", model.EmployerGmcperAnnum ?? 0, model.EmployerGmcperMonth ?? 0,
+                       model.EmployerGmcperAnnumAfterApp ?? 0, model.EmployerGmcperMonthAfterApp ?? 0, isFirstRow: true);
+                AddRow("Group Personal Accident", model.GroupPersonalAccidentPerAnnum ?? 0, model.GroupPersonalAccidentPerMonth ?? 0,
+                       model.GroupPersonalAccidentPerAnnumAfterApp ?? 0, model.GroupPersonalAccidentPerMonthAfterApp ?? 0);
 
                 // CTC Total row
                 var ctcRow = new PdfPCell(new Phrase("CTC (A+B+C)", fontBold))
@@ -883,7 +872,7 @@ namespace AttendanceManagement.Services
                 };
                 table.AddCell(ctcRow);
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Ctc:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.CtcPerAnnumCurrent:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -891,7 +880,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {c.Ctc / 12:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.CtcMonthCurrent:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -899,7 +888,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Ctc:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.CtcPerAnnumAfterApp:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -907,7 +896,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {r.Ctc / 12:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.CtcMonthAfterApp:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -916,11 +905,13 @@ namespace AttendanceManagement.Services
                 });
 
                 // Deduction (D) section - with right border
-                AddRow("Deduction (D)", 0, 0, true, true);
-                AddRow("Employee PF Contribution", c.EmployeePfContribution, r.EmployeePfContribution, isFirstRow: true);
-                AddRow("Employee ESI Contribution", c.EmployeeEsiContribution, r.EmployeeEsiContribution);
-                AddRow("Professional Tax", c.ProfessionalTax, r.ProfessionalTax);
-                AddRow("Group Medical Insurance", c.EmployeeGroupMedicalInsurance, r.EmployeeGroupMedicalInsurance);
+                AddRow("Deduction (D)", 0, 0, 0, 0, true, true);
+                AddRow("Employee PF Contribution", model.EmployeePfcontributionPerAnnum ?? 0, model.EmployeePfcontributionPerMonth ?? 0,
+                       model.EmployeePfcontributionPerAnnumAfterApp ?? 0, model.EmployeePfcontributionPerMonthAfterApp ?? 0, isFirstRow: true);
+                AddRow("Employee ESI Contribution", model.EmployeeEsicontributionPerAnnum ?? 0, model.EmployeeEsicontributionPerMonth ?? 0,
+                       model.EmployeeEsicontributionPerAnnumAfterApp ?? 0, model.EmployeeEsicontributionPerMonthAfterApp ?? 0);
+                AddRow("Professional Tax", model.ProfessionalTaxPerAnnum ?? 0, model.ProfessionalTaxPerMonth ?? 0, model.ProfessionalTaxPerAnnumAfterApp ?? 0, model.ProfessionalTaxPerMonthAfterApp ?? 0);
+                AddRow("Group Medical Insurance", model.GmcperAnnum ?? 0, model.GmcperMonth ?? 0, model.GmcperAnnumAfterApp ?? 0, model.GmcperMonthAfterApp ?? 0);
 
                 // Net Take Home Total row
                 var netRow = new PdfPCell(new Phrase("Net Take Home (A-D)", fontBold))
@@ -932,7 +923,7 @@ namespace AttendanceManagement.Services
                 };
                 table.AddCell(netRow);
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {c.NetTakeHome:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.NetTakeHomePerAnnumCurrent:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -940,7 +931,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {c.NetTakeHome / 12:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.NetTakeHomeMonthCurrent:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -948,7 +939,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {r.NetTakeHome:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.NetTakeHomePerAnnumAfterApp:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,
@@ -956,7 +947,7 @@ namespace AttendanceManagement.Services
                     BackgroundColor = new BaseColor(250, 250, 250)
                 });
 
-                table.AddCell(new PdfPCell(new Phrase($"₹ {r.NetTakeHome / 12:N0}", unicodeBoldFont))
+                table.AddCell(new PdfPCell(new Phrase($"₹ {model.NetTakeHomeMonthAfterApp:N0}", unicodeBoldFont))
                 {
                     Border = Rectangle.TOP_BORDER | Rectangle.BOTTOM_BORDER | Rectangle.LEFT_BORDER | Rectangle.RIGHT_BORDER,
                     Padding = 5f,

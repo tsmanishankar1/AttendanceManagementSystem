@@ -33,43 +33,55 @@ namespace AttendanceManagement.Services
 
         public async Task<List<object>> GetProductionEmployees(int appraisalId)
         {
+            var currentYear = DateTime.UtcNow.Year;
             if (appraisalId == 1)
             {
                 var grouped = await (
-                    from staff in _context.StaffCreations
-                    join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
-                    join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
-                    join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
-                    from selected in selectedJoin.DefaultIfEmpty()
-                    join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
-                    from per in perJoin.DefaultIfEmpty()
-                    join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
-                    from agm in agmJoin.DefaultIfEmpty()
-                    where staff.IsActive == true && designation.IsActive && department.IsActive && !staff.IsNonProduction
-                    select new
-                    {
-                        staff.Id,
-                        staff.StaffId,
-                        StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                        staff.Tenure,
-                        ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
-                        Division = designation.Name,
-                        Department = department.Name,
-                        IsCompleted = agm.IsAgmApproved,
-                        CreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
-                    })
-                    .ToListAsync();
-                var currentYear = DateTime.UtcNow.Year;
-                var nextYear = currentYear + 1;
-                var productionEmployee = grouped
+                            from staff in _context.StaffCreations
+                            join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
+                            join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
+                            join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
+                            join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                            from selected in selectedJoin.DefaultIfEmpty()
+                            join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
+                            from per in perJoin.DefaultIfEmpty()
+                            join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
+                            from agm in agmJoin.DefaultIfEmpty()
+                            where staff.IsActive == true && designation.IsActive && department.IsActive && !staff.IsNonProduction
+                            select new
+                            {
+                                staff.Id,
+                                staff.StaffId,
+                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                                staff.Tenure,
+                                ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                                Division = designation.Name,
+                                Department = department.Name,
+                                SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
+                                PerformanceReviewId = per != null ? per.Id : (int?)null,
+                                PerformanceReviewCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null,
+                                AgmIsApproved = agm != null ? agm.IsAgmApproved : (bool?)null,
+                                AgmCreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
+                            })
+                            .ToListAsync();
+
+                var result = grouped
                     .GroupBy(x => x.Id)
                     .Select(g =>
                     {
                         var first = g.First();
-                        var nextYearApproval = g.FirstOrDefault(x => x.CreatedUtc?.Year == nextYear && x.IsCompleted == true);
-                        var currentYearApproval = g.FirstOrDefault(x => x.CreatedUtc?.Year == currentYear);
-
+                        var agmApproval = g.FirstOrDefault(x => x.AgmCreatedUtc.HasValue && x.AgmCreatedUtc.Value.Year == currentYear && x.AgmIsApproved == true);
+                        var perfReview = g.FirstOrDefault(x => x.PerformanceReviewCreatedUtc.HasValue && x.PerformanceReviewCreatedUtc.Value.Year == currentYear);
+                        var selectedEmp = g.FirstOrDefault(x => x.SelectedCreatedUtc.HasValue && x.SelectedCreatedUtc.Value.Year == currentYear);
+                        bool? isCompleted = null;
+                        if (agmApproval != null)
+                        {
+                            isCompleted = true;
+                        }
+                        else if (perfReview != null || selectedEmp != null)
+                        {
+                            isCompleted = false;
+                        }
                         return new AppraisalDto
                         {
                             StaffId = g.Key,
@@ -79,58 +91,69 @@ namespace AttendanceManagement.Services
                             ReportingManagers = first.ReportingManager,
                             Division = first.Division,
                             Department = first.Department,
-                            IsCompleted = nextYearApproval?.IsCompleted == true ? true :
-                                          currentYearApproval?.IsCompleted == true ? true :
-                                          currentYearApproval?.IsCompleted == false ? false : (bool?)null
+                            IsCompleted = isCompleted
                         };
                     })
                     .ToList();
-
-                if (productionEmployee == null || !productionEmployee.Any())
+                if (result == null || !result.Any())
                 {
                     throw new MessageNotFoundException("No employees found");
                 }
-                return productionEmployee.Cast<object>().ToList();
+                return result.Cast<object>().ToList();
             }
             else if (appraisalId == 2)
             {
                 var grouped = await (
-                    from staff in _context.StaffCreations
-                    join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
-                    join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
-                    join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
-                    from selected in selectedJoin.DefaultIfEmpty()
-                    join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
-                    from per in perJoin.DefaultIfEmpty()
-                    join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
-                    from agm in agmJoin.DefaultIfEmpty()
-                    where staff.IsActive == true && designation.IsActive && department.IsActive && !staff.IsNonProduction
-                        && staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) && staff.OrganizationTypeId == 1
-                    select new
-                    {
-                        staff.Id,
-                        staff.StaffId,
-                        StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                        staff.Tenure,
-                        ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
-                        Division = designation.Name,
-                        Department = department.Name,
-                        IsCompleted = agm.IsAgmApproved,
-                        CreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
-                    }).ToListAsync();
+                            from staff in _context.StaffCreations
+                            join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
+                            join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
+                            join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
+                            join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                            from selected in selectedJoin.DefaultIfEmpty()
+                            join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
+                            from per in perJoin.DefaultIfEmpty()
+                            join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
+                            from agm in agmJoin.DefaultIfEmpty()
+                            where staff.IsActive == true
+                                && designation.IsActive
+                                && department.IsActive
+                                && !staff.IsNonProduction
+                                && staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1))
+                                && staff.OrganizationTypeId == 1
+                            select new
+                            {
+                                staff.Id,
+                                staff.StaffId,
+                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                                staff.Tenure,
+                                ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                                Division = designation.Name,
+                                Department = department.Name,
+                                SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
+                                PerformanceReviewId = per != null ? per.Id : (int?)null,
+                                PerformanceReviewCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null,
+                                AgmIsApproved = agm != null ? agm.IsAgmApproved : (bool?)null,
+                                AgmCreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
+                            }
+                        ).ToListAsync();
 
-                var currentYear = DateTime.UtcNow.Year;
-                var nextYear = currentYear + 1;
-
-                var productionEmployee = grouped
+                var result = grouped
                     .GroupBy(x => x.Id)
                     .Select(g =>
                     {
                         var first = g.First();
-                        var nextYearApproval = g.FirstOrDefault(x => x.CreatedUtc?.Year == nextYear && x.IsCompleted == true);
-                        var currentYearApproval = g.FirstOrDefault(x => x.CreatedUtc?.Year == currentYear);
-
+                        var agmApproval = g.FirstOrDefault(x => x.AgmCreatedUtc.HasValue && x.AgmCreatedUtc.Value.Year == currentYear && x.AgmIsApproved == true);
+                        var perfReview = g.FirstOrDefault(x => x.PerformanceReviewCreatedUtc.HasValue && x.PerformanceReviewCreatedUtc.Value.Year == currentYear);
+                        var selectedEmp = g.FirstOrDefault(x => x.SelectedCreatedUtc.HasValue && x.SelectedCreatedUtc.Value.Year == currentYear);
+                        bool? isCompleted = null;
+                        if (agmApproval != null)
+                        {
+                            isCompleted = true;
+                        }
+                        else if (perfReview != null || selectedEmp != null)
+                        {
+                            isCompleted = false;
+                        }
                         return new ProbationDto
                         {
                             StaffId = g.Key,
@@ -140,58 +163,68 @@ namespace AttendanceManagement.Services
                             ReportingManagers = first.ReportingManager,
                             Division = first.Division,
                             Department = first.Department,
-                            IsCompleted = nextYearApproval?.IsCompleted == true ? true :
-                                          currentYearApproval?.IsCompleted == true ? true :
-                                          currentYearApproval?.IsCompleted == false ? false : (bool?)null
+                            IsCompleted = isCompleted
                         };
                     })
                     .ToList();
-
-                if (productionEmployee == null || !productionEmployee.Any())
+                if (result == null || !result.Any())
                 {
                     throw new MessageNotFoundException("No employees found");
                 }
-                return productionEmployee.Cast<object>().ToList();
+                return result.Cast<object>().ToList();
             }
             else if (appraisalId == 3)
             {
                 var grouped = await (
-                    from staff in _context.StaffCreations
-                    join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
-                    join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
-                    join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
-                    from selected in selectedJoin.DefaultIfEmpty()
-                    join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
-                    from per in perJoin.DefaultIfEmpty()
-                    join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
-                    from agm in agmJoin.DefaultIfEmpty()
-                    where staff.IsActive == true && designation.IsActive && department.IsActive && !staff.IsNonProduction && staff.OrganizationTypeId == 1
-                    select new
-                    {
-                        staff.Id,
-                        staff.StaffId,
-                        StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                        staff.Tenure,
-                        ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
-                        Division = designation.Name,
-                        Department = department.Name,
-                        IsCompleted = agm.IsAgmApproved,
-                        CreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
-                    }).ToListAsync();
+                            from staff in _context.StaffCreations
+                            join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
+                            join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
+                            join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
+                            join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                            from selected in selectedJoin.DefaultIfEmpty()
+                            join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
+                            from per in perJoin.DefaultIfEmpty()
+                            join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
+                            from agm in agmJoin.DefaultIfEmpty()
+                            where staff.IsActive == true
+                                && designation.IsActive
+                                && department.IsActive
+                                && !staff.IsNonProduction
+                                && staff.OrganizationTypeId == 1
+                            select new
+                            {
+                                staff.Id,
+                                staff.StaffId,
+                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                                staff.Tenure,
+                                ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                                Division = designation.Name,
+                                Department = department.Name,
+                                SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
+                                PerformanceReviewCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null,
+                                AgmIsApproved = agm != null ? agm.IsAgmApproved : (bool?)null,
+                                AgmCreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
+                            }
+                        ).ToListAsync();
 
-                var currentYear = DateTime.UtcNow.Year;
-                var nextYear = currentYear + 1;
-
-                var productionEmployee = grouped
+                var result = grouped
                     .GroupBy(x => x.Id)
                     .Select(g =>
                     {
                         var first = g.First();
-                        var nextYearApproval = g.FirstOrDefault(x => x.CreatedUtc?.Year == nextYear && x.IsCompleted == true);
-                        var currentYearApproval = g.FirstOrDefault(x => x.CreatedUtc?.Year == currentYear);
-
-                        return new AppraisalDto
+                        var agmApproval = g.FirstOrDefault(x => x.AgmCreatedUtc.HasValue && x.AgmCreatedUtc.Value.Year == currentYear && x.AgmIsApproved == true);
+                        var perfReview = g.FirstOrDefault(x => x.PerformanceReviewCreatedUtc.HasValue && x.PerformanceReviewCreatedUtc.Value.Year == currentYear);
+                        var selectedEmp = g.FirstOrDefault(x => x.SelectedCreatedUtc.HasValue && x.SelectedCreatedUtc.Value.Year == currentYear);
+                        bool? isCompleted = null;
+                        if (agmApproval != null)
+                        {
+                            isCompleted = true;
+                        }
+                        else if (perfReview != null || selectedEmp != null)
+                        {
+                            isCompleted = false;
+                        }
+                        return new ProbationDto
                         {
                             StaffId = g.Key,
                             EmpId = first.StaffId,
@@ -200,19 +233,15 @@ namespace AttendanceManagement.Services
                             ReportingManagers = first.ReportingManager,
                             Division = first.Division,
                             Department = first.Department,
-                            IsCompleted = nextYearApproval?.IsCompleted == true ? true :
-                                          currentYearApproval?.IsCompleted == true ? true :
-                                          currentYearApproval?.IsCompleted == false ? false : (bool?)null
+                            IsCompleted = isCompleted
                         };
                     })
                     .ToList();
-
-                if (productionEmployee == null || !productionEmployee.Any())
+                if (result == null || !result.Any())
                 {
                     throw new MessageNotFoundException("No employees found");
                 }
-
-                return productionEmployee.Cast<object>().ToList();
+                return result.Cast<object>().ToList();
             }
             throw new MessageNotFoundException("Please choose a valid dropdown");
         }
@@ -467,12 +496,29 @@ namespace AttendanceManagement.Services
             return selectedEmployees;
         }
 
+        public async Task<List<AgmDetails>> GetAllAgm()
+        {
+            var allAgm = await (from agm in _context.StaffCreations
+                                where agm.IsActive == true && agm.DesignationId == 65
+                                select new AgmDetails
+                                {
+                                    Id = agm.Id,
+                                    Name = $"{agm.FirstName}{(string.IsNullOrWhiteSpace(agm.LastName) ? "" : " " + agm.LastName)}"
+                                })
+                                .ToListAsync();
+            if(allAgm == null || !allAgm.Any())
+            {
+                throw new MessageNotFoundException("No Agm found");
+            }
+            return allAgm;
+        }
+
         public async Task<string> MoveToAgmApproval(AgmApprovalTab agmApprovalRequest)
         {
             var message = "Selected employees have been successfully moved to AGM approval";
             var selectedRows = agmApprovalRequest.SelectedRows;
             var currentYear = DateTime.UtcNow.Year;
-            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.DesignationId == agmApprovalRequest.DesignationId && s.IsActive == true);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == agmApprovalRequest.AgmId && s.IsActive == true);
             if(staff == null) throw new MessageNotFoundException("AGM not found");
             var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
             var selectedReviewIds = selectedRows.Select(r => r.Id).ToList();
@@ -579,119 +625,141 @@ namespace AttendanceManagement.Services
             return message;
         }
 
-        public async Task<string> GenerateAppraisalLetter(GenerateAppraisalLetterRequest generateAppraisalLetterRequest)
+        public async Task<string> GenerateAppraisalLetter(int createdBy)
         {
-            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == generateAppraisalLetterRequest.StaffId && s.IsActive == true);
-            if (staff == null) throw new MessageNotFoundException("Staff not found");
-            var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
-            var employeeCode = staff.StaffId;
-            DesignationMaster? designation;
-            string fileName = "";
-            if (generateAppraisalLetterRequest.DesignationId.HasValue)
+            var appraisalSheets = await _context.EmployeeAppraisalSheets.Where(s => s.AppraisalYear == DateTime.UtcNow.Year && s.IsActive == true).Distinct().ToListAsync();
+            if (appraisalSheets == null || !appraisalSheets.Any()) throw new MessageNotFoundException("No appraisal data found for the current year");
+            var resultFilePaths = new List<string>();
+            foreach (var appraisalSheet in appraisalSheets)
             {
-                designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == generateAppraisalLetterRequest.DesignationId.Value && d.IsActive == true);
-                if (designation == null) throw new MessageNotFoundException("Designation not found");
-                staff.DesignationId = generateAppraisalLetterRequest.DesignationId.Value;
-                await _context.SaveChangesAsync();
-                fileName = $"Appraisal_Letter_With_DC_{staff.StaffId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
-            }
-            else
-            {
-                designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == staff.DesignationId && d.IsActive == true);
-                if (designation == null) throw new MessageNotFoundException("Designation not found");
-                fileName = $"Appraisal_Letter_Without_DC_{staff.StaffId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
-            }
-            var newDesignation = designation.Name;
-            int currentYear = DateTime.Now.Year;
-            var appraisals = await (from app in _context.AppraisalAnnexureAs
-                                    where app.EmployeeCode == employeeCode && app.IsActive
-                                    select app).ToListAsync();
-            var previousAppraisal = appraisals
-                .Where(x => x.AppraisalYear == currentYear - 1)
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefault();
-            var currentAppraisal = appraisals
-                .Where(x => x.AppraisalYear == currentYear)
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefault();
-            if (currentAppraisal == null) throw new MessageNotFoundException("Current appraisal not found");
-            var title = staff.Title;
-            var appraisal = new AppraisalAnnexureResponse
-            {
-                EmployeeName = staffName,
-                EmployeeCode = employeeCode,
-                Designation = newDesignation,
-                Title = title,
-                IsDesignationChange = generateAppraisalLetterRequest.DesignationId.HasValue,
-                CurrentSalary = previousAppraisal != null ? new PreviousYearAppraisal
+                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == appraisalSheet.EmployeeCode && s.IsActive == true);
+                if (staff == null) continue;
+                string fileName = !string.IsNullOrWhiteSpace(appraisalSheet.RevisedDesignation)
+                    ? $"Appraisal_Letter_With_DC_{appraisalSheet.EmployeeCode}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf"
+                    : $"Appraisal_Letter_Without_DC_{appraisalSheet.EmployeeCode}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+                var designation = !string.IsNullOrWhiteSpace(appraisalSheet.RevisedDesignation) ? appraisalSheet.RevisedDesignation : appraisalSheet.Designation;
+                var designationName = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.IsActive && d.Name == designation);
+                if(designationName == null) continue;
+                if (!string.IsNullOrWhiteSpace(appraisalSheet.RevisedDesignation))
                 {
-                    Basic = previousAppraisal.Basic,
-                    Hra = previousAppraisal.Hra,
-                    Conveyance = previousAppraisal.Conveyance,
-                    MedicalAllowance = previousAppraisal.MedicalAllowance,
-                    SpecialAllowance = previousAppraisal.SpecialAllowance,
-                    Gross = previousAppraisal.Basic + previousAppraisal.Hra + previousAppraisal.Conveyance + previousAppraisal.MedicalAllowance + previousAppraisal.SpecialAllowance,
-                    EmployerPfContribution = previousAppraisal.EmployerPfContribution,
-                    EmployerEsiContribution = previousAppraisal.EmployerEsiContribution,
-                    EmployerGroupMedicalInsurance = previousAppraisal.EmployerGroupMedicalInsurance,
-                    GroupPersonalAccident = previousAppraisal.GroupPersonalAccident,
-                    Ctc = previousAppraisal.Basic + previousAppraisal.Hra + previousAppraisal.Conveyance + previousAppraisal.MedicalAllowance + previousAppraisal.SpecialAllowance +
-                          previousAppraisal.EmployerPfContribution + previousAppraisal.EmployerEsiContribution + previousAppraisal.EmployerGroupMedicalInsurance +
-                          previousAppraisal.GroupPersonalAccident,
-                    EmployeePfContribution = previousAppraisal.EmployeePfContribution,
-                    EmployeeEsiContribution = previousAppraisal.EmployeeEsiContribution,
-                    ProfessionalTax = previousAppraisal.ProfessionalTax,
-                    EmployeeGroupMedicalInsurance = previousAppraisal.EmployeeGroupMedicalInsurance,
-                    NetTakeHome = (previousAppraisal.Basic + previousAppraisal.Hra + previousAppraisal.Conveyance + previousAppraisal.MedicalAllowance + previousAppraisal.SpecialAllowance) -
-                                  (previousAppraisal.EmployeePfContribution + previousAppraisal.EmployeeEsiContribution + previousAppraisal.ProfessionalTax +
-                                   previousAppraisal.EmployeeGroupMedicalInsurance),
-                    AppraisalAmount = previousAppraisal.AppraisalAmount,
-                    AppraisalYear = previousAppraisal.AppraisalYear
-                } : null,
-                SalaryAfterAppraisal = new CurrentYearAppraisal
-                {
-                    Basic = currentAppraisal.Basic,
-                    Hra = currentAppraisal.Hra,
-                    Conveyance = currentAppraisal.Conveyance,
-                    MedicalAllowance = currentAppraisal.MedicalAllowance,
-                    SpecialAllowance = currentAppraisal.SpecialAllowance,
-                    Gross = currentAppraisal.Basic + currentAppraisal.Hra + currentAppraisal.Conveyance + currentAppraisal.MedicalAllowance + currentAppraisal.SpecialAllowance,
-                    EmployerPfContribution = currentAppraisal.EmployerPfContribution,
-                    EmployerEsiContribution = currentAppraisal.EmployerEsiContribution,
-                    EmployerGroupMedicalInsurance = currentAppraisal.EmployerGroupMedicalInsurance,
-                    GroupPersonalAccident = currentAppraisal.GroupPersonalAccident,
-                    Ctc = currentAppraisal.Basic + currentAppraisal.Hra + currentAppraisal.Conveyance + currentAppraisal.MedicalAllowance + currentAppraisal.SpecialAllowance +
-                          currentAppraisal.EmployerPfContribution + currentAppraisal.EmployerEsiContribution + currentAppraisal.EmployerGroupMedicalInsurance +
-                          currentAppraisal.GroupPersonalAccident,
-                    EmployeePfContribution = currentAppraisal.EmployeePfContribution,
-                    EmployeeEsiContribution = currentAppraisal.EmployeeEsiContribution,
-                    ProfessionalTax = currentAppraisal.ProfessionalTax,
-                    EmployeeGroupMedicalInsurance = currentAppraisal.EmployeeGroupMedicalInsurance,
-                    NetTakeHome = (currentAppraisal.Basic + currentAppraisal.Hra + currentAppraisal.Conveyance + currentAppraisal.MedicalAllowance + currentAppraisal.SpecialAllowance) -
-                                  (currentAppraisal.EmployeePfContribution + currentAppraisal.EmployeeEsiContribution + currentAppraisal.ProfessionalTax +
-                                   currentAppraisal.EmployeeGroupMedicalInsurance),
-                    AppraisalAmount = currentAppraisal.AppraisalAmount,
-                    AppraisalYear = currentAppraisal.AppraisalYear
+                    staff.DesignationId = designationName.Id;
+                    await _context.SaveChangesAsync();
                 }
-            };
-            if (appraisal == null) throw new MessageNotFoundException("Appraisal sheet not found");
-            var file = _letterGenerationService.GenerateAppraisalLetterPdf(appraisal, fileName);
-            byte[] pdfBytes = System.IO.File.ReadAllBytes(file);
-            string base64Pdf = Convert.ToBase64String(pdfBytes);
-            var letterGeneration = new LetterGeneration
-            {
-                LetterPath = file,
-                LetterContent = Convert.FromBase64String(base64Pdf),
-                StaffCreationId = staff.Id,
-                FileName = fileName,
-                CreatedBy = generateAppraisalLetterRequest.CreatedBy,
-                CreatedUtc = DateTime.UtcNow,
-                IsActive = true
-            };
-            await _context.LetterGenerations.AddAsync(letterGeneration);
-            await _context.SaveChangesAsync();
+                var appraisal = new AppraisalAnnexureResponse
+                {
+                    EmployeeCode = appraisalSheet.EmployeeCode,
+                    EmployeeName = appraisalSheet.EmployeeName,
+                    Designation = designation,
+                    IsDesignationChange = !string.IsNullOrWhiteSpace(appraisalSheet.RevisedDesignation) ? true : false,
+                    EmployeeSalutation = appraisalSheet.EmployeeSalutation,
+                    Department = appraisalSheet.Department,
+                    AppraisalYear = appraisalSheet.AppraisalYear,
+                    BasicCurrentPerAnnum = appraisalSheet.BasicCurrentPerAnnum,
+                    BasicCurrentPerMonth = appraisalSheet.BasicCurrentPerMonth,
+                    BasicCurrentPerAnnumAfterApp = appraisalSheet.BasicCurrentPerAnnumAfterApp,
+                    BasicCurrentPerMonthAfterApp = appraisalSheet.BasicCurrentPerMonthAfterApp,
+                    HraperAnnum = appraisalSheet.HraperAnnum,
+                    HraperMonth = appraisalSheet.HraperMonth,
+                    HraperAnnumAfterApp = appraisalSheet.HraperAnnumAfterApp,
+                    HraperMonthAfterApp = appraisalSheet.HraperMonthAfterApp,
+                    ConveyancePerAnnum = appraisalSheet.ConveyancePerAnnum,
+                    ConveyancePerMonth = appraisalSheet.ConveyancePerMonth,
+                    ConveyancePerAnnumAfterApp = appraisalSheet.ConveyancePerAnnumAfterApp,
+                    ConveyancePerMonthAfterApp = appraisalSheet.ConveyancePerMonthAfterApp,
+                    MedicalAllowancePerAnnum = appraisalSheet.MedicalAllowancePerAnnum,
+                    MedicalAllowancePerMonth = appraisalSheet.MedicalAllowancePerMonth,
+                    MedicalAllowancePerAnnumAfterApp = appraisalSheet.MedicalAllowancePerAnnumAfterApp,
+                    MedicalAllowancePerMonthAfterApp = appraisalSheet.MedicalAllowancePerMonthAfterApp,
+                    SpecialAllowancePerAnnum = appraisalSheet.SpecialAllowancePerAnnum,
+                    SpecialAllowancePerMonth = appraisalSheet.SpecialAllowancePerMonth,
+                    SpecialAllowancePerAnnumAfterApp = appraisalSheet.SpecialAllowancePerAnnumAfterApp,
+                    SpecialAllowancePerMonthAfterApp = appraisalSheet.SpecialAllowancePerMonthAfterApp,
+                    GrossMonthCurrent = appraisalSheet.BasicCurrentPerMonth + (appraisalSheet.HraperMonth ?? 0) + (appraisalSheet.ConveyancePerMonth ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerMonth ?? 0) + (appraisalSheet.SpecialAllowancePerMonth ?? 0),
+                    GrossPerAnnumCurrent = appraisalSheet.BasicCurrentPerAnnum + (appraisalSheet.HraperAnnum ?? 0) + (appraisalSheet.ConveyancePerAnnum ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerAnnum ?? 0) + (appraisalSheet.SpecialAllowancePerAnnum ?? 0),
+                    GrossMonthAfterApp = appraisalSheet.BasicCurrentPerMonthAfterApp + (appraisalSheet.HraperMonthAfterApp ?? 0) + (appraisalSheet.ConveyancePerMonthAfterApp ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerMonthAfterApp ?? 0) + (appraisalSheet.SpecialAllowancePerMonthAfterApp ?? 0),
+                    GrossPerAnnumAfterApp = appraisalSheet.BasicCurrentPerAnnumAfterApp + (appraisalSheet.HraperAnnumAfterApp ?? 0) + (appraisalSheet.ConveyancePerAnnumAfterApp ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerAnnumAfterApp ?? 0) + (appraisalSheet.SpecialAllowancePerAnnumAfterApp ?? 0),
+                    EmployerPfcontributionPerAnnum = appraisalSheet.EmployerPfcontributionPerAnnum,
+                    EmployerPfcontributionPerMonth = appraisalSheet.EmployerPfcontributionPerMonth,
+                    EmployerPfcontributionPerAnnumAfterApp = appraisalSheet.EmployerPfcontributionPerAnnumAfterApp,
+                    EmployerPfcontributionPerMonthAfterApp = appraisalSheet.EmployerPfcontributionPerMonthAfterApp,
+                    EmployerEsicontributionPerAnnum = appraisalSheet.EmployerEsicontributionPerAnnum,
+                    EmployerEsicontributionPerMonth = appraisalSheet.EmployerEsicontributionPerMonth,
+                    EmployerEsicontributionPerAnnumAfterApp = appraisalSheet.EmployerEsicontributionPerAnnumAfterApp,
+                    EmployerEsicontributionPerMonthAfterApp = appraisalSheet.EmployerEsicontributionPerMonthAfterApp,
+                    EmployerGmcperAnnum = appraisalSheet.EmployerGmcperAnnum,
+                    EmployerGmcperMonth = appraisalSheet.EmployerGmcperMonth,
+                    EmployerGmcperAnnumAfterApp = appraisalSheet.EmployerGmcperAnnumAfterApp,
+                    EmployerGmcperMonthAfterApp = appraisalSheet.EmployerGmcperMonthAfterApp,
+                    GroupPersonalAccidentPerAnnum = appraisalSheet.GroupPersonalAccidentPerAnnum,
+                    GroupPersonalAccidentPerMonth = appraisalSheet.GroupPersonalAccidentPerMonth,
+                    GroupPersonalAccidentPerAnnumAfterApp = appraisalSheet.GroupPersonalAccidentPerAnnumAfterApp,
+                    GroupPersonalAccidentPerMonthAfterApp = appraisalSheet.GroupPersonalAccidentPerMonthAfterApp,
+                    CtcMonthCurrent = appraisalSheet.BasicCurrentPerMonth + (appraisalSheet.HraperMonth ?? 0) + (appraisalSheet.ConveyancePerMonth ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerMonth ?? 0) + (appraisalSheet.SpecialAllowancePerMonth ?? 0) + (appraisalSheet.EmployerPfcontributionPerMonth ?? 0)
+                                    + (appraisalSheet.EmployerEsicontributionPerMonth ?? 0) + (appraisalSheet.EmployerGmcperMonth ?? 0) + (appraisalSheet.GroupPersonalAccidentPerMonth ?? 0),
+                    CtcPerAnnumCurrent = appraisalSheet.BasicCurrentPerAnnum + (appraisalSheet.HraperAnnum ?? 0) + (appraisalSheet.ConveyancePerAnnum ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerAnnum ?? 0) + (appraisalSheet.SpecialAllowancePerAnnum ?? 0) + (appraisalSheet.EmployerPfcontributionPerAnnum ?? 0)
+                                    + (appraisalSheet.EmployerEsicontributionPerAnnum ?? 0) + (appraisalSheet.EmployerGmcperAnnum ?? 0) + (appraisalSheet.GroupPersonalAccidentPerAnnum ?? 0),
+                    CtcMonthAfterApp = appraisalSheet.BasicCurrentPerMonthAfterApp + (appraisalSheet.HraperMonthAfterApp ?? 0) + (appraisalSheet.ConveyancePerMonthAfterApp ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerMonthAfterApp ?? 0) + (appraisalSheet.SpecialAllowancePerMonthAfterApp ?? 0) + (appraisalSheet.EmployerPfcontributionPerMonthAfterApp ?? 0)
+                                    + (appraisalSheet.EmployerEsicontributionPerMonthAfterApp ?? 0) + (appraisalSheet.EmployerGmcperMonthAfterApp ?? 0) + (appraisalSheet.GroupPersonalAccidentPerMonthAfterApp ?? 0),
+                    CtcPerAnnumAfterApp = appraisalSheet.BasicCurrentPerAnnumAfterApp + (appraisalSheet.HraperAnnumAfterApp ?? 0) + (appraisalSheet.ConveyancePerAnnumAfterApp ?? 0)
+                                    + (appraisalSheet.MedicalAllowancePerAnnumAfterApp ?? 0) + (appraisalSheet.SpecialAllowancePerAnnumAfterApp ?? 0) + (appraisalSheet.EmployerPfcontributionPerAnnumAfterApp ?? 0)
+                                    + (appraisalSheet.EmployerEsicontributionPerAnnumAfterApp ?? 0) + (appraisalSheet.EmployerGmcperAnnumAfterApp ?? 0) + (appraisalSheet.GroupPersonalAccidentPerAnnumAfterApp ?? 0),
+                    EmployeePfcontributionPerAnnum = appraisalSheet.EmployeePfcontributionPerAnnum,
+                    EmployeePfcontributionPerMonth = appraisalSheet.EmployeePfcontributionPerMonth,
+                    EmployeePfcontributionPerAnnumAfterApp = appraisalSheet.EmployeePfcontributionPerAnnumAfterApp,
+                    EmployeePfcontributionPerMonthAfterApp = appraisalSheet.EmployeePfcontributionPerMonthAfterApp,
+                    EmployeeEsicontributionPerAnnum = appraisalSheet.EmployeeEsicontributionPerAnnum,
+                    EmployeeEsicontributionPerMonth = appraisalSheet.EmployeeEsicontributionPerMonth,
+                    EmployeeEsicontributionPerAnnumAfterApp = appraisalSheet.EmployeeEsicontributionPerAnnumAfterApp,
+                    EmployeeEsicontributionPerMonthAfterApp = appraisalSheet.EmployeeEsicontributionPerMonthAfterApp,
+                    ProfessionalTaxPerAnnum = appraisalSheet.ProfessionalTaxPerAnnum,
+                    ProfessionalTaxPerMonth = appraisalSheet.ProfessionalTaxPerMonth,
+                    ProfessionalTaxPerAnnumAfterApp = appraisalSheet.ProfessionalTaxPerAnnumAfterApp,
+                    ProfessionalTaxPerMonthAfterApp = appraisalSheet.ProfessionalTaxPerMonthAfterApp,
+                    GmcperAnnum = appraisalSheet.GmcperAnnum,
+                    GmcperMonth = appraisalSheet.GmcperMonth,
+                    GmcperAnnumAfterApp = appraisalSheet.GmcperAnnumAfterApp,
+                    GmcperMonthAfterApp = appraisalSheet.GmcperMonthAfterApp,
+                    NetTakeHomeMonthCurrent = (appraisalSheet.BasicCurrentPerMonth + (appraisalSheet.HraperMonth ?? 0) + (appraisalSheet.ConveyancePerMonth ?? 0)
+                                   + (appraisalSheet.MedicalAllowancePerMonth ?? 0) + (appraisalSheet.SpecialAllowancePerMonth ?? 0)) - ((appraisalSheet.EmployeePfcontributionPerMonth ?? 0)
+                                   + (appraisalSheet.EmployeeEsicontributionPerMonth ?? 0) + (appraisalSheet.ProfessionalTaxPerMonth ?? 0) + (appraisalSheet.GmcperMonth ?? 0)),
+                    NetTakeHomePerAnnumCurrent = (appraisalSheet.BasicCurrentPerAnnum + (appraisalSheet.HraperAnnum ?? 0) + (appraisalSheet.ConveyancePerAnnum ?? 0)
+                                   + (appraisalSheet.MedicalAllowancePerAnnum ?? 0) + (appraisalSheet.SpecialAllowancePerAnnum ?? 0)) - ((appraisalSheet.EmployeePfcontributionPerAnnum ?? 0)
+                                   + (appraisalSheet.EmployeeEsicontributionPerAnnum ?? 0) + (appraisalSheet.ProfessionalTaxPerAnnum ?? 0) + (appraisalSheet.GmcperAnnum ?? 0)),
+                    NetTakeHomeMonthAfterApp = (appraisalSheet.BasicCurrentPerMonthAfterApp + (appraisalSheet.HraperMonthAfterApp ?? 0) + (appraisalSheet.ConveyancePerMonthAfterApp ?? 0)
+                                   + (appraisalSheet.MedicalAllowancePerMonthAfterApp ?? 0) + (appraisalSheet.SpecialAllowancePerMonthAfterApp ?? 0)) - ((appraisalSheet.EmployeePfcontributionPerMonthAfterApp ?? 0)
+                                   + (appraisalSheet.EmployeeEsicontributionPerMonthAfterApp ?? 0) + (appraisalSheet.ProfessionalTaxPerMonthAfterApp ?? 0) + (appraisalSheet.GmcperMonthAfterApp ?? 0)),
+                    NetTakeHomePerAnnumAfterApp = (appraisalSheet.BasicCurrentPerAnnumAfterApp + (appraisalSheet.HraperAnnumAfterApp ?? 0) + (appraisalSheet.ConveyancePerAnnumAfterApp ?? 0)
+                                   + (appraisalSheet.MedicalAllowancePerAnnumAfterApp ?? 0) + (appraisalSheet.SpecialAllowancePerAnnumAfterApp ?? 0)) - ((appraisalSheet.EmployeePfcontributionPerAnnumAfterApp ?? 0)
+                                   + (appraisalSheet.EmployeeEsicontributionPerAnnumAfterApp ?? 0) + (appraisalSheet.ProfessionalTaxPerAnnumAfterApp ?? 0) + (appraisalSheet.GmcperAnnumAfterApp ?? 0)),
+                    TotalAppraisal = appraisalSheet.TotalAppraisal
+                };
+                if (appraisal == null) throw new MessageNotFoundException("Appraisal sheet not found");
+                var file = _letterGenerationService.GenerateAppraisalLetterPdf(appraisal, fileName);
+                byte[] pdfBytes = System.IO.File.ReadAllBytes(file);
+                string base64Pdf = Convert.ToBase64String(pdfBytes);
+                var letterGeneration = new LetterGeneration
+                {
+                    LetterPath = file,
+                    LetterContent = Convert.FromBase64String(base64Pdf),
+                    StaffCreationId = staff.Id,
+                    FileName = fileName,
+                    CreatedBy = createdBy,
+                    CreatedUtc = DateTime.UtcNow,
+                    IsActive = true
+                };
+                await _context.LetterGenerations.AddAsync(letterGeneration);
+                await _context.SaveChangesAsync();
 
-            return file;
+                await _emailService.SendAppraisalEmailAsync(staff.PersonalEmail, appraisal.EmployeeName, pdfBytes, fileName, createdBy);
+            }
+            return "Appraisal letter generated and email sent successfully";
         }
 
         public async Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId, int fileId)
