@@ -175,59 +175,124 @@
 
     public class AppraisalAnnexureResponse
     {
-        public string EmployeeName { get; set; } = null!;
         public string EmployeeCode { get; set; } = null!;
+        public string EmployeeName { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public string Title { get; set; } = null!;
         public bool IsDesignationChange { get; set; }
-        public PreviousYearAppraisal? CurrentSalary { get; set; }
-        public CurrentYearAppraisal SalaryAfterAppraisal { get; set; } = null!;
-    }
-
-    public class PreviousYearAppraisal
-    {
-        public decimal Basic { get; set; }
-        public decimal Hra { get; set; }
-        public decimal Conveyance { get; set; }
-        public decimal MedicalAllowance { get; set; }
-        public decimal SpecialAllowance { get; set; }
-        public decimal Gross { get; set; }
-        public decimal EmployerPfContribution { get; set; }
-        public decimal EmployerEsiContribution { get; set; }
-        public decimal EmployerGroupMedicalInsurance { get; set; }
-        public decimal GroupPersonalAccident { get; set; }
-        public decimal Ctc { get; set; }
-        public decimal EmployeePfContribution { get; set; }
-        public decimal EmployeeEsiContribution { get; set; }
-        public decimal ProfessionalTax { get; set; }
-        public decimal EmployeeGroupMedicalInsurance { get; set; }
-        public decimal NetTakeHome { get; set; }
-        public decimal AppraisalAmount { get; set; }
+        public string Department { get; set; } = null!;
         public int AppraisalYear { get; set; }
+        public decimal BasicCurrentPerAnnum { get; set; }
+        public decimal BasicCurrentPerMonth { get; set; }
+        public decimal BasicCurrentPerAnnumAfterApp { get; set; }
+        public decimal BasicCurrentPerMonthAfterApp { get; set; }
+        public decimal? HraperAnnum { get; set; }
+        public decimal? HraperMonth { get; set; }
+        public decimal? HraperAnnumAfterApp { get; set; }
+        public decimal? HraperMonthAfterApp { get; set; }
+        public decimal? ConveyancePerAnnum { get; set; }
+        public decimal? ConveyancePerMonth { get; set; }
+        public decimal? ConveyancePerAnnumAfterApp { get; set; }
+        public decimal? ConveyancePerMonthAfterApp { get; set; }
+        public decimal? MedicalAllowancePerAnnum { get; set; }
+        public decimal? MedicalAllowancePerMonth { get; set; }
+        public decimal? MedicalAllowancePerAnnumAfterApp { get; set; }
+        public decimal? MedicalAllowancePerMonthAfterApp { get; set; }
+        public decimal? SpecialAllowancePerAnnum { get; set; }
+        public decimal? SpecialAllowancePerMonth { get; set; }
+        public decimal? SpecialAllowancePerAnnumAfterApp { get; set; }
+        public decimal? SpecialAllowancePerMonthAfterApp { get; set; }
+        public decimal GrossMonthCurrent {  get; set; }
+        public decimal GrossPerAnnumCurrent { get; set; }
+        public decimal GrossMonthAfterApp {  get; set; }
+        public decimal GrossPerAnnumAfterApp { get; set; }
+        public decimal? EmployerPfcontributionPerAnnum { get; set; }
+        public decimal? EmployerPfcontributionPerMonth { get; set; }
+        public decimal? EmployerPfcontributionPerAnnumAfterApp { get; set; }
+        public decimal? EmployerPfcontributionPerMonthAfterApp { get; set; }
+        public decimal? EmployerEsicontributionPerAnnum { get; set; }
+        public decimal? EmployerEsicontributionPerMonth { get; set; }
+        public decimal? EmployerEsicontributionPerAnnumAfterApp { get; set; }
+        public decimal? EmployerEsicontributionPerMonthAfterApp { get; set; }
+        public decimal? EmployerGmcperAnnum { get; set; }
+        public decimal? EmployerGmcperMonth { get; set; }
+        public decimal? EmployerGmcperAnnumAfterApp { get; set; }
+        public decimal? EmployerGmcperMonthAfterApp { get; set; }
+        public decimal? GroupPersonalAccidentPerAnnum { get; set; }
+        public decimal? GroupPersonalAccidentPerMonth { get; set; }
+        public decimal? GroupPersonalAccidentPerAnnumAfterApp { get; set; }
+        public decimal? GroupPersonalAccidentPerMonthAfterApp { get; set; }
+        public decimal CtcMonthCurrent { get; set; }
+        public decimal CtcPerAnnumCurrent {  get; set; }
+        public decimal CtcMonthAfterApp { get; set; }
+        public decimal CtcPerAnnumAfterApp { get; set; }
+        public decimal? EmployeePfcontributionPerAnnum { get; set; }
+        public decimal? EmployeePfcontributionPerMonth { get; set; }
+        public decimal? EmployeePfcontributionPerAnnumAfterApp { get; set; }
+        public decimal? EmployeePfcontributionPerMonthAfterApp { get; set; }
+        public decimal? EmployeeEsicontributionPerAnnum { get; set; }
+        public decimal? EmployeeEsicontributionPerMonth { get; set; }
+        public decimal? EmployeeEsicontributionPerAnnumAfterApp { get; set; }
+        public decimal? EmployeeEsicontributionPerMonthAfterApp { get; set; }
+        public decimal? ProfessionalTaxPerAnnum { get; set; }
+        public decimal? ProfessionalTaxPerMonth { get; set; }
+        public decimal? ProfessionalTaxPerAnnumAfterApp { get; set; }
+        public decimal? ProfessionalTaxPerMonthAfterApp { get; set; }
+        public string EmployeeSalutation { get; set; } = null!;
+        public decimal? GmcperAnnum { get; set; }
+        public decimal? GmcperMonth { get; set; }
+        public decimal? GmcperAnnumAfterApp { get; set; }
+        public decimal? GmcperMonthAfterApp { get; set; }
+        public decimal NetTakeHomeMonthCurrent { get; set; }
+        public decimal NetTakeHomePerAnnumCurrent { get; set; }
+        public decimal NetTakeHomeMonthAfterApp { get; set; }
+        public decimal NetTakeHomePerAnnumAfterApp { get; set; }
+        public decimal TotalAppraisal { get; set; }
     }
 
-    public class CurrentYearAppraisal
-    {
-        public decimal Basic { get; set; }
-        public decimal Hra { get; set; }
-        public decimal Conveyance { get; set; }
-        public decimal MedicalAllowance { get; set; }
-        public decimal SpecialAllowance { get; set; }
-        public decimal Gross { get; set; }
-        public decimal EmployerPfContribution { get; set; }
-        public decimal EmployerEsiContribution { get; set; }
-        public decimal EmployerGroupMedicalInsurance { get; set; }
-        public decimal GroupPersonalAccident { get; set; }
-        public decimal Ctc { get; set; }
-        public decimal EmployeePfContribution { get; set; }
-        public decimal EmployeeEsiContribution { get; set; }
-        public decimal ProfessionalTax { get; set; }
-        public decimal EmployeeGroupMedicalInsurance { get; set; }
-        public decimal NetTakeHome { get; set; }
-        public decimal AppraisalAmount { get; set; }
-        public int AppraisalYear { get; set; }
-    }
+    /*    public class PreviousYearAppraisal
+        {
+            public decimal Basic { get; set; }
+            public decimal Hra { get; set; }
+            public decimal Conveyance { get; set; }
+            public decimal MedicalAllowance { get; set; }
+            public decimal SpecialAllowance { get; set; }
+            public decimal Gross { get; set; }
+            public decimal EmployerPfContribution { get; set; }
+            public decimal EmployerEsiContribution { get; set; }
+            public decimal EmployerGroupMedicalInsurance { get; set; }
+            public decimal GroupPersonalAccident { get; set; }
+            public decimal Ctc { get; set; }
+            public decimal EmployeePfContribution { get; set; }
+            public decimal EmployeeEsiContribution { get; set; }
+            public decimal ProfessionalTax { get; set; }
+            public decimal EmployeeGroupMedicalInsurance { get; set; }
+            public decimal NetTakeHome { get; set; }
+            public decimal AppraisalAmount { get; set; }
+            public int AppraisalYear { get; set; }
+        }
 
+        public class CurrentYearAppraisal
+        {
+            public decimal Basic { get; set; }
+            public decimal Hra { get; set; }
+            public decimal Conveyance { get; set; }
+            public decimal MedicalAllowance { get; set; }
+            public decimal SpecialAllowance { get; set; }
+            public decimal Gross { get; set; }
+            public decimal EmployerPfContribution { get; set; }
+            public decimal EmployerEsiContribution { get; set; }
+            public decimal EmployerGroupMedicalInsurance { get; set; }
+            public decimal GroupPersonalAccident { get; set; }
+            public decimal Ctc { get; set; }
+            public decimal EmployeePfContribution { get; set; }
+            public decimal EmployeeEsiContribution { get; set; }
+            public decimal ProfessionalTax { get; set; }
+            public decimal EmployeeGroupMedicalInsurance { get; set; }
+            public decimal NetTakeHome { get; set; }
+            public decimal AppraisalAmount { get; set; }
+            public int AppraisalYear { get; set; }
+        }
+    */
     public class GeneratePaySheetRequest
     {
         public int StaffId { get; set; }
@@ -238,8 +303,7 @@
 
     public class GenerateAppraisalLetterRequest
     {
-        public string StaffId { get; set; } = null!;
-        public int? DesignationId { get; set; }
+        public List<string> StaffId { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
 }

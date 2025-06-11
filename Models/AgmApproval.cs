@@ -23,6 +23,8 @@ public partial class AgmApproval
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public virtual StaffCreation Agm { get; set; } = null!;
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual EmployeePerformanceReview EmployeePerformanceReview { get; set; } = null!;

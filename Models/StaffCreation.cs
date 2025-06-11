@@ -189,6 +189,8 @@ public partial class StaffCreation
 
     public virtual ICollection<AddressVerification> AddressVerificationUpdatedByNavigations { get; set; } = new List<AddressVerification>();
 
+    public virtual ICollection<AgmApproval> AgmApprovalAgms { get; set; } = new List<AgmApproval>();
+
     public virtual ICollection<AgmApproval> AgmApprovalCreatedByNavigations { get; set; } = new List<AgmApproval>();
 
     public virtual ICollection<AgmApproval> AgmApprovalUpdatedByNavigations { get; set; } = new List<AgmApproval>();

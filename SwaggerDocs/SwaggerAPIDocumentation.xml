@@ -370,6 +370,15 @@
 			<response code="404">If no data found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetAllAgm">
+			<summary>
+				Retrieves all AGM data.
+			</summary>
+			<returns>A success message with file data in bytes.</returns>
+			<response code="200">Returns the AGM data</response>
+			<response code="404">If no AGM data is found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveToAgmApproval(AttendanceManagement.Input_Models.AgmApprovalTab)">
 			<summary>
 				Moves selected employee appraisal records to AGM approval stage.
@@ -401,7 +410,7 @@
 			<response code="404">If data not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GenerateAppraisalLetter(AttendanceManagement.Input_Models.GenerateAppraisalLetterRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GenerateAppraisalLetter(System.Int32)">
 			<summary>
 				Generates an appraisal letter PDF for a specified employee and returns it as a downloadable file.
 			</summary>

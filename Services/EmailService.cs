@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Org.BouncyCastle.Cms;
 using DocumentFormat.OpenXml.Wordprocessing;
 using iText.StyledXmlParser.Jsoup.Safety;
+using System.Net.Mime;
 
 namespace AttendanceManagement.Services
 {
@@ -52,6 +53,77 @@ namespace AttendanceManagement.Services
                         DeliveryMethod = SmtpDeliveryMethod.Network,
                         EnableSsl = ssl
                     };
+                    await smtp.SendMailAsync(message);
+                    var log = new EmailLog
+                    {
+                        From = from,
+                        To = recipientEmail,
+                        EmailSubject = subject,
+                        EmailBody = emailBody,
+                        IsSent = true,
+                        IsError = false,
+                        CreatedBy = approvedBy,
+                        CreatedUtc = DateTime.UtcNow
+                    };
+                    await _context.EmailLogs.AddAsync(log);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    var log = new EmailLog
+                    {
+                        From = from,
+                        To = recipientEmail,
+                        EmailSubject = subject,
+                        EmailBody = emailBody,
+                        IsSent = false,
+                        IsError = true,
+                        ErrorDescription = ex.Message,
+                        ErrorStackTrace = ex.StackTrace ?? string.Empty,
+                        ErrorInnerException = ex.InnerException?.ToString() ?? string.Empty,
+                        CreatedBy = approvedBy,
+                        CreatedUtc = DateTime.UtcNow
+                    };
+                    await _context.EmailLogs.AddAsync(log);
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
+
+        public async Task SendEmailWithAttachment(string recipientEmail, string subject, string emailBody, List<Attachment> attachments, int approvedBy)
+        {
+            var host = _configuration["Smtp:host"];
+            var port = _configuration.GetValue<int>("Smtp:port");
+            var userName = _configuration["Smtp:userName"];
+            var password = _configuration["Smtp:password"];
+            var from = _configuration["Smtp:from"];
+            var ssl = _configuration.GetValue<bool>("Smtp:SSL");
+            var defaultCredential = _configuration.GetValue<bool>("Smtp:defaultCredential");
+
+            if (from != null)
+            {
+                try
+                {
+                    var message = new MailMessage
+                    {
+                        Subject = subject,
+                        Body = emailBody,
+                        IsBodyHtml = true,
+                        From = new MailAddress(from, "HR Team")
+                    };
+                    message.To.Add(new MailAddress(recipientEmail));
+                    using var smtp = new SmtpClient(host, port)
+                    {
+                        UseDefaultCredentials = defaultCredential,
+                        Credentials = new NetworkCredential(userName, password),
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        EnableSsl = ssl
+                    };
+                    if (attachments != null)
+                    {
+                        foreach (var attachment in attachments)
+                            message.Attachments.Add(attachment);
+                    }
                     await smtp.SendMailAsync(message);
                     var log = new EmailLog
                     {
@@ -1275,6 +1347,26 @@ namespace AttendanceManagement.Services
                 Attendance Management System";
 
                 await SendApprovalEmail(recipientEmail, subject, body, approvedBy);
+            }
+        }
+
+        public async Task SendAppraisalEmailAsync(string toEmail, string staffName, byte[] attachmentBytes, string attachmentName, int createdBy)
+        {
+            if (!string.IsNullOrEmpty(toEmail))
+            {
+                var subject = "Appraisal Letter";
+                var body = $@"
+                Dear {staffName},<br/><br/>
+                Please find attached your appraisal letter for the current year.<br/><br/>
+                Regards,<br/>
+                HR Team";
+
+                var stream = new MemoryStream(attachmentBytes);
+                using (var attachment = new Attachment(stream, attachmentName, MediaTypeNames.Application.Pdf))
+                {
+                    await SendEmailWithAttachment(recipientEmail: toEmail, subject: subject, emailBody: body,
+                        attachments: new List<Attachment> { attachment }, approvedBy: createdBy);
+                }
             }
         }
     }

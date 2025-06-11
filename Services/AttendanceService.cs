@@ -64,7 +64,7 @@ public class AttendanceService
         }
 
         if (!transactions.Any()) throw new MessageNotFoundException("No record found for the given Staff ID and shift timings.");
-        var checkIn = transactions.LastOrDefault(t => t.TrOpName == "IN");
+        var checkIn = transactions.FirstOrDefault(t => t.TrOpName == "IN");
         var checkOut = transactions.LastOrDefault(t => t.TrOpName == "OUT");
         string? trIpAddressIn = checkIn?.TrIpaddress;
         string? trIpAddressOut = checkOut?.TrIpaddress;

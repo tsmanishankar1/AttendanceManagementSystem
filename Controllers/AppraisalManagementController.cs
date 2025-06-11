@@ -73,7 +73,7 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpPost("GetSelectedEmployees")]
+        [HttpGet("GetSelectedEmployees")]
         public async Task<IActionResult> GetSelectedEmployees(int appraisalId)
         {
             try
@@ -122,12 +122,35 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpPost("GetSelectedEmployeeReview")]
+        [HttpGet("GetSelectedEmployeeReview")]
         public async Task<IActionResult> GetSelectedEmployeeReview(int appraisalId)
         {
             try
             {
                 var fileBytes = await _service.GetSelectedEmployeeReview(appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = fileBytes
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetAllAgm")]
+        public async Task<IActionResult> GetAllAgm()
+        {
+            try
+            {
+                var fileBytes = await _service.GetAllAgm();
                 var response = new
                 {
                     Success = true,
@@ -176,7 +199,7 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpPost("GetSelectedEmployeeAgmApproval")]
+        [HttpGet("GetSelectedEmployeeAgmApproval")]
         public async Task<IActionResult> GetSelectedEmployeeAgmApproval(int appraisalId)
         {
             try
@@ -225,26 +248,28 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpPost("GenerateAppraisalLetter")]
-        public async Task<IActionResult> GenerateAppraisalLetter(GenerateAppraisalLetterRequest generateAppraisalLetterRequest)
+        [HttpGet("GenerateAppraisalLetter")]
+        public async Task<IActionResult> GenerateAppraisalLetter(int createdBy)
         {
             try
             {
-                var appraisal = await _service.GenerateAppraisalLetter(generateAppraisalLetterRequest);
-                var fileBytes = await System.IO.File.ReadAllBytesAsync(appraisal);
-                var fileName = Path.GetFileName(appraisal);
-                var contentType = "application/pdf";
-                await _loggingService.AuditLog("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", "Appraisal letter generated successfully", generateAppraisalLetterRequest.CreatedBy, JsonSerializer.Serialize(generateAppraisalLetterRequest));
-                return File(fileBytes, contentType, fileName);
+                var appraisal = await _service.GenerateAppraisalLetter(createdBy);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisal
+                };
+                await _loggingService.AuditLog("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", appraisal, createdBy, JsonSerializer.Serialize(createdBy));
+                return Ok(response);
             }
             catch (MessageNotFoundException ex)
             {
-                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, generateAppraisalLetterRequest.CreatedBy, JsonSerializer.Serialize(generateAppraisalLetterRequest));
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(createdBy));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (Exception ex)
             {
-                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, generateAppraisalLetterRequest.CreatedBy, JsonSerializer.Serialize(generateAppraisalLetterRequest));
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(createdBy));
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
@@ -272,7 +297,7 @@ namespace AttendanceManagement.Controllers
             }
         }
 
-        [HttpPost("DownloadAppraisalLetter")]
+        [HttpGet("DownloadAppraisalLetter")]
         public async Task<IActionResult> DownloadAppraisalLetter(int staffId, int fileId)
         {
             try

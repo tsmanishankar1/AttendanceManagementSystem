@@ -429,6 +429,11 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
+            entity.HasOne(d => d.Agm).WithMany(p => p.AgmApprovalAgms)
+                .HasForeignKey(d => d.AgmId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AGMAId");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AgmApprovalCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)

@@ -122,11 +122,9 @@ app.MapControllers();
 app.Run();
 static IConfigurationRoot ConfigureWebApiAppSettings()
 {
-    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
     var configurationBuilder = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
     return configurationBuilder.Build();
 }
