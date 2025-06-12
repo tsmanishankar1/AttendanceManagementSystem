@@ -1186,7 +1186,7 @@ namespace AttendanceManagement.Services
                 { 1027, _context.DesignationMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1028, _context.GradeMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1029, _context.CostCentreMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
-                { 1030, _context.Shifts.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
+                { 1030, _context.Shifts.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = $"{ws.Name}({ws.StartTime}-{ws.EndTime})", CreatedBy = ws.CreatedBy }) },
                 { 1031, _context.DivisionMasters.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1032, _context.LeaveGroups.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
                 { 1033, _context.HolidayCalendarConfigurations.Where(ws => ws.IsActive).Select(ws => new DropDownResponse { Id = ws.Id, Name = ws.Name, CreatedBy = ws.CreatedBy }) },
