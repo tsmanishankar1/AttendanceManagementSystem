@@ -69,7 +69,7 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateShiftAsync(ShiftRequest newShift)
         {
             var message = "Shift created successfully";
-            var shiftType = await _context.Shifts.AnyAsync(p => p.ShiftTypeId == newShift.ShiftTypeId && p.IsActive);
+            var shiftType = await _context.ShiftTypeDropDowns.AnyAsync(p => p.Id == newShift.ShiftTypeId && p.IsActive);
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
             var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Name.ToLower() == newShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
@@ -94,7 +94,7 @@ namespace AttendanceManagement.Services
             var message = "Shift updated successfully";
             var existingShift = await _context.Shifts.FirstOrDefaultAsync(s => s.Id == updatedShift.ShiftId);
             if (existingShift == null) throw new MessageNotFoundException("Shift not found");
-            var shiftType = await _context.Shifts.AnyAsync(p => p.ShiftTypeId == updatedShift.ShiftTypeId && p.IsActive);
+            var shiftType = await _context.ShiftTypeDropDowns.AnyAsync(p => p.Id == updatedShift.ShiftTypeId && p.IsActive);
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
             var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Id != updatedShift.ShiftId && s.Name.ToLower() == updatedShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
