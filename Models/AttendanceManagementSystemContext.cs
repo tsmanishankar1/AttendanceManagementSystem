@@ -1907,6 +1907,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Grade)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+            entity.Property(e => e.HrComments).IsUnicode(false);
             entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");

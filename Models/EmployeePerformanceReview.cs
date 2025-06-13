@@ -45,6 +45,8 @@ public partial class EmployeePerformanceReview
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public string? HrComments { get; set; }
+
     public virtual ICollection<AgmApproval> AgmApprovals { get; set; } = new List<AgmApproval>();
 
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;

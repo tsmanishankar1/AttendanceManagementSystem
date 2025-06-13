@@ -202,7 +202,7 @@ namespace AttendanceManagement.Services
                 .Where(x => x.Id == approverLevel && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN";
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
             var matchingProbations = await (from p in _context.Probations
                                             join s in _context.StaffCreations on p.StaffCreationId equals s.Id
                                             join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
@@ -257,7 +257,7 @@ namespace AttendanceManagement.Services
                 .Where(x => x.Id == approverLevelId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN";
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
 
             var matchingProbations = await (from p in _context.Probations
                                       join s in _context.StaffCreations on p.StaffCreationId equals s.Id
@@ -296,7 +296,7 @@ namespace AttendanceManagement.Services
                 .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN";
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
 
             var feedbackWithJoins = await (
                 from f in _context.Feedbacks

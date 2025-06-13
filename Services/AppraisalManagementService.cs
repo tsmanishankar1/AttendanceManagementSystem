@@ -295,7 +295,7 @@ namespace AttendanceManagement.Services
                         if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
                         var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                         var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days" };
+                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
                         var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                         if (missingHeaders.Any())
                         {
@@ -330,6 +330,7 @@ namespace AttendanceManagement.Services
                                     var finalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out var final) ? final : 0;
                                     var grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim();
                                     var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
+                                    var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
                                     var employeeReview = new EmployeePerformanceReview
                                     {
                                         EmpId = empId,
@@ -344,6 +345,7 @@ namespace AttendanceManagement.Services
                                         FinalPercentage = finalPercentage,
                                         Grade = grade,
                                         AbsentDays = absentDays,
+                                        HrComments = hrComments,
                                         AppraisalId = uploadMisSheetRequest.AppraisalId,
                                         IsCompleted = false,
                                         IsActive = true,

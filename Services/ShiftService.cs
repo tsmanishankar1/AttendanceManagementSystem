@@ -193,7 +193,7 @@ namespace AttendanceManagement.Services
                 .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN";
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
             var getAssignedShifts = await (from ass in _context.AssignShifts
                                            join sh in _context.Shifts on ass.ShiftId equals sh.Id
                                            join st in _context.StaffCreations on ass.StaffId equals st.Id

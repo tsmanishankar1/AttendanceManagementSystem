@@ -11,5 +11,6 @@
         public string? ReaderNameIn { get; set; }
         public string? ReaderNameOut { get; set; }
         public string? Duration { get; set; }
+        public string? BreakHours { get; set; }
     }
 }

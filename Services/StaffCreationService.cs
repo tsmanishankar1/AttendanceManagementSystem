@@ -716,7 +716,7 @@ namespace AttendanceManagement.Services
                 .Where(x => x.Id == currentApprovar1 && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN";
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == currentApprovar1 && s.IsActive == true);
             if (staff == null) throw new MessageNotFoundException("Approver not found");
             var query = _context.StaffCreations
@@ -847,7 +847,7 @@ namespace AttendanceManagement.Services
                 .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN";
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
             var isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == approverId && s.IsActive == true);
             var isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == approverId && s.IsActive == true);
             var records = await _context.StaffCreations
