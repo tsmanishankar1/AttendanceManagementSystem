@@ -34,11 +34,16 @@ namespace AttendanceManagement.Services
         public async Task<List<object>> GetProductionEmployees(int appraisalId)
         {
             var currentYear = DateTime.UtcNow.Year;
+            var agmApprovedEmpIds = await (
+                from per in _context.EmployeePerformanceReviews
+                join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId
+                where agm.IsAgmApproved == true && per.AppraisalId == appraisalId
+                select per.EmpId).Distinct().ToListAsync();
             if (appraisalId == 1)
             {
                 var grouped = await (
                             from staff in _context.StaffCreations
-                            join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
+                            join division in _context.DivisionMasters on staff.DivisionId equals division.Id
                             join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
                             join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
                             join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
@@ -47,7 +52,7 @@ namespace AttendanceManagement.Services
                             from per in perJoin.DefaultIfEmpty()
                             join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
                             from agm in agmJoin.DefaultIfEmpty()
-                            where staff.IsActive == true && designation.IsActive && department.IsActive && !staff.IsNonProduction
+                            where staff.IsActive == true && division.IsActive && department.IsActive && !staff.IsNonProduction
                             select new
                             {
                                 staff.Id,
@@ -55,7 +60,7 @@ namespace AttendanceManagement.Services
                                 StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                                 staff.Tenure,
                                 ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
-                                Division = designation.Name,
+                                Division = division.Name,
                                 Department = department.Name,
                                 SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
                                 PerformanceReviewId = per != null ? per.Id : (int?)null,
@@ -101,41 +106,43 @@ namespace AttendanceManagement.Services
                 }
                 return result.Cast<object>().ToList();
             }
-            else if (appraisalId == 2)
+            if (appraisalId == 2 || appraisalId == 3)
             {
                 var grouped = await (
-                            from staff in _context.StaffCreations
-                            join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
-                            join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
-                            join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                            join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
-                            from selected in selectedJoin.DefaultIfEmpty()
-                            join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
-                            from per in perJoin.DefaultIfEmpty()
-                            join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
-                            from agm in agmJoin.DefaultIfEmpty()
-                            where staff.IsActive == true
-                                && designation.IsActive
-                                && department.IsActive
-                                && !staff.IsNonProduction
-                                && staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1))
-                                && staff.OrganizationTypeId == 1
-                            select new
-                            {
-                                staff.Id,
-                                staff.StaffId,
-                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                                staff.Tenure,
-                                ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
-                                Division = designation.Name,
-                                Department = department.Name,
-                                SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
-                                PerformanceReviewId = per != null ? per.Id : (int?)null,
-                                PerformanceReviewCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null,
-                                AgmIsApproved = agm != null ? agm.IsAgmApproved : (bool?)null,
-                                AgmCreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
-                            }
-                        ).ToListAsync();
+                    from staff in _context.StaffCreations
+                    join division in _context.DivisionMasters on staff.DivisionId equals division.Id
+                    join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
+                    join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
+                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                    from selected in selectedJoin.DefaultIfEmpty()
+                    join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
+                    from per in perJoin.DefaultIfEmpty()
+                    join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
+                    from agm in agmJoin.DefaultIfEmpty()
+                    where staff.IsActive == true
+                          && division.IsActive
+                          && department.IsActive
+                          && !staff.IsNonProduction
+                          && staff.OrganizationTypeId == 1
+                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true)
+                          && !agmApprovedEmpIds.Contains(staff.StaffId)
+                    select new
+                    {
+                        staff.Id,
+                        staff.StaffId,
+                        StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                        staff.Tenure,
+                        ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                        Division = division.Name,
+                        Department = department.Name,
+                        SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
+                        AppraisalId = selected != null ? selected.AppraisalId : (int?)null,
+                        PerformanceReviewId = per != null ? per.Id : (int?)null,
+                        PerformanceReviewCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null,
+                        AgmIsApproved = agm != null ? agm.IsAgmApproved : (bool?)null,
+                        AgmCreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
+                    }
+                ).ToListAsync();
 
                 var result = grouped
                     .GroupBy(x => x.Id)
@@ -167,80 +174,8 @@ namespace AttendanceManagement.Services
                         };
                     })
                     .ToList();
-                if (result == null || !result.Any())
-                {
-                    throw new MessageNotFoundException("No employees found");
-                }
-                return result.Cast<object>().ToList();
-            }
-            else if (appraisalId == 3)
-            {
-                var grouped = await (
-                            from staff in _context.StaffCreations
-                            join designation in _context.DivisionMasters on staff.DesignationId equals designation.Id
-                            join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
-                            join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                            join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
-                            from selected in selectedJoin.DefaultIfEmpty()
-                            join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
-                            from per in perJoin.DefaultIfEmpty()
-                            join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
-                            from agm in agmJoin.DefaultIfEmpty()
-                            where staff.IsActive == true
-                                && designation.IsActive
-                                && department.IsActive
-                                && !staff.IsNonProduction
-                                && staff.OrganizationTypeId == 1
-                            select new
-                            {
-                                staff.Id,
-                                staff.StaffId,
-                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                                staff.Tenure,
-                                ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
-                                Division = designation.Name,
-                                Department = department.Name,
-                                SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
-                                PerformanceReviewCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null,
-                                AgmIsApproved = agm != null ? agm.IsAgmApproved : (bool?)null,
-                                AgmCreatedUtc = agm != null ? agm.CreatedUtc : (DateTime?)null
-                            }
-                        ).ToListAsync();
 
-                var result = grouped
-                    .GroupBy(x => x.Id)
-                    .Select(g =>
-                    {
-                        var first = g.First();
-                        var agmApproval = g.FirstOrDefault(x => x.AgmCreatedUtc.HasValue && x.AgmCreatedUtc.Value.Year == currentYear && x.AgmIsApproved == true);
-                        var perfReview = g.FirstOrDefault(x => x.PerformanceReviewCreatedUtc.HasValue && x.PerformanceReviewCreatedUtc.Value.Year == currentYear);
-                        var selectedEmp = g.FirstOrDefault(x => x.SelectedCreatedUtc.HasValue && x.SelectedCreatedUtc.Value.Year == currentYear);
-                        bool? isCompleted = null;
-                        if (agmApproval != null)
-                        {
-                            isCompleted = true;
-                        }
-                        else if (perfReview != null || selectedEmp != null)
-                        {
-                            isCompleted = false;
-                        }
-                        return new ProbationDto
-                        {
-                            StaffId = g.Key,
-                            EmpId = first.StaffId,
-                            EmpName = first.StaffName,
-                            Tenure = first.Tenure,
-                            ReportingManagers = first.ReportingManager,
-                            Division = first.Division,
-                            Department = first.Department,
-                            IsCompleted = isCompleted
-                        };
-                    })
-                    .ToList();
-                if (result == null || !result.Any())
-                {
-                    throw new MessageNotFoundException("No employees found");
-                }
+                if (result == null || !result.Any()) throw new MessageNotFoundException("No employees found");
                 return result.Cast<object>().ToList();
             }
             throw new MessageNotFoundException("Please choose a valid dropdown");
@@ -810,14 +745,14 @@ namespace AttendanceManagement.Services
             if (department == null) throw new MessageNotFoundException("Department not found");
             var division = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Id == staff.DivisionId && d.IsActive);
             if (division == null) throw new MessageNotFoundException("Division not found");
-            var currentYear = DateTime.UtcNow.Year;
             var latestAcceptance = await _context.EmployeeAcceptances
-                .Where(x => x.EmpId == empId && x.IsActive && x.CreatedUtc.Year == currentYear && x.IsAccepted)
+                .Where(x => x.FileId == letterAcceptance.Id && x.EmpId == empId)
                 .OrderByDescending(x => x.Id)
                 .FirstOrDefaultAsync();
             if (latestAcceptance != null)
             {
-                throw new InvalidOperationException("You have already accepted");
+                if (latestAcceptance.IsAccepted) throw new InvalidOperationException("You have already accepted");
+                else throw new InvalidOperationException("You have already rejected");
             }
             var appraisal = new EmployeeAcceptance
             {
@@ -825,6 +760,7 @@ namespace AttendanceManagement.Services
                 EmpName = empName,
                 Department = department.Name,
                 Division = division.Name,
+                FileId = letterAcceptance.Id,
                 IsAccepted = letterAcceptance.IsAccepted,
                 IsActive = true,
                 CreatedBy = letterAcceptance.AcceptedBy,
@@ -832,66 +768,382 @@ namespace AttendanceManagement.Services
             };
             await _context.AddAsync(appraisal);
             await _context.SaveChangesAsync();
-            return "Appraisal letter has been successfully accepted";
+            return letterAcceptance.IsAccepted ? "Appraisal letter has been successfully accepted" : "Appraisal letter has been successfully rejected";
         }
 
         public async Task<List<LetterAcceptanceResponse>> GetAcceptedEmployees()
         {
             var currentYear = DateTime.UtcNow.Year;
-            var acceptedEmployees = await (from emp in _context.EmployeeAcceptances
-                                           where emp.IsActive == true && emp.CreatedUtc.Year == currentYear
-                                           select new LetterAcceptanceResponse
-                                           {
-                                               EmpId = emp.EmpId,
-                                               EmpName = emp.EmpName,
-                                               Division = emp.Division,
-                                               Department = emp.Department,
-                                               IsAccepted = emp.IsAccepted
-                                           }).ToListAsync();
-            if (acceptedEmployees == null || !acceptedEmployees.Any())
+            var allAcceptances = await _context.EmployeeAcceptances
+                .Where(emp => emp.IsActive && emp.CreatedUtc.Year == currentYear)
+                .ToListAsync(); // Force client-side evaluation
+
+            // Step 2: Group and get latest per EmpId
+            var acceptedEmployees = allAcceptances
+                .GroupBy(emp => emp.EmpId)
+                .Select(g => g.OrderByDescending(e => e.Id).First())
+                .Select(emp => new LetterAcceptanceResponse
+                {
+                    EmpId = emp.EmpId,
+                    EmpName = emp.EmpName,
+                    Division = emp.Division,
+                    Department = emp.Department,
+                    IsAccepted = emp.IsAccepted
+                })
+                .ToList(); if (acceptedEmployees == null || !acceptedEmployees.Any())
             {
                 throw new MessageNotFoundException("No employees found");
             }
             return acceptedEmployees;
         }
 
-/*        public async Task<byte[]> DownloadEmployeesPerformanceReportExcel(int appraisalId)
-        {
-            var employees = await GetSelectedEmployeeReview(appraisalId);
-            using var package = new ExcelPackage();
-            var worksheet = package.Workbook.Worksheets.Add("Employees Performance Report");
-            worksheet.Cells[1, 1].Value = "Emp ID";
-            worksheet.Cells[1, 2].Value = "Emp Name";
-            worksheet.Cells[1, 3].Value = "Tenure in years";
-            worksheet.Cells[1, 4].Value = "Reporting Managers";
-            worksheet.Cells[1, 5].Value = "Division";
-            worksheet.Cells[1, 6].Value = "Department";
-            worksheet.Cells[1, 7].Value = "Productivity %";
-            worksheet.Cells[1, 8].Value = "Quality %";
-            worksheet.Cells[1, 9].Value = "Present %";
-            worksheet.Cells[1, 10].Value = "Final %";
-            worksheet.Cells[1, 11].Value = "Grade";
-            worksheet.Cells[1, 12].Value = "Absent Days";
+        /*        public async Task<byte[]> DownloadEmployeesPerformanceReportExcel(int appraisalId)
+                {
+                    var employees = await GetSelectedEmployeeReview(appraisalId);
+                    using var package = new ExcelPackage();
+                    var worksheet = package.Workbook.Worksheets.Add("Employees Performance Report");
+                    worksheet.Cells[1, 1].Value = "Emp ID";
+                    worksheet.Cells[1, 2].Value = "Emp Name";
+                    worksheet.Cells[1, 3].Value = "Tenure in years";
+                    worksheet.Cells[1, 4].Value = "Reporting Managers";
+                    worksheet.Cells[1, 5].Value = "Division";
+                    worksheet.Cells[1, 6].Value = "Department";
+                    worksheet.Cells[1, 7].Value = "Productivity %";
+                    worksheet.Cells[1, 8].Value = "Quality %";
+                    worksheet.Cells[1, 9].Value = "Present %";
+                    worksheet.Cells[1, 10].Value = "Final %";
+                    worksheet.Cells[1, 11].Value = "Grade";
+                    worksheet.Cells[1, 12].Value = "Absent Days";
 
-            for (int i = 0; i < employees.Count; i++)
+                    for (int i = 0; i < employees.Count; i++)
+                    {
+                        var emp = employees[i];
+                        worksheet.Cells[i + 2, 1].Value = emp.EmpId;
+                        worksheet.Cells[i + 2, 2].Value = emp.EmpName;
+                        worksheet.Cells[i + 2, 3].Value = emp.TenureInYears;
+                        worksheet.Cells[i + 2, 4].Value = emp.ReportingManagers;
+                        worksheet.Cells[i + 2, 5].Value = emp.Division;
+                        worksheet.Cells[i + 2, 6].Value = emp.Department;
+                        worksheet.Cells[i + 2, 7].Value = $"{emp.ProductivityPercentage}%";
+                        worksheet.Cells[i + 2, 8].Value = $"{emp.QualityPercentage}%";
+                        worksheet.Cells[i + 2, 9].Value = $"{emp.PresentPercentage}%";
+                        worksheet.Cells[i + 2, 10].Value = $"{emp.FinalPercentage}%";
+                        worksheet.Cells[i + 2, 11].Value = emp.Grade;
+                        worksheet.Cells[i + 2, 12].Value = emp.AbsentDays;
+                    }
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+                    return package.GetAsByteArray();
+                }
+        */
+
+        public async Task<List<object>> GetNonProductionEmployees(int appraisalId)
+        {
+            var currentYear = DateTime.UtcNow.Year;
+            var agmApprovedEmpIds = await (
+            from per in _context.NonProductionEmployeePerformanceReviews
+            where per.IsCompleted == true && per.AppraisalId == appraisalId
+            select per.EmpId).Distinct().ToListAsync();
+            if (appraisalId == 1)
             {
-                var emp = employees[i];
-                worksheet.Cells[i + 2, 1].Value = emp.EmpId;
-                worksheet.Cells[i + 2, 2].Value = emp.EmpName;
-                worksheet.Cells[i + 2, 3].Value = emp.TenureInYears;
-                worksheet.Cells[i + 2, 4].Value = emp.ReportingManagers;
-                worksheet.Cells[i + 2, 5].Value = emp.Division;
-                worksheet.Cells[i + 2, 6].Value = emp.Department;
-                worksheet.Cells[i + 2, 7].Value = $"{emp.ProductivityPercentage}%";
-                worksheet.Cells[i + 2, 8].Value = $"{emp.QualityPercentage}%";
-                worksheet.Cells[i + 2, 9].Value = $"{emp.PresentPercentage}%";
-                worksheet.Cells[i + 2, 10].Value = $"{emp.FinalPercentage}%";
-                worksheet.Cells[i + 2, 11].Value = emp.Grade;
-                worksheet.Cells[i + 2, 12].Value = emp.AbsentDays;
+                var grouped = await (
+                            from staff in _context.StaffCreations
+                            join division in _context.DivisionMasters on staff.DivisionId equals division.Id
+                            join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
+                            join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
+                            join selected in _context.SelectedNonProductionEmployees.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                            from selected in selectedJoin.DefaultIfEmpty()
+                            join per in _context.NonProductionEmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
+                            from per in perJoin.DefaultIfEmpty()
+                            where staff.IsActive == true && division.IsActive && department.IsActive && staff.IsNonProduction
+                            select new
+                            {
+                                staff.Id,
+                                staff.StaffId,
+                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                                staff.Tenure,
+                                ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                                Division = division.Name,
+                                Department = department.Name,
+                                SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
+                                PerReviewIsCompleted = per != null ? per.IsCompleted : (bool?)null,
+                                PerReviewCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null
+                            })
+                            .ToListAsync();
+
+                var result = grouped
+                    .GroupBy(x => x.Id)
+                    .Select(g =>
+                    {
+                        var first = g.First();
+                        var perCompleted = g.FirstOrDefault(x => x.PerReviewCreatedUtc.HasValue && x.PerReviewCreatedUtc.Value.Year == currentYear && x.PerReviewIsCompleted == true);
+                        var selectedEmp = g.FirstOrDefault(x => x.SelectedCreatedUtc.HasValue && x.SelectedCreatedUtc.Value.Year == currentYear);
+                        bool? isCompleted = null;
+                        if (perCompleted != null)
+                        {
+                            isCompleted = true;
+                        }
+                        else if (selectedEmp != null)
+                        {
+                            isCompleted = false;
+                        }
+                        return new AppraisalDto
+                        {
+                            StaffId = g.Key,
+                            EmpId = first.StaffId,
+                            EmpName = first.StaffName,
+                            Tenure = first.Tenure,
+                            ReportingManagers = first.ReportingManager,
+                            Division = first.Division,
+                            Department = first.Department,
+                            IsCompleted = isCompleted
+                        };
+                    })
+                    .ToList();
+                if (result == null || !result.Any())
+                {
+                    throw new MessageNotFoundException("No employees found");
+                }
+                return result.Cast<object>().ToList();
             }
-            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
-            return package.GetAsByteArray();
+            if (appraisalId == 2 || appraisalId == 3)
+            {
+                var grouped = await (
+                    from staff in _context.StaffCreations
+                    join division in _context.DivisionMasters on staff.DivisionId equals division.Id
+                    join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
+                    join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
+                    join selected in _context.SelectedNonProductionEmployees.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                    from selected in selectedJoin.DefaultIfEmpty()
+                    join per in _context.NonProductionEmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
+                    from per in perJoin.DefaultIfEmpty()
+                    where staff.IsActive == true && division.IsActive && department.IsActive && !staff.IsNonProduction && staff.OrganizationTypeId == 1
+                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && !agmApprovedEmpIds.Contains(staff.StaffId)
+                    select new
+                    {
+                        staff.Id,
+                        staff.StaffId,
+                        StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                        staff.Tenure,
+                        ReportingManager = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                        Division = division.Name,
+                        Department = department.Name,
+                        SelectedCreatedUtc = selected != null ? selected.CreatedUtc : (DateTime?)null,
+                        AppraisalId = selected != null ? selected.AppraisalId : (int?)null,
+                        perCompleted = per != null ? per.IsCompleted : (bool?)null,
+                        perCreatedUtc = per != null ? per.CreatedUtc : (DateTime?)null
+                    }
+                ).ToListAsync();
+
+                var result = grouped
+                    .GroupBy(x => x.Id)
+                    .Select(g =>
+                    {
+                        var first = g.First();
+                        var agmApproval = g.FirstOrDefault(x => x.perCreatedUtc.HasValue && x.perCreatedUtc.Value.Year == currentYear && x.perCompleted == true);
+                        var selectedEmp = g.FirstOrDefault(x => x.SelectedCreatedUtc.HasValue && x.SelectedCreatedUtc.Value.Year == currentYear);
+                        bool? isCompleted = null;
+                        if (agmApproval != null)
+                        {
+                            isCompleted = true;
+                        }
+                        else if (selectedEmp != null)
+                        {
+                            isCompleted = false;
+                        }
+                        return new ProbationDto
+                        {
+                            StaffId = g.Key,
+                            EmpId = first.StaffId,
+                            EmpName = first.StaffName,
+                            Tenure = first.Tenure,
+                            ReportingManagers = first.ReportingManager,
+                            Division = first.Division,
+                            Department = first.Department,
+                            IsCompleted = isCompleted
+                        };
+                    })
+                    .ToList();
+
+                if (result == null || !result.Any()) throw new MessageNotFoundException("No employees found");
+                return result.Cast<object>().ToList();
+            }
+            throw new MessageNotFoundException("Please choose a valid dropdown");
         }
-*/
-      }
+
+        public async Task<string> MoveSelectedStaff(SelectedEmployeesRequest selectedEmployeesRequest)
+        {
+            var employeeIds = selectedEmployeesRequest.SelectedRows.Select(x => x.EmpId).ToList();
+            var currentYear = DateTime.UtcNow.Year;
+            var alreadySelected = await _context.SelectedNonProductionEmployees
+                .Where(x => employeeIds.Contains(x.EmployeeId)
+                            && x.AppraisalId == selectedEmployeesRequest.AppraisalId
+                            && !x.IsActive
+                            && x.IsCompleted == true
+                            && (
+                                x.AppraisalId != 1 ||
+                                x.CreatedUtc.Year == currentYear
+                            ))
+                .Select(x => x.EmployeeId)
+                .ToListAsync();
+            if (alreadySelected.Any())
+            {
+                throw new InvalidOperationException("Some selected employees are already moved");
+            }
+
+            var staffList = selectedEmployeesRequest.SelectedRows.Select(row => new SelectedNonProductionEmployee
+            {
+                AppraisalId = selectedEmployeesRequest.AppraisalId,
+                EmployeeId = row.EmpId,
+                EmployeeName = row.EmpName,
+                TenureInYears = row.TenureInYears,
+                ReportingManagers = row.ReportingManagers,
+                Division = row.Division,
+                Department = row.Department,
+                IsCompleted = false,
+                IsActive = true,
+                CreatedBy = selectedEmployeesRequest.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            }).ToList();
+            await _context.SelectedNonProductionEmployees.AddRangeAsync(staffList);
+            await _context.SaveChangesAsync();
+
+            return "Selected employees have been successfully moved";
+        }
+
+        public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedNonProductionEmployees(int appraisalId)
+        {
+            var selectedEmployees = await (from staff in _context.SelectedNonProductionEmployees
+                                           where staff.IsActive == true && staff.AppraisalId == appraisalId
+                                           select new SelectedEmployeesResponseSelectedRows
+                                           {
+                                               EmpId = staff.EmployeeId,
+                                               EmpName = staff.EmployeeName,
+                                               TenureInYears = staff.TenureInYears,
+                                               ReportingManagers = staff.ReportingManagers,
+                                               Division = staff.Division,
+                                               Department = staff.Department,
+                                               IsCompleted = staff.IsCompleted
+                                           }).ToListAsync();
+            if (selectedEmployees == null || !selectedEmployees.Any())
+            {
+                throw new MessageNotFoundException("No employees found");
+            }
+            return selectedEmployees;
+        }
+
+        public async Task<string> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            try
+            {
+                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == uploadMisSheetRequest.CreatedBy && s.IsActive == true);
+                if (staff == null) throw new MessageNotFoundException("Staff not found");
+                var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
+                var appraisal = await _context.AppraisalSelectionDropDowns.FirstOrDefaultAsync(a => a.Id == uploadMisSheetRequest.AppraisalId && a.IsActive);
+                if (appraisal == null) throw new MessageNotFoundException("Drop down type not found");
+                var fileExtension = Path.GetExtension(uploadMisSheetRequest.File.FileName);
+                if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException("Please upload the correct Excel template File");
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await uploadMisSheetRequest.File.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                        if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
+                        var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
+                        var requiredHeaders = new List<string>();
+                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
+                        var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
+                        if (missingHeaders.Any())
+                        {
+                            throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                        }
+                        var extraHeaders = headerRow.Except(requiredHeaders).ToList();
+                        if (extraHeaders.Any())
+                        {
+                            throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                        }
+                        var columnIndexes = requiredHeaders.ToDictionary(
+                            header => header,
+                            header => headerRow.IndexOf(header) + 1
+                        );
+                        var rowCount = worksheet.Dimension.Rows;
+                        using (var transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            try
+                            {
+                                var employeePerformanceReviews = new List<NonProductionEmployeePerformanceReview>();
+                                for (int row = 2; row <= rowCount; row++)
+                                {
+                                    var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                                    var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
+                                    var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
+                                    var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
+                                    var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
+                                    var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
+                                    var finalAverageKraGrade = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Average KRA Grade"]].Text.Trim(), out var kra) ? kra : 0;
+                                    var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
+                                    var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
+                                    var employeeReview = new NonProductionEmployeePerformanceReview
+                                    {
+                                        EmpId = empId,
+                                        EmpName = empName,
+                                        TenureInYears = tenureYears,
+                                        ReportingManagers = reportingManager,
+                                        Division = division,
+                                        Department = department,
+                                        FinalAverageKraGrade = finalAverageKraGrade,
+                                        AbsentDays = absentDays,
+                                        HrComments = hrComments,
+                                        AppraisalId = uploadMisSheetRequest.AppraisalId,
+                                        IsCompleted = false,
+                                        IsActive = true,
+                                        CreatedBy = uploadMisSheetRequest.CreatedBy,
+                                        CreatedUtc = DateTime.UtcNow
+                                    };
+                                    employeePerformanceReviews.Add(employeeReview);
+                                }
+                                if (employeePerformanceReviews.Count > 0)
+                                {
+                                    var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
+                                    var selectedEmployeesToUpdate = await _context.SelectedNonProductionEmployees
+                                        .Where(x => selectedEmpIds.Contains(x.EmployeeId)
+                                                 && x.AppraisalId == uploadMisSheetRequest.AppraisalId
+                                                 && x.IsActive)
+                                        .ToListAsync();
+                                    foreach (var selected in selectedEmployeesToUpdate)
+                                    {
+                                        selected.IsCompleted = true;
+                                        selected.IsActive = false;
+                                        selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
+                                        selected.UpdatedUtc = DateTime.UtcNow;
+                                    }
+                                    await _context.NonProductionEmployeePerformanceReviews.AddRangeAsync(employeePerformanceReviews);
+                                }
+                                else
+                                {
+                                    throw new MessageNotFoundException("File is empty");
+                                }
+                                await _context.SaveChangesAsync();
+                                await transaction.CommitAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                await transaction.RollbackAsync();
+                                throw new Exception(ex.Message);
+                            }
+                        }
+                    }
+                }
+                return "Excel data imported successfully";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+    }
 }

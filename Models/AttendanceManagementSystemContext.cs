@@ -167,6 +167,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<MyApplication> MyApplications { get; set; }
 
+    public virtual DbSet<NonProductionEmployeePerformanceReview> NonProductionEmployeePerformanceReviews { get; set; }
+
     public virtual DbSet<OnBehalfApplicationApproval> OnBehalfApplicationApprovals { get; set; }
 
     public virtual DbSet<OnDutyOvertime> OnDutyOvertimes { get; set; }
@@ -234,6 +236,8 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<SalaryStructure> SalaryStructures { get; set; }
 
     public virtual DbSet<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisals { get; set; }
+
+    public virtual DbSet<SelectedNonProductionEmployee> SelectedNonProductionEmployees { get; set; }
 
     public virtual DbSet<Shift> Shifts { get; set; }
 
@@ -1695,6 +1699,11 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_EACRId");
 
+            entity.HasOne(d => d.File).WithMany(p => p.EmployeeAcceptances)
+                .HasForeignKey(d => d.FileId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AFId");
+
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.EmployeeAcceptanceUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_EAUPId");
@@ -3015,6 +3024,49 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK__MyApplica__UserM__0E6E26BF");
         });
 
+        modelBuilder.Entity<NonProductionEmployeePerformanceReview>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__NonProdu__3214EC079A7AEE84");
+
+            entity.ToTable("NonProductionEmployeePerformanceReview");
+
+            entity.Property(e => e.AbsentDays).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Department)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Division)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmpId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmpName)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.FinalAverageKraGrade).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.HrComments).IsUnicode(false);
+            entity.Property(e => e.ReportingManagers)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appraisal).WithMany(p => p.NonProductionEmployeePerformanceReviews)
+                .HasForeignKey(d => d.AppraisalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ASDEPRNPId");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.NonProductionEmployeePerformanceReviewCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EPRCRNPId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.NonProductionEmployeePerformanceReviewUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_EPRUPNPId");
+        });
+
         modelBuilder.Entity<OnBehalfApplicationApproval>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__OnBehalf__A45A7FB1AC885B9E");
@@ -3173,10 +3225,10 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.NewPassword)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.OldPassword)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
@@ -4341,6 +4393,44 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SelectedEmployeesForAppraisalUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPSEId");
+        });
+
+        modelBuilder.Entity<SelectedNonProductionEmployee>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Selected__3214EC0701494B5E");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Department)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Division)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeName)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.ReportingManagers)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appraisal).WithMany(p => p.SelectedNonProductionEmployees)
+                .HasForeignKey(d => d.AppraisalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ASDNPId");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SelectedNonProductionEmployeeCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRSENPId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SelectedNonProductionEmployeeUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPSENPId");
         });
 
         modelBuilder.Entity<Shift>(entity =>

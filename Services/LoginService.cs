@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -18,57 +19,32 @@ public class LoginService
     private readonly AttendanceManagementSystemContext _context;
     private readonly IConfiguration _configuration;
     private readonly IMemoryCache _memoryCache;
-    public LoginService(AttendanceManagementSystemContext context, IConfiguration configuration, IMemoryCache memoryCache)
+    private readonly IPasswordHasher<UserManagement> _passwordHasher;
+    public LoginService(AttendanceManagementSystemContext context, IConfiguration configuration, IMemoryCache memoryCache, IPasswordHasher<UserManagement> passwordHasher)
     {
         _context = context;
         _configuration = configuration;
         _memoryCache = memoryCache;
+        _passwordHasher = passwordHasher;
+
     }
 
     public async Task<(string AccessToken, string RefreshToken)> ValidateUserAsync(Login login)
     {
-        try
-        {
-            var user = await _context.UserManagements.FirstOrDefaultAsync(e => e.Username == login.Username && e.IsActive);
-            if (user == null)
-            {
-                throw new MessageNotFoundException("Invalid username");
-            }
-            if (user.Password != login.Password)
-            {
-                throw new MessageNotFoundException("Invalid password");
-            }
-            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == user.StaffCreationId && s.IsActive == true);
-            if (staff == null)
-            {
-                throw new MessageNotFoundException("Staff not found");
-            }
-            var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == staff.DesignationId && d.IsActive);
-            if (designation == null)
-            {
-                throw new MessageNotFoundException("Designation not found");
-            }
-            var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Id == staff.DepartmentId && d.IsActive);
-            if (department == null)
-            {
-                throw new MessageNotFoundException("Department not found");
-            }
-            var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name);
-            var refreshToken = GenerateRefreshToken(user.StaffCreationId);
-            var tokenResponse = new
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
-            };
-            var refreshTokenExpiry = DateTime.UtcNow.AddHours(1);
-            _memoryCache.Set(refreshToken, refreshTokenExpiry, refreshTokenExpiry);
-
-            return (accessToken, refreshToken);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message);
-        }
+        var user = await _context.UserManagements.FirstOrDefaultAsync(e => e.Username == login.Username && e.IsActive);
+        if (user == null) throw new MessageNotFoundException("Invalid username");
+        if (!VerifyPassword(user, user.Password, login.Password)) throw new MessageNotFoundException("Invalid password");
+        var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == user.StaffCreationId && s.IsActive == true);
+        if (staff == null) throw new MessageNotFoundException("Staff not found");
+        var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == staff.DesignationId && d.IsActive);
+        if (designation == null) throw new MessageNotFoundException("Designation not found");
+        var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Id == staff.DepartmentId && d.IsActive);
+        if (department == null) throw new MessageNotFoundException("Department not found");
+        var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name);
+        var refreshToken = GenerateRefreshToken(user.StaffCreationId);
+        var refreshTokenExpiry = DateTime.UtcNow.AddHours(1);
+        _memoryCache.Set(refreshToken, refreshTokenExpiry, refreshTokenExpiry);
+        return (accessToken, refreshToken);
     }
 
     private string GenerateRefreshToken(int userId)
@@ -77,6 +53,19 @@ public class LoginService
         var expiryDate = DateTime.UtcNow.AddHours(2);
         RefreshTokenStore.AddRefreshToken(refreshToken, userId, expiryDate);
         return refreshToken;
+    }
+
+    private bool VerifyPassword(UserManagement user, string storedPassword, string providedPassword)
+    {
+        try
+        {
+            var result = _passwordHasher.VerifyHashedPassword(user, storedPassword, providedPassword);
+            return result == PasswordVerificationResult.Success;
+        }
+        catch (FormatException)
+        {
+            return storedPassword == providedPassword;
+        }
     }
 
     private string GenerateRandomToken()
@@ -95,10 +84,7 @@ public class LoginService
         var refreshTokenData = RefreshTokenStore.GetRefreshToken(refreshTokenDto.RefreshToken);
         if (refreshTokenData == null || refreshTokenData.Value.ExpiryDate < DateTime.UtcNow) throw new InvalidOperationException("Invalid or expired refresh token");
         var user = await _context.UserManagements.FirstOrDefaultAsync(u => u.Id == refreshTokenData.Value.UserId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
+        if (user == null) throw new Exception("User not found");
         var staff = _context.StaffCreations.FirstOrDefault(s => s.Id == user.StaffCreationId && s.IsActive == true);
         if (staff == null) throw new MessageNotFoundException("Staff not found");
         var designation = _context.DesignationMasters.FirstOrDefault(d => d.Id == staff.DesignationId && d.IsActive);
@@ -107,7 +93,6 @@ public class LoginService
         if (department == null) throw new MessageNotFoundException("Department not found");
         var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name);
         var refreshToken1 = GenerateRefreshToken(user.StaffCreationId);
-
         return (newAccessToken, refreshToken1);
     }
 
@@ -117,14 +102,16 @@ public class LoginService
         public static void AddRefreshToken(string token, int userId, DateTime expiryDate)
         {
             _refreshTokens[token] = (userId, expiryDate);
-        }        public static (int UserId, DateTime ExpiryDate)? GetRefreshToken(string token)
+        }
+        public static (int UserId, DateTime ExpiryDate)? GetRefreshToken(string token)
         {
             if (_refreshTokens.TryGetValue(token, out var tokenData))
             {
                 return tokenData;
             }
             return null;
-        }        public static void RemoveRefreshToken(string token)
+        }
+        public static void RemoveRefreshToken(string token)
         {
             _refreshTokens.Remove(token);
         }
@@ -135,26 +122,15 @@ public class LoginService
         try
         {
             var user = _context.UserManagements.FirstOrDefault(e => e.Username == userName && e.IsActive);
-            if (user == null)
-            {
-                throw new MessageNotFoundException("User not found");
-            }
+            if (user == null) throw new MessageNotFoundException("User not found");
             var userName1 = _context.StaffCreations.FirstOrDefault(e => e.Id == user.StaffCreationId && e.IsActive == true);
-            if (userName1 == null)
-            {
-                throw new MessageNotFoundException("User not found");
-            }
+            if (userName1 == null) throw new MessageNotFoundException("User not found");
             var userName2 = $"{userName1.FirstName}{(string.IsNullOrWhiteSpace(userName1.LastName) ? "" : " " + userName1.LastName)}";
             var staff = _context.StaffCreations.FirstOrDefault(e => e.Id == staffId && e.IsActive == true);
-            if (staff == null)
-            {
-                throw new MessageNotFoundException("Staff not found");
-            }
+            if (staff == null) throw new MessageNotFoundException("Staff not found");
             var role = _context.AccessLevels.FirstOrDefault(e => e.Name == staff.AccessLevel && e.IsActive == true);
-            if (role == null)
-            {
-                throw new MessageNotFoundException("Role not found");
-            }
+            if (role == null) throw new MessageNotFoundException("Role not found");
+
 /*            var designations = _context.DesignationMasters.FirstOrDefault(e => e.Id == designationId && e.IsActive == true);
             if (designations == null)
             {

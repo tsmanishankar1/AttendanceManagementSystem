@@ -569,6 +569,10 @@ public partial class StaffCreation
 
     public virtual ICollection<MyApplication> MyApplicationUpdatedByNavigations { get; set; } = new List<MyApplication>();
 
+    public virtual ICollection<NonProductionEmployeePerformanceReview> NonProductionEmployeePerformanceReviewCreatedByNavigations { get; set; } = new List<NonProductionEmployeePerformanceReview>();
+
+    public virtual ICollection<NonProductionEmployeePerformanceReview> NonProductionEmployeePerformanceReviewUpdatedByNavigations { get; set; } = new List<NonProductionEmployeePerformanceReview>();
+
     public virtual ICollection<OnBehalfApplicationApproval> OnBehalfApplicationApprovalCreatedByNavigations { get; set; } = new List<OnBehalfApplicationApproval>();
 
     public virtual ICollection<OnBehalfApplicationApproval> OnBehalfApplicationApprovalStaffCreations { get; set; } = new List<OnBehalfApplicationApproval>();
@@ -736,6 +740,10 @@ public partial class StaffCreation
     public virtual ICollection<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisalCreatedByNavigations { get; set; } = new List<SelectedEmployeesForAppraisal>();
 
     public virtual ICollection<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisalUpdatedByNavigations { get; set; } = new List<SelectedEmployeesForAppraisal>();
+
+    public virtual ICollection<SelectedNonProductionEmployee> SelectedNonProductionEmployeeCreatedByNavigations { get; set; } = new List<SelectedNonProductionEmployee>();
+
+    public virtual ICollection<SelectedNonProductionEmployee> SelectedNonProductionEmployeeUpdatedByNavigations { get; set; } = new List<SelectedNonProductionEmployee>();
 
     public virtual ICollection<ShiftChange> ShiftChangeApprovedByNavigations { get; set; } = new List<ShiftChange>();
 

@@ -376,5 +376,108 @@ namespace AttendanceManagement.Controllers
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }
+
+        [HttpGet("GetNonProductionEmployees")]
+        public async Task<IActionResult> GetNonProductionEmployees(int appraisalId)
+        {
+            try
+            {
+                var appraisalDetails = await _service.GetNonProductionEmployees(appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpPost("MoveSelectedStaff")]
+        public async Task<IActionResult> MoveSelectedStaff(SelectedEmployeesRequest selectedEmployeesRequest)
+        {
+            try
+            {
+                var appraisalDetails = await _service.MoveSelectedStaff(selectedEmployeesRequest);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                await _loggingService.AuditLog("Appraisal Management", "POST", "/api/AppraisalManagement/MoveSelectedStaff", appraisalDetails, selectedEmployeesRequest.CreatedBy, JsonSerializer.Serialize(selectedEmployeesRequest));
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MoveSelectedStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, selectedEmployeesRequest.CreatedBy, JsonSerializer.Serialize(selectedEmployeesRequest));
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MoveSelectedStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, selectedEmployeesRequest.CreatedBy, JsonSerializer.Serialize(selectedEmployeesRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MoveSelectedStaff", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, selectedEmployeesRequest.CreatedBy, JsonSerializer.Serialize(selectedEmployeesRequest));
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetSelectedNonProductionEmployees")]
+        public async Task<IActionResult> GetSelectedNonProductionEmployees(int appraisalId)
+        {
+            try
+            {
+                var fileBytes = await _service.GetSelectedNonProductionEmployees(appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = fileBytes
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpPost("HrUploadSheet")]
+        public async Task<IActionResult> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
+        {
+            try
+            {
+                var appraisalDetails = await _service.HrUploadSheet(uploadMisSheetRequest);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                await _loggingService.AuditLog("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", appraisalDetails, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
     }
 }

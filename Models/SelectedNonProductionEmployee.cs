@@ -3,19 +3,25 @@ using System.Collections.Generic;
 
 namespace AttendanceManagement.Models;
 
-public partial class EmployeeAcceptance
+public partial class SelectedNonProductionEmployee
 {
     public int Id { get; set; }
 
-    public string EmpId { get; set; } = null!;
+    public string EmployeeId { get; set; } = null!;
 
-    public string EmpName { get; set; } = null!;
+    public string EmployeeName { get; set; } = null!;
+
+    public decimal TenureInYears { get; set; }
+
+    public string ReportingManagers { get; set; } = null!;
 
     public string Division { get; set; } = null!;
 
     public string Department { get; set; } = null!;
 
-    public bool IsAccepted { get; set; }
+    public bool? IsCompleted { get; set; }
+
+    public int AppraisalId { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -27,11 +33,9 @@ public partial class EmployeeAcceptance
 
     public DateTime? UpdatedUtc { get; set; }
 
-    public int FileId { get; set; }
+    public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
-
-    public virtual LetterGeneration File { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }
