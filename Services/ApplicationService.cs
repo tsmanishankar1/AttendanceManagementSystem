@@ -930,9 +930,9 @@ public class ApplicationService
         await NotFoundMethod(applicationTypeId);
         var approver = await _context.StaffCreations
             .Where(x => x.Id == approverId && x.IsActive == true)
-            .Select(x => new { x.AccessLevel })
+            .Select(x => x.AccessLevel)
             .FirstOrDefaultAsync();
-        bool isSuperAdmin = approver?.AccessLevel == "SUPER ADMIN";
+        bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
         List<object> result = new List<object>();
         if (applicationTypeId == 1)
         {

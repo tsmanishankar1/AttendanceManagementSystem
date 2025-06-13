@@ -109,7 +109,7 @@ public class ExcelImportService
                             "OfficialPhone", "PersonalLocation", "PersonalEmail", "LeaveGroup", "Company", "Location", "HolidayCalendar", "Status",
                             "AadharNo", "PanNo", "PassportNo", "DrivingLicense", "BankName", "BankAccountNo", "BankIfscCode", "BankBranch",
                             "HomeAddress", "FatherName", "EmergencyContactPerson1", "EmergencyContactPerson2", "EmergencyContactNo1", "EmergencyContactNo2", "MotherName",
-                            "FatherAadharNo", "MotherAadharNo", "OrganizationType", "WorkingStatus", "ConfirmationDate", "PostalCode", "ApprovalLevel", "OfficialEmail"
+                            "FatherAadharNo", "MotherAadharNo", "OrganizationType", "WorkingStatus", "ConfirmationDate", "PostalCode", "ApprovalLevel", "OfficialEmail", "IsNonProduction"
                         };
                     }
                     else if (excelImportDto.ExcelImportId == 2)
@@ -472,6 +472,7 @@ public class ExcelImportService
                                         PostalCode = int.TryParse(worksheet.Cells[row, columnIndexes["PostalCode"]].Text, out var postalCode) ? postalCode : 0,
                                         ApprovalLevel = worksheet.Cells[row, columnIndexes["ApprovalLevel"]].Text.Trim() ?? string.Empty,
                                         OfficialEmail = worksheet.Cells[row, columnIndexes["OfficialEmail"]]?.Text.Trim() ?? string.Empty,
+                                        IsNonProduction = bool.TryParse(worksheet.Cells[row, columnIndexes["IsNonProduction"]].Text?.Trim(), out bool isNonProduction),
                                         CreatedBy = excelImportDto.CreatedBy,
                                         IsActive = true,
                                         CreatedUtc = DateTime.UtcNow
@@ -1690,24 +1691,48 @@ public class ExcelImportService
                                     var employeeId = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == employeeId && s.IsActive == true);
                                     if (staff == null) throw new MessageNotFoundException("Staff not found");
-                                    var shift = worksheet.Cells[row, columnIndexes["ShiftName"]].Text.Trim();
-                                    var shiftId = await _context.Shifts.FirstOrDefaultAsync(s => s.Name == shift && s.IsActive == true);
-                                    if (shiftId == null) throw new MessageNotFoundException("Shift not found");
+                                    var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
+                                    var rawShift = worksheet.Cells[row, columnIndexes["ShiftName"]].Text?.Trim();
+                                    var shiftName = rawShift?.Split('(')[0].Trim().ToLower();
+                                    var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Name.ToLower().Trim() == shiftName && s.IsActive);
+                                    if (shift == null) throw new MessageNotFoundException($"Shift '{rawShift}' not found.");
                                     var dateText = worksheet.Cells[row, columnIndexes["Date"]]?.Text?.Trim();
                                     if (string.IsNullOrWhiteSpace(dateText) || !DateOnly.TryParse(dateText, out var confirmationDate))
                                     {
                                         throw new InvalidOperationException($"'Date' is required and must be valid in row {row}.");
                                     }
-                                    var assignShift = new AssignShift
+                                    var existingAssignedShift = await _context.AssignShifts
+                                        .Where(a => a.FromDate == confirmationDate &&
+                                                    a.ShiftId == shift.Id &&
+                                                    a.StaffId == staff.Id &&
+                                                    a.IsActive)
+                                        .ToListAsync();
+                                    if (existingAssignedShift.Count > 0)
                                     {
-                                        ShiftId = shiftId.Id,
-                                        StaffId = staff.Id,
-                                        FromDate = confirmationDate,
-                                        IsActive = true,
-                                        CreatedBy = excelImportDto.CreatedBy,
-                                        CreatedUtc = DateTime.UtcNow
-                                    };
-                                    assignShifts.Add(assignShift);
+                                        throw new ConflictException($"Shift already assigned for staff {staffName}");
+                                    }
+                                    var existingAssign = await _context.AssignShifts.FirstOrDefaultAsync(a => a.FromDate == confirmationDate && a.StaffId == staff.Id && a.IsActive);
+                                    AssignShift? shiftAssign = null;
+                                    if (existingAssign != null)
+                                    {
+                                        existingAssign.ShiftId = shift.Id;
+                                        existingAssign.UpdatedBy = excelImportDto.CreatedBy;
+                                        existingAssign.UpdatedUtc = DateTime.UtcNow;
+                                    }
+                                    else
+                                    {
+                                        shiftAssign = new AssignShift
+                                        {
+                                            FromDate = confirmationDate,
+                                            ShiftId = shift.Id,
+                                            StaffId = staff.Id,
+                                            IsActive = true,
+                                            CreatedBy = excelImportDto.CreatedBy,
+                                            CreatedUtc = DateTime.UtcNow
+                                        };
+                                        await _context.AssignShifts.AddAsync(shiftAssign);
+                                    }
+                                    assignShifts.Add(shiftAssign!);
                                 }
                                 if (assignShifts.Any())
                                 {

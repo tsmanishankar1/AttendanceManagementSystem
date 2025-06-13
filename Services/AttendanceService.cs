@@ -29,7 +29,7 @@ public class AttendanceService
         string shiftName = shift?.Name ?? "Not Assigned";
         TimeSpan? fromTime = TimeSpan.TryParse(shift?.StartTime, out var from) ? from : (TimeSpan?)null;
         TimeSpan? toTime = TimeSpan.TryParse(shift?.EndTime, out var to) ? to : (TimeSpan?)null;
-        var today = DateTime.Today;
+        var today = new DateTime(2025, 6, 11);
         var yesterday = today.AddDays(-1);
         List<SmaxTransaction> transactions;
         if (fromTime.HasValue && toTime.HasValue && fromTime > toTime)
@@ -81,8 +81,35 @@ public class AttendanceService
             Date = checkIn?.TrDate?.ToString("dd-MMM-yyyy"),
             CheckInTime = checkIn?.TrTime?.ToString("dd-MMM-yyyy HH:mm:ss"),
             CheckOutTime = checkOut?.TrTime?.ToString("dd-MMM-yyyy HH:mm:ss"),
-            Duration = duration?.ToString(@"hh\:mm\:ss") ?? "-"
+            Duration = duration?.ToString(@"hh\:mm\:ss") ?? "-",
+            BreakHours = CalculateBreakHours(transactions)
         };
+    }
+
+    private string CalculateBreakHours(List<SmaxTransaction> transactions)
+    {
+        TimeSpan totalBreak = TimeSpan.Zero;
+
+        for (int i = 0; i < transactions.Count - 1; i++)
+        {
+            var current = transactions[i];
+            var next = transactions[i + 1];
+
+            if (current.TrOpName == "OUT" && next.TrOpName == "IN"
+                && current.TrDate.HasValue && current.TrTime.HasValue
+                && next.TrDate.HasValue && next.TrTime.HasValue)
+            {
+                var currentDateTime = current.TrDate.Value.Date + current.TrTime.Value.TimeOfDay;
+                var nextDateTime = next.TrDate.Value.Date + next.TrTime.Value.TimeOfDay;
+
+                if (nextDateTime > currentDateTime)
+                {
+                    totalBreak += (nextDateTime - currentDateTime);
+                }
+            }
+        }
+
+        return $"{(int)totalBreak.TotalHours} hr {totalBreak.Minutes} mins {totalBreak.Seconds} secs";
     }
 
     public async Task<string> AddGraceTimeAndBreakTime(AttendanceGraceTimeCalcRequest request)
