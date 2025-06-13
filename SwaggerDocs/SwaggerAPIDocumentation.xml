@@ -342,7 +342,7 @@
 		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployees(System.Int32)">
 			<summary>
-				Retrieves the list of employees already selected for appraisal.
+				Retrieves the list of production-employees already selected for appraisal.
 			</summary>
 			<param name="appraisalId">The appraisal ID.</param>
 			<returns>List of selected employees.</returns>
@@ -461,6 +461,47 @@
 			<response code="200">Returns accepted employee list</response>
 			<response code="404">If no accepted employees are found</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetNonProductionEmployees(System.Int32)">
+			<summary>
+				Retrieves all non-production employees eligible for appraisal.
+			</summary>
+			<param name="appraisalId">The appraisal ID.</param>
+			<returns>List of eligible non-production employees.</returns>
+			<response code="200">Returns the list of non-production employees</response>
+			<response code="404">If no employees are found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaff(AttendanceManagement.Input_Models.SelectedEmployeesRequest)">
+			<summary>
+				Moves selected non-production employees to the appraisal process.
+			</summary>
+			<param name="selectedEmployeesRequest">The request containing selected employee data.</param>
+			<returns>Success message indicating the move was completed.</returns>
+			<response code="200">If the operation is successful</response>
+			<response code="404">If staff not found</response>
+			<response code="409">If conflict occurs while moving staff</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedNonProductionEmployees(System.Int32)">
+			<summary>
+				Retrieves the list of non-production employees already selected for appraisal.
+			</summary>
+			<param name="appraisalId">The appraisal ID.</param>
+			<returns>Data of selected non-production employees.</returns>
+			<response code="200">Returns the selected employee data</response>
+			<response code="404">If no data found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.HrUploadSheet(AttendanceManagement.Input_Models.UploadMisSheetRequest)">
+			<summary>
+				Uploads a MIS sheet for HR to process non-production employee appraisal data.
+			</summary>
+			<param name="uploadMisSheetRequest">The uploaded MIS sheet request data.</param>
+			<returns>Result message after processing the upload.</returns>
+			<response code="200">If the upload is successful</response>
+			<response code="404">If data not found</response>
+			<response code="500">If upload fails or an internal error occurs</response>
 		</member>
 		<member name="T:AttendanceController">
 			<summary>

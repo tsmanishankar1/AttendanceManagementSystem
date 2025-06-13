@@ -27,6 +27,8 @@ public partial class LetterGeneration
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
+    public virtual ICollection<EmployeeAcceptance> EmployeeAcceptances { get; set; } = new List<EmployeeAcceptance>();
+
     public virtual StaffCreation StaffCreation { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }

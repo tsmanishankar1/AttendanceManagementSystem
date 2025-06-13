@@ -1,48 +1,38 @@
 ﻿using AttendanceManagement;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 public class UserManagementService
 {
     private readonly AttendanceManagementSystemContext _context;
+    private readonly IPasswordHasher<UserManagement> _passwordHasher;
 
-    public UserManagementService(AttendanceManagementSystemContext context)
+    public UserManagementService(AttendanceManagementSystemContext context, IPasswordHasher<UserManagement> passwordHasher)
     {
         _context = context;
+        _passwordHasher = passwordHasher;
     }
     public async Task<string> RegisterUser(UserManagementRequest userRequest)
     {
-        var userName = await _context.UserManagements.AnyAsync(u => u.Username == userRequest.Username && u.IsActive);
-        if (userName)
-        {
-            throw new ConflictException("User name already exists");
-        }
-        var staffWithOrgType = await (from s in _context.StaffCreations
-                                      join o in _context.OrganizationTypes on s.OrganizationTypeId equals o.Id
-                                      where s.Id == userRequest.StaffCreationId && s.IsActive == true && o.IsActive
-                                      select new { s.Id, o.ShortName }).FirstOrDefaultAsync();
-        if (staffWithOrgType == null)
-        {
-            throw new MessageNotFoundException("Staff not found");
-        }
+        var userNameExists = await _context.UserManagements.AnyAsync(u => u.Username == userRequest.Username && u.IsActive);
+        if (userNameExists) throw new ConflictException("User name already exists");
+        var staffWithOrgType = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == userRequest.StaffCreationId && s.IsActive == true);
+        if (staffWithOrgType == null) throw new MessageNotFoundException("Staff not found");
         var userExists = await _context.UserManagements.AnyAsync(u => u.StaffCreationId == userRequest.StaffCreationId && u.IsActive);
-        if (userExists)
-        {
-            throw new ConflictException("Selected user is already registered");
-        }
+        if (userExists) throw new ConflictException("Selected user is already registered");
         var user = new UserManagement
         {
             Username = userRequest.Username,
-            Password = userRequest.Password,
             IsActive = true,
             CreatedBy = userRequest.CreatedBy,
             CreatedUtc = DateTime.UtcNow,
             StaffCreationId = userRequest.StaffCreationId
         };
+        user.Password = _passwordHasher.HashPassword(user, userRequest.Password);
         await _context.UserManagements.AddAsync(user);
         await _context.SaveChangesAsync();
-
         return "User registered successfully";
     }
 
@@ -62,11 +52,8 @@ public class UserManagementService
     {
         var message = "Password changed successfully";
         var user = await _context.UserManagements.FirstOrDefaultAsync(u => u.StaffCreationId == model.UserId && u.IsActive);
-        if (user == null)
-        {
-            throw new MessageNotFoundException("User not found");
-        }
-        if (user.Password != model.CurrentPassword)
+        if (user == null) throw new MessageNotFoundException("User not found");
+        if (!VerifyPassword(user, user.Password, model.CurrentPassword))
         {
             throw new InvalidOperationException("Current password is incorrect");
         }
@@ -79,37 +66,28 @@ public class UserManagementService
             throw new ArgumentException("New password and confirm password must match");
         }
         var passwordHistory = await _context.PasswordHistories
-            .Join(_context.UserManagements,
-                ph => ph.CreatedBy, 
-                u => u.Id,
-                (ph, u) => new
-                {
-                    u.Username,
-                    ph.OldPassword,
-                    ph.NewPassword,
-                    ph.CreatedUtc
-                })
-            .Where(p => p.Username == user.Username)
-            .OrderByDescending(p => p.CreatedUtc)
+            .Where(ph => ph.CreatedBy == user.Id)
+            .OrderByDescending(ph => ph.CreatedUtc)
             .Take(3)
             .ToListAsync();
-        var usageCount = passwordHistory.Count(ph => ph.NewPassword == model.NewPassword);
-        if (usageCount >= 1) 
+        var reused = passwordHistory.Any(ph => VerifyPassword(user, ph.NewPassword, model.NewPassword));
+        if (reused)
         {
             throw new InvalidOperationException("You have recently used this password. Please choose a different one");
         }
+        var hashedNewPassword = _passwordHasher.HashPassword(user, model.NewPassword);
         var passwordHistoryEntry = new PasswordHistory
         {
             OldPassword = user.Password,
-            NewPassword = model.NewPassword,
+            NewPassword = hashedNewPassword,
             IsActive = true,
-            CreatedBy = user.Id,  
+            CreatedBy = user.Id,
             CreatedUtc = DateTime.UtcNow
         };
         await _context.PasswordHistories.AddAsync(passwordHistoryEntry);
-        user.Password = model.NewPassword;
+        user.Password = hashedNewPassword;
         user.UpdatedUtc = DateTime.UtcNow;
-        user.UpdatedBy = user.StaffCreationId; 
+        user.UpdatedBy = user.StaffCreationId;
         await _context.SaveChangesAsync();
         return message;
     }
@@ -118,8 +96,7 @@ public class UserManagementService
     {
         var staffList = await (
             from staff in _context.StaffCreations
-            join department in _context.DepartmentMasters
-                on staff.DepartmentId equals department.Id
+            join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
             where staff.IsActive == true
             select new
             {
@@ -147,15 +124,10 @@ public class UserManagementService
     {
         var message = "Password reset successfully";
         var user = await _context.UserManagements.FirstOrDefaultAsync(u => u.StaffCreationId == model.UserId && u.IsActive);
-        if (user == null)
-        {
-            throw new MessageNotFoundException("User not found");
-        }
-        if (model.NewPassword != model.ConfirmPassword)
-        {
-            throw new ArgumentException("New password and confirm password must be match");
-        }
-        user.Password = model.NewPassword;
+        if (user == null) throw new MessageNotFoundException("User not found");
+        if (model.NewPassword != model.ConfirmPassword) throw new ArgumentException("New password and confirm password must match");
+        var hashedPassword = _passwordHasher.HashPassword(user, model.NewPassword);
+        user.Password = hashedPassword;
         user.UpdatedUtc = DateTime.UtcNow;
         user.UpdatedBy = model.UserId;
         await _context.SaveChangesAsync();
@@ -183,10 +155,7 @@ public class UserManagementService
     {
         var message = "Staff deactivated successfully";
         var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffCreationId && s.IsActive==true);
-        if (staff == null)
-        {
-            throw new MessageNotFoundException("Staff not found");
-        }
+        if (staff == null) throw new MessageNotFoundException("Staff not found");
         staff.IsActive = false;
         staff.UpdatedUtc = DateTime.UtcNow;
         staff.UpdatedBy = deletedBy;
@@ -224,5 +193,18 @@ public class UserManagementService
             }
         }
         return rootMenus;
+    }
+
+    private bool VerifyPassword(UserManagement user, string storedPassword, string providedPassword)
+    {
+        try
+        {
+            var result = _passwordHasher.VerifyHashedPassword(user, storedPassword, providedPassword);
+            return result == PasswordVerificationResult.Success;
+        }
+        catch (FormatException)
+        {
+            return storedPassword == providedPassword;
+        }
     }
 }

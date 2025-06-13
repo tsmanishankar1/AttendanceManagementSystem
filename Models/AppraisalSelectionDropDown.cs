@@ -23,7 +23,11 @@ public partial class AppraisalSelectionDropDown
 
     public virtual ICollection<EmployeePerformanceReview> EmployeePerformanceReviews { get; set; } = new List<EmployeePerformanceReview>();
 
+    public virtual ICollection<NonProductionEmployeePerformanceReview> NonProductionEmployeePerformanceReviews { get; set; } = new List<NonProductionEmployeePerformanceReview>();
+
     public virtual ICollection<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisals { get; set; } = new List<SelectedEmployeesForAppraisal>();
+
+    public virtual ICollection<SelectedNonProductionEmployee> SelectedNonProductionEmployees { get; set; } = new List<SelectedNonProductionEmployee>();
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }
