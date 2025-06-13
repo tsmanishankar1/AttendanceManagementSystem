@@ -93,7 +93,7 @@ stages:
                 
                 # Define paths
                 $zipFilePath = "$(Pipeline.Workspace)\drop\s.zip"
-                $extractPath = "E:\Vlead_Projects\Attendance\API"
+                $extractPath = "C:\inetpub\wwwroot\VAM_UAT_API"
 
                 # Ensure the ZIP file exists
                 if (!(Test-Path $zipFilePath)) {
