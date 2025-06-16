@@ -281,124 +281,124 @@ public class ExcelImportService
                                     var branchName = worksheet.Cells[row, columnIndexes["BranchName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(branchName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Branch is empty at {row}");
                                     }
                                     var branch = await _context.BranchMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == branchName.ToLower() && d.IsActive);
                                     if (branch == null)
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Branch {branchName} not found at {row}");
                                     }
                                     var approvalLevel1 = worksheet.Cells[row, columnIndexes["ApprovalLevel1"]].Text.Trim();
                                     if (string.IsNullOrEmpty(approvalLevel1))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Approval Level1 is empty at {row}");
                                     }
                                     var approval1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == approvalLevel1 && s.IsActive == true);
                                     if (approval1 == null)
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Approval Level1 {approvalLevel1} not found at {row}");
                                     }
                                     var approvalLevel2 = worksheet.Cells[row, columnIndexes["ApprovalLevel2"]]?.Text.Trim();
                                     if (string.IsNullOrEmpty(approvalLevel2))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Approval Level2 is empty at {row}");
                                     }
                                     var approval2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == approvalLevel2 && s.IsActive == true);
                                     if (approval2 == null)
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Approval Level2 {approvalLevel2} not found at {row}");
                                     }
                                     var departmentName = worksheet.Cells[row, columnIndexes["DepartmentName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(departmentName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Department is empty at {row}");
                                     }
                                     var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == departmentName.ToLower() && d.IsActive);
-                                    if (department == null) throw new MessageNotFoundException($"Department '{departmentName}' not found");
+                                    if (department == null) throw new MessageNotFoundException($"Department '{departmentName}' not found at row {row}");
                                     var statusName = worksheet.Cells[row, columnIndexes["StatusName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(statusName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Status is empty at {row}");
                                     }
                                     var status = await _context.Statuses.FirstOrDefaultAsync(d => d.Name.ToLower() == statusName.ToLower() && d.IsActive);
-                                    if (status == null) throw new MessageNotFoundException($"Status '{statusName}' not found");
+                                    if (status == null) throw new MessageNotFoundException($"Status '{statusName}' not found at row {row}");
                                     var divisionName = worksheet.Cells[row, columnIndexes["DivisionName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(divisionName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Division is empty at {row}");
                                     }
                                     var division = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == divisionName.ToLower() && d.IsActive);
-                                    if (division == null) throw new MessageNotFoundException($"Division '{divisionName}' not found");
+                                    if (division == null) throw new MessageNotFoundException($"Division '{divisionName}' not found at row {row}");
                                     var designationName = worksheet.Cells[row, columnIndexes["DesignationName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(designationName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Designation is empty at {row}");
                                     }
                                     var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
-                                    if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                    if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found at row {row}");
                                     var gradeName = worksheet.Cells[row, columnIndexes["GradeName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(gradeName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Grade is empty at {row}");
                                     }
                                     var grade = await _context.GradeMasters.FirstOrDefaultAsync(g => g.Name.ToLower() == gradeName.ToLower() && g.IsActive);
-                                    if (grade == null) throw new MessageNotFoundException($"Grade '{gradeName}' not found");
+                                    if (grade == null) throw new MessageNotFoundException($"Grade '{gradeName}' not found at row {row}");
                                     var organizationTypeName = worksheet.Cells[row, columnIndexes["OrganizationType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(organizationTypeName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Organization type is empty at {row}");
                                     }
                                     var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(g => g.ShortName.ToLower() == organizationTypeName.ToLower() && g.IsActive);
-                                    if (organizationType == null) throw new MessageNotFoundException($"Organization '{organizationTypeName}' not found");
+                                    if (organizationType == null) throw new MessageNotFoundException($"Organization type '{organizationTypeName}' not found at row {row}");
                                     var categoryName = worksheet.Cells[row, columnIndexes["CategoryName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(categoryName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Category is empty at {row}");
                                     }
                                     var category = await _context.CategoryMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == categoryName.ToLower() && c.IsActive);
-                                    if (category == null) throw new MessageNotFoundException($"Category '{categoryName}' not found");
+                                    if (category == null) throw new MessageNotFoundException($"Category '{categoryName}' not found at row {row}");
                                     var costCenterName = worksheet.Cells[row, columnIndexes["CostCenterName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(costCenterName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Cost centre is empty at {row}");
                                     }
                                     var costCenter = await _context.CostCentreMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == costCenterName.ToLower() && c.IsActive);
-                                    if (costCenter == null) throw new MessageNotFoundException($"Cost Center '{costCenterName}' not found");
+                                    if (costCenter == null) throw new MessageNotFoundException($"Cost Center '{costCenterName}' not found at row {row}");
                                     var workStationName = worksheet.Cells[row, columnIndexes["WorkStationName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(workStationName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Workstation is empty at {row}");
                                     }
                                     var workStation = await _context.WorkstationMasters.FirstOrDefaultAsync(w => w.Name.ToLower() == workStationName.ToLower() && w.IsActive);
-                                    if (workStation == null) throw new MessageNotFoundException($"Workstation '{workStationName}' not found");
+                                    if (workStation == null) throw new MessageNotFoundException($"Workstation '{workStationName}' not found at row {row}");
                                     var leaveGroupName = worksheet.Cells[row, columnIndexes["LeaveGroupName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(leaveGroupName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Leave group is empty at {row}");
                                     }
                                     var leaveGroup = await _context.LeaveGroupConfigurations.FirstOrDefaultAsync(l => l.LeaveGroupConfigurationName.ToLower() == leaveGroupName.ToLower() && l.IsActive);
-                                    if (leaveGroup == null) throw new MessageNotFoundException($"Leave Group '{leaveGroupName}' not found");
+                                    if (leaveGroup == null) throw new MessageNotFoundException($"Leave Group '{leaveGroupName}' not found at row {row}");
                                     var companyName = worksheet.Cells[row, columnIndexes["CompanyMasterName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(companyName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Company is empty at {row}");
                                     }
                                     var companyMaster = await _context.CompanyMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == companyName.ToLower() && c.IsActive);
-                                    if (companyMaster == null) throw new MessageNotFoundException($"Company '{companyName}' not found");
+                                    if (companyMaster == null) throw new MessageNotFoundException($"Company '{companyName}' not found at row {row}");
                                     var locationName = worksheet.Cells[row, columnIndexes["LocationMasterName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(locationName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Location is empty at {row}");
                                     }
                                     var locationMaster = await _context.LocationMasters.FirstOrDefaultAsync(l => l.Name.ToLower() == locationName.ToLower() && l.IsActive);
-                                    if (locationMaster == null) throw new MessageNotFoundException($"Location '{locationName}' not found");
+                                    if (locationMaster == null) throw new MessageNotFoundException($"Location '{locationName}' not found at row {row}");
                                     var holidayCalendarName = worksheet.Cells[row, columnIndexes["HolidayCalendarName"]].Text.Trim();
                                     if (string.IsNullOrEmpty(holidayCalendarName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Holiday Calander {holidayCalendarName} not found at {row}");
                                     }
                                     var holidayCalendar = await _context.HolidayCalendarConfigurations.FirstOrDefaultAsync(h => h.Name.ToLower() == holidayCalendarName.ToLower() && h.IsActive);
-                                    if (holidayCalendar == null) throw new MessageNotFoundException($"Holiday Calendar '{holidayCalendarName}' not found");
+                                    if (holidayCalendar == null) throw new MessageNotFoundException($"Holiday Calendar '{holidayCalendarName}' not found at row {row}");
                                     var staffCreation = new StaffCreation
                                     {
                                         CardCode = worksheet.Cells[row, columnIndexes["CardCode"]].Text.Trim(),
@@ -494,17 +494,17 @@ public class ExcelImportService
                                 for (int row = 2; row <= rowCount; row++)
                                 {
                                     var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveType"]].Text.Trim();
-                                    if (string.IsNullOrEmpty(leaveTypeName)) throw new MessageNotFoundException($"Leave type {leaveTypeName} not found");
+                                    if (string.IsNullOrEmpty(leaveTypeName)) throw new MessageNotFoundException($"Leave type is empty at {row}");
                                     var leaveType = await _context.LeaveTypes.FirstOrDefaultAsync(l => l.Name.ToLower() == leaveTypeName.ToLower() && l.IsActive);
-                                    if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found");
+                                    if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found at row {row}");
                                     var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
-                                    if (string.IsNullOrEmpty(staffCreationIdStr)) throw new MessageNotFoundException($"Staff {staffCreationIdStr} not found");
+                                    if (string.IsNullOrEmpty(staffCreationIdStr)) throw new MessageNotFoundException($"Staff is empty at {row}");
                                     var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
-                                    if (staffCreation == null) throw new MessageNotFoundException("Staff not found");
+                                    if (staffCreation == null) throw new MessageNotFoundException($"Staff {staffCreationIdStr} not found at row {row}");
                                     var transactionFlagValue = worksheet.Cells[row, columnIndexes["TransactionFlag"]].Text.Trim().ToLower();
                                     var transactionFlag = transactionFlagValue == "true" || transactionFlagValue == "false";
                                     var leaveCount = decimal.TryParse(worksheet.Cells[row, columnIndexes["LeaveCount"]].Text, out var parsedLeaveCount) ? parsedLeaveCount : 0;
-                                    if (leaveCount <= 0) throw new ArgumentException($"Invalid leave count {leaveCount}");
+                                    if (leaveCount <= 0) throw new ArgumentException($"Invalid leave count {leaveCount} at row {row}");
                                     var actualBalance = await _context.IndividualLeaveCreditDebits
                                         .Where(l => l.StaffCreationId == staffCreation.Id && l.LeaveTypeId == leaveType.Id && l.IsActive)
                                         .OrderByDescending(l => l.CreatedUtc)
@@ -522,7 +522,7 @@ public class ExcelImportService
                                     }
                                     else
                                     {
-                                        if (availableBalance < leaveCount) throw new ConflictException($"Insufficient leave balance for staff '{staffCreationIdStr}'");
+                                        if (availableBalance < leaveCount) throw new ConflictException($"Insufficient leave balance for staff '{staffCreationIdStr}' at row {row}");
                                         availableBalance -= leaveCount;
                                     }
                                     var individualLeaveCreditDebit = new IndividualLeaveCreditDebit
@@ -683,25 +683,25 @@ public class ExcelImportService
                                     var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(applicationTypeName))
                                     {
-                                        throw new Exception($"Application Type is required");
+                                        throw new Exception($"Application Type is empty at {row}");
                                     }
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found at row {row}");
                                     }
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     DateTime? inPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["InPunch"]]?.Text, out var parsedInPunch) ? parsedInPunch : null;
                                     DateTime? outPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["OutPunch"]]?.Text, out var parsedOutPunch) ? parsedOutPunch : null;
                                     if (!inPunch.HasValue || !outPunch.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid InPunch or OutPunch format");
+                                        throw new ArgumentException($"Invalid InPunch or OutPunch format at row {row}");
                                     }
                                     var manualPunchRequisition = new ManualPunchRequistion
                                     {
@@ -735,15 +735,15 @@ public class ExcelImportService
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found at row {row}");
                                     }
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     var startTimeText = worksheet.Cells[row, columnIndexes["StartTime"]].Text.Trim();
                                     var endTimeText = worksheet.Cells[row, columnIndexes["EndTime"]].Text.Trim();
                                     var permissionDateText = worksheet.Cells[row, columnIndexes["PermissionDate"]].Text.Trim();
@@ -756,7 +756,7 @@ public class ExcelImportService
                                     var existingPermissionOnDate = await _context.CommonPermissions.AnyAsync(p => p.StaffId == staff.Id && p.PermissionDate == permissionDate);
                                     if (existingPermissionOnDate)
                                     {
-                                        throw new ConflictException($"Permission for the date {permissionDate:yyyy-MM-dd} already exists.");
+                                        throw new ConflictException($"Permission for the date {permissionDate:yyyy-MM-dd} already exists at row {row}");
                                     }
                                     var permissionsThisMonth = await _context.CommonPermissions
                                         .Where(p => p.StaffId == staff.Id && p.PermissionDate >= startOfMonth && p.PermissionDate <= endOfMonth)
@@ -765,7 +765,7 @@ public class ExcelImportService
                                     var newRequestMinutes = (endTime - startTime).TotalMinutes;
                                     if (newRequestMinutes <= 0)
                                     {
-                                        throw new ArgumentException("End time must be greater than start time.");
+                                        throw new ArgumentException($"End time must be greater than start time at row {row}");
                                     }
                                     if (newRequestMinutes > 120)
                                     {
@@ -773,7 +773,7 @@ public class ExcelImportService
                                     }
                                     if (totalMinutesUsed + newRequestMinutes > 120)
                                     {
-                                        throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours");
+                                        throw new InvalidOperationException($"Cumulative permission time for {monthName} cannot exceed 2 hours at row {row}");
                                     }
                                     var formattedDuration = $"{(int)newRequestMinutes / 60:D2}:{(int)newRequestMinutes % 60:D2}";
                                     var totalHours = (endTime - startTime).ToString("hh\\:mm");
@@ -803,17 +803,17 @@ public class ExcelImportService
                                     var staffText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffText))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Staff is empty at {row}");
                                     }
                                     var existingStaff = _context.StaffCreations.FirstOrDefault(s => s.StaffId == staffText && s.IsActive == true);
                                     if (existingStaff == null)
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Staff {staffText} not found at {row}");
                                     }
                                     var statusName = worksheet.Cells[row, columnIndexes["Status"]].Text.Trim();
                                     if (string.IsNullOrEmpty(statusName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Status is empty at {row}");
                                     }
                                     var statusId = await _context.Statuses
                                         .Where(d => d.Name.Trim().ToLower() == statusName.Trim().ToLower() && d.IsActive)
@@ -821,7 +821,7 @@ public class ExcelImportService
                                         .FirstOrDefaultAsync();
                                     if (statusId == 0)
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Status {statusName} not found at {row}");
                                     }
                                     var resignationDateText = worksheet.Cells[row, columnIndexes["ResignationDate"]]?.Text;
                                     var relievingDateText = worksheet.Cells[row, columnIndexes["RelievingDate"]]?.Text;
@@ -851,7 +851,7 @@ public class ExcelImportService
                                 {
                                     var shiftType = worksheet.Cells[row, columnIndexes["Shift Type"]].Text.Trim();
                                     var shiftTypeId = await _context.ShiftTypeDropDowns.FirstOrDefaultAsync(s => s.Name == shiftType && s.IsActive);
-                                    if (shiftTypeId == null) throw new MessageNotFoundException("Shift type not found");
+                                    if (shiftTypeId == null) throw new MessageNotFoundException($"Shift type {shiftType} not found at row {row}");
                                     var shiftMaster = new Shift
                                     {
                                         Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
@@ -883,24 +883,24 @@ public class ExcelImportService
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found at row {row}");
                                     }
                                     var leaveTypeName = worksheet.Cells[row, columnIndexes["LeaveType"]].Text.Trim();
-                                    if (string.IsNullOrEmpty(leaveTypeName)) throw new Exception($"Leave type name is required");
+                                    if (string.IsNullOrEmpty(leaveTypeName)) throw new Exception($"Leave type is empty at row {row}");
                                     var leaveType = await _context.LeaveTypes.FirstOrDefaultAsync(l => l.Name.ToLower() == leaveTypeName.ToLower() && l.IsActive);
-                                    if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found");
+                                    if (leaveType == null) throw new MessageNotFoundException($"Leave type '{leaveTypeName}' not found at row {row}");
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     bool isFromDateValid = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["FromDate"]].Text, out var fromDate);
                                     bool isToDateValid = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ToDate"]].Text, out var toDate);
                                     if (!isFromDateValid)
                                     {
-                                        throw new ArgumentException($"Invalid FromDate {isFromDateValid}");
+                                        throw new ArgumentException($"Invalid FromDate {isFromDateValid} at row {row}");
                                     }
                                     toDate = isToDateValid ? toDate : fromDate;
                                     var leaveRequisition = new LeaveRequisition
@@ -938,15 +938,15 @@ public class ExcelImportService
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found at row {row}");
                                     }
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     DateOnly? startDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["StartDate"]]?.Text, out var parsedStartDate) ? parsedStartDate : null;
                                     DateOnly? endDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["EndDate"]]?.Text, out var parsedEndDate) ? parsedEndDate : null;
                                     DateTime? startTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["StartTime"]]?.Text, out var parsedStartTime) ? parsedStartTime : null;
@@ -999,15 +999,15 @@ public class ExcelImportService
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found at row {row}");
                                     }
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     DateTime? fromTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["FromTime"]]?.Text, out var parsedFromTime) ? parsedFromTime : null;
                                     DateTime? toTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["ToTime"]]?.Text, out var parsedToTime) ? parsedToTime : null;
                                     DateOnly? fromDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["FromDate"]]?.Text, out var parsedFromDate) ? parsedFromDate : null;
@@ -1060,21 +1060,21 @@ public class ExcelImportService
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     DateOnly? otDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["OTDate"]].Text, out var parsedOtDate) ? parsedOtDate : null;
                                     if (!otDate.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid OT Date {otDate}");
+                                        throw new ArgumentException($"Invalid OT Date is empty at row {row}");
                                     }
                                     DateTime? startTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["StartTime"]]?.Text, out var parsedStartTime) ? parsedStartTime : null;
                                     DateTime? endTime = DateTime.TryParse(worksheet.Cells[row, columnIndexes["EndTime"]]?.Text, out var parsedEndTime) ? parsedEndTime : null;
                                     string otType = worksheet.Cells[row, columnIndexes["OTType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(otType))
                                     {
-                                        throw new Exception($"OT Type is required");
+                                        throw new Exception($"OT Type is empty at row {row}");
                                     }
                                     var onDutyOvertime = new OnDutyOvertime
                                     {
@@ -1106,24 +1106,24 @@ public class ExcelImportService
                                     var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                                     if (string.IsNullOrEmpty(applicationTypeName))
                                     {
-                                        throw new Exception($"Application Type is required");
+                                        throw new Exception($"Application Type is empty at row {row}");
                                     }
                                     var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
                                     if (applicationType == null)
                                     {
-                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found");
+                                        throw new MessageNotFoundException($"Application Type '{applicationTypeName}' not found at row {row}");
                                     }
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     var shift = worksheet.Cells[row, columnIndexes["Shift"]].Text.Trim();
                                     if (string.IsNullOrEmpty(shift))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Staff {staffIdText} not found at {row}");
                                     }
                                     var shiftId = await _context.Shifts
                                         .Where(d => d.Name.Trim().ToLower() == shift.Trim().ToLower() && d.IsActive)
@@ -1132,7 +1132,7 @@ public class ExcelImportService
                                     DateOnly? transactionDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["TransactionDate"]].Text, out var parsedDate) ? parsedDate : null;
                                     if (!transactionDate.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid TransactionDate at row {row}.");
+                                        throw new ArgumentException($"Invalid TransactionDate at row {row}");
                                     }
                                     DateTime? beforeShiftHours = DateTime.TryParse(worksheet.Cells[row, columnIndexes["BeforeShiftHours"]]?.Text, out var parsedBeforeShift) ? parsedBeforeShift : null;
                                     DateTime? afterShiftHours = DateTime.TryParse(worksheet.Cells[row, columnIndexes["AfterShiftHours"]]?.Text, out var parsedAfterShift) ? parsedAfterShift : null;
@@ -1170,23 +1170,23 @@ public class ExcelImportService
                                     var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     if (string.IsNullOrEmpty(staffIdText))
                                     {
-                                        throw new MessageNotFoundException($"Staff Id '{staffIdText}' not found");
+                                        throw new MessageNotFoundException($"Staff is empty at row {row}");
                                     }
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff '{staffIdText}' not found at row {row}");
                                     DateOnly? vaccinatedDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["VaccinatedDate"]]?.Text, out var parsedVaccinatedDate) ? parsedVaccinatedDate : null;
                                     if (!vaccinatedDate.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid VaccinatedDate '{vaccinatedDate}'");
+                                        throw new ArgumentException($"Invalid VaccinatedDate is empty at row {row}");
                                     }
                                     DateTime? secondVaccinatedDate = DateTime.TryParse(worksheet.Cells[row, columnIndexes["SecondVaccinationDate"]]?.Text, out var parsedSecondVaccinatedDate) ? parsedSecondVaccinatedDate : null;
                                     if (!vaccinatedDate.HasValue)
                                     {
-                                        throw new ArgumentException($"Invalid SecondVaccinatedDate '{secondVaccinatedDate}'");
+                                        throw new ArgumentException($"Invalid SecondVaccinatedDate is empty at row {row}");
                                     }
                                     if (!int.TryParse(worksheet.Cells[row, columnIndexes["VaccinationNumber"]]?.Text, out int vaccinationNumber))
                                     {
-                                        throw new ArgumentException($"Invalid VaccinationNumber '{vaccinationNumber}'");
+                                        throw new ArgumentException($"Invalid VaccinationNumber '{vaccinationNumber}' at row {row}");
                                     }
                                     bool isExempted = false;
                                     var isExemptedText = worksheet.Cells[row, columnIndexes["IsExempted"]].Text.Trim().ToLower();
@@ -1200,7 +1200,7 @@ public class ExcelImportService
                                     }
                                     else
                                     {
-                                        throw new ArgumentException($"Invalid IsExempted value '{isExemptedText}'");
+                                        throw new ArgumentException($"Invalid IsExempted value '{isExemptedText}' at row {row}");
                                     }
                                     string? comments = worksheet.Cells[row, columnIndexes["Comments"]]?.Text?.Trim();
                                     var staffVaccination = new StaffVaccination
@@ -1235,10 +1235,10 @@ public class ExcelImportService
                                     var departmentName = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
                                     if (string.IsNullOrEmpty(departmentName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Department is empty at {row}");
                                     }
                                     var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == departmentName.ToLower() && d.IsActive);
-                                    if (department == null) throw new MessageNotFoundException($"Department '{departmentName}' not found.");
+                                    if (department == null) throw new MessageNotFoundException($"Department '{departmentName}' not found at row {row}");
                                     var addProbation = new ProbationReport
                                     {
                                         EmpId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim(),
@@ -1294,10 +1294,10 @@ public class ExcelImportService
                                     var divisionName = worksheet.Cells[row, columnIndexes["EMP Division"]].Text.Trim();
                                     if (string.IsNullOrEmpty(divisionName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Division is empty at {row}");
                                     }
                                     var division = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == divisionName.ToLower() && d.IsActive);
-                                    if (division == null) throw new MessageNotFoundException($"Division '{divisionName}' not found.");
+                                    if (division == null) throw new MessageNotFoundException($"Division '{divisionName}' not found at row {row}");
                                     var addProbation = new ProbationTarget
                                     {
                                         EmpId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim(),
@@ -1340,36 +1340,36 @@ public class ExcelImportService
                                     var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                         .AsEnumerable()
                                         .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
-                                    if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                    if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found at row {row}");
                                     var employeeId = employee.StaffId;
                                     var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
                                     if (string.IsNullOrEmpty(designationName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Designation is empty at {row}");
                                     }
                                     var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
                                     if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
                                     var departmentName = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
                                     if (string.IsNullOrEmpty(designationName))
                                     {
-                                        continue;
+                                        throw new MessageNotFoundException($"Department is empty at {row}");
                                     }
                                     var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == departmentName.ToLower() && d.IsActive);
                                     if (department == null) throw new MessageNotFoundException($"Department '{departmentName}' not found");
                                     DateOnly dateOfJoining = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["Date of Joining"]].Text, out var parsedDate) ? parsedDate : DateOnly.MinValue;
                                     if (dateOfJoining == DateOnly.MinValue)
                                     {
-                                        throw new ArgumentException($"Invalid Date of Joining: '{dateOfJoining}'");
+                                        throw new ArgumentException($"Invalid Date of Joining: '{dateOfJoining}' at row {row}");
                                     }
                                     DateOnly dateOfBirth = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["Date of Birth"]].Text, out var parsedDate1) ? parsedDate1 : DateOnly.MinValue;
                                     if (dateOfBirth == DateOnly.MinValue)
                                     {
-                                        throw new ArgumentException($"Invalid Date of Birth: '{dateOfBirth}'");
+                                        throw new ArgumentException($"Invalid Date of Birth: '{dateOfBirth}' at row {row}");
                                     }
                                     DateOnly salaryEffectiveFrom = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["Salary Effective From"]].Text, out var parsedDate2) ? parsedDate2 : DateOnly.MinValue;
                                     if (salaryEffectiveFrom == DateOnly.MinValue)
                                     {
-                                        throw new ArgumentException($"Invalid Salary Effective From: '{salaryEffectiveFrom}'");
+                                        throw new ArgumentException($"Invalid Salary Effective From: '{salaryEffectiveFrom}' at row {row}");
                                     }
                                     var addPaySheet = new PaySheet
                                     {
@@ -1457,14 +1457,14 @@ public class ExcelImportService
                                         var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                             .AsEnumerable()
                                             .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
-                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeId} not found at row {row}");
                                         var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
                                         if (string.IsNullOrEmpty(designationName))
                                         {
-                                            continue;
+                                            throw new MessageNotFoundException($"Designation is empty at {row}");
                                         }
                                         var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
-                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found at row {row}");
                                         var addMonthlyPerformance = new MonthlyPerformance
                                         {
                                             EmployeeCode = employeeId,
@@ -1511,14 +1511,14 @@ public class ExcelImportService
                                         var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                             .AsEnumerable()
                                             .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
-                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeId} not found at row {row}");
                                         var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
                                         if (string.IsNullOrEmpty(designationName))
                                         {
-                                            continue;
+                                            throw new MessageNotFoundException($"Designation is empty at {row}");
                                         }
                                         var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
-                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found at row {row}");
                                         var addQuarterlyPerformance = new QuarterlyPerformance
                                         {
                                             EmployeeCode = employeeId,
@@ -1560,14 +1560,14 @@ public class ExcelImportService
                                         var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                             .AsEnumerable()
                                             .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
-                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeName} not found");
+                                        if (employee == null) throw new MessageNotFoundException($"Staff {employeeId} not found at row {row}");
                                         var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
                                         if (string.IsNullOrEmpty(designationName))
                                         {
-                                            continue;
+                                            throw new MessageNotFoundException($"Designation is empty at {row}");
                                         }
                                         var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
-                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found");
+                                        if (designation == null) throw new MessageNotFoundException($"Designation '{designationName}' not found at row {row}");
                                         var addQuarterlyPerformance = new YearlyPerformance
                                         {
                                             EmployeeCode = employeeId,
@@ -1690,17 +1690,19 @@ public class ExcelImportService
                                 {
                                     var employeeId = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == employeeId && s.IsActive == true);
-                                    if (staff == null) throw new MessageNotFoundException("Staff not found");
+                                    if (staff == null) throw new MessageNotFoundException($"Staff {employeeId} not found at row {row}");
                                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                                     var rawShift = worksheet.Cells[row, columnIndexes["ShiftName"]].Text?.Trim();
                                     var shiftName = rawShift?.Split('(')[0].Trim().ToLower();
                                     var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Name.ToLower().Trim() == shiftName && s.IsActive);
-                                    if (shift == null) throw new MessageNotFoundException($"Shift '{rawShift}' not found.");
+                                    if (shift == null) throw new MessageNotFoundException($"Shift '{rawShift}' not found at row {row}");
                                     var dateText = worksheet.Cells[row, columnIndexes["Date"]]?.Text?.Trim();
                                     if (string.IsNullOrWhiteSpace(dateText) || !DateOnly.TryParse(dateText, out var confirmationDate))
                                     {
-                                        throw new InvalidOperationException($"'Date' is required and must be valid in row {row}.");
+                                        throw new InvalidOperationException($"'Date' is required and must be valid in row {row}");
                                     }
+                                    var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.StaffId == staff.Id && f.AttendanceDate == confirmationDate);
+                                    if (hasUnfreezed) throw new InvalidOperationException($"Shift cannot be assign attendance records are frozen at row {row}");
                                     var existingAssignedShift = await _context.AssignShifts
                                         .Where(a => a.FromDate == confirmationDate &&
                                                     a.ShiftId == shift.Id &&
@@ -1709,7 +1711,7 @@ public class ExcelImportService
                                         .ToListAsync();
                                     if (existingAssignedShift.Count > 0)
                                     {
-                                        throw new ConflictException($"Shift already assigned for staff {staffName}");
+                                        throw new ConflictException($"Shift already assigned for staff {staffName} at row {row}");
                                     }
                                     var existingAssign = await _context.AssignShifts.FirstOrDefaultAsync(a => a.FromDate == confirmationDate && a.StaffId == staff.Id && a.IsActive);
                                     AssignShift? shiftAssign = null;
