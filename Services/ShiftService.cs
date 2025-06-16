@@ -146,21 +146,21 @@ namespace AttendanceManagement.Services
                 var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.Id && s.IsActive == true);
                 if (staff == null) throw new MessageNotFoundException("Staff not found");
                 var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
-                var existingAssignedShift = await _context.AssignShifts
-                    .Where(a => a.FromDate == assignShift.FromDate &&
-                                a.ToDate == assignShift.ToDate &&
-                                a.ShiftId == assignShift.ShiftId &&
-                                a.StaffId == item.Id &&
-                                a.IsActive)
-                    .ToListAsync();
-                if (existingAssignedShift.Count > 0)
-                {
-                    throw new ConflictException($"Shift already assigned for staff {staffName}");
-                }
                 var fromDate = assignShift.FromDate;
                 var toDate = assignShift.ToDate;
                 for (var date = fromDate; date <= toDate; date = date.AddDays(1))
                 {
+                    await AttendanceFreezeDate(item.Id, date);
+                    var existingAssignedShift = await _context.AssignShifts
+                        .Where(a => a.FromDate == date &&
+                                    a.ShiftId == assignShift.ShiftId &&
+                                    a.StaffId == item.Id &&
+                                    a.IsActive)
+                        .ToListAsync();
+                    if (existingAssignedShift.Count > 0)
+                    {
+                        throw new ConflictException($"Shift already assigned for staff {staffName}");
+                    }
                     var existingAssign = await _context.AssignShifts.FirstOrDefaultAsync(a => a.FromDate == date && a.StaffId == item.Id && a.IsActive);
                     if (existingAssign != null)
                     {
@@ -185,6 +185,12 @@ namespace AttendanceManagement.Services
                 await _context.SaveChangesAsync();
             }
             return message;
+        }
+
+        public async Task AttendanceFreezeDate(int staffId, DateOnly date)
+        {
+            var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.StaffId == staffId && f.AttendanceDate == date);
+            if (hasUnfreezed) throw new InvalidOperationException("Shift cannot be assign attendance records are frozen");
         }
 
         public async Task<List<AssignedShiftResponse>> GetAllAssignedShifts(int approverId)

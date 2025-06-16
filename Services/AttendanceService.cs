@@ -29,7 +29,7 @@ public class AttendanceService
         string shiftName = shift?.Name ?? "Not Assigned";
         TimeSpan? fromTime = TimeSpan.TryParse(shift?.StartTime, out var from) ? from : (TimeSpan?)null;
         TimeSpan? toTime = TimeSpan.TryParse(shift?.EndTime, out var to) ? to : (TimeSpan?)null;
-        var today = new DateTime(2025, 6, 11);
+        var today = DateTime.Today;
         var yesterday = today.AddDays(-1);
         List<SmaxTransaction> transactions;
         if (fromTime.HasValue && toTime.HasValue && fromTime > toTime)
