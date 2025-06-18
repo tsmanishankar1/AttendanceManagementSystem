@@ -10,12 +10,18 @@ namespace AttendanceManagement.Services
     public class LetterGenerationService
     {
         private readonly string _workspacePath;
+        private readonly string _workspaceLogoAndSealPath;
         public LetterGenerationService(IWebHostEnvironment env)
         {
             _workspacePath = Path.Combine(env.ContentRootPath, "wwwroot\\GeneratedLetters");
             if (!Directory.Exists(_workspacePath))
             {
                 Directory.CreateDirectory(_workspacePath);
+            }
+            _workspaceLogoAndSealPath = Path.Combine(env.ContentRootPath, "wwwroot\\VleadLogoAndSeal");
+            if (!Directory.Exists(_workspaceLogoAndSealPath))
+            {
+                Directory.CreateDirectory(_workspaceLogoAndSealPath);
             }
         }
 
@@ -465,7 +471,7 @@ namespace AttendanceManagement.Services
 
             // Apply custom page size to the document
             using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            using (var doc = new Document(customPageSize, 80f, 80f, 54f, 36f))
+            using (var doc = new Document(customPageSize, 70f, 70f, 54f, 36f))
             {
                 var writer = PdfWriter.GetInstance(doc, fs);
                 doc.Open();
@@ -482,6 +488,37 @@ namespace AttendanceManagement.Services
                 Font unicodeFont = new Font(unicodeBaseFont, 10, Font.NORMAL, BaseColor.BLACK);
                 Font unicodeBoldFont = new Font(unicodeBaseFont, 10, Font.BOLD, BaseColor.BLACK);
 
+                var logo = "VLead Logo.png";
+                string logoPath = _workspaceLogoAndSealPath;
+                logoPath = Path.Combine(logoPath, logo);
+                iTextSharp.text.Image logoImg = iTextSharp.text.Image.GetInstance(logoPath);
+                logoImg.ScaleToFit(65f, 35f); // Adjust size as needed
+                logoImg.Alignment = Element.ALIGN_LEFT;
+
+                // Create a table with 2 columns: one for the red block, one for the logo
+                PdfPTable logoTable = new PdfPTable(2);
+                logoTable.WidthPercentage = 100;
+                logoTable.SetWidths(new float[] { 7f, 250f }); // Adjust width ratio as needed
+
+                // Create the red rectangle cell
+                PdfPCell redCell = new PdfPCell();
+                redCell.BackgroundColor = new BaseColor(255, 0, 0); // Red
+                redCell.Border = Rectangle.NO_BORDER;
+                redCell.FixedHeight = 30f; // Height to match logo height
+
+                // Create the logo cell
+                PdfPCell logoCell = new PdfPCell(logoImg);
+                logoCell.Border = Rectangle.NO_BORDER;
+                logoCell.HorizontalAlignment = Element.ALIGN_LEFT;
+                logoCell.VerticalAlignment = Element.ALIGN_MIDDLE;
+                logoCell.PaddingLeft = 8f; // Adjust the spacing as needed
+
+                // Add both cells to the table
+                logoTable.AddCell(redCell);
+                logoTable.AddCell(logoCell);
+
+                // Add the table to the document
+                doc.Add(logoTable);
                 // Add title
                 var title = new Paragraph("Appraisal Letter", fontTitle)
                 {
@@ -599,29 +636,76 @@ namespace AttendanceManagement.Services
                 // Red font (only for "V")
                 var redFont = FontFactory.GetFont(fontBold.Familyname, fontBold.Size, fontBold.Style, BaseColor.RED);
 
-                // Add "V" in red
+                // Add "V" in red 
                 companyPara.Add(new Chunk("V", redFont));
 
-                // Add the rest in bold (normal black)
+                // Add the rest in bold (normal black) 
                 companyPara.Add(new Chunk("Lead Design Services Private Limited", fontNormal));
 
-                // Add to document
+                // Add to document 
                 doc.Add(companyPara);
 
-                // HR Signature block
+                var imageName = "Nirmala Digital signature.png";
+                string imagePath = _workspaceLogoAndSealPath;
+                imagePath = Path.Combine(imagePath, imageName);
+                iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(imagePath);
+
+                // Optional: Resize or align image 
+                img.ScaleToFit(60f, 60f);
+                img.Alignment = Element.ALIGN_LEFT;
+
+                // Wrap image in a paragraph with no spacing
+                var imagePara = new Paragraph();
+                imagePara.SpacingBefore = 5f;
+                imagePara.SpacingAfter = 0f;
+                imagePara.Add(new Chunk(img, 0, 0)); // 0,0 for no offset
+
+                doc.Add(imagePara);
+
+                // HR Signature block 
                 var hrSignature = new Paragraph();
-                hrSignature.SpacingBefore = 20f;
+                hrSignature.SpacingBefore = 0f; // Changed from 20f to 0f
                 hrSignature.SpacingAfter = 5f;
                 hrSignature.Add(new Chunk("Nirmala Thamarai\n", fontNormal));
                 hrSignature.Add(new Chunk("Manager - HR", fontNormal));
                 doc.Add(hrSignature);
-
                 // Thicker red line (e.g., 2.5pt thick, 30% page width, aligned left)
                 var redLine = new iTextSharp.text.pdf.draw.LineSeparator(2.5f, 100f, BaseColor.RED, Element.ALIGN_LEFT, 0);
                 doc.Add(new Chunk(redLine));
 
                 // Start new page for Annexure
                 doc.NewPage();
+
+                string logoPath1 = _workspaceLogoAndSealPath;
+                logoPath1 = Path.Combine(logoPath1, logo);
+                iTextSharp.text.Image logoImg1 = iTextSharp.text.Image.GetInstance(logoPath1);
+                logoImg1.ScaleToFit(65f, 35f); // Adjust size as needed
+                logoImg1.Alignment = Element.ALIGN_LEFT;
+
+                // Create a table with 2 columns: one for the red block, one for the logo
+                PdfPTable logoTable1 = new PdfPTable(2);
+                logoTable1.WidthPercentage = 100;
+                logoTable1.SetWidths(new float[] { 7f, 250f }); // Adjust width ratio as needed
+
+                // Create the red rectangle cell
+                PdfPCell redCell1 = new PdfPCell();
+                redCell1.BackgroundColor = new BaseColor(255, 0, 0); // Red
+                redCell1.Border = Rectangle.NO_BORDER;
+                redCell1.FixedHeight = 30f; // Height to match logo height
+
+                // Create the logo cell
+                PdfPCell logoCell1 = new PdfPCell(logoImg1);
+                logoCell1.Border = Rectangle.NO_BORDER;
+                logoCell1.HorizontalAlignment = Element.ALIGN_LEFT;
+                logoCell1.VerticalAlignment = Element.ALIGN_MIDDLE;
+                logoCell1.PaddingLeft = 8f; // Adjust the spacing as needed
+
+                // Add both cells to the table
+                logoTable1.AddCell(redCell1);
+                logoTable1.AddCell(logoCell1);
+
+                // Add the table to the document
+                doc.Add(logoTable1);
 
                 doc.Add(new Paragraph("Annexure A", fontTitle) { Alignment = Element.ALIGN_CENTER, SpacingAfter = 20f });
 
@@ -1002,18 +1086,34 @@ namespace AttendanceManagement.Services
                 // Red font (only for "V")
                 var redFont1 = FontFactory.GetFont(fontBold.Familyname, fontBold.Size, fontBold.Style, BaseColor.RED);
 
-                // Add "V" in red
-                companyPara1.Add(new Chunk("V", redFont1));
+                // Add "V" in red 
+                companyPara1.Add(new Chunk("V", redFont));
 
-                // Add the rest in bold (normal black)
+                // Add the rest in bold (normal black) 
                 companyPara1.Add(new Chunk("Lead Design Services Private Limited", fontNormal));
 
-                // Add to document
+                // Add to document 
                 doc.Add(companyPara1);
 
-                // HR Signature block
+                string imagePath1 = _workspaceLogoAndSealPath;
+                imagePath1 = Path.Combine(imagePath1, imageName);
+                iTextSharp.text.Image img1 = iTextSharp.text.Image.GetInstance(imagePath1);
+
+                // Optional: Resize or align image 
+                img1.ScaleToFit(60f, 60f);
+                img1.Alignment = Element.ALIGN_LEFT;
+
+                // Wrap image in a paragraph with no spacing
+                var imagePara1 = new Paragraph();
+                imagePara1.SpacingBefore = 5f;
+                imagePara1.SpacingAfter = 0f;
+                imagePara1.Add(new Chunk(img1, 0, 0)); // 0,0 for no offset
+
+                doc.Add(imagePara1);
+
+                // HR Signature block 
                 var hrSignature1 = new Paragraph();
-                hrSignature1.SpacingBefore = 20f;
+                hrSignature1.SpacingBefore = 0f; // Changed from 20f to 0f
                 hrSignature1.SpacingAfter = 5f;
                 hrSignature1.Add(new Chunk("Nirmala Thamarai\n", fontNormal));
                 hrSignature1.Add(new Chunk("Manager - HR", fontNormal));

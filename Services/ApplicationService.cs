@@ -588,6 +588,18 @@ public class ApplicationService
                     .ToList()
             })
             .ToListAsync();
+        var assignedShifts = await _context.AssignShifts
+       .Include(x => x.Shift)
+       .Where(x => x.StaffId == staffId && x.IsActive && x.Shift.IsActive &&
+                   x.FromDate >= startDateOnly && x.FromDate <= endDateOnly)
+       .Select(x => new
+       {
+           Date = x.FromDate,
+           x.Shift.Name,
+           x.Shift.StartTime,
+           x.Shift.EndTime
+       })
+       .ToListAsync();
         var statusColors = await _context.AttendanceStatusColors
             .Where(c => c.IsActive)
             .Select(c => new { c.Id, c.Name })
@@ -596,6 +608,7 @@ public class ApplicationService
         foreach (var date in allDates)
         {
             var dateOnly = DateOnly.FromDateTime(date);
+            var shiftForDate = assignedShifts.FirstOrDefault(s => s.Date == dateOnly);
             var attendance = attendanceRecords.FirstOrDefault(a => a.LoginTime.HasValue && a.LogoutTime.HasValue && a.LoginTime.Value.Date == date);
             var todayDateOnly = DateOnly.FromDateTime(DateTime.Today);
             var attendanceRecord = await _context.AttendanceRecords.FirstOrDefaultAsync(a => !a.IsDeleted && a.AttendanceDate == dateOnly && a.StaffId == staffId);
@@ -662,7 +675,9 @@ public class ApplicationService
                 businessTravel,
                 compOff,
                 weeklyOff = weeklyOff != null,
-                holidayName = holiday?.HolidayName
+                holidayName = holiday?.HolidayName,
+                assignedShiftStart = shiftForDate?.StartTime ?? "00:00",
+                assignedShiftEnd = shiftForDate?.EndTime ?? "00:00"
             });
         }
         return new

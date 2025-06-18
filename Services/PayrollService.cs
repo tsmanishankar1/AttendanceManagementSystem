@@ -65,94 +65,122 @@ namespace AttendanceManagement.Services
                     var rowCount = worksheet.Dimension.Rows;
                     var paySlips = new List<PaySlip>();
                     var paySlipComponents = new List<PaySlipComponent>();
+                    var errorLogs = new List<string>();
                     using (var transaction = await _context.Database.BeginTransactionAsync())
                     {
-                        try
+                        for (int row = 2; row <= rowCount; row++)
                         {
-                            for (int row = 2; row <= rowCount; row++)
+                            var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
+                            if (string.IsNullOrEmpty(staffCreationIdStr))
                             {
-                                var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}");
-                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
-                                var paySlip = new PaySlip
+                                errorLogs.Add($"Staff is empty at {row}");
+                                continue;
+                            }
+                            var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
+                            if (staffCreation == null)
+                            {
+                                errorLogs.Add($"Staff '{staffCreationIdStr}' not found at {row}");
+                                continue;
+                            }
+                            var paySlip = new PaySlip
+                            {
+                                StaffId = staffCreation.Id,
+                                Basic = ParseDecimal(worksheet.Cells[row, columnIndexes["Basic"]].Text, row, "Basic"),
+                                Hra = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["HRA"]].Text),
+                                Da = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["DA"]].Text),
+                                OtherAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OtherAllowance"]].Text),
+                                SpecialAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowance"]].Text),
+                                Conveyance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["Conveyance"]].Text),
+                                Tds = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TDS"]].Text),
+                                Esic = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESIC"]].Text),
+                                Pf = ParseDecimal(worksheet.Cells[row, columnIndexes["PF"]].Text, row, "PF"),
+                                Pt = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["PT"]].Text),
+                                Othours = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OTHours"]].Text),
+                                OtperHour = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OTPerHour"]].Text),
+                                TotalOt = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TotalOT"]].Text),
+                                LopperDay = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["LOPPerDay"]].Text),
+                                AbsentDays = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["AbsentDays"]].Text),
+                                Lwopdays = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["LWOPDays"]].Text),
+                                TotalLop = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TotalLOP"]].Text),
+                                IsFreezed = ParseBool(worksheet.Cells[row, columnIndexes["IsFreezed"]].Text, row, "IsFreezed"),
+                                EsicemployerContribution = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESICEmployerContribution"]].Text),
+                                PfemployerContribution = ParseDecimal(worksheet.Cells[row, columnIndexes["PFEmployerContribution"]].Text, row, "PFEmployerContribution"),
+                                SalaryMonth = worksheet.Cells[row, columnIndexes["SalaryMonth"]].Text,
+                                SalaryYear = ParseInt(worksheet.Cells[row, columnIndexes["SalaryYear"]].Text, row, "SalaryYear"),
+                                IsActive = true,
+                                CreatedBy = createdBy,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            paySlips.Add(paySlip);
+                        }
+                        if (paySlips.Any())
+                        {
+                            await _context.PaySlips.AddRangeAsync(paySlips);
+                            await _context.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                            if (string.IsNullOrEmpty(staffCreationIdStr))
+                            {
+                                errorLogs.Add($"Staff is empty at {row}");
+                                continue;
+                            }
+                            var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
+                            if (staffCreation == null)
+                            {
+                                errorLogs.Add($"Staff '{staffCreationIdStr}' not found at {row}");
+                                continue;
+                            }
+                            var paySlip = paySlips.FirstOrDefault(ps => ps.StaffId == staffCreation.Id && ps.IsActive);
+                            if (paySlip == null) continue;
+                            var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
+                            var componentName = worksheet.Cells[row, columnIndexes["ComponentName"]]?.Text.Trim();
+                            var amount = worksheet.Cells[row, columnIndexes["Amount"]]?.Text.Trim();
+                            var isTaxableStr = worksheet.Cells[row, columnIndexes["IsTaxable"]]?.Text.Trim();
+                            var remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text.Trim();
+                            if (string.IsNullOrEmpty(isTaxableStr))
+                            {
+                                errorLogs.Add($"IsTaxable is empty at {row}");
+                                continue;
+                            }
+                            if (!string.IsNullOrEmpty(componentType) && !string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(amount))
+                            {
+                                var paySlipComponent = new PaySlipComponent
                                 {
-                                    StaffId = staffCreation.Id,
-                                    Basic = ParseDecimal(worksheet.Cells[row, columnIndexes["Basic"]].Text, row, "Basic"),
-                                    Hra = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["HRA"]].Text),
-                                    Da = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["DA"]].Text),
-                                    OtherAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OtherAllowance"]].Text),
-                                    SpecialAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowance"]].Text),
-                                    Conveyance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["Conveyance"]].Text),
-                                    Tds = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TDS"]].Text),
-                                    Esic = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESIC"]].Text),
-                                    Pf = ParseDecimal(worksheet.Cells[row, columnIndexes["PF"]].Text, row, "PF"),
-                                    Pt = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["PT"]].Text),
-                                    Othours = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OTHours"]].Text),
-                                    OtperHour = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OTPerHour"]].Text),
-                                    TotalOt = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TotalOT"]].Text),
-                                    LopperDay = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["LOPPerDay"]].Text),
-                                    AbsentDays = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["AbsentDays"]].Text),
-                                    Lwopdays = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["LWOPDays"]].Text),
-                                    TotalLop = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TotalLOP"]].Text),
-                                    IsFreezed = ParseBool(worksheet.Cells[row, columnIndexes["IsFreezed"]].Text, row, "IsFreezed"),
-                                    EsicemployerContribution = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESICEmployerContribution"]].Text),
-                                    PfemployerContribution = ParseDecimal(worksheet.Cells[row, columnIndexes["PFEmployerContribution"]].Text, row, "PFEmployerContribution"),
-                                    SalaryMonth = worksheet.Cells[row, columnIndexes["SalaryMonth"]].Text,
-                                    SalaryYear = ParseInt(worksheet.Cells[row, columnIndexes["SalaryYear"]].Text, row, "SalaryYear"),
+                                    PaySlipId = paySlip.Id,
+                                    StaffId = paySlip.StaffId,
+                                    ComponentType = componentType,
+                                    ComponentName = componentName,
+                                    Amount = amount,
+                                    IsTaxable = ParseBool(isTaxableStr, row, "IsTaxable"),
+                                    Remarks = remarks,
                                     IsActive = true,
                                     CreatedBy = createdBy,
                                     CreatedUtc = DateTime.UtcNow
                                 };
-                                paySlips.Add(paySlip);
+                                paySlipComponents.Add(paySlipComponent);
                             }
-                            await _context.PaySlips.AddRangeAsync(paySlips);
-                            await _context.SaveChangesAsync();
-
-                            for (int row = 2; row <= rowCount; row++)
-                            {
-                                var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
-                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
-                                var paySlip = paySlips.FirstOrDefault(ps => ps.StaffId == staffCreation.Id && ps.IsActive);
-                                if (paySlip == null) continue;
-                                var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
-                                var componentName = worksheet.Cells[row, columnIndexes["ComponentName"]]?.Text.Trim();
-                                var amount = worksheet.Cells[row, columnIndexes["Amount"]]?.Text.Trim();
-                                var isTaxableStr = worksheet.Cells[row, columnIndexes["IsTaxable"]]?.Text.Trim();
-                                var remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text.Trim();
-                                if (isTaxableStr == null) throw new Exception($"Invalid or missing IsTaxable value at row {row}.");
-                                if (!string.IsNullOrEmpty(componentType) && !string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(amount))
-                                {
-                                    var paySlipComponent = new PaySlipComponent
-                                    {
-                                        PaySlipId = paySlip.Id,
-                                        StaffId = paySlip.StaffId,
-                                        ComponentType = componentType,
-                                        ComponentName = componentName,
-                                        Amount = amount,
-                                        IsTaxable = ParseBool(isTaxableStr, row, "IsTaxable"),
-                                        Remarks = remarks,
-                                        IsActive = true,
-                                        CreatedBy = createdBy,
-                                        CreatedUtc = DateTime.UtcNow
-                                    };
-                                    paySlipComponents.Add(paySlipComponent);
-                                }
-                            }
-                            if (paySlipComponents.Any())
-                            {
-                                await _context.PaySlipComponents.AddRangeAsync(paySlipComponents);
-                            }
-                            await _context.SaveChangesAsync();
-                            await transaction.CommitAsync();
                         }
-                        catch (Exception ex)
+                        if (paySlipComponents.Any())
                         {
-                            await transaction.RollbackAsync();
-                            throw new Exception(ex.Message);
+                            await _context.PaySlipComponents.AddRangeAsync(paySlipComponents);
                         }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
                     }
                 }
             }
@@ -424,97 +452,125 @@ namespace AttendanceManagement.Services
                     var rowCount = worksheet.Dimension.Rows;
                     var salaryStructures = new List<SalaryStructure>();
                     var salaryComponents = new List<SalaryComponent>();
+                    var errorLogs = new List<string>();
                     using (var transaction = await _context.Database.BeginTransactionAsync())
                     {
-                        try
+                        for (int row = 2; row <= rowCount; row++)
                         {
-                            for (int row = 2; row <= rowCount; row++)
+                            var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
+                            if (string.IsNullOrEmpty(staffCreationIdStr))
                             {
-                                var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
-                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
-                                var salaryStructure = new SalaryStructure
+                                errorLogs.Add($"Staff is empty at {row}");
+                                continue;
+                            }
+                            var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
+                            if (staffCreation == null)
+                            {
+                                errorLogs.Add($"Staff '{staffCreationIdStr}' not found at {row}");
+                                continue;
+                            }
+                            var salaryStructure = new SalaryStructure
+                            {
+                                StaffId = staffCreation.Id,
+                                Basic = ParseDecimal(worksheet.Cells[row, columnIndexes["Basic"]].Text, row, "Basic"),
+                                Hra = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["HRA"]].Text),
+                                Da = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["DA"]].Text),
+                                OtherAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OtherAllowance"]].Text),
+                                SpecialAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowance"]].Text),
+                                Conveyance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["Conveyance"]].Text),
+                                Tdsapplicable = ParseBool(worksheet.Cells[row, columnIndexes["TDSApplicable"]].Text, row, "TDSApplicable"),
+                                Tds = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TDS"]].Text),
+                                Esicapplicable = ParseBool(worksheet.Cells[row, columnIndexes["ESICApplicable"]].Text, row, "ESICApplicable"),
+                                Esic = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESIC"]].Text),
+                                EsicemployerContribution = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESICEmployerContribution"]].Text),
+                                Pfapplicable = ParseBool(worksheet.Cells[row, columnIndexes["PFApplicable"]].Text, row, "PFApplicable"),
+                                Pf = ParseDecimal(worksheet.Cells[row, columnIndexes["PF"]].Text, row, "PF"),
+                                PfemployerContribution = ParseDecimal(worksheet.Cells[row, columnIndexes["PFEmployerContribution"]].Text, row, "PFEmployerContribution"),
+                                Ptapplicable = ParseBool(worksheet.Cells[row, columnIndexes["PTApplicable"]].Text, row, "PTApplicable"),
+                                Pt = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["PT"]].Text),
+                                Otapplicable = ParseBool(worksheet.Cells[row, columnIndexes["OTApplicable"]].Text, row, "OTApplicable"),
+                                OtperHour = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OTPerHour"]].Text),
+                                Lopapplicable = ParseBool(worksheet.Cells[row, columnIndexes["LOPApplicable"]].Text, row, "LOPApplicable"),
+                                Lop = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["LOP"]].Text),
+                                IsLopfixed = ParseBool(worksheet.Cells[row, columnIndexes["IsLOPFixed"]].Text, row, "IsLOPFixed"),
+                                IsPffloating = ParseBool(worksheet.Cells[row, columnIndexes["IsPFFloating"]].Text, row, "IsPFFloating"),
+                                IsEsicfloating = ParseBool(worksheet.Cells[row, columnIndexes["IsESICFloating"]].Text, row, "IsESICFloating"),
+                                IsPtfloating = ParseBool(worksheet.Cells[row, columnIndexes["IsPTFloating"]].Text, row, "IsPTFloating"),
+                                SalaryStructureYear = ParseInt(worksheet.Cells[row, columnIndexes["SalaryStructureYear"]].Text, row, "SalaryStructureYear"),
+                                IsActive = true,
+                                CreatedBy = createdBy,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            salaryStructures.Add(salaryStructure);
+                        }
+                        if (salaryStructures.Any())
+                        {
+                            await _context.SalaryStructures.AddRangeAsync(salaryStructures);
+                            await _context.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
+                            if (string.IsNullOrEmpty(staffCreationIdStr))
+                            {
+                                errorLogs.Add($"Staff is empty at {row}");
+                                continue;
+                            }
+                            var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
+                            if (staffCreation == null)
+                            {
+                                errorLogs.Add($"Staff '{staffCreationIdStr}' not found at {row}");
+                                continue;
+                            }
+                            var salaryStructure = salaryStructures.FirstOrDefault(ps => ps.StaffId == staffCreation.Id);
+                            if (salaryStructure == null) continue;
+                            var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
+                            var componentName = worksheet.Cells[row, columnIndexes["ComponentName"]]?.Text.Trim();
+                            var amount = worksheet.Cells[row, columnIndexes["Amount"]]?.Text.Trim();
+                            var isTaxableStr = worksheet.Cells[row, columnIndexes["IsTaxable"]]?.Text.Trim();
+                            var remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text.Trim();
+                            if (isTaxableStr == null)
+                            {
+                                errorLogs.Add($"IsTaxable is empty at {row}");
+                                continue;
+                            }
+                            if (!string.IsNullOrEmpty(componentType) && !string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(amount))
+                            {
+                                var salaryComponent = new SalaryComponent
                                 {
-                                    StaffId = staffCreation.Id,
-                                    Basic = ParseDecimal(worksheet.Cells[row, columnIndexes["Basic"]].Text, row, "Basic"),
-                                    Hra = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["HRA"]].Text),
-                                    Da = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["DA"]].Text),
-                                    OtherAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OtherAllowance"]].Text),
-                                    SpecialAllowance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["SpecialAllowance"]].Text),
-                                    Conveyance = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["Conveyance"]].Text),
-                                    Tdsapplicable = ParseBool(worksheet.Cells[row, columnIndexes["TDSApplicable"]].Text, row, "TDSApplicable"),
-                                    Tds = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["TDS"]].Text),
-                                    Esicapplicable = ParseBool(worksheet.Cells[row, columnIndexes["ESICApplicable"]].Text, row, "ESICApplicable"),
-                                    Esic = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESIC"]].Text),
-                                    EsicemployerContribution = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["ESICEmployerContribution"]].Text),
-                                    Pfapplicable = ParseBool(worksheet.Cells[row, columnIndexes["PFApplicable"]].Text, row, "PFApplicable"),
-                                    Pf = ParseDecimal(worksheet.Cells[row, columnIndexes["PF"]].Text, row, "PF"),
-                                    PfemployerContribution = ParseDecimal(worksheet.Cells[row, columnIndexes["PFEmployerContribution"]].Text, row, "PFEmployerContribution"),
-                                    Ptapplicable = ParseBool(worksheet.Cells[row, columnIndexes["PTApplicable"]].Text, row, "PTApplicable"),
-                                    Pt = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["PT"]].Text),
-                                    Otapplicable = ParseBool(worksheet.Cells[row, columnIndexes["OTApplicable"]].Text, row, "OTApplicable"),
-                                    OtperHour = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["OTPerHour"]].Text),
-                                    Lopapplicable = ParseBool(worksheet.Cells[row, columnIndexes["LOPApplicable"]].Text, row, "LOPApplicable"),
-                                    Lop = ParseNullableDecimal(worksheet.Cells[row, columnIndexes["LOP"]].Text),
-                                    IsLopfixed = ParseBool(worksheet.Cells[row, columnIndexes["IsLOPFixed"]].Text, row, "IsLOPFixed"),
-                                    IsPffloating = ParseBool(worksheet.Cells[row, columnIndexes["IsPFFloating"]].Text, row, "IsPFFloating"),
-                                    IsEsicfloating = ParseBool(worksheet.Cells[row, columnIndexes["IsESICFloating"]].Text, row, "IsESICFloating"),
-                                    IsPtfloating = ParseBool(worksheet.Cells[row, columnIndexes["IsPTFloating"]].Text, row, "IsPTFloating"),
-                                    SalaryStructureYear = ParseInt(worksheet.Cells[row, columnIndexes["SalaryStructureYear"]].Text, row, "SalaryStructureYear"),
+                                    SalaryStructureId = salaryStructure.Id,
+                                    StaffId = salaryStructure.StaffId,
+                                    ComponentType = componentType,
+                                    ComponentName = componentName,
+                                    Amount = amount,
+                                    IsTaxable = ParseBool(isTaxableStr, row, "IsTaxable"),
+                                    Remarks = remarks,
                                     IsActive = true,
                                     CreatedBy = createdBy,
                                     CreatedUtc = DateTime.UtcNow
                                 };
-                                salaryStructures.Add(salaryStructure);
+                                salaryComponents.Add(salaryComponent);
                             }
-                            await _context.SalaryStructures.AddRangeAsync(salaryStructures);
-                            await _context.SaveChangesAsync();
-
-                            for (int row = 2; row <= rowCount; row++)
-                            {
-                                var staffCreationIdStr = worksheet.Cells[row, columnIndexes["StaffId"]]?.Text.Trim();
-                                if (string.IsNullOrEmpty(staffCreationIdStr)) throw new Exception($"Invalid or missing StaffId at row {row}.");
-                                var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s =>s.StaffId == staffCreationIdStr && s.IsActive == true);
-                                if (staffCreation == null) throw new MessageNotFoundException($"Staff '{staffCreationIdStr}' not found");
-                                var salaryStructure = salaryStructures.FirstOrDefault(ps => ps.StaffId == staffCreation.Id);
-                                if (salaryStructure == null) continue;
-                                var componentType = worksheet.Cells[row, columnIndexes["ComponentType"]]?.Text.Trim();
-                                var componentName = worksheet.Cells[row, columnIndexes["ComponentName"]]?.Text.Trim();
-                                var amount = worksheet.Cells[row, columnIndexes["Amount"]]?.Text.Trim();
-                                var isTaxableStr = worksheet.Cells[row, columnIndexes["IsTaxable"]]?.Text.Trim();
-                                var remarks = worksheet.Cells[row, columnIndexes["Remarks"]]?.Text.Trim();
-                                if (isTaxableStr == null) throw new Exception($"Invalid or missing IsTaxable value at row {row}.");
-                                if (!string.IsNullOrEmpty(componentType) && !string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(amount))
-                                {
-                                    var salaryComponent = new SalaryComponent
-                                    {
-                                        SalaryStructureId = salaryStructure.Id,
-                                        StaffId = salaryStructure.StaffId,
-                                        ComponentType = componentType,
-                                        ComponentName = componentName,
-                                        Amount = amount,
-                                        IsTaxable = ParseBool(isTaxableStr, row, "IsTaxable"),
-                                        Remarks = remarks,
-                                        IsActive = true,
-                                        CreatedBy = createdBy,
-                                        CreatedUtc = DateTime.UtcNow
-                                    };
-                                    salaryComponents.Add(salaryComponent);
-                                }
-                            }
-                            if (salaryComponents.Any())
-                            {
-                                await _context.SalaryComponents.AddRangeAsync(salaryComponents);
-                            }
-                            await _context.SaveChangesAsync();
-                            await transaction.CommitAsync();
                         }
-                        catch (Exception ex)
+                        if (salaryComponents.Any())
                         {
-                            await transaction.RollbackAsync();
-                            throw new Exception($"Error processing Excel file: {ex.Message}");
+                            await _context.SalaryComponents.AddRangeAsync(salaryComponents);
                         }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
                     }
                 }
             }

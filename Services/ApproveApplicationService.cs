@@ -167,7 +167,7 @@ namespace AttendanceManagement.Services
                         var notification = new ApprovalNotification
                         {
                             StaffId = leave.CreatedBy,
-                            Message = $"Your Leave request has been approved. Approved by - {approverName} on {approvedTime}",
+                            Message = $"Your {leaveType} request has been approved. Approved by - {approverName} on {approvedTime}",
                             IsActive = true,
                             CreatedBy = approveLeaveRequest.ApprovedBy,
                             CreatedUtc = DateTime.UtcNow
@@ -300,7 +300,7 @@ namespace AttendanceManagement.Services
                         var notification = new ApprovalNotification
                         {
                             StaffId = leave.CreatedBy,
-                            Message = $"Your Leave request has been rejected. Rejected by - {approverName} on {approvedTime}",
+                            Message = $"Your {leaveType} request has been rejected. Rejected by - {approverName} on {approvedTime}",
                             IsActive = true,
                             CreatedBy = approveLeaveRequest.ApprovedBy,
                             CreatedUtc = DateTime.UtcNow
@@ -417,8 +417,8 @@ namespace AttendanceManagement.Services
                     string approvedTime = permissionRequest!.UpdatedUtc.HasValue ? permissionRequest.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Common Permission request approved successfully" : "Common Permission request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your Common Permission request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your Common Permission request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your {permissionType} request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your {permissionType} request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = permissionRequest.CreatedBy,
@@ -467,9 +467,13 @@ namespace AttendanceManagement.Services
                 {
                     var manualPunch = await _context.ManualPunchRequistions.FirstOrDefaultAsync(m => m.Id == item.Id);
                     if (manualPunch == null) throw new MessageNotFoundException("Manual Punch request not found");
-                    //var punchType = manualPunch.SelectPunch;
+                    var punchType = manualPunch.SelectPunch;
                     var staffOrCreatorId = manualPunch.StaffId ?? manualPunch.CreatedBy;
-                    //await _applicationService.AttendanceFreeze(staffOrCreatorId);
+                    await AttendanceFreezed(
+                        staffOrCreatorId,
+                        manualPunch.InPunch.HasValue ? DateOnly.FromDateTime(manualPunch.InPunch.Value) : (DateOnly?)null,
+                        manualPunch.OutPunch.HasValue ? DateOnly.FromDateTime(manualPunch.OutPunch.Value) : (DateOnly?)null
+                    );
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -544,8 +548,8 @@ namespace AttendanceManagement.Services
                     string approvedTime = manualPunch.UpdatedUtc.HasValue ? manualPunch.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Manual Punch request approved successfully" : "Manual Punch request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your Manual Punch request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your Manual Punch request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your Manual {punchType} Punch request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your Manual {punchType} Punch request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = manualPunch.CreatedBy,
@@ -1681,6 +1685,8 @@ namespace AttendanceManagement.Services
                     await AttendanceFreezeDate(staffOrCreatorId, reimbursementRequest.BillDate);
                     var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
                     if (staff == null) throw new MessageNotFoundException("Staff not found");
+                    var reimbursementType = await _context.ReimbursementTypes.FirstOrDefaultAsync(r => r.Id == reimbursementRequest.ReimbursementTypeId && r.IsActive == true);
+                    if (reimbursementType == null) throw new MessageNotFoundException("Reimbursement type not found");
                     var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                     var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel1 && s.IsActive == true);
                     var approver2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staff.ApprovalLevel2 && s.IsActive == true);
@@ -1753,8 +1759,8 @@ namespace AttendanceManagement.Services
                     string approvedTime = reimbursementRequest.UpdatedUtc.HasValue ? reimbursementRequest.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Reimbursement request approved successfully" : "Reimbursement request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
-                        ? $"Your Reimbursement request has been approved. Approved by - {approverName} on {approvedTime}"
-                        : $"Your Reimbursement request has been rejected. Rejected by - {approverName} on {approvedTime}";
+                        ? $"Your {reimbursementType} request has been approved. Approved by - {approverName} on {approvedTime}"
+                        : $"Your {reimbursementType} request has been rejected. Rejected by - {approverName} on {approvedTime}";
                     var notification = new ApprovalNotification
                     {
                         StaffId = reimbursementRequest.CreatedBy,
@@ -1803,6 +1809,16 @@ namespace AttendanceManagement.Services
         {
             var hasUnfreezed = await _context.AttendanceRecords.AnyAsync(f => f.IsFreezed == true && f.StaffId == staffId && f.AttendanceDate >= startDate && f.AttendanceDate <= endDate);
             if (hasUnfreezed) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
+        }
+
+        public async Task AttendanceFreezed(int staffId, DateOnly? startDate, DateOnly? endDate)
+        {
+            var query = _context.AttendanceRecords.Where(f => f.IsFreezed == true && f.StaffId == staffId);
+            if (startDate.HasValue && endDate.HasValue) query = query.Where(f => f.AttendanceDate >= startDate.Value && f.AttendanceDate <= endDate.Value);
+            else if (startDate.HasValue) query = query.Where(f => f.AttendanceDate == startDate.Value);
+            else if (endDate.HasValue) query = query.Where(f => f.AttendanceDate == endDate.Value);
+            var hasFrozen = await query.AnyAsync();
+            if (hasFrozen) throw new InvalidOperationException("Approval cannot proceed attendance records are frozen");
         }
 
         public async Task AttendanceFreezeDate(int staffId, DateOnly date)
