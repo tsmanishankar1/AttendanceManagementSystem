@@ -2195,9 +2195,16 @@ public class ExcelImportService
                         await _context.AssignShifts.AddRangeAsync(assignShifts);
                         await _context.SaveChangesAsync();
                     }
-                    if (errorLogs.Any())
+                    else
                     {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
             }
