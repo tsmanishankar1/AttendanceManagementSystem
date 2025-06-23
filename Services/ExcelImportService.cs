@@ -2150,7 +2150,7 @@ public class ExcelImportService
                         var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                         var rawShift = worksheet.Cells[row, columnIndexes["ShiftName"]].Text?.Trim();
                         var shiftName = rawShift?.Split('(')[0].Trim().ToLower();
-                        var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Name.ToLower().Trim() == shiftName && s.IsActive);
+                        var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Name.Trim() == shiftName && s.IsActive);
                         if (shift == null)
                         {
                             errorLogs.Add($"Shift {rawShift} not found at row {row}");
@@ -2170,7 +2170,6 @@ public class ExcelImportService
                         }
                         var existingAssignedShift = await _context.AssignShifts
                             .Where(a => a.FromDate == confirmationDate &&
-                                        a.ShiftId == shift.Id &&
                                         a.StaffId == staff.Id &&
                                         a.IsActive)
                             .ToListAsync();
@@ -2179,28 +2178,17 @@ public class ExcelImportService
                             errorLogs.Add($"Shift already assigned for staff {staffName} at row {row}");
                             continue;
                         }
-                        var existingAssign = await _context.AssignShifts.FirstOrDefaultAsync(a => a.FromDate == confirmationDate && a.StaffId == staff.Id && a.IsActive);
-                        AssignShift? shiftAssign = null;
-                        if (existingAssign != null)
+                        var shiftAssign = new AssignShift
                         {
-                            existingAssign.ShiftId = shift.Id;
-                            existingAssign.UpdatedBy = excelImportDto.CreatedBy;
-                            existingAssign.UpdatedUtc = DateTime.UtcNow;
-                        }
-                        else
-                        {
-                            shiftAssign = new AssignShift
-                            {
-                                FromDate = confirmationDate,
-                                ShiftId = shift.Id,
-                                StaffId = staff.Id,
-                                IsActive = true,
-                                CreatedBy = excelImportDto.CreatedBy,
-                                CreatedUtc = DateTime.UtcNow
-                            };
-                            await _context.AssignShifts.AddAsync(shiftAssign);
-                        }
-                        assignShifts.Add(shiftAssign!);
+                            FromDate = confirmationDate,
+                            ShiftId = shift.Id,
+                            StaffId = staff.Id,
+                            IsActive = true,
+                            CreatedBy = excelImportDto.CreatedBy,
+                            CreatedUtc = DateTime.UtcNow
+                        };
+                        await _context.AssignShifts.AddAsync(shiftAssign);
+                        assignShifts.Add(shiftAssign);
                     }
                     if (assignShifts.Any())
                     {
@@ -2209,11 +2197,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
             }
