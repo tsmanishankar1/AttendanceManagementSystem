@@ -70,6 +70,45 @@ public class ApplicationService
             throw new MessageNotFoundException($"Active entity not found for ApplicationTypeId: {cancel.ApplicationTypeId}, Id: {cancel.Id}");
         }
 
+        if (cancel.ApplicationTypeId == 1)
+        {
+            var leave = (LeaveRequisition)entity;
+            var staffOrCreatorId = leave.StaffId ?? leave.CreatedBy;
+            var individualLeave = await _context.IndividualLeaveCreditDebits
+                .Where(l => l.StaffCreationId == staffOrCreatorId &&
+                            l.LeaveTypeId == leave.LeaveTypeId &&
+                            l.IsActive == true)
+                .OrderByDescending(l => l.Id)
+                .FirstOrDefaultAsync();
+            if (individualLeave != null)
+            {
+                individualLeave.AvailableBalance = decimal.Add(individualLeave.AvailableBalance, leave.TotalDays);
+                individualLeave.UpdatedBy = cancel.UpdatedBy;
+                individualLeave.UpdatedUtc = DateTime.UtcNow;
+                _context.Entry(individualLeave).State = EntityState.Modified;
+            }
+        }
+
+        if (cancel.ApplicationTypeId == 10)
+        {
+            var compOffAvail = (CompOffAvail)entity;
+            var lastCompOffCredit = await _context.CompOffCredits
+                .Where(c => c.CreatedBy == compOffAvail.CreatedBy && c.IsActive == true)
+                .OrderByDescending(c => c.CreatedUtc)
+                .FirstOrDefaultAsync();
+
+            if (lastCompOffCredit == null)
+            {
+                throw new MessageNotFoundException("Insufficient CompOff balance found.");
+            }
+
+            lastCompOffCredit.Balance = (lastCompOffCredit.Balance ?? 0) + (int)compOffAvail.TotalDays;
+            lastCompOffCredit.UpdatedBy = cancel.UpdatedBy;
+            lastCompOffCredit.UpdatedUtc = DateTime.UtcNow;
+
+            _context.Entry(lastCompOffCredit).State = EntityState.Modified;
+        }
+
         var entityType = entity.GetType();
         var isCancelledProperty = entityType.GetProperty("IsCancelled");
         var cancelledOnProperty = entityType.GetProperty("CancelledOn");
@@ -95,6 +134,7 @@ public class ApplicationService
 
         return true;
     }
+
     public async Task<IEnumerable<object>> GetApplicationDetails(int staffId, int applicationTypeId)
     {
         await NotFoundMethod(applicationTypeId);
@@ -1790,9 +1830,9 @@ public class ApplicationService
         await _context.LeaveRequisitions.AddAsync(leaveRequisition);
         await _context.SaveChangesAsync();
 
-        if (individualLeave != null && individualLeave.AvailableBalance > 0 && individualLeave.AvailableBalance >= leaveRequisition.TotalDays)
+        if (individualLeave != null && individualLeave.AvailableBalance >= leaveRequisitionRequest.TotalDays)
         {
-            individualLeave.AvailableBalance = decimal.Subtract(individualLeave.AvailableBalance, leaveRequisition.TotalDays);
+            individualLeave.AvailableBalance = decimal.Subtract(individualLeave.AvailableBalance, leaveRequisitionRequest.TotalDays);
             individualLeave.UpdatedBy = staffOrCreatorId;
             individualLeave.UpdatedUtc = DateTime.UtcNow;
         }

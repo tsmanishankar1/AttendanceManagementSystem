@@ -47,7 +47,7 @@ public partial class StaffCreation
 
     public int DesignationId { get; set; }
 
-    public int GradeId { get; set; }
+    public int? GradeId { get; set; }
 
     public int CategoryId { get; set; }
 
@@ -435,11 +435,15 @@ public partial class StaffCreation
 
     public virtual ICollection<GeoStatus> GeoStatusUpdatedByNavigations { get; set; } = new List<GeoStatus>();
 
+    public virtual ICollection<Goal> GoalCreatedByNavigations { get; set; } = new List<Goal>();
+
+    public virtual ICollection<Goal> GoalUpdatedByNavigations { get; set; } = new List<Goal>();
+
     public virtual ICollection<GraceTimeDropdown> GraceTimeDropdownCreatedByNavigations { get; set; } = new List<GraceTimeDropdown>();
 
     public virtual ICollection<GraceTimeDropdown> GraceTimeDropdownUpdatedByNavigations { get; set; } = new List<GraceTimeDropdown>();
 
-    public virtual GradeMaster Grade { get; set; } = null!;
+    public virtual GradeMaster? Grade { get; set; }
 
     public virtual ICollection<GradeMaster> GradeMasterCreatedByNavigations { get; set; } = new List<GradeMaster>();
 
@@ -490,6 +494,14 @@ public partial class StaffCreation
     public virtual ICollection<StaffCreation> InverseCreatedByNavigation { get; set; } = new List<StaffCreation>();
 
     public virtual ICollection<StaffCreation> InverseUpdatedByNavigation { get; set; } = new List<StaffCreation>();
+
+    public virtual ICollection<KraManagerReview> KraManagerReviewCreatedByNavigations { get; set; } = new List<KraManagerReview>();
+
+    public virtual ICollection<KraManagerReview> KraManagerReviewUpdatedByNavigations { get; set; } = new List<KraManagerReview>();
+
+    public virtual ICollection<KraSelfReview> KraSelfReviewCreatedByNavigations { get; set; } = new List<KraSelfReview>();
+
+    public virtual ICollection<KraSelfReview> KraSelfReviewUpdatedByNavigations { get; set; } = new List<KraSelfReview>();
 
     public virtual ICollection<LeaveAvailability> LeaveAvailabilityCreatedByNavigations { get; set; } = new List<LeaveAvailability>();
 
@@ -702,6 +714,10 @@ public partial class StaffCreation
     public virtual ICollection<ReaderType> ReaderTypeCreatedByNavigations { get; set; } = new List<ReaderType>();
 
     public virtual ICollection<ReaderType> ReaderTypeUpdatedByNavigations { get; set; } = new List<ReaderType>();
+
+    public virtual ICollection<RefreshToken> RefreshTokenCreatedByNavigations { get; set; } = new List<RefreshToken>();
+
+    public virtual ICollection<RefreshToken> RefreshTokenUpdatedByNavigations { get; set; } = new List<RefreshToken>();
 
     public virtual ICollection<RegularShift> RegularShiftCreatedByNavigations { get; set; } = new List<RegularShift>();
 

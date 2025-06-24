@@ -120,7 +120,14 @@ namespace AttendanceManagement.Services
                         }
                         else
                         {
-                            throw new MessageNotFoundException("File is empty");
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            }
+                            else
+                            {
+                                throw new MessageNotFoundException("File is empty");
+                            }
                         }
 
                         for (int row = 2; row <= rowCount; row++)
@@ -173,11 +180,14 @@ namespace AttendanceManagement.Services
                         }
                         else
                         {
-                            throw new MessageNotFoundException("File is empty");
-                        }
-                        if (errorLogs.Any())
-                        {
-                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            }
+                            else
+                            {
+                                throw new MessageNotFoundException("File is empty");
+                            }
                         }
                         await _context.SaveChangesAsync();
                         await transaction.CommitAsync();
@@ -510,7 +520,14 @@ namespace AttendanceManagement.Services
                         }
                         else
                         {
-                            throw new MessageNotFoundException("File is empty");
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            }
+                            else
+                            {
+                                throw new MessageNotFoundException("File is empty");
+                            }
                         }
 
                         for (int row = 2; row <= rowCount; row++)
@@ -563,11 +580,14 @@ namespace AttendanceManagement.Services
                         }
                         else
                         {
-                            throw new MessageNotFoundException("File is empty");
-                        }
-                        if (errorLogs.Any())
-                        {
-                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            }
+                            else
+                            {
+                                throw new MessageNotFoundException("File is empty");
+                            }
                         }
                         await _context.SaveChangesAsync();
                         await transaction.CommitAsync();

@@ -19,7 +19,6 @@ var configuration = ConfigureWebApiAppSettings();
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddConfiguration(configuration);
 builder.Services.AddControllers();
-builder.Services.AddMemoryCache();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -38,7 +37,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000", "*","http://servicedesk.vleadservices.com:84","http://172.16.10.79")
+            policy.WithOrigins("http://localhost:3000", "*", "http://servicedesk.vleadservices.com:84", "http://172.16.10.79")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -89,6 +88,7 @@ builder.Services.AddScoped<StatutoryReportService>();
 builder.Services.AddScoped<PerformanceReviewService>();
 builder.Services.AddScoped<AppraisalManagementService>();
 builder.Services.AddScoped<LetterGenerationService>();
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddHostedService<ProbationConfirmationService>();
 builder.Services.AddHttpContextAccessor();
 

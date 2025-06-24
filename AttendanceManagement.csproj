@@ -6,7 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>False</GenerateDocumentationFile>
 		<DocumentationFile></DocumentationFile>
-	</PropertyGroup>
+	  <UserSecretsId>58bfa732-bbe8-43a9-b038-5bcc0932491c</UserSecretsId>
+  </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<Optimize>False</Optimize>

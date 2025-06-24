@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement;
 using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +19,11 @@ public class LoginService
 {
     private readonly AttendanceManagementSystemContext _context;
     private readonly IConfiguration _configuration;
-    private readonly IMemoryCache _memoryCache;
     private readonly IPasswordHasher<UserManagement> _passwordHasher;
-    public LoginService(AttendanceManagementSystemContext context, IConfiguration configuration, IMemoryCache memoryCache, IPasswordHasher<UserManagement> passwordHasher)
+    public LoginService(AttendanceManagementSystemContext context, IConfiguration configuration, IPasswordHasher<UserManagement> passwordHasher)
     {
         _context = context;
         _configuration = configuration;
-        _memoryCache = memoryCache;
         _passwordHasher = passwordHasher;
 
     }
@@ -40,19 +39,40 @@ public class LoginService
         if (designation == null) throw new MessageNotFoundException("Designation not found");
         var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Id == staff.DepartmentId && d.IsActive);
         if (department == null) throw new MessageNotFoundException("Department not found");
-        var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name);
-        var refreshToken = GenerateRefreshToken(user.StaffCreationId);
-        var refreshTokenExpiry = DateTime.UtcNow.AddHours(1);
-        _memoryCache.Set(refreshToken, refreshTokenExpiry, refreshTokenExpiry);
-        return (accessToken, refreshToken);
+        var division = _context.DivisionMasters.FirstOrDefault(d => d.Id == staff.DivisionId && d.IsActive);
+        if (division == null) throw new MessageNotFoundException("Division not found");
+        var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name);
+        var refreshToken = new RefreshToken
+        {
+            Token = GenerateRefreshToken(user.StaffCreationId),
+            UserId = user.StaffCreationId,
+            ExpiryDate = DateTime.UtcNow.AddDays(7),
+            IsActive = true,
+            CreatedBy = user.StaffCreationId,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.RefreshTokens.AddAsync(refreshToken);
+        await _context.SaveChangesAsync();
+        return (accessToken, refreshToken.Token);
     }
 
     private string GenerateRefreshToken(int userId)
     {
-        var refreshToken = GenerateRandomToken();
-        var expiryDate = DateTime.UtcNow.AddHours(2);
-        RefreshTokenStore.AddRefreshToken(refreshToken, userId, expiryDate);
-        return refreshToken;
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var secret = _configuration["JwtSettings:SecretKey"];
+        if (string.IsNullOrEmpty(secret)) throw new InvalidOperationException("JWT SecretKey is missing in configuration");
+        var key = Encoding.UTF8.GetBytes(secret);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim("UserManagementId", userId.ToString())
+            }),
+            Expires = DateTime.UtcNow.AddDays(7),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
     }
 
     private bool VerifyPassword(UserManagement user, string storedPassword, string providedPassword)
@@ -68,56 +88,43 @@ public class LoginService
         }
     }
 
-    private string GenerateRandomToken()
-    {
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            var tokenData = new byte[32];
-            rng.GetBytes(tokenData);
-            return Convert.ToBase64String(tokenData);
-        }
-    }
-
     public async Task<(string AccessToken, string RefreshToken)> RefreshAccessToken(RefreshTokenDto refreshTokenDto)
     {
         if (string.IsNullOrEmpty(refreshTokenDto.RefreshToken)) throw new ArgumentException("Refresh token cannot be null or empty", nameof(refreshTokenDto.RefreshToken));
-        var refreshTokenData = RefreshTokenStore.GetRefreshToken(refreshTokenDto.RefreshToken);
-        if (refreshTokenData == null || refreshTokenData.Value.ExpiryDate < DateTime.UtcNow) throw new InvalidOperationException("Invalid or expired refresh token");
-        var user = await _context.UserManagements.FirstOrDefaultAsync(u => u.Id == refreshTokenData.Value.UserId);
+        var refreshTokenEntity = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshTokenDto.RefreshToken);
+        if (refreshTokenEntity == null || refreshTokenEntity.ExpiryDate < DateTime.UtcNow) throw new InvalidOperationException("Invalid or expired refresh token");
+        var user = await _context.UserManagements.FirstOrDefaultAsync(u => u.Id == refreshTokenEntity.UserId);
         if (user == null) throw new Exception("User not found");
-        var staff = _context.StaffCreations.FirstOrDefault(s => s.Id == user.StaffCreationId && s.IsActive == true);
+        var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == user.StaffCreationId && s.IsActive == true);
         if (staff == null) throw new MessageNotFoundException("Staff not found");
-        var designation = _context.DesignationMasters.FirstOrDefault(d => d.Id == staff.DesignationId && d.IsActive);
+        var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Id == staff.DesignationId && d.IsActive);
         if (designation == null) throw new MessageNotFoundException("Designation not found");
-        var department = _context.DepartmentMasters.FirstOrDefault(d => d.Id == staff.DepartmentId && d.IsActive);
+        var department = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Id == staff.DepartmentId && d.IsActive);
         if (department == null) throw new MessageNotFoundException("Department not found");
-        var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name);
-        var refreshToken1 = GenerateRefreshToken(user.StaffCreationId);
-        return (newAccessToken, refreshToken1);
+        var division = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Id == staff.DivisionId && d.IsActive);
+        if (division == null) throw new MessageNotFoundException("Division not found");
+        var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name);
+
+        refreshTokenEntity.IsActive = false;
+        refreshTokenEntity.UpdatedBy = user.StaffCreationId;
+        refreshTokenEntity.UpdatedUtc = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        var newRefreshToken = new RefreshToken
+        {
+            Token = GenerateRefreshToken(user.StaffCreationId),
+            UserId = user.StaffCreationId,
+            ExpiryDate = DateTime.UtcNow.AddDays(7),
+            IsActive = true,
+            CreatedBy = user.StaffCreationId,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.RefreshTokens.AddAsync(newRefreshToken);
+        await _context.SaveChangesAsync();
+        return (newAccessToken, newRefreshToken.Token);
     }
 
-    public static class RefreshTokenStore
-    {
-        private static readonly Dictionary<string, (int UserId, DateTime ExpiryDate)> _refreshTokens = new();
-        public static void AddRefreshToken(string token, int userId, DateTime expiryDate)
-        {
-            _refreshTokens[token] = (userId, expiryDate);
-        }
-        public static (int UserId, DateTime ExpiryDate)? GetRefreshToken(string token)
-        {
-            if (_refreshTokens.TryGetValue(token, out var tokenData))
-            {
-                return tokenData;
-            }
-            return null;
-        }
-        public static void RemoveRefreshToken(string token)
-        {
-            _refreshTokens.Remove(token);
-        }
-    }
-
-    private string GenerateJwtToken(string userName, int staffId, int designationId, string designation, int departmentId, string department)
+    private string GenerateJwtToken(string userName, int staffId, int designationId, string designation, int departmentId, string department, int divisionId, string divisionName)
     {
         try
         {
@@ -141,8 +148,9 @@ public class LoginService
             if (approver == null) throw new MessageNotFoundException("Approver not found");
             string approverFullName = approver != null ? $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}" : "N/A";
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = new byte[32];
-            RandomNumberGenerator.Fill(key);
+            var secret = _configuration["JwtSettings:SecretKey"];
+            if (string.IsNullOrEmpty(secret)) throw new InvalidOperationException("JWT SecretKey is missing in configuration");
+            var key = Encoding.UTF8.GetBytes(secret);
             var signingKey = new SymmetricSecurityKey(key);
             string profilePhoto = staff.ProfilePhoto ?? "";
 
@@ -158,6 +166,8 @@ public class LoginService
                     new Claim("DesignationName", designation),
                     new Claim("DepartmentId", departmentId.ToString()),
                     new Claim("DepartmentName", department),
+                    new Claim("DivisionId", divisionId.ToString()),
+                    new Claim("DivisionName", divisionName),
                     new Claim("RoleId", role.Id.ToString()),
                     new Claim("Role", role.Name),
                     new Claim("ProfilePhoto", profilePhoto),
@@ -165,6 +175,8 @@ public class LoginService
                     new Claim("ApproverName", approverFullName)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
+                Issuer = _configuration["JwtSettings:Issuer"],
+                Audience = _configuration["JwtSettings:Audience"],
                 SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

@@ -23,6 +23,12 @@ public partial class AppraisalSelectionDropDown
 
     public virtual ICollection<EmployeePerformanceReview> EmployeePerformanceReviews { get; set; } = new List<EmployeePerformanceReview>();
 
+    public virtual ICollection<Goal> Goals { get; set; } = new List<Goal>();
+
+    public virtual ICollection<KraManagerReview> KraManagerReviews { get; set; } = new List<KraManagerReview>();
+
+    public virtual ICollection<KraSelfReview> KraSelfReviews { get; set; } = new List<KraSelfReview>();
+
     public virtual ICollection<NonProductionEmployeePerformanceReview> NonProductionEmployeePerformanceReviews { get; set; } = new List<NonProductionEmployeePerformanceReview>();
 
     public virtual ICollection<SelectedEmployeesForAppraisal> SelectedEmployeesForAppraisals { get; set; } = new List<SelectedEmployeesForAppraisal>();

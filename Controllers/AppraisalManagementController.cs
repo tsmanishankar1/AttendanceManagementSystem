@@ -454,6 +454,176 @@ namespace AttendanceManagement.Controllers
             }
         }
 
+        [HttpPost("CreateKra")]
+        public async Task<IActionResult> CreateKra(KraDto kraDto)
+        {
+            try
+            {
+                var appraisalDetails = await _service.CreateKra(kraDto);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                await _loggingService.AuditLog("Appraisal Management", "POST", "/api/AppraisalManagement/CreateKra", appraisalDetails, kraDto.CreatedBy, JsonSerializer.Serialize(kraDto));
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/CreateKra", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, kraDto.CreatedBy, JsonSerializer.Serialize(kraDto));
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/CreateKra", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, kraDto.CreatedBy, JsonSerializer.Serialize(kraDto));
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetKra")]
+        public async Task<IActionResult> GetKra(int createdBy, int appraisalId)
+        {
+            try
+            {
+                var appraisalDetails = await _service.GetKra(createdBy, appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpPost("CreateSelfEvaluation")]
+        public async Task<IActionResult> CreateSelfEvaluation([FromBody] SelfEvaluationRequest selfEvaluationRequest)
+        {
+            try
+            {
+                var appraisalDetails = await _service.CreateSelfEvaluation(selfEvaluationRequest);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                }; 
+                await _loggingService.AuditLog("Appraisal Management", "POST", "/api/AppraisalManagement/CreateSelfEvaluation", appraisalDetails, selfEvaluationRequest.CreatedBy, JsonSerializer.Serialize(selfEvaluationRequest));
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/CreateSelfEvaluation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, selfEvaluationRequest.CreatedBy, JsonSerializer.Serialize(selfEvaluationRequest));
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/CreateSelfEvaluation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, selfEvaluationRequest.CreatedBy, JsonSerializer.Serialize(selfEvaluationRequest));
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetSelfEvaluation")]
+        public async Task<IActionResult> GetSelfEvaluation(int createdBy, int appraisalId)
+        {
+            try
+            {
+                var appraisalDetails = await _service.GetSelfEvaluation(createdBy, appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpPost("CreateManagerEvaluation")]
+        public async Task<IActionResult> CreateManagerEvaluation([FromForm] ManagerEvaluationRequest managerEvaluationRequest)
+        {
+            try
+            {
+                var appraisalDetails = await _service.CreateManagerEvaluation(managerEvaluationRequest);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                await _loggingService.AuditLog("Appraisal Management", "POST", "/api/AppraisalManagement/CreateManagerEvaluation", appraisalDetails, managerEvaluationRequest.CreatedBy, JsonSerializer.Serialize(managerEvaluationRequest));
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/CreateManagerEvaluation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, managerEvaluationRequest.CreatedBy, JsonSerializer.Serialize(managerEvaluationRequest));
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/CreateManagerEvaluation", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, managerEvaluationRequest.CreatedBy, JsonSerializer.Serialize(managerEvaluationRequest));
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetManagerEvaluation")]
+        public async Task<IActionResult> GetManagerEvaluation(int createdBy, int appraisalId)
+        {
+            try
+            {
+                var appraisalDetails = await _service.GetManagerEvaluation(createdBy, appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetFinalAverageManagerScore")]
+        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId)
+        {
+            try
+            {
+                var appraisalDetails = await _service.GetFinalAverageManagerScore(createdBy, appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
         [HttpPost("HrUploadSheet")]
         public async Task<IActionResult> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
         {
@@ -476,6 +646,29 @@ namespace AttendanceManagement.Controllers
             catch (Exception ex)
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("GetHrUploadedSheet")]
+        public async Task<IActionResult> GetHrUploadedSheet(int appraisalId)
+        {
+            try
+            {
+                var appraisalDetails = await _service.GetHrUploadedSheet(appraisalId);
+                var response = new
+                {
+                    Success = true,
+                    Message = appraisalDetails
+                };
+                return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
                 return ErrorClass.ErrorResponse(ex.Message);
             }
         }

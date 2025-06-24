@@ -122,4 +122,21 @@
         public string Department { get; set; } = null!;
         public bool IsAccepted { get; set; }
     }
+
+    public class HrUploadResponse
+    {
+        public int Id { get; set; }
+        public string EmpId { get; set; } = null!;
+        public string EmpName { get; set; } = null!;
+        public decimal TenureInYears { get; set; }
+        public string ReportingManagers { get; set; } = null!;
+        public string Division { get; set; } = null!;
+        public string Department { get; set; } = null!;
+        public decimal FinalAverageKraGrade { get; set; }
+        public decimal AbsentDays { get; set; }
+        public string? HrComments { get; set; }
+        public string AppraisalType { get; set; } = null!;
+        public bool? IsCompleted { get; set; }
+        public int CreatedBy { get; set; }
+    }
 }
