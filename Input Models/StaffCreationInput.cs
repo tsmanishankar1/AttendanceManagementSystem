@@ -41,7 +41,7 @@ namespace AttendanceManagement.Input_Models
         [MaxLength(50)]
         public string Volume { get; set; } = null!;
         public int DesignationId { get; set; }
-        public int GradeId { get; set; }
+        public int? GradeId { get; set; }
         public int CategoryId { get; set; }
         public int CostCenterId { get; set; }
         public int WorkStationId { get; set; }
@@ -156,8 +156,8 @@ namespace AttendanceManagement.Input_Models
         public string Volume { get; set; } = null!;
         public int DesignationId { get; set; }
         public string Designation { get; set; } = null!;
-        public int GradeId { get; set; }
-        public string Grade { get; set; } = null!;
+        public int? GradeId { get; set; }
+        public string? Grade { get; set; }
         public int CategoryId { get; set; }
         public string Category { get; set; } = null!;
         public int CostCenterId { get; set; }
@@ -321,8 +321,8 @@ namespace AttendanceManagement.Input_Models
         public string Division { get; set; } = null!;
         public int DesignationId { get; set; }
         public string Designation { get; set; } = null!;
-        public int GradeId { get; set; }
-        public string Grade { get; set; } = null!;
+        public int? GradeId { get; set; }
+        public string? Grade { get; set; }
         public string City { get; set; } = null!;
         public string District { get; set; } = null!;
         public string State { get; set; } = null!;
@@ -458,7 +458,7 @@ namespace AttendanceManagement.Input_Models
         [MaxLength(50)]
         public string Volume { get; set; } = null!;
         public int DesignationId { get; set; }
-        public int GradeId { get; set; }
+        public int? GradeId { get; set; }
         public int CategoryId { get; set; }
         public int CostCenterId { get; set; }
         public int WorkStationId { get; set; }

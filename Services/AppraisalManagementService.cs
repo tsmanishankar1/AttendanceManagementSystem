@@ -10,6 +10,7 @@ using iTextSharp.text.pdf.draw;
 using Azure;
 using Microsoft.AspNetCore.Mvc;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AttendanceManagement.Services
 {
@@ -274,135 +275,165 @@ namespace AttendanceManagement.Services
         public async Task<string> MisUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            try
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == uploadMisSheetRequest.CreatedBy && s.IsActive == true);
+            if (staff == null) throw new MessageNotFoundException("Staff not found");
+            var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
+            var appraisal = await _context.AppraisalSelectionDropDowns.FirstOrDefaultAsync(a => a.Id == uploadMisSheetRequest.AppraisalId && a.IsActive);
+            if (appraisal == null) throw new MessageNotFoundException("Drop down type not found");
+            var fileExtension = Path.GetExtension(uploadMisSheetRequest.File.FileName);
+            if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
             {
-                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == uploadMisSheetRequest.CreatedBy && s.IsActive == true);
-                if (staff == null) throw new MessageNotFoundException("Staff not found");
-                var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
-                var appraisal = await _context.AppraisalSelectionDropDowns.FirstOrDefaultAsync(a => a.Id == uploadMisSheetRequest.AppraisalId && a.IsActive);
-                if (appraisal == null) throw new MessageNotFoundException("Drop down type not found");
-                var fileExtension = Path.GetExtension(uploadMisSheetRequest.File.FileName);
-                if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Please upload the correct Excel template File");
+            }
+            using (var stream = new MemoryStream())
+            {
+                await uploadMisSheetRequest.File.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
                 {
-                    throw new ArgumentException("Please upload the correct Excel template File");
-                }
-                using (var stream = new MemoryStream())
-                {
-                    await uploadMisSheetRequest.File.CopyToAsync(stream);
-                    using (var package = new ExcelPackage(stream))
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
+                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
+                    var requiredHeaders = new List<string>();
+                    requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
+                    var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
+                    if (missingHeaders.Any())
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
-                        var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
-                        var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
-                        var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
-                        if (missingHeaders.Any())
+                        throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                    }
+                    var extraHeaders = headerRow.Except(requiredHeaders).ToList();
+                    if (extraHeaders.Any())
+                    {
+                        throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                    }
+                    var columnIndexes = requiredHeaders.ToDictionary(
+                        header => header,
+                        header => headerRow.IndexOf(header) + 1
+                    );
+                    var rowCount = worksheet.Dimension.Rows;
+                    var employeePerformanceReviews = new List<EmployeePerformanceReview>();
+                    var errorLogs = new List<string>();
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                            errorLogs.Add($"Staff Id is empty at {row}");
+                            continue;
                         }
-                        var extraHeaders = headerRow.Except(requiredHeaders).ToList();
-                        if (extraHeaders.Any())
+                        var staffs = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == empId && s.IsActive == true);
+                        if (staffs == null)
                         {
-                            throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                            errorLogs.Add($"Staff Id '{empId}' not found at row {row}");
+                            continue;
                         }
-                        var columnIndexes = requiredHeaders.ToDictionary(
-                            header => header,
-                            header => headerRow.IndexOf(header) + 1
-                        );
-                        var rowCount = worksheet.Dimension.Rows;
-                        using (var transaction = await _context.Database.BeginTransactionAsync())
+                        var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            try
-                            {
-                                var employeePerformanceReviews = new List<EmployeePerformanceReview>();
-                                for (int row = 2; row <= rowCount; row++)
-                                {
-                                    var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
-                                    var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
-                                    var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
-                                    var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
-                                    var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
-                                    var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
-                                    var productivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out var productivity) ? productivity : 0;
-                                    var qualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out var quality) ? quality : 0;
-                                    var presentPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text.Trim(), out var present) ? present : 0;
-                                    var finalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out var final) ? final : 0;
-                                    var grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim();
-                                    var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
-                                    var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
-                                    var employeeReview = new EmployeePerformanceReview
-                                    {
-                                        EmpId = empId,
-                                        EmpName = empName,
-                                        TenureInYears = tenureYears,
-                                        ReportingManagers = reportingManager,
-                                        Division = division,
-                                        Department = department,
-                                        ProductivityPercentage = productivityPercentage,
-                                        QualityPercentage = qualityPercentage,
-                                        PresentPercentage = presentPercentage,
-                                        FinalPercentage = finalPercentage,
-                                        Grade = grade,
-                                        AbsentDays = absentDays,
-                                        HrComments = hrComments,
-                                        AppraisalId = uploadMisSheetRequest.AppraisalId,
-                                        IsCompleted = false,
-                                        IsActive = true,
-                                        CreatedBy = uploadMisSheetRequest.CreatedBy,
-                                        CreatedUtc = DateTime.UtcNow
-                                    };
-                                    employeePerformanceReviews.Add(employeeReview);
-                                }
-                                if (employeePerformanceReviews.Count > 0)
-                                {
-                                    var empIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
-                                    var existingRecords = await _context.EmployeePerformanceReviews
-                                        .Where(x => empIds.Contains(x.EmpId) && x.AppraisalId == uploadMisSheetRequest.AppraisalId && x.IsActive)
-                                        .ToListAsync();
-                                    foreach (var record in existingRecords)
-                                    {
-                                        record.IsActive = false;
-                                        record.UpdatedBy = uploadMisSheetRequest.CreatedBy;
-                                        record.UpdatedUtc = DateTime.UtcNow;
-                                    }
-                                    var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
-                                    var selectedEmployeesToUpdate = await _context.SelectedEmployeesForAppraisals
-                                        .Where(x => selectedEmpIds.Contains(x.EmployeeId)
-                                                 && x.AppraisalId == uploadMisSheetRequest.AppraisalId
-                                                 && x.IsActive)
-                                        .ToListAsync();
-                                    foreach (var selected in selectedEmployeesToUpdate)
-                                    {
-                                        selected.IsCompleted = true;
-                                        selected.IsActive = false;
-                                        selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
-                                        selected.UpdatedUtc = DateTime.UtcNow;
-                                    }
-                                    await _context.EmployeePerformanceReviews.AddRangeAsync(employeePerformanceReviews);
-                                }
-                                else
-                                {
-                                    throw new MessageNotFoundException("File is empty");
-                                }
-                                await _context.SaveChangesAsync();
-                                await transaction.CommitAsync();
-                                await _emailService.SendMisUploadNotificationToHr(uploadMisSheetRequest.CreatedBy, name, appraisal.Name);
-                            }
-                            catch (Exception ex)
-                            {
-                                await transaction.RollbackAsync();
-                                throw new Exception(ex.Message);
-                            }
+                            errorLogs.Add($"Staff Name is empty at {row}");
+                            continue;
+                        }
+                        var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
+                        var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
+                        {
+                            errorLogs.Add($"Reporting Manager is empty at {row}");
+                            continue;
+                        }
+                        var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
+                        {
+                            errorLogs.Add($"Division is empty at {row}");
+                            continue;
+                        }
+                        var divisionName = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name == division && d.IsActive);
+                        if(divisionName == null)
+                        {
+                            errorLogs.Add($"Division {division} not found at {row}");
+                        }
+                        var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
+                        {
+                            errorLogs.Add($"Department is empty at {row}");
+                            continue;
+                        }
+                        var departmentName = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name == department && d.IsActive);
+                        if (departmentName == null)
+                        {
+                            errorLogs.Add($"Department {department} not found at {row}");
+                        }
+                        var productivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out var productivity) ? productivity : 0;
+                        var qualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out var quality) ? quality : 0;
+                        var presentPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text.Trim(), out var present) ? present : 0;
+                        var finalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out var final) ? final : 0;
+                        var grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim();
+                        var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
+                        var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
+                        var employeeReview = new EmployeePerformanceReview
+                        {
+                            EmpId = empId,
+                            EmpName = empName,
+                            TenureInYears = tenureYears,
+                            ReportingManagers = reportingManager,
+                            Division = division,
+                            Department = department,
+                            ProductivityPercentage = productivityPercentage,
+                            QualityPercentage = qualityPercentage,
+                            PresentPercentage = presentPercentage,
+                            FinalPercentage = finalPercentage,
+                            Grade = grade,
+                            AbsentDays = absentDays,
+                            HrComments = hrComments,
+                            AppraisalId = uploadMisSheetRequest.AppraisalId,
+                            IsCompleted = false,
+                            IsActive = true,
+                            CreatedBy = uploadMisSheetRequest.CreatedBy,
+                            CreatedUtc = DateTime.UtcNow
+                        };
+                        employeePerformanceReviews.Add(employeeReview);
+                    }
+                    if (employeePerformanceReviews.Count > 0)
+                    {
+                        var empIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
+                        var existingRecords = await _context.EmployeePerformanceReviews
+                            .Where(x => empIds.Contains(x.EmpId) && x.AppraisalId == uploadMisSheetRequest.AppraisalId && x.IsActive)
+                            .ToListAsync();
+                        foreach (var record in existingRecords)
+                        {
+                            record.IsActive = false;
+                            record.UpdatedBy = uploadMisSheetRequest.CreatedBy;
+                            record.UpdatedUtc = DateTime.UtcNow;
+                        }
+                        var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
+                        var selectedEmployeesToUpdate = await _context.SelectedEmployeesForAppraisals
+                            .Where(x => selectedEmpIds.Contains(x.EmployeeId)
+                                     && x.AppraisalId == uploadMisSheetRequest.AppraisalId
+                                     && x.IsActive)
+                            .ToListAsync();
+                        foreach (var selected in selectedEmployeesToUpdate)
+                        {
+                            selected.IsCompleted = true;
+                            selected.IsActive = false;
+                            selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
+                            selected.UpdatedUtc = DateTime.UtcNow;
+                        }
+                        await _context.EmployeePerformanceReviews.AddRangeAsync(employeePerformanceReviews);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
                         }
                     }
+                    await _emailService.SendMisUploadNotificationToHr(uploadMisSheetRequest.CreatedBy, name, appraisal.Name);
                 }
-                return "Excel data imported successfully";
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            return "Excel data imported successfully";
         }
 
         public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(int appraisalId)
@@ -918,7 +949,7 @@ namespace AttendanceManagement.Services
                     from selected in selectedJoin.DefaultIfEmpty()
                     join per in _context.NonProductionEmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
-                    where staff.IsActive == true && division.IsActive && department.IsActive && !staff.IsNonProduction && staff.OrganizationTypeId == 1
+                    where staff.IsActive == true && division.IsActive && department.IsActive && staff.IsNonProduction && staff.OrganizationTypeId == 1
                           && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && !agmApprovedEmpIds.Contains(staff.StaffId)
                     select new
                     {
@@ -1015,7 +1046,7 @@ namespace AttendanceManagement.Services
         public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedNonProductionEmployees(int appraisalId)
         {
             var selectedEmployees = await (from staff in _context.SelectedNonProductionEmployees
-                                           where staff.IsActive == true && staff.AppraisalId == appraisalId
+                                           where staff.IsCompleted == false && staff.AppraisalId == appraisalId
                                            select new SelectedEmployeesResponseSelectedRows
                                            {
                                                EmpId = staff.EmployeeId,
@@ -1033,119 +1064,405 @@ namespace AttendanceManagement.Services
             return selectedEmployees;
         }
 
+        public async Task<string> CreateKra(KraDto kraDto)
+        {
+            var selectedRows = kraDto.SelectedRows;
+            foreach(var item in selectedRows)
+            {
+                var kra = new Goal
+                {
+                    Kra = item.Kra,
+                    Weightage = item.Weightage,
+                    EvaluationPeriod = item.EvaluationPeriod,
+                    AppraisalId = item.AppraisalId,
+                    IsActive = true,
+                    CreatedBy = kraDto.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
+                await _context.Goals.AddAsync(kra);
+            }
+            await _context.SaveChangesAsync();
+            return "Kra created successfully";
+        }
+
+        public async Task<List<KraResponse>> GetKra(int createdBy, int appraisalId)
+        {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == createdBy && x.IsActive == true)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
+
+            var getKra = await (from kra in _context.Goals
+                                join s in _context.StaffCreations on kra.CreatedBy equals s.Id
+                                join requester in _context.StaffCreations on createdBy equals requester.Id
+                                where kra.CreatedUtc.Year == DateTime.UtcNow.Year && kra.AppraisalId == appraisalId
+                                && (isSuperAdmin || kra.CreatedBy == createdBy || kra.CreatedBy == requester.ApprovalLevel1 || kra.CreatedBy == requester.ApprovalLevel2)
+                                select new KraResponse
+                                {
+                                    Id = kra.Id,
+                                    Kra = kra.Kra,
+                                    Weightage = kra.Weightage,
+                                    EvaluationPeriod = kra.EvaluationPeriod,
+                                    CreatedBy = kra.CreatedBy
+                                })
+                                .ToListAsync();
+
+            if (getKra.Count == 0) throw new MessageNotFoundException("No kra found");
+            return getKra;
+        }
+
+        public async Task<string> CreateSelfEvaluation(SelfEvaluationRequest selfEvaluationRequest)
+        {
+            var selectedRows = selfEvaluationRequest.SelectedRows;
+            foreach(var item in selectedRows)
+            {
+                string? savedFilePath = null;
+                if (item.AttachmentsSelf != null && item.AttachmentsSelf.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraSelfAttachments");
+                    Directory.CreateDirectory(uploadsFolder);
+                    var originalFileName = Path.GetFileNameWithoutExtension(item.AttachmentsSelf.FileName);
+                    var extension = Path.GetExtension(item.AttachmentsSelf.FileName);
+                    var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                    var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await item.AttachmentsSelf.CopyToAsync(stream);
+                    }
+                    savedFilePath = Path.Combine("KraAttachments", "KraSelfAttachments", uniqueFileName);
+                }
+                var selfEvaluation = new KraSelfReview
+                {
+                    GoalId = item.GoalId,
+                    SelfEvaluationScale = item.SelfEvaluationScale,
+                    SelfScore = item.SelfScore,
+                    SelfEvaluationComments = item.SelfEvaluationComments,
+                    AttachmentsSelf = savedFilePath,
+                    AppraisalId = item.AppraisalId,
+                    IsActive = true,
+                    CreatedBy = selfEvaluationRequest.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
+                await _context.KraSelfReviews.AddAsync(selfEvaluation);
+            }
+            await _context.SaveChangesAsync();
+            return "Self Kra submitted successfully";
+        }
+
+
+        public async Task<List<SelfEvaluationResponse>> GetSelfEvaluation(int approverId, int appraisalId)
+        {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == approverId && x.IsActive == true)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
+            var isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == approverId && s.IsActive == true);
+            var isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == approverId && s.IsActive == true);
+
+            var getSelfEvaluation = await (from selfEvaluation in _context.KraSelfReviews
+                                           join s in _context.StaffCreations on selfEvaluation.CreatedBy equals s.Id
+                                           where selfEvaluation.CreatedUtc.Year == DateTime.UtcNow.Year && selfEvaluation.AppraisalId == appraisalId
+                                           && (isSuperAdmin || selfEvaluation.CreatedBy == approverId || (isApprovalLevel1 && s.ApprovalLevel1 == approverId) || (isApprovalLevel2 && s.ApprovalLevel2 == approverId))
+                                           select new SelfEvaluationResponse
+                                           {
+                                               Id = selfEvaluation.Id,
+                                               GoalId = selfEvaluation.GoalId,
+                                               SelfEvaluationScale = selfEvaluation.SelfEvaluationScale,
+                                               SelfScore = selfEvaluation.SelfScore,
+                                               SelfEvaluationComments = selfEvaluation.SelfEvaluationComments,
+                                               AttachmentsSelf = selfEvaluation.AttachmentsSelf,
+                                               CreatedBy = selfEvaluation.CreatedBy
+                                           })
+                                           .ToListAsync();
+            if (getSelfEvaluation.Count == 0) throw new MessageNotFoundException("No staff evaluation found");
+            return getSelfEvaluation;
+        }
+
+        public async Task<string> CreateManagerEvaluation(ManagerEvaluationRequest managerEvaluationRequest)
+        {
+            var selectedRows = managerEvaluationRequest.SelectedRows;
+            foreach (var item in selectedRows)
+            {
+                string? savedFilePath = null;
+                if (item.AttachmentsManager != null && item.AttachmentsManager.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraManagerAttachments");
+                    Directory.CreateDirectory(uploadsFolder);
+                    var originalFileName = Path.GetFileNameWithoutExtension(item.AttachmentsManager.FileName);
+                    var extension = Path.GetExtension(item.AttachmentsManager.FileName);
+                    var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                    var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await item.AttachmentsManager.CopyToAsync(stream);
+                    }
+                    savedFilePath = Path.Combine("KraAttachments", "KraManagerAttachments", uniqueFileName);
+                }
+                var managerEvaluation = new KraManagerReview
+                {
+                    KraSelfReviewId = item.KraSelfReviewId,
+                    ManagerEvaluationScale = item.ManagerEvaluationScale,
+                    ManagerScore = item.ManagerScore,
+                    ManagerEvaluationComments = item.ManagerEvaluationComments,
+                    AttachmentsManager = savedFilePath,
+                    IsCompleted = true,
+                    AppraisalId = item.AppraisalId,
+                    IsActive = true,
+                    CreatedBy = managerEvaluationRequest.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
+                await _context.KraManagerReviews.AddAsync(managerEvaluation);
+            }
+            await _context.SaveChangesAsync();
+            return "Self Kra submitted successfully";
+        }
+
+
+        public async Task<List<ManagerEvaluationResponse>> GetManagerEvaluation(int createdBy, int appraisalId)
+        {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == createdBy && x.IsActive == true)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
+            var getManagerEvaluation = await (from managerEvaluation in _context.KraManagerReviews
+                                              join s in _context.StaffCreations on managerEvaluation.CreatedBy equals s.Id
+                                              join requester in _context.StaffCreations on createdBy equals requester.Id
+                                              where managerEvaluation.CreatedUtc.Year == DateTime.UtcNow.Year && managerEvaluation.AppraisalId == appraisalId
+                                              && (isSuperAdmin || managerEvaluation.CreatedBy == createdBy || managerEvaluation.CreatedBy == requester.ApprovalLevel1 || managerEvaluation.CreatedBy == requester.ApprovalLevel2)
+                                              select new ManagerEvaluationResponse
+                                              {
+                                                  Id = managerEvaluation.Id,
+                                                  KraSelfReviewId = managerEvaluation.KraSelfReviewId,
+                                                  ManagerEvaluationScale = managerEvaluation.ManagerEvaluationScale,
+                                                  ManagerScore = managerEvaluation.ManagerScore,
+                                                  ManagerEvaluationComments = managerEvaluation.ManagerEvaluationComments,
+                                                  AttachmentsManager = managerEvaluation.AttachmentsManager,
+                                                  IsCompleted = managerEvaluation.IsCompleted,
+                                                  CreatedBy = managerEvaluation.CreatedBy
+                                              })
+                                           .ToListAsync();
+            if (getManagerEvaluation.Count == 0) throw new MessageNotFoundException("No manager evaluation found");
+            return getManagerEvaluation;
+        }
+
+        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId)
+        {
+            var approver = await _context.StaffCreations
+                .Where(x => x.Id == createdBy && x.IsActive == true)
+                .Select(x => x.AccessLevel)
+                .FirstOrDefaultAsync();
+            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN" || approver == "SITE HR";
+            var managerEvaluations = await (from managerEvaluation in _context.KraManagerReviews
+                                            join selfEvaluation in _context.KraSelfReviews on managerEvaluation.KraSelfReviewId equals selfEvaluation.Id
+                                            join goal in _context.Goals on selfEvaluation.GoalId equals goal.Id
+                                            join staff in _context.StaffCreations on selfEvaluation.CreatedBy equals staff.Id
+                                            join manager in _context.StaffCreations on managerEvaluation.CreatedBy equals manager.Id
+                                            join requester in _context.StaffCreations on createdBy equals requester.Id
+                                            join s in _context.StaffCreations on managerEvaluation.CreatedBy equals s.Id
+                                            where managerEvaluation.IsActive && managerEvaluation.CreatedUtc.Year == DateTime.UtcNow.Year && managerEvaluation.AppraisalId == appraisalId
+                                            && (isSuperAdmin || managerEvaluation.CreatedBy == createdBy || managerEvaluation.CreatedBy == requester.ApprovalLevel1 || managerEvaluation.CreatedBy == requester.ApprovalLevel2)
+                                            select new
+                                            {
+                                                EmpId = staff.StaffId,
+                                                EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                                                EvaluationPeriod = goal.EvaluationPeriod,
+                                                ManagerKraScore = managerEvaluation.ManagerScore,
+                                                ReportingManagerId = manager.StaffId,
+                                                ReportingManagerName = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}"
+                                            }).ToListAsync();
+
+            if (managerEvaluations.Count == 0) throw new MessageNotFoundException("No manager evaluation found");
+            var averageScore = managerEvaluations.Average(e => e.ManagerKraScore);
+            return new
+            {
+                AverageManagerScore = averageScore,
+                Evaluations = managerEvaluations
+            };
+        }
+
         public async Task<string> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            try
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == uploadMisSheetRequest.CreatedBy && s.IsActive == true);
+            if (staff == null) throw new MessageNotFoundException("Staff not found");
+            var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
+            var appraisal = await _context.AppraisalSelectionDropDowns.FirstOrDefaultAsync(a => a.Id == uploadMisSheetRequest.AppraisalId && a.IsActive);
+            if (appraisal == null) throw new MessageNotFoundException("Drop down type not found");
+            var fileExtension = Path.GetExtension(uploadMisSheetRequest.File.FileName);
+            if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
             {
-                var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == uploadMisSheetRequest.CreatedBy && s.IsActive == true);
-                if (staff == null) throw new MessageNotFoundException("Staff not found");
-                var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
-                var appraisal = await _context.AppraisalSelectionDropDowns.FirstOrDefaultAsync(a => a.Id == uploadMisSheetRequest.AppraisalId && a.IsActive);
-                if (appraisal == null) throw new MessageNotFoundException("Drop down type not found");
-                var fileExtension = Path.GetExtension(uploadMisSheetRequest.File.FileName);
-                if (!string.Equals(fileExtension, ".xlsx", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Please upload the correct Excel template File");
+            }
+            using (var stream = new MemoryStream())
+            {
+                await uploadMisSheetRequest.File.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
                 {
-                    throw new ArgumentException("Please upload the correct Excel template File");
-                }
-                using (var stream = new MemoryStream())
-                {
-                    await uploadMisSheetRequest.File.CopyToAsync(stream);
-                    using (var package = new ExcelPackage(stream))
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
+                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
+                    var requiredHeaders = new List<string>();
+                    requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
+                    var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
+                    if (missingHeaders.Any())
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
-                        var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
-                        var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
-                        var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
-                        if (missingHeaders.Any())
+                        throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                    }
+                    var extraHeaders = headerRow.Except(requiredHeaders).ToList();
+                    if (extraHeaders.Any())
+                    {
+                        throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                    }
+                    var columnIndexes = requiredHeaders.ToDictionary(
+                        header => header,
+                        header => headerRow.IndexOf(header) + 1
+                    );
+                    var rowCount = worksheet.Dimension.Rows;
+                    var employeePerformanceReviews = new List<NonProductionEmployeePerformanceReview>();
+                    var errorLogs = new List<string>();
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                            errorLogs.Add($"Staff Id is empty at {row}");
+                            continue;
                         }
-                        var extraHeaders = headerRow.Except(requiredHeaders).ToList();
-                        if (extraHeaders.Any())
+                        var staffs = await _context.StaffCreations.FirstOrDefaultAsync(d => d.StaffId == empId && d.IsActive == true);
+                        if (staffs == null)
                         {
-                            throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                            errorLogs.Add($"Staff Id '{empId}' not found at row {row}");
+                            continue;
                         }
-                        var columnIndexes = requiredHeaders.ToDictionary(
-                            header => header,
-                            header => headerRow.IndexOf(header) + 1
-                        );
-                        var rowCount = worksheet.Dimension.Rows;
-                        using (var transaction = await _context.Database.BeginTransactionAsync())
+                        var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empName))
                         {
-                            try
-                            {
-                                var employeePerformanceReviews = new List<NonProductionEmployeePerformanceReview>();
-                                for (int row = 2; row <= rowCount; row++)
-                                {
-                                    var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
-                                    var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
-                                    var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
-                                    var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
-                                    var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
-                                    var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
-                                    var finalAverageKraGrade = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final Average KRA Grade"]].Text.Trim(), out var kra) ? kra : 0;
-                                    var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
-                                    var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
-                                    var employeeReview = new NonProductionEmployeePerformanceReview
-                                    {
-                                        EmpId = empId,
-                                        EmpName = empName,
-                                        TenureInYears = tenureYears,
-                                        ReportingManagers = reportingManager,
-                                        Division = division,
-                                        Department = department,
-                                        FinalAverageKraGrade = finalAverageKraGrade,
-                                        AbsentDays = absentDays,
-                                        HrComments = hrComments,
-                                        AppraisalId = uploadMisSheetRequest.AppraisalId,
-                                        IsCompleted = false,
-                                        IsActive = true,
-                                        CreatedBy = uploadMisSheetRequest.CreatedBy,
-                                        CreatedUtc = DateTime.UtcNow
-                                    };
-                                    employeePerformanceReviews.Add(employeeReview);
-                                }
-                                if (employeePerformanceReviews.Count > 0)
-                                {
-                                    var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
-                                    var selectedEmployeesToUpdate = await _context.SelectedNonProductionEmployees
-                                        .Where(x => selectedEmpIds.Contains(x.EmployeeId)
-                                                 && x.AppraisalId == uploadMisSheetRequest.AppraisalId
-                                                 && x.IsActive)
-                                        .ToListAsync();
-                                    foreach (var selected in selectedEmployeesToUpdate)
-                                    {
-                                        selected.IsCompleted = true;
-                                        selected.IsActive = false;
-                                        selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
-                                        selected.UpdatedUtc = DateTime.UtcNow;
-                                    }
-                                    await _context.NonProductionEmployeePerformanceReviews.AddRangeAsync(employeePerformanceReviews);
-                                }
-                                else
-                                {
-                                    throw new MessageNotFoundException("File is empty");
-                                }
-                                await _context.SaveChangesAsync();
-                                await transaction.CommitAsync();
-                            }
-                            catch (Exception ex)
-                            {
-                                await transaction.RollbackAsync();
-                                throw new Exception(ex.Message);
-                            }
+                            errorLogs.Add($"Staff Name is empty at {row}");
+                            continue;
+                        }
+                        var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
+                        var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
+                        if (string.IsNullOrEmpty(reportingManager))
+                        {
+                            errorLogs.Add($"Reporting Manager is empty at {row}");
+                            continue;
+                        }
+                        var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
+                        if (string.IsNullOrEmpty(division))
+                        {
+                            errorLogs.Add($"Division is empty at {row}");
+                            continue;
+                        }
+                        var divisionName = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name == division && d.IsActive);
+                        if (divisionName == null)
+                        {
+                            errorLogs.Add($"Division '{divisionName}' not found at row {row}");
+                            continue;
+                        }
+                        var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
+                        if (string.IsNullOrEmpty(department))
+                        {
+                            errorLogs.Add($"Department is empty at {row}");
+                            continue;
+                        }
+                        var departmentName = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name == department && d.IsActive);
+                        if (departmentName == null)
+                        {
+                            errorLogs.Add($"Department '{department}' not found at row {row}");
+                            continue;
+                        }
+                        var cellText = worksheet.Cells[row, columnIndexes["Final Average KRA Grade"]].Text.Trim();
+                        if (string.IsNullOrEmpty(cellText))
+                        {
+                            errorLogs.Add($"Final Average KRA is empty at {row}");
+                            continue;
+                        }
+                        var finalAverageKraGrade = decimal.TryParse(cellText, out var kra) ? kra : 0;
+                        var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
+                        var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
+                        var employeeReview = new NonProductionEmployeePerformanceReview
+                        {
+                            EmpId = empId,
+                            EmpName = empName,
+                            TenureInYears = tenureYears,
+                            ReportingManagers = reportingManager,
+                            Division = division,
+                            Department = department,
+                            FinalAverageKraGrade = finalAverageKraGrade,
+                            AbsentDays = absentDays,
+                            HrComments = hrComments,
+                            AppraisalId = uploadMisSheetRequest.AppraisalId,
+                            IsCompleted = false,
+                            IsActive = true,
+                            CreatedBy = uploadMisSheetRequest.CreatedBy,
+                            CreatedUtc = DateTime.UtcNow
+                        };
+                        employeePerformanceReviews.Add(employeeReview);
+                    }
+                    if (employeePerformanceReviews.Count > 0)
+                    {
+                        var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
+                        var selectedEmployeesToUpdate = await _context.SelectedNonProductionEmployees
+                            .Where(x => selectedEmpIds.Contains(x.EmployeeId)
+                                     && x.AppraisalId == uploadMisSheetRequest.AppraisalId
+                                     && x.IsActive)
+                            .ToListAsync();
+                        foreach (var selected in selectedEmployeesToUpdate)
+                        {
+                            selected.IsCompleted = true;
+                            selected.IsActive = false;
+                            selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
+                            selected.UpdatedUtc = DateTime.UtcNow;
+                        }
+                        await _context.NonProductionEmployeePerformanceReviews.AddRangeAsync(employeePerformanceReviews);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
                         }
                     }
                 }
-                return "Excel data imported successfully";
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            return "Excel data imported successfully";
+        }
+
+        public async Task<List<HrUploadResponse>> GetHrUploadedSheet(int appraisalId)
+        {
+            var response = await (from hr in _context.NonProductionEmployeePerformanceReviews
+                                  join ap in _context.AppraisalSelectionDropDowns on hr.AppraisalId equals ap.Id
+                                  where hr.CreatedUtc.Year == DateTime.UtcNow.Year && ap.IsActive && hr.AppraisalId == appraisalId
+                                  select new HrUploadResponse
+                                  {
+                                      Id = hr.Id,
+                                      EmpId = hr.EmpId,
+                                      EmpName = hr.EmpName,
+                                      TenureInYears = hr.TenureInYears,
+                                      ReportingManagers = hr.ReportingManagers,
+                                      Division = hr.Division,
+                                      Department = hr.Department,
+                                      FinalAverageKraGrade = hr.FinalAverageKraGrade,
+                                      AbsentDays = hr.AbsentDays,
+                                      HrComments = hr.HrComments,
+                                      AppraisalType = ap.Name,
+                                      IsCompleted = hr.IsCompleted,
+                                      CreatedBy = hr.CreatedBy
+                                  })
+                                  .ToListAsync();
+            if (response.Count == 0) throw new MessageNotFoundException("Hr Uploaded sheet not found");
+            return response;
         }
     }
 }

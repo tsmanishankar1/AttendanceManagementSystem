@@ -289,7 +289,7 @@ namespace AttendanceManagement.Services
                    Date = asg.FromDate
                 })
                 .ToListAsync();
-            if (upcomingShifts.Count == 0) throw new MessageNotFoundException("No upcoming shift found");
+            if (upcomingShifts.Count == 0) throw new MessageNotFoundException("No Shift is Assigned");
             return upcomingShifts.Cast<object>().ToList();
         }
     }

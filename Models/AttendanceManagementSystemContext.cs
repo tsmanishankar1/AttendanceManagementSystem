@@ -115,6 +115,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<GeoStatus> GeoStatuses { get; set; }
 
+    public virtual DbSet<Goal> Goals { get; set; }
+
     public virtual DbSet<GraceTimeDropdown> GraceTimeDropdowns { get; set; }
 
     public virtual DbSet<GradeMaster> GradeMasters { get; set; }
@@ -134,6 +136,10 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<IdentityProof> IdentityProofs { get; set; }
 
     public virtual DbSet<IndividualLeaveCreditDebit> IndividualLeaveCreditDebits { get; set; }
+
+    public virtual DbSet<KraManagerReview> KraManagerReviews { get; set; }
+
+    public virtual DbSet<KraSelfReview> KraSelfReviews { get; set; }
 
     public virtual DbSet<LeaveAvailability> LeaveAvailabilities { get; set; }
 
@@ -222,6 +228,8 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<ReaderConfiguration> ReaderConfigurations { get; set; }
 
     public virtual DbSet<ReaderType> ReaderTypes { get; set; }
+
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<RegularShift> RegularShifts { get; set; }
 
@@ -2143,6 +2151,35 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_UPGSId");
         });
 
+        modelBuilder.Entity<Goal>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Goals__3214EC073F533D95");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.EvaluationPeriod)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Kra)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Weightage).HasColumnType("decimal(10, 2)");
+
+            entity.HasOne(d => d.Appraisal).WithMany(p => p.Goals)
+                .HasForeignKey(d => d.AppraisalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GAId");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.GoalCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Goals_CreatedBy");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.GoalUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_Goals_UpdatedBy");
+        });
+
         modelBuilder.Entity<GraceTimeDropdown>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__GraceTim__3214EC07968E2C71");
@@ -2453,6 +2490,71 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.IndividualLeaveCreditDebitUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPINID");
+        });
+
+        modelBuilder.Entity<KraManagerReview>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__KraManag__3214EC07F5507987");
+
+            entity.ToTable("KraManagerReview");
+
+            entity.Property(e => e.AttachmentsManager).IsUnicode(false);
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.ManagerEvaluationComments).IsUnicode(false);
+            entity.Property(e => e.ManagerScore).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appraisal).WithMany(p => p.KraManagerReviews)
+                .HasForeignKey(d => d.AppraisalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MKRAId");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.KraManagerReviewCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_KraManagerReview_CreatedBy");
+
+            entity.HasOne(d => d.KraSelfReview).WithMany(p => p.KraManagerReviews)
+                .HasForeignKey(d => d.KraSelfReviewId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_KraManagerReview_KraId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.KraManagerReviewUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_KraManagerReview_UpdatedBy");
+        });
+
+        modelBuilder.Entity<KraSelfReview>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__KraSelfR__3214EC074BE96815");
+
+            entity.ToTable("KraSelfReview");
+
+            entity.Property(e => e.AttachmentsSelf).IsUnicode(false);
+            entity.Property(e => e.CompletedUtc).HasColumnType("datetime");
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.SelfEvaluationComments).IsUnicode(false);
+            entity.Property(e => e.SelfScore).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appraisal).WithMany(p => p.KraSelfReviews)
+                .HasForeignKey(d => d.AppraisalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SKRAId");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.KraSelfReviewCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_KraSelfReview_CreatedBy");
+
+            entity.HasOne(d => d.Goal).WithMany(p => p.KraSelfReviews)
+                .HasForeignKey(d => d.GoalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_KraSelfReview_GoalId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.KraSelfReviewUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_KraSelfReview_UpdatedBy");
         });
 
         modelBuilder.Entity<LeaveAvailability>(entity =>
@@ -4111,6 +4213,31 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_ReaderType_UpdatedBy");
         });
 
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__RefreshT__3214EC077C366A90");
+
+            entity.ToTable("RefreshToken");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.Token).IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.RefreshTokenCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .HasConstraintName("FK_RTCRId");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.RefreshTokenUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_RTUPId");
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RTUId");
+        });
+
         modelBuilder.Entity<RegularShift>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__RegularS__CDE9F674DC30BD2F");
@@ -4850,7 +4977,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Grade).WithMany(p => p.StaffCreations)
                 .HasForeignKey(d => d.GradeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__StaffCrea__Grade__571DF1D5");
 
             entity.HasOne(d => d.HolidayCalendar).WithMany(p => p.StaffCreations)

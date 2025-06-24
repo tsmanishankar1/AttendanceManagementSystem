@@ -1454,11 +1454,11 @@ namespace AttendanceManagement.Services
                             compOffAvail.UpdatedUtc = DateTime.UtcNow;
                         }
                     }
-/*                    if (approveLeaveRequest.IsApproved)
+                    if (!approveLeaveRequest.IsApproved)
                     {
                         if (approver2 == null)
                         {
-                            if (compOffAvail != null && compOffAvail.Status1 == true)
+                            if (compOffAvail != null && compOffAvail.Status1 == false)
                             {
                                 var lastCompOffCredit = await _context.CompOffCredits
                                     .Where(c => c.CreatedBy == compOffAvail.CreatedBy)
@@ -1467,7 +1467,7 @@ namespace AttendanceManagement.Services
                                 if (lastCompOffCredit == null) throw new MessageNotFoundException("Insufficient CompOff balance found");
                                 if (lastCompOffCredit != null && lastCompOffCredit.Balance > 0)
                                 {
-                                    lastCompOffCredit.Balance = (lastCompOffCredit.Balance ?? 0) - (int)compOffAvail.TotalDays;
+                                    lastCompOffCredit.Balance = (lastCompOffCredit.Balance ?? 0) + (int)compOffAvail.TotalDays;
                                     lastCompOffCredit.UpdatedBy = approveLeaveRequest.ApprovedBy;
                                     lastCompOffCredit.UpdatedUtc = DateTime.UtcNow;
                                 }
@@ -1475,7 +1475,7 @@ namespace AttendanceManagement.Services
                         }
                         if (approver2 != null)
                         {
-                            if (compOffAvail != null && compOffAvail.Status1 == true && compOffAvail.Status2 == true && approveLeaveRequest.IsApproved)
+                            if (compOffAvail != null && compOffAvail.Status1 == true && compOffAvail.Status2 == false && !approveLeaveRequest.IsApproved)
                             {
                                 var lastCompOffCredit = await _context.CompOffCredits
                                     .Where(c => c.CreatedBy == compOffAvail.CreatedBy)
@@ -1484,14 +1484,14 @@ namespace AttendanceManagement.Services
                                 if (lastCompOffCredit == null) throw new MessageNotFoundException("Insufficient CompOff balance found");
                                 if (lastCompOffCredit != null && lastCompOffCredit.Balance > 0)
                                 {
-                                    lastCompOffCredit.Balance = (lastCompOffCredit.Balance ?? 0) - (int)compOffAvail.TotalDays;
+                                    lastCompOffCredit.Balance = (lastCompOffCredit.Balance ?? 0) + (int)compOffAvail.TotalDays;
                                     lastCompOffCredit.UpdatedBy = approveLeaveRequest.ApprovedBy;
                                     lastCompOffCredit.UpdatedUtc = DateTime.UtcNow;
                                 }
                             }
                         }
                     }
-*/                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
 
                     string requestedTime = compOffAvail!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     string approvedTime = compOffAvail.UpdatedUtc.HasValue ? compOffAvail.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");

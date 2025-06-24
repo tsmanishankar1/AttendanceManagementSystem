@@ -548,11 +548,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 2)
@@ -642,11 +645,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 3)
@@ -681,11 +687,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 4)
@@ -717,11 +726,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 5)
@@ -759,11 +771,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 6)
@@ -801,11 +816,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 7)
@@ -836,11 +854,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 8)
@@ -901,11 +922,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 9)
@@ -993,11 +1017,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 10)
@@ -1052,11 +1079,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 11)
@@ -1092,11 +1122,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 12)
@@ -1168,11 +1201,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 13)
@@ -1242,11 +1278,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 14)
@@ -1317,11 +1356,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 15)
@@ -1376,11 +1418,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 16)
@@ -1455,11 +1500,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 17)
@@ -1534,11 +1582,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 18)
@@ -1604,11 +1655,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 19)
@@ -1661,11 +1715,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 20)
@@ -1798,11 +1855,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 21)
@@ -1870,11 +1930,14 @@ public class ExcelImportService
                         }
                         else
                         {
-                            throw new MessageNotFoundException("File is empty");
-                        }
-                        if (errorLogs.Any())
-                        {
-                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            }
+                            else
+                            {
+                                throw new MessageNotFoundException("File is empty");
+                            }
                         }
                     }
                     else if (excelImportDto.PerformanceTypeId == 2)
@@ -1934,11 +1997,14 @@ public class ExcelImportService
                         }
                         else
                         {
-                            throw new MessageNotFoundException("File is empty");
-                        }
-                        if (errorLogs.Any())
-                        {
-                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            }
+                            else
+                            {
+                                throw new MessageNotFoundException("File is empty");
+                            }
                         }
                     }
                     else if (excelImportDto.PerformanceTypeId == 3)
@@ -1997,11 +2063,14 @@ public class ExcelImportService
                         }
                         else
                         {
-                            throw new MessageNotFoundException("File is empty");
-                        }
-                        if (errorLogs.Any())
-                        {
-                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                            }
+                            else
+                            {
+                                throw new MessageNotFoundException("File is empty");
+                            }
                         }
                     }
                 }
@@ -2127,11 +2196,14 @@ public class ExcelImportService
                     }
                     else
                     {
-                        throw new MessageNotFoundException("File is empty");
-                    }
-                    if (errorLogs.Any())
-                    {
-                        throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Skipped Records:" + string.Join(", ", errorLogs));
+                        }
+                        else
+                        {
+                            throw new MessageNotFoundException("File is empty");
+                        }
                     }
                 }
                 else if (excelImportDto.ExcelImportId == 24)

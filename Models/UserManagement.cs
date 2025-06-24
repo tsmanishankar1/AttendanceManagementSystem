@@ -39,6 +39,8 @@ public partial class UserManagement
 
     public virtual ICollection<PunchRegularizationApproval> PunchRegularizationApprovals { get; set; } = new List<PunchRegularizationApproval>();
 
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
     public virtual StaffCreation StaffCreation { get; set; } = null!;
 
     public virtual ICollection<StatutoryReport> StatutoryReports { get; set; } = new List<StatutoryReport>();
