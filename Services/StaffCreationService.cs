@@ -453,7 +453,7 @@ namespace AttendanceManagement.Services
             var statusId = await _context.Statuses.AnyAsync(d => d.Id == staffInput.StatusId && d.IsActive);
             if (!statusId) throw new MessageNotFoundException("Status not found");
             var holidayCalanderId = await _context.HolidayCalendarConfigurations.AnyAsync(d => d.Id == staffInput.HolidayCalendarId && d.IsActive);
-            if (!holidayCalanderId) throw new MessageNotFoundException("Branch not found");
+            if (!holidayCalanderId) throw new MessageNotFoundException("Holiday Calander not found");
             var approvalLevel1 = await _context.StaffCreations.FirstOrDefaultAsync(d => d.Id == staffInput.ApprovalLevel1 && d.IsActive == true);
             if (approvalLevel1 == null) throw new MessageNotFoundException("Approval level 1 not found");
             if(staffInput.ApprovalLevel2 != null)
@@ -587,7 +587,7 @@ namespace AttendanceManagement.Services
             var statusId = await _context.Statuses.AnyAsync(d => d.Id == updatedStaff.StatusId && d.IsActive);
             if (!statusId) throw new MessageNotFoundException("Status not found");
             var holidayCalanderId = await _context.HolidayCalendarConfigurations.AnyAsync(d => d.Id == updatedStaff.HolidayCalendarId && d.IsActive);
-            if (!holidayCalanderId) throw new MessageNotFoundException("Branch not found");
+            if (!holidayCalanderId) throw new MessageNotFoundException("Holiday Calander not found");
             var approvalLevel1 = await _context.StaffCreations.AnyAsync(d => d.Id == updatedStaff.ApprovalLevel1 && d.IsActive == true);
             if (!approvalLevel1) throw new MessageNotFoundException("Approval level 1 not found");
             if (updatedStaff.ApprovalLevel2 != null)

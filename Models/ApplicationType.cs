@@ -19,6 +19,8 @@ public partial class ApplicationType
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public virtual ICollection<ApprovalNotification> ApprovalNotifications { get; set; } = new List<ApprovalNotification>();
+
     public virtual ICollection<BusinessTravel> BusinessTravels { get; set; } = new List<BusinessTravel>();
 
     public virtual ICollection<CommonPermission> CommonPermissions { get; set; } = new List<CommonPermission>();

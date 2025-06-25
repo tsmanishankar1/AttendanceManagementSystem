@@ -47,11 +47,15 @@ public partial class WeeklyOffHolidayWorking
 
     public DateTime? ApprovedOn { get; set; }
 
+    public int? CancelledBy { get; set; }
+
     public virtual ApplicationType ApplicationType { get; set; } = null!;
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }
 
     public virtual StaffCreation? ApprovedByNavigation { get; set; }
+
+    public virtual StaffCreation? CancelledByNavigation { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

@@ -1,5 +1,6 @@
 ﻿using AttendanceManagement.Input_Models;
 using AttendanceManagement.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -112,7 +113,7 @@ public class ApplicationService
         var entityType = entity.GetType();
         var isCancelledProperty = entityType.GetProperty("IsCancelled");
         var cancelledOnProperty = entityType.GetProperty("CancelledOn");
-        //var updatedByProperty = entityType.GetProperty("UpdatedBy");
+        var updatedByProperty = entityType.GetProperty("CancellededBy");
         var isActiveProperty = entityType.GetProperty("IsActive");
 
         if (isCancelledProperty == null)
@@ -127,7 +128,123 @@ public class ApplicationService
         }
         isCancelledProperty.SetValue(entity, cancel.IsCancelled);
         cancelledOnProperty?.SetValue(entity, DateTime.UtcNow);
-        //updatedByProperty?.SetValue(entity, updatedBy);
+        updatedByProperty?.SetValue(entity, cancel.UpdatedBy);
+        isActiveProperty?.SetValue(entity, false);
+        _context.Entry(entity).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> RevokeAppliedLeave(CancelAppliedLeave cancel)
+    {
+        await NotFoundMethod(cancel.ApplicationTypeId);
+        object? entity = null;
+        switch (cancel.ApplicationTypeId)
+        {
+            case 1:
+                entity = await _context.LeaveRequisitions.FirstOrDefaultAsync(l => l.Id == cancel.Id);
+                break;
+            case 2:
+                entity = await _context.CommonPermissions.FirstOrDefaultAsync(p => p.Id == cancel.Id);
+                break;
+            case 3:
+                entity = await _context.ManualPunchRequistions.FirstOrDefaultAsync(m => m.Id == cancel.Id);
+                break;
+            case 4:
+                entity = await _context.OnDutyRequisitions.FirstOrDefaultAsync(o => o.Id == cancel.Id);
+                break;
+            case 5:
+                entity = await _context.BusinessTravels.FirstOrDefaultAsync(b => b.Id == cancel.Id);
+                break;
+            case 6:
+                entity = await _context.WorkFromHomes.FirstOrDefaultAsync(w => w.Id == cancel.Id);
+                break;
+            case 7:
+                entity = await _context.ShiftChanges.FirstOrDefaultAsync(s => s.Id == cancel.Id);
+                break;
+            case 8:
+                entity = await _context.ShiftExtensions.FirstOrDefaultAsync(se => se.Id == cancel.Id);
+                break;
+            case 9:
+                entity = await _context.WeeklyOffHolidayWorkings.FirstOrDefaultAsync(wh => wh.Id == cancel.Id);
+                break;
+            case 10:
+                entity = await _context.CompOffAvails.FirstOrDefaultAsync(ca => ca.Id == cancel.Id);
+                break;
+            case 11:
+                entity = await _context.CompOffCredits.FirstOrDefaultAsync(cc => cc.Id == cancel.Id && cc.IsActive);
+                break;
+            case 12:
+                entity = await _context.Reimbursements.FirstOrDefaultAsync(cc => cc.Id == cancel.Id);
+                break;
+            default:
+                return false;
+        }
+
+        if (entity == null)
+        {
+            throw new MessageNotFoundException($"Active entity not found for ApplicationTypeId: {cancel.ApplicationTypeId}, Id: {cancel.Id}");
+        }
+
+        if (cancel.ApplicationTypeId == 1)
+        {
+            var leave = (LeaveRequisition)entity;
+            var staffOrCreatorId = leave.StaffId ?? leave.CreatedBy;
+            var individualLeave = await _context.IndividualLeaveCreditDebits
+                .Where(l => l.StaffCreationId == staffOrCreatorId &&
+                            l.LeaveTypeId == leave.LeaveTypeId &&
+                            l.IsActive == true)
+                .OrderByDescending(l => l.Id)
+                .FirstOrDefaultAsync();
+            if (individualLeave != null)
+            {
+                individualLeave.AvailableBalance = decimal.Add(individualLeave.AvailableBalance, leave.TotalDays);
+                individualLeave.UpdatedBy = cancel.UpdatedBy;
+                individualLeave.UpdatedUtc = DateTime.UtcNow;
+                _context.Entry(individualLeave).State = EntityState.Modified;
+            }
+        }
+
+        if (cancel.ApplicationTypeId == 10)
+        {
+            var compOffAvail = (CompOffAvail)entity;
+            var lastCompOffCredit = await _context.CompOffCredits
+                .Where(c => c.CreatedBy == compOffAvail.CreatedBy && c.IsActive == true)
+                .OrderByDescending(c => c.CreatedUtc)
+                .FirstOrDefaultAsync();
+
+            if (lastCompOffCredit == null)
+            {
+                throw new MessageNotFoundException("Insufficient CompOff balance found.");
+            }
+
+            lastCompOffCredit.Balance = (lastCompOffCredit.Balance ?? 0) + (int)compOffAvail.TotalDays;
+            lastCompOffCredit.UpdatedBy = cancel.UpdatedBy;
+            lastCompOffCredit.UpdatedUtc = DateTime.UtcNow;
+
+            _context.Entry(lastCompOffCredit).State = EntityState.Modified;
+        }
+
+        var entityType = entity.GetType();
+        var isCancelledProperty = entityType.GetProperty("IsCancelled");
+        var cancelledOnProperty = entityType.GetProperty("CancelledOn");
+        var updatedByProperty = entityType.GetProperty("CancellededBy");
+        var isActiveProperty = entityType.GetProperty("IsActive");
+
+        if (isCancelledProperty == null)
+        {
+            throw new MessageNotFoundException($"IsCancelled property not found in entity type: {entityType.Name}");
+        }
+
+        bool isAlreadyCancelled = (bool)(isCancelledProperty.GetValue(entity) ?? false);
+        if (isAlreadyCancelled)
+        {
+            throw new ConflictException("Application already cancelled");
+        }
+        isCancelledProperty.SetValue(entity, cancel.IsCancelled);
+        cancelledOnProperty?.SetValue(entity, DateTime.UtcNow);
+        updatedByProperty?.SetValue(entity, cancel.UpdatedBy);
         isActiveProperty?.SetValue(entity, false);
         _context.Entry(entity).State = EntityState.Modified;
         await _context.SaveChangesAsync();
@@ -791,6 +908,24 @@ public class ApplicationService
         string requestDateTime = compOffCredit.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == compOffCredit.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = compOffCredit.CreatedBy,
+            Message = $"{requestedBy} has submitted a CompOff Credit request on {requestDateTime}",
+            ApplicationTypeId = compOffCredit.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = compOffCredit.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        compOffCredit.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
+
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -932,6 +1067,23 @@ public class ApplicationService
         string requestDateTime = compOff.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == request.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = request.CreatedBy,
+            Message = $"{requestedBy} has submitted a CompOff Avail request on {requestDateTime}",
+            ApplicationTypeId = compOff.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = request.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        compOff.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -1687,6 +1839,10 @@ public class ApplicationService
 
     public async Task<List<ApprovalNotificationResponse>> GetApprovalNotifications(int staffId)
     {
+        var approver = await _context.StaffCreations
+            .Where(x => x.Id == staffId && x.IsActive == true)
+            .Select(x => x.AccessLevel)
+            .FirstOrDefaultAsync();
         var profile = await _context.StaffCreations
             .Where(s => s.Id == staffId && s.IsActive == true)
             .Select(s => s.ProfilePhoto)
@@ -1708,6 +1864,92 @@ public class ApplicationService
         {
             throw new MessageNotFoundException("No approval notifications found");
         }
+        return notifications;
+    }
+
+    public async Task<List<RequestNotificationResponse>> GetRequestNotifications(int staffId)
+    {
+        var approver = await _context.StaffCreations
+            .Where(x => x.Id == staffId && x.IsActive == true)
+            .Select(x => x.AccessLevel)
+            .FirstOrDefaultAsync();
+        bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
+        var isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == staffId && s.IsActive == true);
+        var isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == staffId && s.IsActive == true);
+        var profile = await _context.StaffCreations
+            .Where(s => s.IsActive == true)
+            .Select(s => s.ProfilePhoto)
+            .FirstOrDefaultAsync();
+        var notifications = await (
+        from n in _context.ApprovalNotifications
+        join s in _context.StaffCreations on n.StaffId equals s.Id
+        where n.IsActive && n.ApplicationTypeId != null && (isSuperAdmin || (isApprovalLevel1 && s.ApprovalLevel1 == staffId) || (isApprovalLevel2 && s.ApprovalLevel2 == staffId))
+        select new RequestNotificationResponse
+        {
+            Id = n.Id,
+            StaffId = n.StaffId,
+            ProfilePhoto = profile,
+            Message = n.Message,
+            ApplicationTypeId = n.ApplicationTypeId,
+            CreatedBy = n.CreatedBy
+        }).ToListAsync();
+
+        foreach (var notif in notifications)
+        {
+            notif.PendingCount = notif.ApplicationTypeId switch
+            {
+                1 => await _context.LeaveRequisitions
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 1 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                2 => await _context.CommonPermissions
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 2 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                3 => await _context.ManualPunchRequistions
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 3 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                4 => await _context.OnDutyRequisitions
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 4 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                5 => await _context.BusinessTravels
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 5 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                6 => await _context.WorkFromHomes
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 6 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                7 => await _context.ShiftChanges
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 7 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                8 => await _context.ShiftExtensions
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 8 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                9 => await _context.WeeklyOffHolidayWorkings
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 9 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                10 => await _context.CompOffAvails
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 10 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                11 => await _context.CompOffCredits
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 11 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                18 => await _context.Reimbursements
+                            .Where(x => x.IsActive && x.ApplicationTypeId == 18 && x.ApprovalNotificationId != null && x.ApprovalNotificationId == notif.Id)
+                            .CountAsync(),
+
+                _ => 0
+            };
+        }
+
         return notifications;
     }
 
@@ -1845,6 +2087,23 @@ public class ApplicationService
         string requestDateTime = leaveRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == leaveRequisition.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = leaveRequisition.CreatedBy,
+            Message = $"{requestedBy} has submitted a {leaveType} request on {requestDateTime}",
+            ApplicationTypeId = leaveRequisitionRequest.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = leaveRequisition.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        leaveRequisition.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -1936,6 +2195,24 @@ public class ApplicationService
         string requestDateTime = commonPermission.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == commonPermission.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = commonPermission.CreatedBy,
+            Message = $"{requestedBy} has submitted a {commonPermission.PermissionType} request on {requestDateTime}",
+            ApplicationTypeId = commonPermissionRequest.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = commonPermission.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        commonPermission.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
+
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2070,6 +2347,23 @@ public class ApplicationService
         string requestDateTime = manualPunch.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == manualPunch.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = manualPunch.CreatedBy,
+            Message = $"{requestedBy} has submitted a Manual Punch request on {requestDateTime}",
+            ApplicationTypeId = manualPunch.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = manualPunch.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        manualPunch.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2208,6 +2502,23 @@ public class ApplicationService
         string requestDateTime = onDutyRequisition.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == onDutyRequisition.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = onDutyRequisition.CreatedBy,
+            Message = $"{requestedBy} has submitted a On Duty request on {requestDateTime}",
+            ApplicationTypeId = onDutyRequisition.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = onDutyRequisition.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        onDutyRequisition.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2331,6 +2642,23 @@ public class ApplicationService
         string requestDateTime = businessTravel.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == businessTravel.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = businessTravel.CreatedBy,
+            Message = $"{requestedBy} has submitted a Business Travel request on {requestDateTime}",
+            ApplicationTypeId = businessTravel.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = businessTravel.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        businessTravel.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2454,6 +2782,23 @@ public class ApplicationService
         string requestDateTime = workFromHome.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == workFromHome.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = workFromHome.CreatedBy,
+            Message = $"{requestedBy} has submitted a Work From Home request on {requestDateTime}",
+            ApplicationTypeId = workFromHome.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = workFromHome.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        workFromHome.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2548,6 +2893,23 @@ public class ApplicationService
         string requestDateTime = shiftChange.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == shiftChange.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = shiftChange.CreatedBy,
+            Message = $"{requestedBy} has submitted a Shift Change request on {requestDateTime}",
+            ApplicationTypeId = shiftChange.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = shiftChange.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        shiftChange.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2613,6 +2975,23 @@ public class ApplicationService
         string requestDateTime = shiftExtension.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == shiftExtension.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = shiftExtension.CreatedBy,
+            Message = $"{requestedBy} has submitted a Shift Extension request on {requestDateTime}",
+            ApplicationTypeId = shiftExtension.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = shiftExtension.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        shiftExtension.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2678,6 +3057,24 @@ public class ApplicationService
         string requestDateTime = weeklyOffHolidayWorking.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == weeklyOffHolidayWorking.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = weeklyOffHolidayWorking.CreatedBy,
+            Message = $"{requestedBy} has submitted a WeeklyOff/ Holiday Working request on {requestDateTime}",
+            ApplicationTypeId = weeklyOffHolidayWorking.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = weeklyOffHolidayWorking.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        weeklyOffHolidayWorking.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
+
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))
@@ -2765,6 +3162,23 @@ public class ApplicationService
         string requestDateTime = reimbursement.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");
+        var requestedBy = await _context.StaffCreations
+            .Where(s => s.Id == reimbursement.CreatedBy && s.IsActive == true)
+            .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")
+            .FirstOrDefaultAsync();
+        var notification = new ApprovalNotification
+        {
+            StaffId = reimbursement.CreatedBy,
+            Message = $"{requestedBy} has submitted a {reimbursementType} request on {requestDateTime}",
+            ApplicationTypeId = reimbursement.ApplicationTypeId,
+            IsActive = true,
+            CreatedBy = reimbursement.CreatedBy,
+            CreatedUtc = DateTime.UtcNow
+        };
+        await _context.ApprovalNotifications.AddAsync(notification);
+        await _context.SaveChangesAsync();
+        reimbursement.ApprovalNotificationId = notification.Id;
+        await _context.SaveChangesAsync();
         if (approver1 != null)
         {
             if (!string.IsNullOrEmpty(approver1.OfficialEmail))

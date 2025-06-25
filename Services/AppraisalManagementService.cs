@@ -1175,6 +1175,7 @@ namespace AttendanceManagement.Services
                                                SelfScore = selfEvaluation.SelfScore,
                                                SelfEvaluationComments = selfEvaluation.SelfEvaluationComments,
                                                AttachmentsSelf = selfEvaluation.AttachmentsSelf,
+                                               StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                                CreatedBy = selfEvaluation.CreatedBy
                                            })
                                            .ToListAsync();
@@ -1244,6 +1245,7 @@ namespace AttendanceManagement.Services
                                                   ManagerEvaluationComments = managerEvaluation.ManagerEvaluationComments,
                                                   AttachmentsManager = managerEvaluation.AttachmentsManager,
                                                   IsCompleted = managerEvaluation.IsCompleted,
+                                                  ManagerName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
                                                   CreatedBy = managerEvaluation.CreatedBy
                                               })
                                            .ToListAsync();
@@ -1398,7 +1400,7 @@ namespace AttendanceManagement.Services
                             AbsentDays = absentDays,
                             HrComments = hrComments,
                             AppraisalId = uploadMisSheetRequest.AppraisalId,
-                            IsCompleted = false,
+                            IsCompleted = true,
                             IsActive = true,
                             CreatedBy = uploadMisSheetRequest.CreatedBy,
                             CreatedUtc = DateTime.UtcNow

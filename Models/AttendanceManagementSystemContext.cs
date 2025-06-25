@@ -19,6 +19,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<AgmApproval> AgmApprovals { get; set; }
 
+    public virtual DbSet<Announcement> Announcements { get; set; }
+
     public virtual DbSet<ApplicationType> ApplicationTypes { get; set; }
 
     public virtual DbSet<AppraisalAnnexureA> AppraisalAnnexureAs { get; set; }
@@ -461,6 +463,29 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_AEPRId");
         });
 
+        modelBuilder.Entity<Announcement>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Announce__3214EC07A35B8636");
+
+            entity.ToTable("Announcement");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.Description).IsUnicode(false);
+            entity.Property(e => e.Title)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AnnouncementCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CRANN");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.AnnouncementUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_UPANN");
+        });
+
         modelBuilder.Entity<ApplicationType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__2821513AB21B7CCC");
@@ -598,6 +623,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ApplicationType).WithMany(p => p.ApprovalNotifications)
+                .HasForeignKey(d => d.ApplicationTypeId)
+                .HasConstraintName("FK_ANTId");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ApprovalNotificationCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -1006,6 +1035,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByB_StaffCreation");
 
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.BusinessTravelCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CBTId");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.BusinessTravelCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1157,6 +1190,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByC_StaffCreation");
 
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.CommonPermissionCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CCPId");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CommonPermissionCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1210,6 +1247,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByCA_StaffCreation");
 
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.CompOffAvailCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CCAId");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CompOffAvailCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1256,6 +1297,10 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.CompOffCreditApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByCC_StaffCreation");
+
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.CompOffCreditCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CCCId");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CompOffCreditCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -2289,6 +2334,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_CRHOLIDAY");
 
+            entity.HasOne(d => d.ShiftType).WithMany(p => p.HolidayCalendarConfigurations)
+                .HasForeignKey(d => d.ShiftTypeId)
+                .HasConstraintName("FK_STDH");
+
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.HolidayCalendarConfigurationUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPHOLIDAY");
@@ -2744,6 +2793,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedBy_StaffCreation");
 
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.LeaveRequisitionCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CLRId");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.LeaveRequisitionCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -2952,6 +3005,10 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.ManualPunchRequistionApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByM_StaffCreation");
+
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.ManualPunchRequistionCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CMPId");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ManualPunchRequistionCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -3280,6 +3337,10 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.OnDutyRequisitionApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByO_StaffCreation");
+
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.OnDutyRequisitionCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CODId");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.OnDutyRequisitionCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -4232,7 +4293,7 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_RTUPId");
 
-            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokenUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RTUId");
@@ -4314,6 +4375,10 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.ReimbursementApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByR_StaffCreation");
+
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.ReimbursementCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CRId");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ReimbursementCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -4631,6 +4696,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedBySC_StaffCreation");
 
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.ShiftChangeCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CSCId");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ShiftChangeCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -4685,6 +4754,10 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.ShiftExtensionApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedBySE_StaffCreation");
+
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.ShiftExtensionCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CSEId");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ShiftExtensionCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -5437,6 +5510,10 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByWH_StaffCreation");
 
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.WeeklyOffHolidayWorkingCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CWOId");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.WeeklyOffHolidayWorkingCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -5541,6 +5618,10 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.WorkFromHomeApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_ApprovedByW_StaffCreation");
+
+            entity.HasOne(d => d.CancelledByNavigation).WithMany(p => p.WorkFromHomeCancelledByNavigations)
+                .HasForeignKey(d => d.CancelledBy)
+                .HasConstraintName("FK_CWFHId");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.WorkFromHomeCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)

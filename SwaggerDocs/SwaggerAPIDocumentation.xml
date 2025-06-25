@@ -102,6 +102,17 @@
 			<response code="409">If the application request has already been cancelled.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.RevokeAppliedLeave(AttendanceManagement.Input_Models.CancelAppliedLeave)">
+			<summary>
+				Revokes an applied leave request.
+			</summary>
+			<param name="cancel">The applied leave revoke request.</param>
+			<returns>Returns the status of the revoke request.</returns>
+			<response code="200">If the application request is successfully revoked.</response>
+			<response code="404">If the application request is not found.</response>
+			<response code="409">If the application request has already been revoked.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetMonthlyDetails(AttendanceManagement.Input_Models.MonthlyCalendar)">
 			<summary>
 				Retrieves all monthly calendar details.
@@ -153,6 +164,16 @@
 			<returns>A list of approval notifications for the given staff member.</returns>
 			<response code="200">Returns the list of approval notifications.</response>
 			<response code="404">If no notifications are found for the specified staff member.</response>
+			<response code="500">If there is an internal server error.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetRequestNotifications(System.Int32)">
+			<summary>
+				Retrieves request notifications submitted by staff members under the specified approver.
+			</summary>
+			<param name="staffId">The ID of the logged-in staff member (approver).</param>
+			<returns>A list of request notifications submitted to the approver.</returns>
+			<response code="200">Returns the list of request notifications.</response>
+			<response code="404">If no request notifications are found for the specified approver.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.ApplicationController.UpdateApprovalNotifications(System.Int32,System.Int32)">
@@ -493,6 +514,80 @@
 			<response code="404">If no data found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateKra(AttendanceManagement.Input_Models.KraDto)">
+			<summary>
+				Creates Key Result Areas (KRA) for a specific employee's appraisal.
+			</summary>
+			<param name="kraDto">The KRA data transfer object containing appraisal and creator details.</param>
+			<returns>Returns the result of the KRA creation process.</returns>
+			<response code="200">If the KRA is created successfully.</response>
+			<response code="404">If required information is not found.</response>
+			<response code="500">If an internal server error occurs.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetKra(System.Int32,System.Int32)">
+			<summary>
+				Retrieves the KRA data for a given employee and appraisal cycle.
+			</summary>
+			<param name="createdBy">The ID of the employee who created the KRA.</param>
+			<param name="appraisalId">The appraisal cycle ID.</param>
+			<returns>Returns the KRA data for the employee and appraisal cycle.</returns>
+			<response code="200">If the KRA is found successfully.</response>
+			<response code="404">If KRA data is not found.</response>
+			<response code="500">If an internal server error occurs.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateSelfEvaluation(AttendanceManagement.Input_Models.SelfEvaluationRequest)">
+			<summary>
+				Creates a self-evaluation record as part of the appraisal process.
+			</summary>
+			<param name="selfEvaluationRequest">The self-evaluation request data submitted by the employee.</param>
+			<returns>Returns the result of the self-evaluation submission.</returns>
+			<response code="200">If the self-evaluation is submitted successfully.</response>
+			<response code="404">If relevant appraisal data is not found.</response>
+			<response code="500">If an internal server error occurs.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelfEvaluation(System.Int32,System.Int32)">
+			<summary>
+				Retrieves the self-evaluation record for a specific appraisal.
+			</summary>
+			<param name="createdBy">The ID of the employee who submitted the self-evaluation.</param>
+			<param name="appraisalId">The appraisal cycle ID.</param>
+			<returns>Returns the self-evaluation data.</returns>
+			<response code="200">If the self-evaluation data is found.</response>
+			<response code="404">If self-evaluation data is not found.</response>
+			<response code="500">If an internal server error occurs.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateManagerEvaluation(AttendanceManagement.Input_Models.ManagerEvaluationRequest)">
+			<summary>
+				Submits manager evaluation data for an employee's appraisal.
+			</summary>
+			<param name="managerEvaluationRequest">The evaluation data provided by the manager.</param>
+			<returns>Returns the result of the manager evaluation submission.</returns>
+			<response code="200">If the manager evaluation is submitted successfully.</response>
+			<response code="404">If necessary appraisal information is missing.</response>
+			<response code="500">If an internal server error occurs.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetManagerEvaluation(System.Int32,System.Int32)">
+			<summary>
+				Retrieves the manager's evaluation for a specific employee and appraisal cycle.
+			</summary>
+			<param name="createdBy">The ID of the employee being evaluated.</param>
+			<param name="appraisalId">The appraisal cycle ID.</param>
+			<returns>Returns the manager's evaluation data.</returns>
+			<response code="200">If the manager evaluation is found.</response>
+			<response code="404">If manager evaluation data is not found.</response>
+			<response code="500">If an internal server error occurs.</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetFinalAverageManagerScore(System.Int32,System.Int32)">
+			<summary>
+				Retrieves the final average score given by the manager for the employee's appraisal.
+			</summary>
+			<param name="createdBy">The ID of the employee being appraised.</param>
+			<param name="appraisalId">The appraisal cycle ID.</param>
+			<returns>Returns the final average manager score.</returns>
+			<response code="200">If the score is calculated successfully.</response>
+			<response code="404">If score data is not available.</response>
+			<response code="500">If an internal server error occurs.</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.HrUploadSheet(AttendanceManagement.Input_Models.UploadMisSheetRequest)">
 			<summary>
 				Uploads a MIS sheet for HR to process non-production employee appraisal data.
@@ -502,6 +597,16 @@
 			<response code="200">If the upload is successful</response>
 			<response code="404">If data not found</response>
 			<response code="500">If upload fails or an internal error occurs</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetHrUploadedSheet(System.Int32)">
+			<summary>
+				Retrieves the HR-uploaded MIS sheet containing appraisal data.
+			</summary>
+			<param name="appraisalId">The ID of the appraisal cycle.</param>
+			<returns>Returns the MIS sheet data uploaded by HR.</returns>
+			<response code="200">If the data is retrieved successfully.</response>
+			<response code="404">If the MIS sheet is not found.</response>
+			<response code="500">If an internal server error occurs.</response>
 		</member>
 		<member name="T:AttendanceController">
 			<summary>
@@ -866,7 +971,7 @@
 			<response code="404">If no New Joinees found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DashboardController.GetAllHolidays(System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.DashboardController.GetAllHolidays(System.Int32,System.Int32)">
 			<summary>
 				Retrieves all holidays.
 			</summary>
@@ -905,6 +1010,37 @@
 			<returns>A list of upcoming shifts for the specified staff member</returns>
 			<response code="200">Returns the list of upcoming shifts for the staff member</response>
 			<response code="404">If no upcoming shifts are found for the specified staff member</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.DashboardController.CreateAnnouncement(AttendanceManagement.Input_Models.AnnouncementDto)">
+			<summary>
+				Creates a new announcement.
+			</summary>
+			<param name="announcementDto">The announcement data transfer object.</param>
+			<returns>The result of the creation operation.</returns>
+			<response code="200">Returns success message upon creation</response>
+			<response code="404">If required information is missing or not found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+
+		<member name="M:AttendanceManagement.Controllers.DashboardController.GetAnnouncement">
+			<summary>
+				Retrieves the latest announcement.
+			</summary>
+			<returns>The current announcement details.</returns>
+			<response code="200">Returns the announcement</response>
+			<response code="404">If no announcement is found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
+
+		<member name="M:AttendanceManagement.Controllers.DashboardController.UpdateAnnouncement(AttendanceManagement.Input_Models.AnnouncementResponse)">
+			<summary>
+				Updates an existing announcement.
+			</summary>
+			<param name="announcementResponse">The updated announcement details.</param>
+			<returns>The result of the update operation.</returns>
+			<response code="200">Returns success message upon update</response>
+			<response code="404">If the announcement to update is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
 		<member name="T:AttendanceManagement.Controllers.DepartmentMasterController">

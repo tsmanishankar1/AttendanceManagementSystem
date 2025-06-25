@@ -12,10 +12,12 @@ namespace AttendanceManagement.Controllers;
 public class DashboardController : ControllerBase
 {
     private readonly DashboardService _dashboardService;
-
-    public DashboardController(DashboardService dashboardService)
+    private readonly LoggingService _loggingService;
+    public DashboardController(DashboardService dashboardService, LoggingService loggingService)
     {
         _dashboardService = dashboardService;
+        _loggingService = loggingService;
+
     }
 
     [HttpGet("Anniversaries")]
@@ -65,11 +67,11 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("GetAllHolidays")]
-    public async Task<IActionResult> GetAllHolidays(int staffId)
+    public async Task<IActionResult> GetAllHolidays(int staffId, int shiftTypeId)
     {
         try
         {
-            var holidays = await _dashboardService.GetAllHolidaysAsync(staffId);
+            var holidays = await _dashboardService.GetAllHolidaysAsync(staffId, shiftTypeId);
             var response = new
             {
                 Success = true,
@@ -83,6 +85,76 @@ public class DashboardController : ControllerBase
         }
         catch (Exception ex)
         {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpPost("CreateAnnouncement")]
+    public async Task<IActionResult> CreateAnnouncement(AnnouncementDto announcementDto)
+    {
+        try
+        {
+            var holidays = await _dashboardService.CreateAnnouncement(announcementDto);
+            var response = new
+            {
+                Success = true,
+                Message = holidays
+            };
+            await _loggingService.AuditLog("Announcement", "POST", "/api/Dashboard/CreateAnnouncement", holidays, announcementDto.CreatedBy, JsonSerializer.Serialize(announcementDto));
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Announcement", "POST", "/api/Dashboard/CreateAnnouncement", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, announcementDto.CreatedBy, JsonSerializer.Serialize(announcementDto));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpGet("GetAnnouncement")]
+    public async Task<IActionResult> GetAnnouncement()
+    {
+        try
+        {
+            var holidays = await _dashboardService.GetAnnouncement();
+            var response = new
+            {
+                Success = true,
+                Message = holidays
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpPost("UpdateAnnouncement")]
+    public async Task<IActionResult> UpdateAnnouncement(AnnouncementResponse announcementResponse)
+    {
+        try
+        {
+            var holidays = await _dashboardService.UpdateAnnouncement(announcementResponse);
+            var response = new
+            {
+                Success = true,
+                Message = holidays
+            };
+            await _loggingService.AuditLog("Announcement", "POST", "/api/Dashboard/UpdateAnnouncement", holidays, announcementResponse.CreatedBy, JsonSerializer.Serialize(announcementResponse));
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Announcement", "POST", "/api/Dashboard/UpdateAnnouncement", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, announcementResponse.CreatedBy, JsonSerializer.Serialize(announcementResponse));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Announcement", "POST", "/api/Dashboard/UpdateAnnouncement", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, announcementResponse.CreatedBy, JsonSerializer.Serialize(announcementResponse));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }

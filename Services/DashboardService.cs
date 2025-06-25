@@ -40,7 +40,7 @@ namespace AttendanceManagement.Services
                 .ToListAsync();
             if (!staffWithAnniversaries.Any())
             {
-                throw new MessageNotFoundException("No records found for the selected event type.");
+                throw new MessageNotFoundException("No records found for the selected event type");
             }
             if (eventTypeId == 1) 
             {
@@ -92,7 +92,7 @@ namespace AttendanceManagement.Services
                 }).ToList<object>();
                 if (newJoinees.Count == 0)
                 {
-                    throw new MessageNotFoundException("No New Joiners recently!");
+                    throw new MessageNotFoundException("No New Joiners recently");
                 }
                 result = newJoinees;
             }
@@ -184,30 +184,51 @@ namespace AttendanceManagement.Services
                                         JoiningDate = staff.JoiningDate.ToString("MMMM dd")
                                     })
                                     .ToListAsync();
-            if (newJoinees.Count == 0) throw new MessageNotFoundException("No New Joiners recently!");
+            if (newJoinees.Count == 0) throw new MessageNotFoundException("No New Joiners recently");
             return newJoinees;
         }
 
-        public async Task<List<object>> GetAllHolidaysAsync(int staffId)
+        public async Task<List<object>> GetAllHolidaysAsync(int staffId, int shiftTypeId)
         {
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
             if (staff == null) throw new MessageNotFoundException("Staff not found");
-            var holiday = await (from hc in _context.HolidayCalendarTransactions
-                                 join hm in _context.HolidayMasters on hc.HolidayMasterId equals hm.Id
-                                 join hcc in _context.HolidayCalendarConfigurations on hc.HolidayCalendarId equals hcc.Id
-                                 where hc.IsActive && hcc.IsActive && hm.IsActive && hcc.Id == staff.HolidayCalendarId
-                                 select new
-                                 {
-                                     Id = hc.Id,
-                                     HolidayName = hm.Name,
-                                     FromDate = hc.FromDate,
-                                     ToDate = hc.ToDate
-                                 })
-                                  .ToListAsync<object>();
-            if (holiday.Count == 0)
+            int targetHolidayCalendarId;
+            if (shiftTypeId == 1)
             {
-                throw new MessageNotFoundException("No holidays found");
+                targetHolidayCalendarId = await _context.HolidayCalendarConfigurations
+                    .Where(x => x.IsActive && x.CalendarYear == DateTime.UtcNow.Year && x.ShiftTypeId == shiftTypeId)
+                    .Select(x => x.Id)
+                    .FirstOrDefaultAsync();
             }
+            else if (shiftTypeId == 2)
+            {
+                targetHolidayCalendarId = await _context.HolidayCalendarConfigurations
+                    .Where(x => x.IsActive && x.CalendarYear == DateTime.UtcNow.Year && x.ShiftTypeId == shiftTypeId)
+                    .Select(x => x.Id)
+                    .FirstOrDefaultAsync();
+            }
+            else
+            {
+                targetHolidayCalendarId = staff.HolidayCalendarId;
+            }
+
+            var holiday = await (
+                from hc in _context.HolidayCalendarTransactions
+                join hm in _context.HolidayMasters on hc.HolidayMasterId equals hm.Id
+                join hcc in _context.HolidayCalendarConfigurations on hc.HolidayCalendarId equals hcc.Id
+                where hc.IsActive && hm.IsActive && hcc.IsActive && hcc.CalendarYear == DateTime.UtcNow.Year && hcc.Id == targetHolidayCalendarId
+                select new
+                {
+                    Id = hc.Id,
+                    HolidayName = hm.Name,
+                    FromDate = hc.FromDate,
+                    ToDate = hc.ToDate
+                })
+                .ToListAsync<object>();
+
+            if (holiday.Count == 0)
+                throw new MessageNotFoundException("No holidays found");
+
             return holiday;
         }
 
@@ -291,6 +312,50 @@ namespace AttendanceManagement.Services
                 .ToListAsync();
             if (upcomingShifts.Count == 0) throw new MessageNotFoundException("No Shift is Assigned");
             return upcomingShifts.Cast<object>().ToList();
+        }
+
+        public async Task<string> CreateAnnouncement(AnnouncementDto announcementDto)
+        {
+            var announcement = new Announcement
+            {
+                Title = announcementDto.Title,
+                Description = announcementDto.Description,
+                IsActive = announcementDto.IsActive,
+                CreatedBy = announcementDto.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+            await _context.Announcements.AddAsync(announcement);
+            await _context.SaveChangesAsync();
+            return "Announcement created successfully";
+        }
+
+        public async Task<List<AnnouncementResponse>> GetAnnouncement()
+        {
+            var getAnnouncement = await (from an in _context.Announcements
+                                         select new AnnouncementResponse
+                                         {
+                                             Id = an.Id,
+                                             Title = an.Title,
+                                             Description = an.Description,
+                                             IsActive = an.IsActive,
+                                             CreatedBy = an.CreatedBy
+                                         })
+                                         .ToListAsync();
+            if (getAnnouncement.Count == 0) throw new MessageNotFoundException("Announcement not found");
+            return getAnnouncement;
+        }
+
+        public async Task<string> UpdateAnnouncement(AnnouncementResponse announcementResponse)
+        {
+            var existingAnnouncement = await _context.Announcements.FirstOrDefaultAsync(a => a.Id == announcementResponse.Id);
+            if (existingAnnouncement == null) throw new MessageNotFoundException("Announcement not found");
+            existingAnnouncement.Title = announcementResponse.Title;
+            existingAnnouncement.Description = announcementResponse.Description;
+            existingAnnouncement.IsActive = announcementResponse.IsActive;
+            existingAnnouncement.UpdatedBy = announcementResponse.CreatedBy;
+            existingAnnouncement.UpdatedUtc = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return "Announcement updated successfully";
         }
     }
 }
