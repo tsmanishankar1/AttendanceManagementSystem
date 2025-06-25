@@ -504,7 +504,7 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpPost("CreateSelfEvaluation")]
-        public async Task<IActionResult> CreateSelfEvaluation([FromBody] SelfEvaluationRequest selfEvaluationRequest)
+        public async Task<IActionResult> CreateSelfEvaluation(SelfEvaluationRequest selfEvaluationRequest)
         {
             try
             {
@@ -553,7 +553,7 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpPost("CreateManagerEvaluation")]
-        public async Task<IActionResult> CreateManagerEvaluation([FromForm] ManagerEvaluationRequest managerEvaluationRequest)
+        public async Task<IActionResult> CreateManagerEvaluation(ManagerEvaluationRequest managerEvaluationRequest)
         {
             try
             {

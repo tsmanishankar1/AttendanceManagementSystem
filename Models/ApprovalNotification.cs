@@ -21,6 +21,10 @@ public partial class ApprovalNotification
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public int? ApplicationTypeId { get; set; }
+
+    public virtual ApplicationType? ApplicationType { get; set; }
+
     public virtual ICollection<BusinessTravel> BusinessTravels { get; set; } = new List<BusinessTravel>();
 
     public virtual ICollection<CommonPermission> CommonPermissions { get; set; } = new List<CommonPermission>();

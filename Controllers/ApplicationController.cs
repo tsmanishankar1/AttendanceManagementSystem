@@ -139,6 +139,37 @@ public class ApplicationController : ControllerBase
         }
     }
 
+    [HttpPost("RevokeAppliedLeave")]
+    public async Task<IActionResult> RevokeAppliedLeave(CancelAppliedLeave cancel)
+    {
+        try
+        {
+            var result = await _service.RevokeAppliedLeave(cancel);
+            var response = new
+            {
+                Success = true,
+                Message = "Application request revoked successfully"
+            };
+            await _loggingService.AuditLog("Application Cancellation", "POST", "/api/Application/RevokeAppliedLeave", "Application request revoked successfully", cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            await _loggingService.LogError("Application Cancellation", "POST", "/api/Application/RevokeAppliedLeave", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Application Cancellation", "POST", "/api/Application/RevokeAppliedLeave", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await _loggingService.LogError("Application Cancellation", "POST", "/api/Application/RevokeAppliedLeave", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, cancel.UpdatedBy, JsonSerializer.Serialize(cancel));
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpGet("GetCompOffCredit")]
     public async Task<IActionResult> GetCompOffCreditAll()
     {
@@ -304,6 +335,29 @@ public class ApplicationController : ControllerBase
         try
         {
             var notifications = await _service.GetApprovalNotifications(staffId);
+            var response = new
+            {
+                Success = true,
+                Message = notifications
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpGet("GetRequestNotifications")]
+    public async Task<IActionResult> GetRequestNotifications(int staffId)
+    {
+        try
+        {
+            var notifications = await _service.GetRequestNotifications(staffId);
             var response = new
             {
                 Success = true,

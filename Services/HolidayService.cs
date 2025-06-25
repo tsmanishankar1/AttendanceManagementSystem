@@ -91,6 +91,7 @@ namespace AttendanceManagement.Services
                 Name = request.GroupName,
                 CalendarYear = request.CalendarYear,
                 Currents = request.Currents,
+                ShiftTypeId = request.ShiftTypeId,
                 IsActive = request.IsActive,
                 CreatedBy = request.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
@@ -119,12 +120,14 @@ namespace AttendanceManagement.Services
         public async Task<List<HolidayConfigurationResponse>> GetAllHolidayCalendarsAsync()
         {
             var allHolidays = await (from holiday in _context.HolidayCalendarConfigurations
+                                     join shift in _context.ShiftTypeDropDowns on holiday.ShiftTypeId equals shift.Id
                                      select new
                                      {
                                          holiday.Id,
                                          holiday.Name,
                                          holiday.CalendarYear,
                                          holiday.Currents,
+                                         ShiftTypeName = shift.Name,
                                          holiday.IsActive,
                                          holiday.CreatedBy
                                      })
@@ -139,6 +142,7 @@ namespace AttendanceManagement.Services
                 GroupName = holiday.Name,
                 CalendarYear = holiday.CalendarYear,
                 Currents = holiday.Currents,
+                ShiftType = holiday.ShiftTypeName,
                 IsActive = holiday.IsActive,
                 CreatedBy = holiday.CreatedBy,
                 Transactions = (from holidayTran in _context.HolidayCalendarTransactions
@@ -166,9 +170,10 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("Holiday calendar not found");
             }
-            existingCalendar.Name = request.GroupName ?? existingCalendar.Name;
+            existingCalendar.Name = request.GroupName;
             existingCalendar.CalendarYear = request.CalendarYear;
             existingCalendar.Currents = request.Currents;
+            existingCalendar.ShiftTypeId = request.ShiftTypeId;
             existingCalendar.IsActive = request.IsActive;
             existingCalendar.UpdatedBy = request.UpdatedBy;
             existingCalendar.UpdatedUtc = DateTime.UtcNow;

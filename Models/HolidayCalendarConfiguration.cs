@@ -23,11 +23,15 @@ public partial class HolidayCalendarConfiguration
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public int? ShiftTypeId { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<HolidayCalendarTransaction> HolidayCalendarTransactions { get; set; } = new List<HolidayCalendarTransaction>();
 
     public virtual ICollection<HolidayZoneConfiguration> HolidayZoneConfigurations { get; set; } = new List<HolidayZoneConfiguration>();
+
+    public virtual ShiftTypeDropDown? ShiftType { get; set; }
 
     public virtual ICollection<StaffCreation> StaffCreations { get; set; } = new List<StaffCreation>();
 

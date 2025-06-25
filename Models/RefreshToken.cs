@@ -27,5 +27,5 @@ public partial class RefreshToken
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 
-    public virtual UserManagement User { get; set; } = null!;
+    public virtual StaffCreation User { get; set; } = null!;
 }

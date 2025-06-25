@@ -41,7 +41,12 @@ public class LoginService
         if (department == null) throw new MessageNotFoundException("Department not found");
         var division = _context.DivisionMasters.FirstOrDefault(d => d.Id == staff.DivisionId && d.IsActive);
         if (division == null) throw new MessageNotFoundException("Division not found");
+        var existingRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.UserId == user.StaffCreationId && r.IsActive && r.ExpiryDate > DateTime.UtcNow);
         var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name);
+        if (existingRefreshToken != null)
+        {
+            return (accessToken, existingRefreshToken.Token);
+        }
         var refreshToken = new RefreshToken
         {
             Token = GenerateRefreshToken(user.StaffCreationId),
@@ -103,25 +108,35 @@ public class LoginService
         if (department == null) throw new MessageNotFoundException("Department not found");
         var division = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Id == staff.DivisionId && d.IsActive);
         if (division == null) throw new MessageNotFoundException("Division not found");
+        await DeactivateRefreshToken(refreshTokenEntity, user.StaffCreationId);
         var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name);
+        var newRefreshToken = await CreateRefreshToken(user.StaffCreationId);
+        return (newAccessToken, newRefreshToken.Token);
+    }
 
-        refreshTokenEntity.IsActive = false;
-        refreshTokenEntity.UpdatedBy = user.StaffCreationId;
-        refreshTokenEntity.UpdatedUtc = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        var newRefreshToken = new RefreshToken
+    private async Task<RefreshToken> CreateRefreshToken(int userId)
+    {
+        var token = GenerateRefreshToken(userId);
+        var refreshToken = new RefreshToken
         {
-            Token = GenerateRefreshToken(user.StaffCreationId),
-            UserId = user.StaffCreationId,
+            Token = token,
+            UserId = userId,
             ExpiryDate = DateTime.UtcNow.AddDays(7),
             IsActive = true,
-            CreatedBy = user.StaffCreationId,
+            CreatedBy = userId,
             CreatedUtc = DateTime.UtcNow
         };
-        await _context.RefreshTokens.AddAsync(newRefreshToken);
+        await _context.RefreshTokens.AddAsync(refreshToken);
         await _context.SaveChangesAsync();
-        return (newAccessToken, newRefreshToken.Token);
+        return refreshToken;
+    }
+
+    private async Task DeactivateRefreshToken(RefreshToken token, int updatedBy)
+    {
+        token.IsActive = false;
+        token.UpdatedUtc = DateTime.UtcNow;
+        token.UpdatedBy = updatedBy;
+        await _context.SaveChangesAsync();
     }
 
     private string GenerateJwtToken(string userName, int staffId, int designationId, string designation, int departmentId, string department, int divisionId, string divisionName)

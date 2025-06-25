@@ -47,6 +47,7 @@
         public decimal SelfScore { get; set; }
         public string SelfEvaluationComments { get; set; } = null!;
         public string? AttachmentsSelf { get; set; }
+        public string StaffName { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
 
@@ -74,6 +75,7 @@
         public decimal ManagerScore { get; set; }
         public string ManagerEvaluationComments { get; set; } = null!;
         public string? AttachmentsManager { get; set; }
+        public string ManagerName { get; set; } = null!;
         public bool? IsCompleted { get; set; }
         public int CreatedBy { get; set; }
     }
