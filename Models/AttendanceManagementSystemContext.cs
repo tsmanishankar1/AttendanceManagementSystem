@@ -2703,6 +2703,8 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.LeaveGroupConfigurationName)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.MaxDaysPerReq).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.MinDaysPerReq).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.RoundOffValue).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UpdatedUtc)
                 .HasColumnType("datetime")

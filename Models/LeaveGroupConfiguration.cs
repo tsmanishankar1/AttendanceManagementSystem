@@ -21,9 +21,9 @@ public partial class LeaveGroupConfiguration
 
     public int MaxAccountYears { get; set; }
 
-    public int MaxDaysPerReq { get; set; }
+    public decimal? MaxDaysPerReq { get; set; }
 
-    public int MinDaysPerReq { get; set; }
+    public decimal? MinDaysPerReq { get; set; }
 
     public bool ProRata { get; set; }
 
