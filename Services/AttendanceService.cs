@@ -22,9 +22,10 @@ public class AttendanceService
     }
     public async Task<SmaxTransactionResponse?> GetCheckInCheckOutAsync(int staffId)
     {
+        var today1 = DateOnly.FromDateTime(DateTime.Today);
         var staff = await _attendanceContext.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
         if (staff == null) throw new MessageNotFoundException("Staff not found");
-        var assignedShift = await _attendanceContext.AssignShifts.Where(a => a.StaffId == staffId && a.IsActive).OrderByDescending(a => a.FromDate).FirstOrDefaultAsync();
+        var assignedShift = await _attendanceContext.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == staffId && a.FromDate == today1 && a.IsActive);
         var shift = assignedShift != null ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.Id == assignedShift.ShiftId && s.IsActive) : null;
         string shiftName = shift?.Name ?? "Not Assigned";
         TimeSpan? fromTime = TimeSpan.TryParse(shift?.StartTime, out var from) ? from : (TimeSpan?)null;

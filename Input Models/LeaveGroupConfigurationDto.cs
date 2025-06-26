@@ -13,8 +13,8 @@ namespace AttendanceManagement.Input_Models
         public bool? CarryForward { get; set; }
         public int? MaxAccountDays { get; set; }
         public int? MaxAccountYears { get; set; }
-        public int? MaxDaysPerReq { get; set; }
-        public int? MinDaysPerReq { get; set; }
+        public decimal? MaxDaysPerReq { get; set; }
+        public decimal? MinDaysPerReq { get; set; }
         public bool? ProRata { get; set; }
         public int? ElgInMonths { get; set; }
         public bool? IsCalcToWorkingDays { get; set; }
@@ -42,8 +42,8 @@ namespace AttendanceManagement.Input_Models
         public bool CarryForward { get; set; }
         public int MaxAccountDays { get; set; }
         public int MaxAccountYears { get; set; }
-        public int MaxDaysPerReq { get; set; }
-        public int MinDaysPerReq { get; set; }
+        public decimal MaxDaysPerReq { get; set; }
+        public decimal MinDaysPerReq { get; set; }
         public bool ProRata { get; set; }
         public int ElgInMonths { get; set; }
         public bool IsCalcToWorkingDays { get; set; }
@@ -72,8 +72,8 @@ namespace AttendanceManagement.Input_Models
         public bool? CarryForward { get; set; }
         public int? MaxAccountDays { get; set; }
         public int? MaxAccountYears { get; set; }
-        public int? MaxDaysPerReq { get; set; }
-        public int? MinDaysPerReq { get; set; }
+        public decimal? MaxDaysPerReq { get; set; }
+        public decimal? MinDaysPerReq { get; set; }
         public bool? ProRata { get; set; }
         public int? ElgInMonths { get; set; }
         public bool? IsCalcToWorkingDays { get; set; }

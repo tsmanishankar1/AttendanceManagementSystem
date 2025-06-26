@@ -665,7 +665,7 @@ public class ApplicationService
                 StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}"
             })
             .FirstOrDefaultAsync();
-        if (staff == null) throw new MessageNotFoundException("Staff not found.");
+        if (staff == null) throw new MessageNotFoundException("Staff not found");
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
         var allDates = Enumerable.Range(0, (endDate - startDate).Days + 1)
@@ -682,7 +682,6 @@ public class ApplicationService
                                            LoginTime = a.FirstIn,
                                            LogoutTime = a.LastOut,
                                            a.ShiftId,
-                                           ShiftName = shift != null ? shift.Name : "No Shift Assigned",
                                            TotalHoursWorked = a.LastOut.HasValue && a.FirstIn.HasValue
                                                ? (a.LastOut.Value - a.FirstIn.Value).TotalHours
                                                : 0
@@ -700,6 +699,18 @@ public class ApplicationService
                 lr.Reason
             })
             .ToListAsync();
+        var assignedShift = await(from sh in _context.AssignShifts
+                                  where sh.StaffId == staffId && sh.IsActive &&
+                                        sh.FromDate >= DateOnly.FromDateTime(startDate) &&
+                                        sh.FromDate <= DateOnly.FromDateTime(endDate)
+                                  select new
+                                  {
+                                      Date = sh.FromDate,
+                                      ShiftName = sh.Shift.Name,
+                                      ShiftStartTime = sh.Shift.StartTime,
+                                      ShiftEndTime = sh.Shift.EndTime
+                                  }).ToListAsync();
+
         var workFromHomeRecords = await _context.WorkFromHomes
             .Where(wfh => (wfh.StaffId != null ? wfh.StaffId == staffId : wfh.CreatedBy == staffId) &&
                           ((wfh.FromDate.HasValue && wfh.FromDate.Value <= DateOnly.FromDateTime(endDate)) &&
@@ -815,7 +826,7 @@ public class ApplicationService
             var compOff = compOffRecords.Any(co => dateOnly >= co.FromDate && dateOnly <= co.ToDate);
             var weeklyOff = weeklyOffRecords.FirstOrDefault(wo => wo.TxnDate == dateOnly);
             var holiday = holidayRecords.FirstOrDefault(h => h.Transactions.Any(t => dateOnly >= t.FromDate && dateOnly <= t.ToDate));
-
+            var shift = assignedShift.FirstOrDefault(s => s.Date >= startDateOnly && s.Date <= endDateOnly);
             result.Add(new
             {
                 date = date.ToString("yyyy-MM-dd"),
@@ -825,7 +836,7 @@ public class ApplicationService
                 login = attendance?.LoginTime?.ToString("hh:mm tt") ?? "00:00:000",
                 logout = attendance?.LogoutTime?.ToString("hh:mm tt") ?? "00:00:000",
                 totalHoursWorked = attendance?.TotalHoursWorked != null ? Math.Round(attendance.TotalHoursWorked, 2) : 0.00,
-                shiftName = attendance?.ShiftName,
+                shiftName = shiftForDate.Name,
                 workFromHome,
                 leaveTypeName = leave?.LeaveTypeName,
                 onDuty,

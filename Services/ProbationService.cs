@@ -357,7 +357,11 @@ namespace AttendanceManagement.Services
                 (approver.Id, $"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}", probation.ProbationStartDate,
                 probation.ProbationEndDate, null, feedbackRequest.IsApproved, $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}",
                 approvedTime, feedbackRequest.CreatedBy);
-            }
+/*                await _emailService.SendProbationConfirmationNotificationToStaffAsync
+                (approver.Id, $"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}", probation.ProbationStartDate,
+                probation.ProbationEndDate, null, feedbackRequest.IsApproved, $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}",
+                approvedTime, feedbackRequest.CreatedBy);
+*/            }
             else
             {
                 message = "Probation period has been extended successfully.";
@@ -385,7 +389,11 @@ namespace AttendanceManagement.Services
                 (approver.Id, $"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}",
                 probation.ProbationStartDate, effectiveEndDate, feedbackRequest.ExtensionPeriod, feedbackRequest.IsApproved,
                 $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}", approvedTime, feedbackRequest.CreatedBy);
-            }
+/*                await _emailService.SendProbationConfirmationNotificationToStaffAsync
+                (approver.Id, $"{probationer.FirstName}{(string.IsNullOrWhiteSpace(probationer.LastName) ? "" : " " + probationer.LastName)}", probation.ProbationStartDate,
+                probation.ProbationEndDate, null, feedbackRequest.IsApproved, $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}",
+                approvedTime, feedbackRequest.CreatedBy);
+*/            }
             await _context.SaveChangesAsync();
             return message;
         }
@@ -515,6 +523,7 @@ namespace AttendanceManagement.Services
             };
             await _context.LetterGenerations.AddAsync(letterGeneration);
             await _context.SaveChangesAsync();
+            //await _emailService.ProbationProcessCompleted(staffCreationId, name, hrConfirmation.CreatedBy);
             return pdfPath;
         }
 
@@ -522,7 +531,7 @@ namespace AttendanceManagement.Services
         {
             var letterGenerations = await (from letter in _context.LetterGenerations
                                            join staff in _context.StaffCreations on letter.StaffCreationId equals staff.Id
-                                           where letter.StaffCreationId == staffId && letter.IsActive
+                                           where letter.StaffCreationId == staffId && letter.CreatedUtc.Year == DateTime.UtcNow.Year && letter.IsActive
                                            select new GeneratedLetterResponse
                                            {
                                                Id = letter.Id,
