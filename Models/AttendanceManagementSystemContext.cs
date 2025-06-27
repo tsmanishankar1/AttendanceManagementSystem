@@ -5177,6 +5177,11 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
+            entity.HasOne(d => d.ColorCode).WithMany(p => p.StatusDropdowns)
+                .HasForeignKey(d => d.ColorCodeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Attandance_Status_Color");
+
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StatusDropdownCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)

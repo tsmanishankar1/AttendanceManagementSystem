@@ -768,10 +768,18 @@ public class ApplicationService
            x.Shift.EndTime
        })
        .ToListAsync();
-        var statusColors = await _context.AttendanceStatusColors
-            .Where(c => c.IsActive)
-            .Select(c => new { c.Id, c.Name })
-            .ToListAsync();
+        var statusColors = await (
+            from asc in _context.AttendanceStatusColors
+            join sd in _context.StatusDropdowns
+                on asc.Name equals sd.Name
+            where asc.IsActive && sd.IsActive
+            select new
+            {
+                StatusId = asc.Id,
+                StatusName = asc.Name,
+                ShortName = asc.ShortName,
+                ColorCode = asc.ColourCode,
+            }).ToListAsync();
         var result = new List<object>();
         foreach (var date in allDates)
         {
@@ -780,43 +788,19 @@ public class ApplicationService
             var attendance = attendanceRecords.FirstOrDefault(a => a.LoginTime.HasValue && a.LogoutTime.HasValue && a.LoginTime.Value.Date == date);
             var todayDateOnly = DateOnly.FromDateTime(DateTime.Today);
             var attendanceRecord = await _context.AttendanceRecords.FirstOrDefaultAsync(a => !a.IsDeleted && a.AttendanceDate == dateOnly && a.StaffId == staffId);
-            int? color = null;
             string statusName = "Unprocessed";
+            string colorCode = "#ffffff";
+            string shortName = "UN";
             if (attendanceRecord != null)
             {
                 var status = await _context.StatusDropdowns.FirstOrDefaultAsync(s => s.Id == attendanceRecord.StatusId && s.IsActive);
-                if (status == null)
-                {
-                    if (dateOnly > todayDateOnly)
-                        statusName = "Unprocessed";
-                    else if (dateOnly == todayDateOnly)
-                        statusName = "Not Updated";
-                    else
-                        statusName = "Absent";
-                }
-                else
-                {
-                    statusName = status.Name;
-                }
-                if (!string.IsNullOrEmpty(statusName))
-                {
-                    var map = new Dictionary<string, string[]>
-                    {
-                        ["Leave"] = new[] { "Casual Leave", "Sick Leave", "Paternity Leave", "Marriage Leave", "Medical Leave", "Bereavement Leave", "Maternity Leave", "Non Confirmed Leave", "First Half Casual Leave", "Second Half Casual Leave", "First Half Sick Leave", "Second Half Sick Leave", "First Half Non Confirmed Leave", "Second Half Non Confirmed Leave" },
-                        ["Work From Home"] = new[] { "Work From Home", "First Half Work From Home", "Second Half Work From Home" },
-                        ["On Duty"] = new[] { "On Duty", "First Half On Duty", "Second Half On Duty" },
-                        ["Comp Off"] = new[] { "Comp-Off", "First Half Comp-Off", "Second Half Comp-Off" }
-                    };
-                    foreach (var group in map)
-                    {
-                        if (group.Value.Contains(statusName))
-                        {
-                            statusName = group.Key;
-                            break;
-                        }
-                    }
+                statusName = status?.Name ?? "Unprocessed";
 
-                    color = statusColors.FirstOrDefault(c => c.Name == statusName)?.Id;
+                var colorEntry = statusColors.FirstOrDefault(c => c.StatusName == statusName);
+                if (colorEntry != null)
+                {
+                    colorCode = colorEntry.ColorCode;
+                    shortName = colorEntry.ShortName;
                 }
             }
             var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);
@@ -832,7 +816,8 @@ public class ApplicationService
                 date = date.ToString("yyyy-MM-dd"),
                 day = date.DayOfWeek.ToString(),
                 status = statusName,
-                statusColorId = color,
+                shortName = shortName,
+                colorCode = colorCode,
                 login = attendance?.LoginTime?.ToString("hh:mm tt") ?? "00:00:000",
                 logout = attendance?.LogoutTime?.ToString("hh:mm tt") ?? "00:00:000",
                 totalHoursWorked = attendance?.TotalHoursWorked != null ? Math.Round(attendance.TotalHoursWorked, 2) : 0.00,
@@ -1889,32 +1874,22 @@ public class ApplicationService
                                                  && reimbursement.IsCancelled == null
                                                  && (fromDate == null || reimbursement.BillDate >= fromDate)
                                                  && (toDate == null || reimbursement.BillDate <= toDate)
-                                                 && (staffIds == null || !staffIds.Any() || staffIds.Contains(staffIdToUse))
+                                                 && (staffIds == null || !staffIds.Any() || (staffIds.Contains(reimbursement.StaffId ?? reimbursement.CreatedBy)))
                                                  && (isSuperAdmin || approverId < 0 ||
+                                                     ((
+                                                         (reimbursement.StaffId.HasValue && staff.ApprovalLevel1 == approverId &&
+                                                          reimbursement.Status1 == null && reimbursement.ApplicationTypeId == 18) ||
+                                                         (!reimbursement.StaffId.HasValue && creatorStaff.ApprovalLevel1 == approverId &&
+                                                          reimbursement.Status1 == null && reimbursement.ApplicationTypeId == 18)
+                                                     ) ||
                                                      (
-                                                         (
-                                                             reimbursement.StaffId.HasValue &&
-                                                             staff.ApprovalLevel1 == approverId &&
-                                                             reimbursement.Status1 == null
-                                                         ) ||
-                                                         (
-                                                             !reimbursement.StaffId.HasValue &&
-                                                             creatorStaff.ApprovalLevel1 == approverId &&
-                                                             reimbursement.Status1 == null
-                                                         ) ||
-                                                         (
-                                                             reimbursement.StaffId.HasValue &&
-                                                             staff.ApprovalLevel2 == approverId &&
-                                                             reimbursement.Status1 == true &&
-                                                             reimbursement.Status2 == null
-                                                         ) ||
-                                                         (
-                                                             !reimbursement.StaffId.HasValue &&
-                                                             creatorStaff.ApprovalLevel2 == approverId &&
-                                                             reimbursement.Status1 == true &&
-                                                             reimbursement.Status2 == null
-                                                         )
-                                                     ))
+                                                         (reimbursement.StaffId.HasValue && staff.ApprovalLevel2 == approverId &&
+                                                          reimbursement.Status1 == true && reimbursement.Status2 == null &&
+                                                          reimbursement.ApplicationTypeId == 18) ||
+                                                         (!reimbursement.StaffId.HasValue && creatorStaff.ApprovalLevel2 == approverId &&
+                                                          reimbursement.Status1 == true && reimbursement.Status2 == null &&
+                                                          reimbursement.ApplicationTypeId == 18)
+                                                     )))
                                            orderby reimbursement.Id descending
                                            select new
                                            {
@@ -1925,11 +1900,10 @@ public class ApplicationService
                                                reimbursement.BillPeriod,
                                                reimbursement.Amount,
                                                reimbursement.UploadFilePath,
-                                               ReimbursementType = reimbursementType.Name,
-                                               StaffId = staffIdToUse,
-                                               StaffName = reimbursement.StaffId.HasValue
-                                                   ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
-                                                   : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
+                                               reimbursementType.Name,
+                                               StaffId = reimbursement.StaffId ?? reimbursement.CreatedBy,
+                                               StaffName = reimbursement.StaffId.HasValue ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
+                                               : $"{creatorStaff.FirstName} {(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                reimbursement.Status1,
                                                reimbursement.Status2,
                                                reimbursement.CreatedUtc,
@@ -1940,7 +1914,6 @@ public class ApplicationService
             {
                 throw new MessageNotFoundException("No Reimbursement requisitions found");
             }
-
             result.AddRange(getReimbursements.Cast<object>());
         }
         return result;
