@@ -836,7 +836,7 @@ public class ApplicationService
                 login = attendance?.LoginTime?.ToString("hh:mm tt") ?? "00:00:000",
                 logout = attendance?.LogoutTime?.ToString("hh:mm tt") ?? "00:00:000",
                 totalHoursWorked = attendance?.TotalHoursWorked != null ? Math.Round(attendance.TotalHoursWorked, 2) : 0.00,
-                shiftName = shiftForDate.Name,
+                shiftName = shiftForDate?.Name,
                 workFromHome,
                 leaveTypeName = leave?.LeaveTypeName,
                 onDuty,
