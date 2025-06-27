@@ -25,5 +25,7 @@ public partial class AttendanceStatusColor
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
+    public virtual ICollection<StatusDropdown> StatusDropdowns { get; set; } = new List<StatusDropdown>();
+
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }
