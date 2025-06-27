@@ -726,6 +726,10 @@ namespace AttendanceManagement.Services
                 await _context.SaveChangesAsync();
 
                 await _emailService.SendAppraisalEmailAsync(staff.PersonalEmail, appraisal.EmployeeName, pdfBytes, fileName, createdBy);
+                appraisalSheet.IsActive = false;
+                appraisalSheet.UpdatedBy = createdBy;
+                appraisalSheet.UpdatedUtc = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
             return "Appraisal letter generated and email sent successfully";
         }
