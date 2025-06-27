@@ -440,8 +440,6 @@ namespace AttendanceManagement.Services
             if (!companyId) throw new MessageNotFoundException("Company not found");
             var locationId = await _context.LocationMasters.AnyAsync(d => d.Id == staffInput.LocationMasterId && d.IsActive);
             if (!locationId) throw new MessageNotFoundException("Location not found");
-            var gradeId = await _context.GradeMasters.AnyAsync(d => d.Id == staffInput.GradeId && d.IsActive);
-            if (!gradeId) throw new MessageNotFoundException("Grade not found");
             var categoryId = await _context.CategoryMasters.AnyAsync(d => d.Id == staffInput.CategoryId && d.IsActive);
             if (!categoryId) throw new MessageNotFoundException("Category not found");
             var workStationId = await _context.WorkstationMasters.AnyAsync(d => d.Id == staffInput.WorkStationId && d.IsActive);
@@ -574,8 +572,6 @@ namespace AttendanceManagement.Services
             if (!companyId) throw new MessageNotFoundException("Company not found");
             var locationId = await _context.LocationMasters.AnyAsync(d => d.Id == updatedStaff.LocationMasterId && d.IsActive);
             if (!locationId) throw new MessageNotFoundException("Location not found");
-            var gradeId = await _context.GradeMasters.AnyAsync(d => d.Id == updatedStaff.GradeId && d.IsActive);
-            if (!gradeId) throw new MessageNotFoundException("Grade not found");
             var categoryId = await _context.CategoryMasters.AnyAsync(d => d.Id == updatedStaff.CategoryId && d.IsActive);
             if (!categoryId) throw new MessageNotFoundException("Category not found");
             var workStationId = await _context.WorkstationMasters.AnyAsync(d => d.Id == updatedStaff.WorkStationId && d.IsActive);
