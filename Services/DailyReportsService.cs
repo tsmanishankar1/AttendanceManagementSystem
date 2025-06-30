@@ -73,7 +73,7 @@ public class DailyReportsService
         //    fromDate = DateOnly.FromDateTime(request.FromDateTime.Value);
         //    toDate = DateOnly.FromDateTime(request.ToDateTime.Value);
         //}
-      
+
         else if (request.FromDateTime.HasValue && request.ToDateTime.HasValue)
         {
             fromDateTime = request.FromDateTime.Value;
@@ -1332,7 +1332,7 @@ public class DailyReportsService
                     Name = report.Name,
                     Department = report.Department,
                     Designation = report.Designation,
-                    ShiftId = report.ShiftId,
+                    ShiftName = report.ShiftName,
                     TxnDate = report.TxnDate,
                     DurationOfHoursExtension = report.DurationOfHoursExtension,
                     HoursBeforeShift = report.HoursBeforeShift,
