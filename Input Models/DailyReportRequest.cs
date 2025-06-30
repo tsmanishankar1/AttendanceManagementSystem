@@ -57,7 +57,7 @@ namespace AttendanceManagement.Input_Models
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public DateOnly? TransactionDate { get; set; }
-        public int AttendanceStatus { get; set; }
+        public string AttendanceStatus { get; set; } = null!;
     }
 
     public class ContinuousAbsentListResponse
@@ -130,7 +130,7 @@ namespace AttendanceManagement.Input_Models
         public TimeOnly? InTime { get; set; }
         public TimeOnly? OutTime { get; set; }
         public TimeOnly? TotalHoursWorked { get; set; }
-        public int AttendanceStatus { get; set; }
+        public string AttendanceStatus { get; set; } = null!;
     }
 
     public class DailyPerformanceResponse
@@ -148,7 +148,7 @@ namespace AttendanceManagement.Input_Models
         public decimal? BreakHours { get; set; }
         public bool? IsBreakHoursExceeded { get; set; }
         public decimal? ProductiveHours { get; set; }
-        public int AttendanceStatus { get; set; }
+        public string AttendanceStatus { get; set; } = null!;
         public string EarlyEntry { get; set; } = null!;
         public string LateEntry { get; set; } = null!;
         public string EarlyExit { get; set; } = null!;
@@ -294,13 +294,13 @@ namespace AttendanceManagement.Input_Models
 
     public class WeeklyOffHolidayWorkingResponse
     {
-        public int StaffId { get; set; }  
+        public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string Department { get; set; } = null!;  
-        public string Designation { get; set; } = null!;  
-        public DateTime? AttendanceDate { get; set; } 
-        public DateTime? ShiftIn { get; set; }  
+        public string Department { get; set; } = null!;
+        public string Designation { get; set; } = null!;
+        public DateTime? AttendanceDate { get; set; }
+        public DateTime? ShiftIn { get; set; }
         public DateTime? ShiftOut { get; set; }
         public string? AppliedOn { get; set; }
         public string? Approval1Status { get; set; }
@@ -309,8 +309,8 @@ namespace AttendanceManagement.Input_Models
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public int? Approved2By { get; set; }
-        public string? IsCancelled { get; set; }  
-        public string? CancelledOn { get; set; }  
+        public string? IsCancelled { get; set; }
+        public string? CancelledOn { get; set; }
         public int? CancelledBy { get; set; }
     }
 
@@ -322,7 +322,7 @@ namespace AttendanceManagement.Input_Models
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public DateOnly? Date { get; set; }
-        public int AttendanceStatus { get;set; }
+        public string AttendanceStatus { get; set; } = null!;
     }
 
     public class OnDutyRequisitionResponse
@@ -461,7 +461,7 @@ namespace AttendanceManagement.Input_Models
         public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public int ShiftId { get; set; }
+        public string ShiftName { get; set; } = null!;
         public string TxnDate { get; set; } = null!;
         public string DurationOfHoursExtension { get; set; } = null!;
         public string HoursBeforeShift { get; set; } = null!;

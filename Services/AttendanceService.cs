@@ -27,7 +27,7 @@ public class AttendanceService
         if (staff == null) throw new MessageNotFoundException("Staff not found");
         var assignedShift = await _attendanceContext.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == staffId && a.FromDate == today1 && a.IsActive);
         var shift = assignedShift != null ? await _attendanceContext.Shifts.FirstOrDefaultAsync(s => s.Id == assignedShift.ShiftId && s.IsActive) : null;
-        string shiftName = shift?.Name ?? "Not Assigned";
+        string shiftName = shift?.Name ?? "Shift Not Assigned";
         TimeSpan? fromTime = TimeSpan.TryParse(shift?.StartTime, out var from) ? from : (TimeSpan?)null;
         TimeSpan? toTime = TimeSpan.TryParse(shift?.EndTime, out var to) ? to : (TimeSpan?)null;
         var today = DateTime.Today;
