@@ -10,7 +10,7 @@ namespace AttendanceManagement.InputModels
         public string GroupName { get; set; } = null!;
         public int CalendarYear { get; set; }
         public bool Currents { get; set; }
-        public string? ShiftType { get; set; }
+        public int? ShiftTypeId { get; set; }
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
         public List<HolidayCalendarTransactionDto> Transactions { get; set; } = new List<HolidayCalendarTransactionDto>();

@@ -121,14 +121,13 @@ namespace AttendanceManagement.Services
         public async Task<List<HolidayConfigurationResponse>> GetAllHolidayCalendarsAsync()
         {
             var allHolidays = await (from holiday in _context.HolidayCalendarConfigurations
-                                     join shift in _context.ShiftTypeDropDowns on holiday.ShiftTypeId equals shift.Id
                                      select new
                                      {
                                          holiday.Id,
                                          holiday.Name,
                                          holiday.CalendarYear,
                                          holiday.Currents,
-                                         ShiftTypeName = shift.Name,
+                                         holiday.ShiftTypeId,
                                          holiday.IsActive,
                                          holiday.CreatedBy
                                      })
@@ -143,7 +142,7 @@ namespace AttendanceManagement.Services
                 GroupName = holiday.Name,
                 CalendarYear = holiday.CalendarYear,
                 Currents = holiday.Currents,
-                ShiftType = holiday.ShiftTypeName,
+                ShiftTypeId = holiday.ShiftTypeId,
                 IsActive = holiday.IsActive,
                 CreatedBy = holiday.CreatedBy,
                 Transactions = (from holidayTran in _context.HolidayCalendarTransactions
@@ -230,7 +229,7 @@ namespace AttendanceManagement.Services
                                         HolidayCalendarName = holidayCalendar.Name,
                                         IsActive = holiday.IsActive,
                                         CreatedBy = holiday.CreatedBy
-                                    })
+                                    }).AsNoTracking()
                               .ToListAsync();
             if (allHoliday.Count == 0)
             {

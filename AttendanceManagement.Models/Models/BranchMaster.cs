@@ -19,7 +19,7 @@ public partial class BranchMaster
 
     public string Country { get; set; } = null!;
 
-    public int PostalCode { get; set; }
+    public long PostalCode { get; set; }
 
     public long PhoneNumber { get; set; }
 

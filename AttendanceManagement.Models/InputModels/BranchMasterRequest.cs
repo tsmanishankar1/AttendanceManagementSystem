@@ -19,7 +19,7 @@ namespace AttendanceManagement.InputModels
         public string State { get; set; } = null!;
         [MaxLength(50)]
         public string Country { get; set; } = null!;
-        public int PostalCode { get; set; }
+        public long PostalCode { get; set; }
         public long PhoneNumber { get; set; }
         [MaxLength(100)]
         public string? Fax { get; set; }
@@ -40,7 +40,7 @@ namespace AttendanceManagement.InputModels
         public string District { get; set; } = null!;
         public string State { get; set; } = null!;
         public string Country { get; set; } = null!;
-        public int PostalCode { get; set; }
+        public long PostalCode { get; set; }
         public long PhoneNumber { get; set; }
         public string? Fax { get; set; }
         public string? Email { get; set; }
@@ -69,7 +69,7 @@ namespace AttendanceManagement.InputModels
         public string State { get; set; } = null!;
         [MaxLength(50)]
         public string Country { get; set; } = null!;
-        public int PostalCode { get; set; }
+        public long PostalCode { get; set; }
         public long PhoneNumber { get; set; }
         [MaxLength(100)]
         public string? Fax { get; set; }
