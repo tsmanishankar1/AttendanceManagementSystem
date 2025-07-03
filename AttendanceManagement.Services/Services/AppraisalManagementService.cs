@@ -32,11 +32,6 @@ namespace AttendanceManagement.Services
 
         public async Task<List<object>> GetProductionEmployees(int appraisalId, int year, string quarter)
         {
-            var agmApprovedEmpIds = await (
-                from per in _context.EmployeePerformanceReviews
-                join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId
-                where agm.IsAgmApproved == true && per.AppraisalId == appraisalId
-                select per.EmpId).Distinct().ToListAsync();
             if (appraisalId == 1)
             {
                 var grouped = await (
@@ -44,20 +39,17 @@ namespace AttendanceManagement.Services
                     join division in _context.DivisionMasters on staff.DivisionId equals division.Id
                     join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
                     join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId)
-                        on staff.StaffId equals selected.EmployeeId into selectedJoin
+                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
                     from selected in selectedJoin.DefaultIfEmpty()
-                    join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId)
-                        on staff.StaffId equals per.EmpId into perJoin
+                    join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
-                    join agm in _context.AgmApprovals
-                        on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
+                    join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
                     from agm in agmJoin.DefaultIfEmpty()
                     where staff.IsActive == true
                           && division.IsActive
                           && department.IsActive
                           && !staff.IsNonProduction
-                          && (selected == null || selected.Year != year || selected.Quarter != quarter)
+                          && !(selected != null && selected.Year == year && selected.Quarter == quarter)
                     select new AppraisalDto
                     {
                         StaffId = staff.Id,
@@ -67,7 +59,7 @@ namespace AttendanceManagement.Services
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
-                        IsCompleted = selected.IsCompleted
+                        IsCompleted = selected != null && selected.Year == year && selected.Quarter == quarter ? selected.IsCompleted : null
                     })
                     .ToListAsync();
 
@@ -90,7 +82,7 @@ namespace AttendanceManagement.Services
                     join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
                     from agm in agmJoin.DefaultIfEmpty()
                     where staff.IsActive == true && division.IsActive && department.IsActive && !staff.IsNonProduction && staff.OrganizationTypeId == 1
-                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && (selected == null || selected.Year != year || selected.Quarter != quarter)
+                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && !(selected != null && selected.Year == year && selected.Quarter == quarter)
                     select new ProbationDto
                     {
                         StaffId = staff.Id,
@@ -100,7 +92,7 @@ namespace AttendanceManagement.Services
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
-                        IsCompleted = selected.IsCompleted
+                        IsCompleted = selected != null && selected.Year == year && selected.Quarter == quarter ? selected.IsCompleted : null
                     })
                     .ToListAsync();
                 if (grouped.Count == 0 || !grouped.Any()) throw new MessageNotFoundException("No employees found");
@@ -864,7 +856,7 @@ namespace AttendanceManagement.Services
                           && division.IsActive
                           && department.IsActive
                           && staff.IsNonProduction
-                          && (selected == null || selected.Year != year || selected.Quarter != quarter)
+                          && !(selected != null && selected.Year == year && selected.Quarter == quarter)
                     select new AppraisalDto
                     {
                         StaffId = staff.Id,
@@ -874,7 +866,7 @@ namespace AttendanceManagement.Services
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
-                        IsCompleted = selected.IsCompleted
+                        IsCompleted = selected != null && selected.Year == year && selected.Quarter == quarter ? selected.IsCompleted : null
                     })
                     .ToListAsync();
 
@@ -895,7 +887,7 @@ namespace AttendanceManagement.Services
                     join per in _context.NonProductionEmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
                     where staff.IsActive == true && division.IsActive && department.IsActive && staff.IsNonProduction && staff.OrganizationTypeId == 1
-                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && (selected == null || selected.Year != year || selected.Quarter != quarter)
+                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && !(selected != null && selected.Year == year && selected.Quarter == quarter)
                     select new ProbationDto
                     {
                         StaffId = staff.Id,
@@ -905,7 +897,7 @@ namespace AttendanceManagement.Services
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
-                        IsCompleted = selected.IsCompleted
+                        IsCompleted = selected != null && selected.Year == year && selected.Quarter == quarter ? selected.IsCompleted : null
                     })
                     .ToListAsync();
                 if (grouped.Count == 0 || !grouped.Any()) throw new MessageNotFoundException("No employees found");

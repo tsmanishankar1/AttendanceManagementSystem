@@ -45,7 +45,7 @@ public class ApplicationService : IApplicationService
                 entity = await _context.WorkFromHomes.FirstOrDefaultAsync(w => w.Id == cancel.Id && w.IsActive);
                 break;
             case 7:
-                entity = await _context.ShiftChanges.FirstOrDefaultAsync(s => s.Id == cancel.Id && s.IsActive);
+                entity = await _context.ShiftChanges.AsNoTracking().FirstOrDefaultAsync(s => s.Id == cancel.Id && s.IsActive);
                 break;
             case 8:
                 entity = await _context.ShiftExtensions.FirstOrDefaultAsync(se => se.Id == cancel.Id && se.IsActive);
@@ -690,7 +690,8 @@ public class ApplicationService : IApplicationService
         var leaveRecords = await _context.LeaveRequisitions
             .Where(lr => (lr.StaffId != null ? lr.StaffId == staffId : lr.CreatedBy == staffId) &&
                          (lr.FromDate <= DateOnly.FromDateTime(endDate) &&
-                          lr.ToDate >= DateOnly.FromDateTime(startDate)) && !lr.IsActive)
+                          lr.ToDate >= DateOnly.FromDateTime(startDate)) && !lr.IsActive &&
+                          ((lr.Staff.ApprovalLevel2 != null && lr.Status1 == true && lr.Status2 == true) || (lr.Staff.ApprovalLevel2 == null && lr.Status1 == true)))
             .Select(lr => new
             {
                 lr.FromDate,
@@ -714,7 +715,8 @@ public class ApplicationService : IApplicationService
         var workFromHomeRecords = await _context.WorkFromHomes
             .Where(wfh => (wfh.StaffId != null ? wfh.StaffId == staffId : wfh.CreatedBy == staffId) &&
                           ((wfh.FromDate.HasValue && wfh.FromDate.Value <= DateOnly.FromDateTime(endDate)) &&
-                           (wfh.ToDate.HasValue && wfh.ToDate.Value >= DateOnly.FromDateTime(startDate))) && !wfh.IsActive)
+                           (wfh.ToDate.HasValue && wfh.ToDate.Value >= DateOnly.FromDateTime(startDate))) && !wfh.IsActive &&
+                          ((wfh.Staff.ApprovalLevel2 != null && wfh.Status1 == true && wfh.Status2 == true) || (wfh.Staff.ApprovalLevel2 == null && wfh.Status1 == true)))
             .Select(wfh => new
             {
                 wfh.FromDate,
@@ -726,24 +728,33 @@ public class ApplicationService : IApplicationService
         var endDateOnly = DateOnly.FromDateTime(endDate);
         var onDutyRecords = await _context.OnDutyRequisitions
             .Where(od => (od.StaffId != null ? od.StaffId == staffId : od.CreatedBy == staffId) &&
-                         (od.StartDate <= endDateOnly && od.EndDate >= startDateOnly) && !od.IsActive)
+                         od.StartDate <= endDateOnly && od.EndDate >= startDateOnly && !od.IsActive &&
+                         ((od.Staff.ApprovalLevel2 != null && od.Status1 == true && od.Status2 == true) || (od.Staff.ApprovalLevel2 == null && od.Status1 == true)))
             .Select(od => new { od.StartDate, od.EndDate, od.Reason })
             .ToListAsync();
         var businessTravelRecords = await _context.BusinessTravels
             .Where(bt => (bt.StaffId != null ? bt.StaffId == staffId : bt.CreatedBy == staffId) &&
-                         (bt.FromDate <= endDateOnly && bt.ToDate >= startDateOnly) && !bt.IsActive)
+                         bt.FromDate <= endDateOnly && bt.ToDate >= startDateOnly && !bt.IsActive &&
+                         ((bt.Staff.ApprovalLevel2 != null && bt.Status1 == true && bt.Status2 == true) || (bt.Staff.ApprovalLevel2 == null && bt.Status1 == true)))
             .Select(bt => new { bt.FromDate, bt.ToDate, bt.Reason })
             .ToListAsync();
         var compOffRecords = await _context.CompOffAvails
             .Where(co => (co.StaffId != null ? co.StaffId == staffId : co.CreatedBy == staffId) &&
-                         (co.FromDate <= endDateOnly && co.ToDate >= startDateOnly) && !co.IsActive)
+                         co.FromDate <= endDateOnly && co.ToDate >= startDateOnly && !co.IsActive &&
+                         ((co.Staff.ApprovalLevel2 != null && co.Status1 == true && co.Status2 == true) || (co.Staff.ApprovalLevel2 == null && co.Status1 == true)))
             .Select(co => new { co.FromDate, co.ToDate })
             .ToListAsync();
-        var weeklyOffRecords = await _context.WeeklyOffHolidayWorkings
-            .Where(wo => (wo.StaffId != null ? wo.StaffId == staffId : wo.CreatedBy == staffId) &&
-                         wo.TxnDate.Month == month && wo.TxnDate.Year == year)
-            .Select(wo => new { wo.TxnDate, wo.ShiftInTime, wo.ShiftOutTime })
-            .ToListAsync();
+        var weeklyOffRecords = await _context.AssignShifts
+       .Include(x => x.Shift)
+       .Where(x => x.StaffId == staffId && x.IsActive && x.Shift.IsActive && x.FromDate >= startDateOnly && x.FromDate <= endDateOnly && x.ShiftId == 18)
+       .Select(x => new
+       {
+           Date = x.FromDate,
+           x.Shift.Name,
+           x.Shift.StartTime,
+           x.Shift.EndTime
+       })
+       .ToListAsync();
         var holidayRecords = await _context.HolidayMasters
             .Include(hm => hm.HolidayCalendarTransactions)
             .Where(hm => hm.HolidayCalendarTransactions.Any(x => ((x.FromDate.Month == month && x.FromDate.Year == year) || (x.ToDate.Month == month && x.ToDate.Year == year))))
@@ -791,7 +802,85 @@ public class ApplicationService : IApplicationService
             string statusName = "Unprocessed";
             string colorCode = "#ffffff";
             string shortName = "UN";
-            if (attendanceRecord != null)
+            var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);
+            var workFromHome = workFromHomeRecords.Any(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
+            var onDuty = onDutyRecords.Any(od => dateOnly >= od.StartDate && dateOnly <= od.EndDate);
+            var businessTravel = businessTravelRecords.Any(bt => dateOnly >= bt.FromDate && dateOnly <= bt.ToDate);
+            var compOff = compOffRecords.Any(co => dateOnly >= co.FromDate && dateOnly <= co.ToDate);
+            var weeklyOff = weeklyOffRecords.FirstOrDefault(wo => wo.Date == dateOnly);
+            var holiday = holidayRecords.FirstOrDefault(h => h.Transactions.Any(t => dateOnly >= t.FromDate && dateOnly <= t.ToDate));
+            var shift = assignedShift.FirstOrDefault(s => s.Date >= startDateOnly && s.Date <= endDateOnly);
+            if (leave != null)
+            {
+                var leaveStatus = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 3);
+                if (leaveStatus != null)
+                {
+                    statusName = leaveStatus.Name;
+                    shortName = leaveStatus.ShortName;
+                    colorCode = leaveStatus?.ColourCode ?? "#f99da3";
+                }
+            }
+            else if (workFromHome)
+            {
+                var wfh = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 6);
+                if (wfh != null)
+                {
+                    statusName = wfh.Name;
+                    shortName = wfh.ShortName;
+                    colorCode = wfh?.ColourCode ?? "#ede7f6";
+                }
+            }
+            else if (onDuty)
+            {
+                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 7);
+                if (notUpdated != null)
+                {
+                    statusName = notUpdated.Name;
+                    shortName = notUpdated.ShortName;
+                    colorCode = notUpdated?.ColourCode ?? "rgb(134,194,230)";
+                }
+            }
+            else if (businessTravel)
+            {
+                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 8);
+                if (notUpdated != null)
+                {
+                    statusName = notUpdated.Name;
+                    shortName = notUpdated.ShortName;
+                    colorCode = notUpdated?.ColourCode ?? "#e3f2fd";
+                }
+            }
+            else if (compOff)
+            {
+                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 4);
+                if (notUpdated != null)
+                {
+                    statusName = notUpdated.Name;
+                    shortName = notUpdated.ShortName;
+                    colorCode = notUpdated?.ColourCode ?? "#e0f7fa";
+                }
+            }
+            else if (holiday != null)
+            {
+                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 5);
+                if (notUpdated != null)
+                {
+                    statusName = notUpdated.Name;
+                    shortName = notUpdated.ShortName;
+                    colorCode = notUpdated?.ColourCode ?? "#d9e3be";
+                }
+            }
+            else if (weeklyOff != null)
+            {
+                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 9);
+                if (notUpdated != null)
+                {
+                    statusName = notUpdated.Name;
+                    shortName = notUpdated.ShortName;
+                    colorCode = notUpdated?.ColourCode ?? "#f5e6c8";
+                }
+            }
+            else if (attendanceRecord != null)
             {
                 var status = await _context.StatusDropdowns.FirstOrDefaultAsync(s => s.Id == attendanceRecord.StatusId && s.IsActive);
                 statusName = status?.Name ?? "Unprocessed";
@@ -803,14 +892,16 @@ public class ApplicationService : IApplicationService
                     shortName = colorEntry.ShortName;
                 }
             }
-            var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);
-            var workFromHome = workFromHomeRecords.Any(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
-            var onDuty = onDutyRecords.Any(od => dateOnly >= od.StartDate && dateOnly <= od.EndDate);
-            var businessTravel = businessTravelRecords.Any(bt => dateOnly >= bt.FromDate && dateOnly <= bt.ToDate);
-            var compOff = compOffRecords.Any(co => dateOnly >= co.FromDate && dateOnly <= co.ToDate);
-            var weeklyOff = weeklyOffRecords.FirstOrDefault(wo => wo.TxnDate == dateOnly);
-            var holiday = holidayRecords.FirstOrDefault(h => h.Transactions.Any(t => dateOnly >= t.FromDate && dateOnly <= t.ToDate));
-            var shift = assignedShift.FirstOrDefault(s => s.Date >= startDateOnly && s.Date <= endDateOnly);
+            else if (dateOnly == DateOnly.FromDateTime(DateTime.Today))
+            {
+                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 10);
+                if (notUpdated != null)
+                {
+                    statusName = notUpdated.Name;
+                    shortName = notUpdated.ShortName;
+                    colorCode = notUpdated?.ColourCode ?? "#f0f0f0";
+                }
+            }
             result.Add(new
             {
                 date = date.ToString("yyyy-MM-dd"),

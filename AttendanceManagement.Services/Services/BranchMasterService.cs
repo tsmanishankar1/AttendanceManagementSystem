@@ -41,7 +41,6 @@ public class BranchMasterService : IBranchMasterService
                                    CreatedBy = b.CreatedBy
                                })
                           .ToListAsync();
-
         if (allBranch.Count == 0)
         {
             throw new MessageNotFoundException("No branches found");
