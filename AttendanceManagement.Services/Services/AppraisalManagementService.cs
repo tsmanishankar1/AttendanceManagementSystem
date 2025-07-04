@@ -745,7 +745,7 @@ namespace AttendanceManagement.Services
 
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Payslip not found");
+                throw new MessageNotFoundException("Appraisal letter not found");
             }
             string file = letterGeneration.FileName ?? string.Empty;
             if (string.IsNullOrWhiteSpace(file))

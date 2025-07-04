@@ -547,7 +547,7 @@ namespace AttendanceManagement.Services
                 .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Letter not found");
+                throw new MessageNotFoundException("Confirmation letter not found");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))
@@ -605,7 +605,7 @@ namespace AttendanceManagement.Services
                 .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Letter not found");
+                throw new MessageNotFoundException("Confirmation letter not found");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))

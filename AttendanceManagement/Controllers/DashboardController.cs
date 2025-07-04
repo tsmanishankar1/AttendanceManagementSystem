@@ -134,6 +134,29 @@ public class DashboardController : ControllerBase
         }
     }
 
+    [HttpGet("GetActiveAnnouncement")]
+    public async Task<IActionResult> GetActiveAnnouncement()
+    {
+        try
+        {
+            var holidays = await _dashboardService.GetActiveAnnouncement();
+            var response = new
+            {
+                Success = true,
+                Message = holidays
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("UpdateAnnouncement")]
     public async Task<IActionResult> UpdateAnnouncement(AnnouncementResponse announcementResponse)
     {

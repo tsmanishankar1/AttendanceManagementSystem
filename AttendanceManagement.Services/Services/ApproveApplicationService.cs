@@ -183,6 +183,20 @@ namespace AttendanceManagement.Services
                         {
                             if (approver2 != null && (!leave.IsEmailSent.HasValue || leave.IsEmailSent == false))
                             {
+                                var notifications = new ApprovalNotification
+                                {
+                                    StaffId = staffOrCreatorId,
+                                    Message = $"{staffName} has submitted a {leaveType} request on {requestedTime}",
+                                    ApplicationTypeId = leave.ApplicationTypeId,
+                                    IsActive = true,
+                                    CreatedBy = staffOrCreatorId,
+                                    CreatedUtc = DateTime.UtcNow
+                                };
+                                await _context.ApprovalNotifications.AddAsync(notification);
+                                await _context.SaveChangesAsync();
+                                leave.ApprovalNotificationId = notification.Id;
+                                await _context.SaveChangesAsync();
+
                                 if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                                 {
                                     await _emailService.SendLeaveRequestEmail(
@@ -442,6 +456,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!permissionRequest.IsEmailSent.HasValue || permissionRequest.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a {permissionRequest.PermissionType} request on {requestDateTime}",
+                                ApplicationTypeId = permissionRequest.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            permissionRequest.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendCommonPermissionRequestEmail(
@@ -570,6 +598,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!manualPunch.IsEmailSent.HasValue || manualPunch.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a Manual Punch request on {requestedTime}",
+                                ApplicationTypeId = manualPunch.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            manualPunch.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendManualPunchRequestEmail(
@@ -695,6 +737,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!onDuty.IsEmailSent.HasValue || onDuty.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a On Duty request on {requestedTime}",
+                                ApplicationTypeId = onDuty.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            onDuty.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendOnDutyRequestEmail(
@@ -826,6 +882,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!businessTravel.IsEmailSent.HasValue || businessTravel.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a Business Travel request on {requestedTime}",
+                                ApplicationTypeId = businessTravel.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            businessTravel.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendBusinessTravelRequestEmail(
@@ -957,6 +1027,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!workFromHome.IsEmailSent.HasValue || workFromHome.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a Work From Home request on {requestedTime}",
+                                ApplicationTypeId = workFromHome.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            workFromHome.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendWorkFromHomeRequestEmail(
@@ -1099,6 +1183,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!shiftChange.IsEmailSent.HasValue || shiftChange.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a Shift Change request on {requestedTime}",
+                                ApplicationTypeId = shiftChange.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            shiftChange.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendShiftChangeRequestEmail(
@@ -1220,6 +1318,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!shiftExtension.IsEmailSent.HasValue || shiftExtension.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a Shift Extension request on {requestedTime}",
+                                ApplicationTypeId = shiftExtension.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            shiftExtension.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendShiftExtensionRequestEmail(
@@ -1360,6 +1472,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!weeklyOffHoliday.IsEmailSent.HasValue || weeklyOffHoliday.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a Weekly Off/ Holiday Working request on {requestedTime}",
+                                ApplicationTypeId = weeklyOffHoliday.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            weeklyOffHoliday.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendWeeklyOffHolidayWorkingRequestEmail(
@@ -1519,6 +1645,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!compOffAvail.IsEmailSent.HasValue || compOffAvail.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a CompOff Avail request on {requestedTime}",
+                                ApplicationTypeId = compOffAvail.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            compOffAvail.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendCompOffApprovalRequestEmail(
@@ -1658,6 +1798,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!compOffCredit.IsEmailSent.HasValue || compOffCredit.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a CompOff Credit request on {requestedTime}",
+                                ApplicationTypeId = compOffCredit.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            compOffCredit.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendCompOffCreditRequestEmail(
@@ -1781,6 +1935,20 @@ namespace AttendanceManagement.Services
                     {
                         if (approveLeaveRequest.IsApproved && approver2 != null && (!reimbursementRequest.IsEmailSent.HasValue || reimbursementRequest.IsEmailSent == false))
                         {
+                            var notifications = new ApprovalNotification
+                            {
+                                StaffId = staffOrCreatorId,
+                                Message = $"{staffName} has submitted a {reimbursementType} request on {requestedTime}",
+                                ApplicationTypeId = reimbursementRequest.ApplicationTypeId,
+                                IsActive = true,
+                                CreatedBy = staffOrCreatorId,
+                                CreatedUtc = DateTime.UtcNow
+                            };
+                            await _context.ApprovalNotifications.AddAsync(notification);
+                            await _context.SaveChangesAsync();
+                            reimbursementRequest.ApprovalNotificationId = notification.Id;
+                            await _context.SaveChangesAsync();
+
                             if (!string.IsNullOrEmpty(approver2.OfficialEmail))
                             {
                                 await _emailService.SendReimbursementRequestEmail(
