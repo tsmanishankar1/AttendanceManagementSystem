@@ -450,23 +450,21 @@
 			<response code="404">If no appraisal data is found for the given year.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.DownloadAppraisalLetter(System.Int32,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.DownloadAppraisalLetter(System.Int32)">
 			<summary>
 				Downloads the appraisal letter as a PDF.
 			</summary>
 			<param name="staffId">The ID of the staff.</param>
-			<param name="fileId">The ID of the file to download.</param>
 			<returns>The appraisal letter as a downloadable PDF file.</returns>
 			<response code="200">Returns the PDF file.</response>
 			<response code="404">If the appraisal letter is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.ViewAppraisalLetter(System.Int32,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.ViewAppraisalLetter(System.Int32)">
 			<summary>
 				Displays the appraisal letter as a PDF in the browser.
 			</summary>
 			<param name="staffId">The ID of the staff.</param>
-			<param name="fileId">The ID of the file to view.</param>
 			<returns>The appraisal letter streamed as a PDF file.</returns>
 			<response code="200">Returns the streamed PDF file for inline viewing.</response>
 			<response code="404">If the appraisal letter is not found.</response>
@@ -1977,7 +1975,7 @@
 			<response code="404">If no generated letters are found for the specified staff ID.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.DownloadPdf(System.Int32,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.DownloadPdf(System.Int32)">
 			<summary>
 				Downloads the confirmation letter as a PDF.
 			</summary>

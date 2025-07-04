@@ -14,7 +14,7 @@ namespace AttendanceManagement.InputModels
         public decimal Weightage { get; set; }
         public string EvaluationPeriod { get; set; } = null!;
         public int Year { get; set; }
-        public int StaffId { get; set; }
+        public List<int> StaffId { get; set; } = new List<int>();
         public int AppraisalId { get; set; }
     }
 

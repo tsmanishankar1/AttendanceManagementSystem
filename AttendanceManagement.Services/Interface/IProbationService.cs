@@ -24,8 +24,8 @@ namespace AttendanceManagement.Services.Interface
         Task<List<FeedbackResponse>> GetFeedbackDetailsByApproverLevel1(int approverId);
         Task<string> ProcessApprovalAsync(HrConfirmation hrConfirmation);
         Task<List<GeneratedLetterResponse>> GetGeneratedLetters(int staffId);
-        Task<string> GetPdfFilePath(int staffCreationId, int fileId);
-        Task<string> GetPdfContent(int staffCreationId);
-        Task<(byte[] fileBytes, string fileName, string contentType)> DownloadPdf(int staffCreationId);
+        Task<string> GetPdfFilePath(int staffCreationId);
+        Task<(Stream PdfStream, string FileName)> GetPdfContent(int staffCreationId);
+        Task<string> DownloadPdf(int staffCreationId);
     }
 }

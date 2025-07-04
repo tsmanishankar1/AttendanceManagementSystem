@@ -15,5 +15,6 @@
         public string Description { get; set; } = null!;
         public bool IsActive { get; set; }
         public int CreatedBy { get; set; }
+        public DateOnly Date {  get; set; }
     }
 }

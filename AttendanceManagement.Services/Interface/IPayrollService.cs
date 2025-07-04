@@ -1,4 +1,4 @@
-﻿/*using AttendanceManagement.InputModels;
+﻿using AttendanceManagement.InputModels;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -21,4 +21,3 @@ namespace AttendanceManagement.Services.Interface
         Task<List<SalaryStructureResponse>> GetAllSalaryStructure();
     }
 }
-*/

@@ -5,6 +5,8 @@ using iText.Kernel.Pdf.Canvas.Parser;
 using Microsoft.AspNetCore.Hosting;
 using AttendanceManagement.Services.Interface;
 using IEmailService = AttendanceManagement.Services.Interface.IEmailService;
+using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AttendanceManagement.Services
 {
@@ -531,62 +533,91 @@ namespace AttendanceManagement.Services
             return letterGenerations;
         }
 
-        public async Task<string> GetPdfFilePath(int staffCreationId, int fileId)
+        public async Task<string> GetPdfFilePath(int staffCreationId)
         {
-            var probation = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.StaffCreationId == staffCreationId && x.Id == fileId && x.IsActive == true);
-            if (probation == null)
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffCreationId && s.IsActive == true);
+            if (staff == null)
             {
-                throw new MessageNotFoundException("Confirmation letter not found");
+                throw new MessageNotFoundException("Staff not found");
             }
-            string file = probation.FileName ?? string.Empty;
+            string filePrefix = $"Confirmation_Letter_{staff.StaffId}_";
+            var letterGeneration = await _context.LetterGenerations
+                .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                .OrderByDescending(x => x.CreatedUtc)
+                .FirstOrDefaultAsync();
+            if (letterGeneration == null)
+            {
+                throw new MessageNotFoundException("Letter not found");
+            }
+            var filePath = letterGeneration.LetterPath;
+            if (!File.Exists(filePath))
+            {
+                throw new MessageNotFoundException("Generated PDF file not found");
+            }
+            string file = letterGeneration.FileName ?? string.Empty;
             if (string.IsNullOrWhiteSpace(file))
             {
-                throw new MessageNotFoundException("File name is empty");
+                throw new MessageNotFoundException("File is empty");
             }
             return Path.Combine(_workspacePath, file);
         }
 
-        public async Task<string> GetPdfContent(int staffCreationId)
+        public async Task<(Stream PdfStream, string FileName)> GetPdfContent(int staffCreationId)
         {
-            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffCreationId && s.IsActive == true);
+            if (staff == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            string filePrefix = $"Confirmation_Letter_{staff.StaffId}_";
+            var letterGeneration = await _context.LetterGenerations
+                 .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                 .OrderByDescending(x => x.CreatedUtc)
+                 .FirstOrDefaultAsync();
+
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Letter generation record not found for the provided StaffCreationId");
+                throw new FileNotFoundException("Confirmation letter not found");
             }
+
             var filePath = letterGeneration.LetterPath;
-            if (!File.Exists(filePath))
+            if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
             {
-                throw new MessageNotFoundException("Generated PDF file not found.");
+                throw new FileNotFoundException("PDF file not found at the specified path");
             }
-            using (var pdfReader = new iText.Kernel.Pdf.PdfReader(filePath))
-            using (var pdfDoc = new iText.Kernel.Pdf.PdfDocument(pdfReader))
-            {
-                var textContent = new StringWriter();
-                for (int page = 1; page <= pdfDoc.GetNumberOfPages(); page++)
-                {
-                    var pageContent = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(page));
-                    textContent.WriteLine(pageContent);
-                }
-                return textContent.ToString();
-            }
+
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var fileName = Path.GetFileName(filePath);
+            return (stream, fileName);
         }
 
-        public async Task<(byte[] fileBytes, string fileName, string contentType)> DownloadPdf(int staffCreationId)
+        public async Task<string> DownloadPdf(int staffCreationId)
         {
-            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(lg => lg.StaffCreationId == staffCreationId && lg.IsActive);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffCreationId && s.IsActive == true);
+            if (staff == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            string filePrefix = $"Confirmation_Letter_{staff.StaffId}_";
+            var letterGeneration = await _context.LetterGenerations
+                .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                .OrderByDescending(x => x.CreatedUtc)
+                .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Letter generation record not found for the provided StaffCreationId.");
+                throw new MessageNotFoundException("Letter not found");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))
             {
-                throw new MessageNotFoundException("Generated PDF file not found.");
+                throw new MessageNotFoundException("Generated PDF file not found");
             }
-            var fileBytes = File.ReadAllBytes(filePath);
-            var fileName = Path.GetFileName(filePath);
-            const string contentType = "application/pdf";
-            return (fileBytes, fileName, contentType);
+            string file = letterGeneration.FileName ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(file))
+            {
+                throw new MessageNotFoundException("File is empty");
+            }
+            return Path.Combine(_workspacePath, file);
         }
     }
 }
