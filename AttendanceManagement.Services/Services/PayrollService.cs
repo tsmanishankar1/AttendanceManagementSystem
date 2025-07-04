@@ -1,4 +1,4 @@
-﻿/*using AttendanceManagement.InputModels;
+﻿using AttendanceManagement.InputModels;
 using AttendanceManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
@@ -14,14 +14,20 @@ namespace AttendanceManagement.Services
     {
         private readonly AttendanceManagementSystemContext _context;
         private readonly string _excelWorkspacePath;
+        private readonly string _workspacePath;
         private readonly ILetterGeneration _letterGenerationService;
-        public PayrollService(AttendanceManagementSystemContext context, IWebHostEnvironment env, ILetterGeneration letterGenerationService, string workspacePath)
+        public PayrollService(AttendanceManagementSystemContext context, IWebHostEnvironment env, ILetterGeneration letterGenerationService)
         {
             _context = context;
             _excelWorkspacePath = Path.Combine(env.ContentRootPath, "wwwroot\\UploadedExcel");
             if (!Directory.Exists(_excelWorkspacePath))
             {
                 Directory.CreateDirectory(_excelWorkspacePath);
+            }
+            _workspacePath = Path.Combine(env.ContentRootPath, "wwwroot\\GeneratedLetters\\PaySlip");
+            if (!Directory.Exists(_workspacePath))
+            {
+                Directory.CreateDirectory(_workspacePath);
             }
             _letterGenerationService = letterGenerationService;
         }
@@ -607,17 +613,28 @@ namespace AttendanceManagement.Services
         public async Task<(Stream PdfStream, string FileName)> ViewPayslip(int staffId, int month, int year)
         {
             string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
-            string fileName1 = $"Payslip_{staffId}_{monthName}_{year}_*.pdf";
-            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.FileName == fileName1 && x.IsActive == true);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if(staff == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            string filePrefix = $"Payslip_{staff.StaffId}_{monthName}_{year}_";
+            var letterGeneration = await _context.LetterGenerations
+                 .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                 .OrderByDescending(x => x.CreatedUtc)
+                 .FirstOrDefaultAsync();
+
             if (letterGeneration == null)
             {
-                throw new FileNotFoundException("Payslip not found");
+                throw new FileNotFoundException("Payslip not found.");
             }
+
             var filePath = letterGeneration.LetterPath;
             if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
             {
                 throw new FileNotFoundException("PDF file not found at the specified path");
             }
+
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = Path.GetFileName(filePath);
             return (stream, fileName);
@@ -626,8 +643,17 @@ namespace AttendanceManagement.Services
         public async Task<string> DownloadPayslip(int staffId, int month, int year)
         {
             string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
-            string fileName1 = $"Payslip_{staffId}_{monthName}_{year}_*.pdf";
-            var paySlip = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.FileName == fileName1 && x.IsActive == true);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if (staff == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            string filePrefix = $"Payslip_{staff.StaffId}_{monthName}_{year}_";
+            var paySlip = await _context.LetterGenerations
+                .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                .OrderByDescending(x => x.CreatedUtc)
+                .FirstOrDefaultAsync();
+
             if (paySlip == null)
             {
                 throw new MessageNotFoundException("Payslip not found");
@@ -635,9 +661,9 @@ namespace AttendanceManagement.Services
             string file = paySlip.FileName ?? string.Empty;
             if (string.IsNullOrWhiteSpace(file))
             {
-                throw new MessageNotFoundException("File name is empty");
+                throw new MessageNotFoundException("File is empty");
             }
-            return Path.Combine(_excelWorkspacePath, file);
+            return Path.Combine(_workspacePath, file);
         }
 
         public async Task<SalaryStructureResponse> GetSalaryStructure(int staffId)
@@ -776,4 +802,4 @@ namespace AttendanceManagement.Services
             return value.ToLower() == "true" || value == "1";
         }
     }
-}*/
+}

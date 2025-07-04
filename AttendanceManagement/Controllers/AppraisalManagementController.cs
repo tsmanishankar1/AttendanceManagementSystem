@@ -116,6 +116,21 @@ namespace AttendanceManagement.Controllers
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
+            catch (ArgumentException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.BadResponse(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
             catch (Exception ex)
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
@@ -242,6 +257,11 @@ namespace AttendanceManagement.Controllers
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/AgmApproval", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, agmApprovalRequest.ApprovedBy, JsonSerializer.Serialize(agmApprovalRequest));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/AgmApproval", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, agmApprovalRequest.ApprovedBy, JsonSerializer.Serialize(agmApprovalRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
             catch (Exception ex)
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/AgmApproval", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, agmApprovalRequest.ApprovedBy, JsonSerializer.Serialize(agmApprovalRequest));
@@ -268,6 +288,11 @@ namespace AttendanceManagement.Controllers
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(createdBy));
                 return ErrorClass.NotFoundResponse(ex.Message);
             }
+            catch (ConflictException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(createdBy));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
             catch (Exception ex)
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/GenerateAppraisalLetter", ex.Message, ex.StackTrace?.ToString() ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(createdBy));
@@ -276,11 +301,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("ViewAppraisalLetter")]
-        public async Task<IActionResult> ViewAppraisalLetter(int staffId, int fileId)
+        public async Task<IActionResult> ViewAppraisalLetter(int staffId)
         {
             try
             {
-                var (stream, fileName) = await _service.ViewAppraisalLetter(staffId, fileId);
+                var (stream, fileName) = await _service.ViewAppraisalLetter(staffId);
                 Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
                 return File(stream, "application/pdf");
             }
@@ -299,11 +324,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("DownloadAppraisalLetter")]
-        public async Task<IActionResult> DownloadAppraisalLetter(int staffId, int fileId)
+        public async Task<IActionResult> DownloadAppraisalLetter(int staffId)
         {
             try
             {
-                var filePath = await _service.DownloadAppraisalLetter(staffId, fileId);
+                var filePath = await _service.DownloadAppraisalLetter(staffId);
                 if (!System.IO.File.Exists(filePath))
                 {
                     return ErrorClass.NotFoundResponse("Appraisal letter not found");
@@ -603,7 +628,7 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetFinalAverageManagerScore")]
-        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string quarter)
+        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter)
         {
             try
             {
@@ -643,6 +668,21 @@ namespace AttendanceManagement.Controllers
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
                 return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
             }
             catch (Exception ex)
             {

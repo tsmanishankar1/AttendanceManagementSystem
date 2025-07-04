@@ -330,14 +330,15 @@ namespace AttendanceManagement.Services
         public async Task<List<AnnouncementResponse>> GetAnnouncement()
         {
             var getAnnouncement = await (from an in _context.Announcements
-                                         orderby an.Id descending
+                                         orderby (an.UpdatedUtc ?? an.CreatedUtc) descending, an.Id descending
                                          select new AnnouncementResponse
                                          {
                                              Id = an.Id,
                                              Title = an.Title,
                                              Description = an.Description,
                                              IsActive = an.IsActive,
-                                             CreatedBy = an.CreatedBy
+                                             CreatedBy = an.CreatedBy,
+                                             Date = DateOnly.FromDateTime(an.UpdatedUtc ?? an.CreatedUtc)
                                          })
                                          .ToListAsync();
             if (getAnnouncement.Count == 0) throw new MessageNotFoundException("Announcement not found");

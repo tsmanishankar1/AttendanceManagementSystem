@@ -121,13 +121,9 @@ public class ExcelImportService : IExcelImport
                 {
                     requiredHeaders = new List<string> { "Name", "ShortName", "Phone", "Fax", "Email" };
                 }
-                else if (excelImportDto.ExcelImportId == 4 || excelImportDto.ExcelImportId == 5 || excelImportDto.ExcelImportId == 6)
+                else if (excelImportDto.ExcelImportId == 4 || excelImportDto.ExcelImportId == 5 || excelImportDto.ExcelImportId == 6 || excelImportDto.ExcelImportId == 7)
                 {
                     requiredHeaders = new List<string> { "Name", "ShortName" };
-                }
-                else if (excelImportDto.ExcelImportId == 7)
-                {
-                    requiredHeaders = new List<string> { "Name" };
                 }
                 else if (excelImportDto.ExcelImportId == 8)
                 {
@@ -844,9 +840,16 @@ public class ExcelImportService : IExcelImport
                             errorLogs.Add($"Volume name is empty at {row}");
                             continue;
                         }
+                        var volumeShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
+                        if (string.IsNullOrEmpty(volumeShortName))
+                        {
+                            errorLogs.Add($"Volume short name is empty at {row}");
+                            continue;
+                        }
                         var volume = new Volume
                         {
                             Name = volumeName,
+                            ShortName = volumeShortName,
                             IsActive = true,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow

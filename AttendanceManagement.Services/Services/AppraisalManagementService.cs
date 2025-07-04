@@ -9,6 +9,7 @@ using LicenseContext = OfficeOpenXml.LicenseContext;
 using IEmailService = AttendanceManagement.Services.Interface.IEmailService;
 using DocumentFormat.OpenXml.Bibliography;
 using Org.BouncyCastle.Ocsp;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AttendanceManagement.Services
 {
@@ -357,7 +358,7 @@ namespace AttendanceManagement.Services
                             selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
                             selected.UpdatedUtc = DateTime.UtcNow;
                         }
-                        await _context.EmployeePerformanceReviews.AddRangeAsync(newRecords);
+                        await _context.EmployeePerformanceReviews.AddRangeAsync(rowsToProcess);
                         await _context.SaveChangesAsync();
 
                         await _emailService.SendMisUploadNotificationToHr(uploadMisSheetRequest.CreatedBy, name, appraisal.Name);
@@ -560,9 +561,9 @@ namespace AttendanceManagement.Services
             {
                 throw new MessageNotFoundException("No appraisal data found for the selected year");
             }
-            if (!yearAppraisalData.Any(s => s.IsActive))
+            if (yearAppraisalData.All(s => !s.IsActive))
             {
-                throw new MessageNotFoundException("Appraisal data exists, but none are active for the selected year");
+                throw new ConflictException("Appraisal data for the selected year is already generated");
             }
             var resultFilePaths = new List<string>();
             var appraisalSheets = yearAppraisalData.Where(s => s.IsActive).Distinct().ToList();
@@ -703,12 +704,21 @@ namespace AttendanceManagement.Services
             return "Appraisal letter generated and email sent successfully";
         }
 
-        public async Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId, int fileId)
+        public async Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId)
         {
-            var letterGeneration = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.StaffCreationId == staffId && x.Id == fileId && x.IsActive == true);
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if (staff == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            string filePrefix = $"Appraisal_Letter_Without_DC_{staff.StaffId}_" ?? $"Appraisal_Letter_With_DC_{staff.StaffId}";
+            var letterGeneration = await _context.LetterGenerations
+                 .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                 .OrderByDescending(x => x.CreatedUtc)
+                 .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new FileNotFoundException("Letter generation record not found");
+                throw new FileNotFoundException("Appraisal letter not found");
             }
             var filePath = letterGeneration.LetterPath;
             if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
@@ -717,21 +727,30 @@ namespace AttendanceManagement.Services
             }
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = Path.GetFileName(filePath);
-
             return (stream, fileName);
         }
 
-        public async Task<string> DownloadAppraisalLetter(int staffId, int fileId)
+        public async Task<string> DownloadAppraisalLetter(int staffId)
         {
-            var appraisalLetter = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.StaffCreationId == staffId && x.Id == fileId && x.IsActive == true);
-            if (appraisalLetter == null)
+            var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId && s.IsActive == true);
+            if (staff == null)
             {
-                throw new MessageNotFoundException("Appraisal letter not found");
+                throw new MessageNotFoundException("Staff not found");
             }
-            string file = appraisalLetter.FileName ?? string.Empty;
+            string filePrefix = $"Appraisal_Letter_Without_DC_{staff.StaffId}_" ?? $"Appraisal_Letter_With_DC_{staff.StaffId}";
+            var letterGeneration = await _context.LetterGenerations
+                .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                .OrderByDescending(x => x.CreatedUtc)
+                .FirstOrDefaultAsync();
+
+            if (letterGeneration == null)
+            {
+                throw new MessageNotFoundException("Payslip not found");
+            }
+            string file = letterGeneration.FileName ?? string.Empty;
             if (string.IsNullOrWhiteSpace(file))
             {
-                throw new MessageNotFoundException("File name is empty");
+                throw new MessageNotFoundException("File is empty");
             }
             return Path.Combine(_workspacePath, file);
         }
@@ -974,25 +993,29 @@ namespace AttendanceManagement.Services
         public async Task<string> CreateKra(KraDto kraDto)
         {
             var selectedRows = kraDto.SelectedRows;
-            foreach(var item in selectedRows)
+            foreach (var item in selectedRows)
             {
-                var kra = new Goal
+                foreach (var staffId in item.StaffId)
                 {
-                    Kra = item.Kra,
-                    Weightage = item.Weightage,
-                    EvaluationPeriod = item.EvaluationPeriod,
-                    Year = item.Year,
-                    Quarter = item.EvaluationPeriod,
-                    StaffId = item.StaffId,
-                    AppraisalId = item.AppraisalId,
-                    IsActive = true,
-                    CreatedBy = kraDto.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-                await _context.Goals.AddAsync(kra);
+                    var kra = new Goal
+                    {
+                        Kra = item.Kra,
+                        Weightage = item.Weightage,
+                        EvaluationPeriod = item.EvaluationPeriod,
+                        Year = item.Year,
+                        Quarter = item.EvaluationPeriod,
+                        StaffId = staffId,
+                        AppraisalId = item.AppraisalId,
+                        IsActive = true,
+                        CreatedBy = kraDto.CreatedBy,
+                        CreatedUtc = DateTime.UtcNow
+                    };
+
+                    await _context.Goals.AddAsync(kra);
+                }
             }
             await _context.SaveChangesAsync();
-            return "Kra created successfully";
+            return "KRA submitted successfully";
         }
 
         public async Task<List<KraResponse>> GetKra(int createdBy, int appraisalId, int year, string quarter)
@@ -1059,7 +1082,6 @@ namespace AttendanceManagement.Services
             await _context.SaveChangesAsync();
             return "Self Kra submitted successfully";
         }
-
 
         public async Task<List<SelfEvaluationResponse>> GetSelfEvaluation(int approverId, int appraisalId, int year, string quarter)
         {
@@ -1134,7 +1156,6 @@ namespace AttendanceManagement.Services
             return "Self Kra submitted successfully";
         }
 
-
         public async Task<List<ManagerEvaluationResponse>> GetManagerEvaluation(int createdBy, int appraisalId, int year, string quarter)
         {
             var approver = await _context.StaffCreations
@@ -1166,39 +1187,53 @@ namespace AttendanceManagement.Services
             return getManagerEvaluation;
         }
 
-        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string quarter)
+        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter)
         {
             var approver = await _context.StaffCreations
                 .Where(x => x.Id == createdBy && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
+
             bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN" || approver == "SITE HR";
-            var managerEvaluations = await (from managerEvaluation in _context.KraManagerReviews
-                                            join selfEvaluation in _context.KraSelfReviews on managerEvaluation.KraSelfReviewId equals selfEvaluation.Id
-                                            join goal in _context.Goals on selfEvaluation.GoalId equals goal.Id
-                                            join staff in _context.StaffCreations on selfEvaluation.CreatedBy equals staff.Id
-                                            join manager in _context.StaffCreations on managerEvaluation.CreatedBy equals manager.Id
-                                            join s in _context.StaffCreations on managerEvaluation.CreatedBy equals s.Id
-                                            where managerEvaluation.IsActive && managerEvaluation.AppraisalId == appraisalId && goal.Year == year && goal.Quarter == quarter
-                                            && (isSuperAdmin || managerEvaluation.CreatedBy == createdBy || goal.StaffId == createdBy)
-                                            select new
-                                            {
-                                                EmpId = staff.StaffId,
-                                                EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                                                EvaluationPeriod = goal.EvaluationPeriod,
-                                                ManagerKraScore = managerEvaluation.ManagerScore,
-                                                ReportingManagerId = manager.StaffId,
-                                                ReportingManagerName = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
-                                                Year = goal.Year,
-                                                Quarter = goal.Quarter
-                                            }).ToListAsync();
-            if (managerEvaluations.Count == 0) throw new MessageNotFoundException("No manager evaluation found");
-            var averageScore = managerEvaluations.Average(e => e.ManagerKraScore);
-            return new
-            {
-                AverageManagerScore = averageScore,
-                Evaluations = managerEvaluations
-            };
+
+            var managerEvaluations = await (
+                from managerEvaluation in _context.KraManagerReviews
+                join selfEvaluation in _context.KraSelfReviews on managerEvaluation.KraSelfReviewId equals selfEvaluation.Id
+                join goal in _context.Goals on selfEvaluation.GoalId equals goal.Id
+                join staff in _context.StaffCreations on selfEvaluation.CreatedBy equals staff.Id
+                join manager in _context.StaffCreations on managerEvaluation.CreatedBy equals manager.Id
+                where managerEvaluation.IsActive
+                      && managerEvaluation.AppraisalId == appraisalId
+                      && goal.Year == year
+                      && (string.IsNullOrEmpty(quarter) || goal.Quarter == quarter)
+                      && (isSuperAdmin || managerEvaluation.CreatedBy == createdBy || goal.StaffId == createdBy)
+                select new
+                {
+                    EmpId = staff.StaffId,
+                    EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                    EvaluationPeriod = goal.EvaluationPeriod,
+                    ManagerKraScore = managerEvaluation.ManagerScore,
+                    ReportingManagerId = manager.StaffId,
+                    ReportingManagerName = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
+                    Year = goal.Year,
+                    Quarter = goal.Quarter
+                }).ToListAsync();
+
+            if (!managerEvaluations.Any())
+                throw new MessageNotFoundException("No manager evaluation found");
+
+            var staffWiseScores = managerEvaluations
+                .GroupBy(e => new { e.EmpId, e.EmpName })
+                .Select(group => new
+                {
+                    EmpId = group.Key.EmpId,
+                    EmpName = group.Key.EmpName,
+                    AverageManagerScore = group.Average(x => x.ManagerKraScore),
+                    Evaluations = group.ToList()
+                })
+                .ToList();
+
+            return staffWiseScores;
         }
 
         public async Task<string> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
@@ -1342,10 +1377,27 @@ namespace AttendanceManagement.Services
                     if (employeePerformanceReviews.Count > 0)
                     {
                         var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
+                        var alreadyUploaded = await _context.NonProductionEmployeePerformanceReviews
+                            .Where(x =>
+                                selectedEmpIds.Contains(x.EmpId) &&
+                                x.AppraisalId == uploadMisSheetRequest.AppraisalId &&
+                                x.Year == uploadMisSheetRequest.Year &&
+                                x.Quarter == uploadMisSheetRequest.Quarter)
+                            .Select(x => x.EmpId)
+                            .Distinct()
+                            .ToListAsync();
+                        var rowsToProcess = employeePerformanceReviews.Where(r => !alreadyUploaded.Contains(r.EmpId)).ToList();
+                        if (!rowsToProcess.Any())
+                        {
+                            throw new ConflictException($"All selected staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}");
+                        }
+                        var newRecords = employeePerformanceReviews
+                            .Where(x => !alreadyUploaded.Contains(x.EmpId))
+                            .ToList();
                         var selectedEmployeesToUpdate = await _context.SelectedNonProductionEmployees
-                            .Where(x => selectedEmpIds.Contains(x.EmployeeId)
-                                     && x.AppraisalId == uploadMisSheetRequest.AppraisalId
-                                     && x.IsActive)
+                            .Where(x => newRecords.Select(e => e.EmpId).Contains(x.EmployeeId)
+                                        && x.AppraisalId == uploadMisSheetRequest.AppraisalId
+                                        && x.IsActive)
                             .ToListAsync();
                         foreach (var selected in selectedEmployeesToUpdate)
                         {
@@ -1354,22 +1406,12 @@ namespace AttendanceManagement.Services
                             selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
                             selected.UpdatedUtc = DateTime.UtcNow;
                         }
-                        await _context.NonProductionEmployeePerformanceReviews.AddRangeAsync(employeePerformanceReviews);
+                        await _context.NonProductionEmployeePerformanceReviews.AddRangeAsync(rowsToProcess);
                         await _context.SaveChangesAsync();
 
-                        var duplicates = await _context.NonProductionEmployeePerformanceReviews
-                            .Where(x => selectedEmpIds.Contains(x.EmpId)
-                                    && x.AppraisalId == uploadMisSheetRequest.AppraisalId
-                                    && x.Year == uploadMisSheetRequest.Year
-                                    && x.Quarter == uploadMisSheetRequest.Quarter
-                                    && x.IsActive)
-                            .GroupBy(x => new { x.EmpId, x.AppraisalId, x.Year, x.Quarter })
-                            .Where(g => g.Count() > 1)
-                            .Select(g => g.Key.EmpId)
-                            .ToListAsync();
-                        if (duplicates.Any())
+                        if (alreadyUploaded.Any())
                         {
-                            throw new ConflictException($"The following staff have already been uploaded for this appraisal year {uploadMisSheetRequest.Year} and quarter {uploadMisSheetRequest.Quarter}: " + string.Join(", ", duplicates));
+                            throw new ConflictException($"The following staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}: " + string.Join(", ", alreadyUploaded));
                         }
                     }
                     else

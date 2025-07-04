@@ -19,8 +19,8 @@ namespace AttendanceManagement.Services.Interface
         Task<List<PerformanceReviewResponse>> GetSelectedEmployeeAgmApproval(int appraisalId, int year, string quarter);
         Task<string> AgmApproval(AgmApprovalRequest agmApprovalRequest);
         Task<string> GenerateAppraisalLetter(int createdBy, int year);
-        Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId, int fileId);
-        Task<string> DownloadAppraisalLetter(int staffId, int fileId);
+        Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId);
+        Task<string> DownloadAppraisalLetter(int staffId);
         Task<string> AcceptAppraisalLetter(LetterAcceptance letterAcceptance);
         Task<List<LetterAcceptanceResponse>> GetAcceptedEmployees(int year);
         Task<List<object>> GetNonProductionEmployees(int appraisalId, int year, string quarter);
@@ -32,7 +32,7 @@ namespace AttendanceManagement.Services.Interface
         Task<List<SelfEvaluationResponse>> GetSelfEvaluation(int approverId, int appraisalId, int year, string quarter);
         Task<string> CreateManagerEvaluation(ManagerEvaluationRequest managerEvaluationRequest);
         Task<List<ManagerEvaluationResponse>> GetManagerEvaluation(int createdBy, int appraisalId, int year, string quarter);
-        Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string quarter);
+        Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter);
         Task<string> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest);
         Task<List<HrUploadResponse>> GetHrUploadedSheet(int appraisalId, int year, string quarter);
     }

@@ -2,6 +2,7 @@
 using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using AttendanceManagement.Services.Interface;
+using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 namespace AttendanceManagement.Controllers;
@@ -354,8 +355,9 @@ public class ProbationController : ControllerBase
     {
         try
         {
-            var content = await _probationService.GetPdfContent(staffCreationId);
-            return Content(content, "text/plain");
+            var (stream, fileName) = await _probationService.GetPdfContent(staffCreationId);
+            Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
+            return File(stream, "application/pdf");
         }
         catch (MessageNotFoundException ex)
         {
@@ -391,11 +393,11 @@ public class ProbationController : ControllerBase
     }
 
     [HttpGet("DownloadConfirmationLetter")]
-    public async Task<IActionResult> DownloadPdf(int staffCreationId, int fileId)
+    public async Task<IActionResult> DownloadPdf(int staffCreationId)
     {
         try
         {
-            var filePath = await _probationService.GetPdfFilePath(staffCreationId, fileId);
+            var filePath = await _probationService.GetPdfFilePath(staffCreationId);
             if (!System.IO.File.Exists(filePath))
             {
                 return ErrorClass.NotFoundResponse("Confirmation letter not found");

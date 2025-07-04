@@ -1,4 +1,4 @@
-﻿/*using AttendanceManagement.InputModels;
+﻿using AttendanceManagement.InputModels;
 using AttendanceManagement.Models;
 using AttendanceManagement.Services;
 using AttendanceManagement.Services.Interface;
@@ -32,7 +32,7 @@ namespace AttendanceManagement.Controllers
                     Success = true,
                     Message = result
                 };
-                await _loggingService.AuditLog("Payslip", "POST", "/api/Payroll/UploadPaySlip", result, createdBy, JsonSerializer.Serialize(new { file, createdBy}));
+                await _loggingService.AuditLog("Payslip", "POST", "/api/Payroll/UploadPaySlip", result, createdBy, JsonSerializer.Serialize(new { file, createdBy }));
                 return Ok(response);
             }
             catch (MessageNotFoundException ex)
@@ -233,4 +233,4 @@ namespace AttendanceManagement.Controllers
             }
         }
     }
-}*/
+}
