@@ -3053,6 +3053,16 @@ public class ApplicationService : IApplicationService
         var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
         var shiftName = await _context.Shifts.Where(s => s.Id == request.ShiftId && s.IsActive).Select(s => s.Name).FirstOrDefaultAsync();
         if (shiftName == null) throw new MessageNotFoundException("Shift not found");
+        var assignedShifts = await _context.AssignShifts
+            .Where(a => a.StaffId == staffOrCreatorId &&
+                        a.FromDate >= request.FromDate &&
+                        a.FromDate <= request.ToDate &&
+                        a.IsActive)
+            .ToListAsync();
+        if (!assignedShifts.Any())
+        {
+            throw new MessageNotFoundException("No assigned shifts found for the selected date range");
+        }
         var existingLeaves = await _context.ShiftChanges
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.FromDate <= request.ToDate &&
@@ -3061,9 +3071,7 @@ public class ApplicationService : IApplicationService
          .ToListAsync();
         foreach (var existingLeave in existingLeaves)
         {
-            // Prevent general date overlap
-            if (existingLeave.FromDate <= request.ToDate &&
-                existingLeave.ToDate >= request.FromDate)
+            if (existingLeave.FromDate <= request.ToDate && existingLeave.ToDate >= request.FromDate)
             {
                 throw new ConflictException("Shift Change request already exists");
             }
@@ -3081,6 +3089,12 @@ public class ApplicationService : IApplicationService
             CreatedUtc = DateTime.UtcNow
         };
         await _context.ShiftChanges.AddAsync(shiftChange);
+        await _context.SaveChangesAsync();
+
+        foreach (var assignShift in assignedShifts)
+        {
+            assignShift.ShiftId = request.ShiftId;
+        }
         await _context.SaveChangesAsync();
 
         string requestDateTime = shiftChange.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
@@ -3135,6 +3149,11 @@ public class ApplicationService : IApplicationService
         var staffId = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffOrCreatorId && s.IsActive == true);
         if (staffId == null) throw new MessageNotFoundException("Staff not found");
         var staffName = $"{staffId.FirstName}{(string.IsNullOrWhiteSpace(staffId.LastName) ? "" : " " + staffId.LastName)}";
+        var assignedShifts = await _context.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == staffOrCreatorId && a.FromDate == request.TransactionDate && a.IsActive);
+        if (assignedShifts == null)
+        {
+            throw new MessageNotFoundException("No assigned shifts found for the selected date range");
+        }
         var existingLeaves = await _context.ShiftExtensions
          .Where(lr => ((lr.StaffId == staffOrCreatorId) || (lr.CreatedBy == staffOrCreatorId)) &&
                       (lr.TransactionDate == request.TransactionDate))
@@ -3147,13 +3166,11 @@ public class ApplicationService : IApplicationService
                 throw new ConflictException("Shift Extension request already exists");
             }
         }
-        var shift = await _context.AssignShifts.FirstOrDefaultAsync(a => a.StaffId == staffOrCreatorId && a.IsActive);
-        if (shift == null) throw new MessageNotFoundException("Shift not found");
         var shiftExtension = new ShiftExtension
         {
             ApplicationTypeId = request.ApplicationTypeId,
             StaffId = request.StaffId,
-            ShiftId = shift.ShiftId,
+            ShiftId = assignedShifts.ShiftId,
             TransactionDate = request.TransactionDate,
             DurationHours = request.DurationHours,
             BeforeShiftHours = request.BeforeShiftHours,

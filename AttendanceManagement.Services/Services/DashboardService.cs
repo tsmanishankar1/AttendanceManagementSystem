@@ -345,6 +345,25 @@ namespace AttendanceManagement.Services
             return getAnnouncement;
         }
 
+        public async Task<List<AnnouncementResponse>> GetActiveAnnouncement()
+        {
+            var getAnnouncement = await (from an in _context.Announcements
+                                         orderby (an.UpdatedUtc ?? an.CreatedUtc) descending, an.Id descending
+                                         where an.IsActive == true
+                                         select new AnnouncementResponse
+                                         {
+                                             Id = an.Id,
+                                             Title = an.Title,
+                                             Description = an.Description,
+                                             IsActive = an.IsActive,
+                                             CreatedBy = an.CreatedBy,
+                                             Date = DateOnly.FromDateTime(an.UpdatedUtc ?? an.CreatedUtc)
+                                         })
+                                         .ToListAsync();
+            if (getAnnouncement.Count == 0) throw new MessageNotFoundException("Announcement not found");
+            return getAnnouncement;
+        }
+
         public async Task<string> UpdateAnnouncement(AnnouncementResponse announcementResponse)
         {
             var existingAnnouncement = await _context.Announcements.FirstOrDefaultAsync(a => a.Id == announcementResponse.Id);

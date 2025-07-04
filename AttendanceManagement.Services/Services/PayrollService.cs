@@ -626,7 +626,7 @@ namespace AttendanceManagement.Services
 
             if (letterGeneration == null)
             {
-                throw new FileNotFoundException("Payslip not found.");
+                throw new FileNotFoundException("Payslip not found");
             }
 
             var filePath = letterGeneration.LetterPath;

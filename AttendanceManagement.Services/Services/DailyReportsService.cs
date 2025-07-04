@@ -611,6 +611,9 @@ public class DailyReportsService : IDailyReport
                 ReportName = reportName1,
                 FromDate = fromDate1,
                 ToDate = toDate1,
+                UserId = userId,
+                UserCreationId = userCreationId,
+                UserName = userName,
                 Records = result
             };
             return finalResponse;
@@ -652,7 +655,7 @@ public class DailyReportsService : IDailyReport
                     Designation = report.Designation,
                     StartDuration = report.StartDuration,
                     EndDuration = report.EndDuration,
-                    LeaveTypeId = report.LeaveTypeId,
+                    LeaveTypeName = report.LeaveTypeName,
                     StartDate = report.StartDate,
                     EndDate = report.EndDate,
                     TotalDays = report.TotalDays,

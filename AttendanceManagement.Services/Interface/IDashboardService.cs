@@ -17,6 +17,7 @@ namespace AttendanceManagement.Services.Interface
         Task<List<object>> GetUpcomingShiftsForStaffAsync(int staffId);
         Task<string> CreateAnnouncement(AnnouncementDto announcementDto);
         Task<List<AnnouncementResponse>> GetAnnouncement();
+        Task<List<AnnouncementResponse>> GetActiveAnnouncement();
         Task<string> UpdateAnnouncement(AnnouncementResponse announcementResponse);
     }
 }

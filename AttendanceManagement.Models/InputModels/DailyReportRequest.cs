@@ -363,7 +363,7 @@ namespace AttendanceManagement.InputModels
         public string Designation { get; set; } = null!;
         public string StartDuration { get; set; } = null!;
         public string? EndDuration { get; set; }
-        public int LeaveTypeId { get; set; }
+        public string LeaveTypeName { get; set; } = null!;
         public string StartDate { get; set; } = null!;
         public string EndDate { get; set; } = null!;
         public decimal TotalDays { get; set; }
@@ -467,8 +467,8 @@ namespace AttendanceManagement.InputModels
         public string ShiftName { get; set; } = null!;
         public string TxnDate { get; set; } = null!;
         public string DurationOfHoursExtension { get; set; } = null!;
-        public string HoursBeforeShift { get; set; } = null!;
-        public string HoursAfterShift { get; set; } = null!;
+        public string? HoursBeforeShift { get; set; }
+        public string? HoursAfterShift { get; set; }
         public string Remarks { get; set; } = null!;
         public string AppliedOn { get; set; } = null!;
         public string? Approval1Status { get; set; }

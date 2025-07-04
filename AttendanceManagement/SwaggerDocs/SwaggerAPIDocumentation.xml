@@ -1044,7 +1044,6 @@
 			<response code="404">If required information is missing or not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-
 		<member name="M:AttendanceManagement.Controllers.DashboardController.GetAnnouncement">
 			<summary>
 				Retrieves the latest announcement.
@@ -1054,7 +1053,15 @@
 			<response code="404">If no announcement is found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-
+		<member name="M:AttendanceManagement.Controllers.DashboardController.GetActiveAnnouncement">
+			<summary>
+				Retrieves the latest active announcement.
+			</summary>
+			<returns>The current active announcement details.</returns>
+			<response code="200">Returns the active announcement</response>
+			<response code="404">If no active announcement is found</response>
+			<response code="500">If there is an internal server error</response>
+		</member>
 		<member name="M:AttendanceManagement.Controllers.DashboardController.UpdateAnnouncement(AttendanceManagement.InputModels.AnnouncementResponse)">
 			<summary>
 				Updates an existing announcement.

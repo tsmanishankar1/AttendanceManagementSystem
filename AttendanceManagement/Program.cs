@@ -40,7 +40,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AttendanceManagementSystemContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
 builder.Services.AddDbContext<AtrakContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ATRAKConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("ATRAKConnection"),
+        sqlOptions => sqlOptions.CommandTimeout(180)
+    ));
 builder.Services.AddDbContext<StoredProcedureDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
 
