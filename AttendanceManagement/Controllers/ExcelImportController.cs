@@ -1,6 +1,5 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -10,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class ExcelImportController : ControllerBase
 {
-    private readonly IExcelImport _excelImportService;
-    private readonly ILoggingService _loggingService;
+    private readonly IExcelImportInfra _excelImportService;
+    private readonly ILoggingInfra _loggingService;
 
-    public ExcelImportController(IExcelImport excelImportService, ILoggingService loggingService)
+    public ExcelImportController(IExcelImportInfra excelImportService, ILoggingInfra loggingService)
     {
         _excelImportService = excelImportService;
         _loggingService = loggingService;
@@ -78,6 +77,11 @@ public class ExcelImportController : ControllerBase
         {
             await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
             return ErrorClass.ConflictResponse(ex.Message);
+        }
+        catch (InvalidDataException ex)
+        {
+            await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
+            return ErrorClass.UnsupportedMediaTypeResponse(ex.Message);
         }
         catch (ArgumentException ex)
         {

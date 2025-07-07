@@ -1,15 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AttendanceManagement.InputModels;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 namespace AttendanceManagement.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 public class LoginController : ControllerBase
 {
-    private readonly ILoginService _loginService;
+    private readonly ILoginInfra _loginService;
 
-    public LoginController(ILoginService loginService)
+    public LoginController(ILoginInfra loginService)
     {
         _loginService = loginService;
     }

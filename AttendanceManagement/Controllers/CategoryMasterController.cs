@@ -1,9 +1,6 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
@@ -12,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class CategoryMasterController : ControllerBase
 {
-    private readonly ICategoryMaster _service;
-    private readonly ILoggingService _loggingService;
+    private readonly ICategoryMasterInfra _service;
+    private readonly ILoggingInfra _loggingService;
 
-    public CategoryMasterController(ICategoryMaster service, ILoggingService loggingService)
+    public CategoryMasterController(ICategoryMasterInfra service, ILoggingInfra loggingService)
     {
         _service = service;
         _loggingService = loggingService;

@@ -1,10 +1,6 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
-using Microsoft.AspNetCore.Http;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers
@@ -13,9 +9,9 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class PayrollController : ControllerBase
     {
-        private readonly IPayrollService _payrollService;
-        private readonly ILoggingService _loggingService;
-        public PayrollController(IPayrollService payrollService, ILoggingService loggingService)
+        private readonly IPayrollInfra _payrollService;
+        private readonly ILoggingInfra _loggingService;
+        public PayrollController(IPayrollInfra payrollService, ILoggingInfra loggingService)
         {
             _payrollService = payrollService;
             _loggingService = loggingService;
@@ -39,6 +35,21 @@ namespace AttendanceManagement.Controllers
             {
                 await _loggingService.LogError("Payslip", "POST", "/api/Payroll/UploadPaySlip", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(new { file, createdBy }));
                 return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await _loggingService.LogError("Payslip", "POST", "/api/Payroll/UploadPaySlip", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(new { file, createdBy }));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
+            catch (InvalidDataException ex)
+            {
+                await _loggingService.LogError("Payslip", "POST", "/api/Payroll/UploadPaySlip", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(new { file, createdBy }));
+                return ErrorClass.UnsupportedMediaTypeResponse(ex.Message);
+            }
+            catch (IOException ex)
+            {
+                await _loggingService.LogError("Payslip", "POST", "/api/Payroll/UploadPaySlip", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, createdBy, JsonSerializer.Serialize(new { file, createdBy }));
+                return ErrorClass.ConflictResponse(ex.Message);
             }
             catch (Exception ex)
             {

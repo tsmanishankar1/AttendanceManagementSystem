@@ -1,6 +1,5 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -10,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class ZoneMasterController : ControllerBase
 {
-    private readonly IZoneMasterService _service;
-    private readonly ILoggingService _loggingService;
+    private readonly IZoneMasterInfra _service;
+    private readonly ILoggingInfra _loggingService;
 
-    public ZoneMasterController(IZoneMasterService service, ILoggingService loggingService)
+    public ZoneMasterController(IZoneMasterInfra service, ILoggingInfra loggingService)
     {
         _service = service;
         _loggingService = loggingService;

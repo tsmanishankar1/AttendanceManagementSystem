@@ -1,9 +1,6 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
@@ -12,9 +9,9 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class DashboardController : ControllerBase
 {
-    private readonly IDashboardService _dashboardService;
-    private readonly ILoggingService _loggingService;
-    public DashboardController(IDashboardService dashboardService, ILoggingService loggingService)
+    private readonly IDashboardInfra _dashboardService;
+    private readonly ILoggingInfra _loggingService;
+    public DashboardController(IDashboardInfra dashboardService, ILoggingInfra loggingService)
     {
         _dashboardService = dashboardService;
         _loggingService = loggingService;
