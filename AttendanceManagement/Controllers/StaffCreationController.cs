@@ -1,10 +1,6 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
-using DocumentFormat.OpenXml.InkML;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
@@ -13,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class StaffCreationController : ControllerBase
 {
-    private readonly IStaffCreationService _service;
-    private readonly ILoggingService _loggingService;
+    private readonly IStaffCreationInfra _service;
+    private readonly ILoggingInfra _loggingService;
 
-    public StaffCreationController(IStaffCreationService service, ILoggingService loggingService)
+    public StaffCreationController(IStaffCreationInfra service, ILoggingInfra loggingService)
     {
         _service = service;
         _loggingService = loggingService;

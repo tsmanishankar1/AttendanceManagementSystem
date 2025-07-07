@@ -1,20 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
-using AttendanceManagement.Services;
-using AttendanceManagement.AtrakModels;
-using AttendanceManagement.InputModels;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using AttendanceManagement.Services.Interface;
 
 [Route("api/[controller]")]
 [ApiController]
 public class AttendanceController : ControllerBase
 {
-    private readonly IAttendanceService _smaxTransactionService;
-    private readonly ILoggingService _loggingService;
+    private readonly IAttendanceInfra _smaxTransactionService;
+    private readonly ILoggingInfra _loggingService;
 
-    public AttendanceController(IAttendanceService smaxTransactionService, ILoggingService loggingService)
+    public AttendanceController(IAttendanceInfra smaxTransactionService, ILoggingInfra loggingService)
     {
         _smaxTransactionService = smaxTransactionService;
         _loggingService = loggingService;

@@ -9,7 +9,7 @@
 				Controller for handling application-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.#ctor(AttendanceManagement.Services.ApplicationService,AttendanceManagement.Services.ApproveApplicationService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.#ctor(AttendanceManagement.Application.Interfaces.Infrastructure.ApplicationInfra,AttendanceManagement.Application.Interfaces.Infrastructure.ApproveApplicationInfra,AttendanceManagement.Application.Interfaces.Infrastructure.LoggingInfra)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ApplicationController"/> class.
 			</summary>
@@ -17,11 +17,11 @@
 			<param name="approveApplicationService">The service responsible for approving application requests.</param>
 			<param name="loggingService">The logging service for capturing and storing logs.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationDetails(AttendanceManagement.InputModels.ApplicationDetails)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationDetails(AttendanceManagement.Application.Dtos.Attendance.ApplicationDetails)">
 			<summary>
 				Retrieves application details based on staff ID and application type ID.
 			</summary>
-			<param name="applicationDetails" type="AttendanceManagement.InputModels.ApplicationDetails">
+			<param name="applicationDetails" type="AttendanceManagement.Application.Dtos.Attendance.ApplicationDetails">
 				The application details request model containing the staff ID and application type ID.
 			</param>
 			<returns>
@@ -46,7 +46,7 @@
 			<response code="404">If no records are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.Create(AttendanceManagement.InputModels.CompOffAvailRequest)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.Create(AttendanceManagement.Application.Dtos.Attendance.CompOffAvailRequest)">
 			<summary>
 				Creates a new CompOff availability request.
 			</summary>
@@ -66,11 +66,11 @@
 			<response code="404">If no records are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateReimbursement(AttendanceManagement.InputModels.ReimbursementRequestModel)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateReimbursement(AttendanceManagement.Application.Dtos.Attendance.ReimbursementRequestModel)">
 			<summary>
 				Creates a new reimbursement request.
 			</summary>
-			<param name="request" type="AttendanceManagement.Models.ReimbursementRequestModel">
+			<param name="request" type="AttendanceManagement.Infrastructure.Data.ReimbursementRequestModel">
 				The reimbursement request model containing details such as amount, description, and created by.
 			</param>
 			<returns>Returns a success message if the reimbursement request is submitted successfully.</returns>
@@ -80,7 +80,7 @@
 			<response code="409">A reimbursement request with the same data already exists.</response>
 			<response code="500">An unexpected error occurred on the server.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateCompOffCredit(AttendanceManagement.InputModels.CompOffCreditDto)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateCompOffCredit(AttendanceManagement.Application.Dtos.Attendance.CompOffCreditDto)">
 			<summary>
 				Creates a new CompOff credit request.
 			</summary>
@@ -91,7 +91,7 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CancelAppliedLeave(AttendanceManagement.InputModels.CancelAppliedLeave)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CancelAppliedLeave(AttendanceManagement.Application.Dtos.Attendance.CancelAppliedLeave)">
 			<summary>
 				Cancels an applied leave request.
 			</summary>
@@ -102,7 +102,7 @@
 			<response code="409">If the application request has already been cancelled.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.RevokeAppliedLeave(AttendanceManagement.InputModels.CancelAppliedLeave)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.RevokeAppliedLeave(AttendanceManagement.Application.Dtos.Attendance.CancelAppliedLeave)">
 			<summary>
 				Revokes an applied leave request.
 			</summary>
@@ -113,7 +113,7 @@
 			<response code="409">If the application request has already been revoked.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetMonthlyDetails(AttendanceManagement.InputModels.MonthlyCalendar)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetMonthlyDetails(AttendanceManagement.Application.Dtos.Attendance.MonthlyCalendar)">
 			<summary>
 				Retrieves all monthly calendar details.
 			</summary>
@@ -135,7 +135,7 @@
 			<response code="404">If no shifts are found for the specified criteria.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationRequisition(AttendanceManagement.InputModels.GetLeaveRequest)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetApplicationRequisition(AttendanceManagement.Application.Dtos.Attendance.GetLeaveRequest)">
 			<summary>
 				Retrieves application requisitions based on the provided criteria.
 			</summary>
@@ -145,7 +145,7 @@
 			<response code="404">If no application requisitions are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.ApproveApplicationRequisition(AttendanceManagement.InputModels.ApproveLeaveRequest)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.ApproveApplicationRequisition(AttendanceManagement.Application.Dtos.Attendance.ApproveLeaveRequest)">
 			<summary>
 				Approves a Application request.
 			</summary>
@@ -187,11 +187,11 @@
 			<response code="404">If the specified notification or staff member is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateLeaveRequisition(AttendanceManagement.InputModels.LeaveRequisitionRequest)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateLeaveRequisition(AttendanceManagement.Application.Dtos.Attendance.LeaveRequisitionRequest)">
 			<summary>
 				Creates a new leave requisition.
 			</summary>
-			<param name="leaveRequisition" type="AttendanceManagement.InputModels.LeaveRequisitionRequest">
+			<param name="leaveRequisition" type="AttendanceManagement.Application.Dtos.Attendance.LeaveRequisitionRequest">
 				The leave requisition request model containing the leave details.
 			</param>
 			<returns>
@@ -210,7 +210,7 @@
 				Internal Server Error - An unexpected error occurred on the server.
 			</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateCommonPermission(AttendanceManagement.InputModels.CommonPermissionRequest)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateCommonPermission(AttendanceManagement.Application.Dtos.Attendance.CommonPermissionRequest)">
 			<summary>
 				Creates a new common permission.
 			</summary>
@@ -231,7 +231,7 @@
 			<response code="404">If no staff permissions are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetStaffPermissions(AttendanceManagement.InputModels.GetCommonStaff)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.GetStaffPermissions(AttendanceManagement.Application.Dtos.Attendance.GetCommonStaff)">
 			<summary>
 				Retrieves staff permissions based on the provided criteria.
 			</summary>
@@ -251,7 +251,7 @@
 			<response code="404">If no leave details are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateManualPunch(AttendanceManagement.InputModels.ManualPunchRequestDto)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateManualPunch(AttendanceManagement.Application.Dtos.Attendance.ManualPunchRequestDto)">
 			<summary>
 				Creates a new manual punch.
 			</summary>
@@ -262,7 +262,7 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateOnDutyRequisition(AttendanceManagement.InputModels.OnDutyRequisitionRequest)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateOnDutyRequisition(AttendanceManagement.Application.Dtos.Attendance.OnDutyRequisitionRequest)">
 			<summary>
 				Creates a new onduty requisition.
 			</summary>
@@ -273,7 +273,7 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateBusinessTravel(AttendanceManagement.InputModels.BusinessTravelRequestDto)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateBusinessTravel(AttendanceManagement.Application.Dtos.Attendance.BusinessTravelRequestDto)">
 			<summary>
 				Creates a new business travel.
 			</summary>
@@ -284,7 +284,7 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateWorkFromHome(AttendanceManagement.InputModels.WorkFromHomeDto)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateWorkFromHome(AttendanceManagement.Application.Dtos.Attendance.WorkFromHomeDto)">
 			<summary>
 				Creates a new work from home requisition.
 			</summary>
@@ -295,7 +295,7 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateShiftChange(AttendanceManagement.InputModels.ShiftChangeDto)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateShiftChange(AttendanceManagement.Application.Dtos.Attendance.ShiftChangeDto)">
 			<summary>
 				Creates a new Shift Change.
 			</summary>
@@ -306,7 +306,7 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateShiftExtension(AttendanceManagement.InputModels.ShiftExtensionDto)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateShiftExtension(AttendanceManagement.Application.Dtos.Attendance.ShiftExtensionDto)">
 			<summary>
 				Creates a new Create Shift Extension.
 			</summary>
@@ -317,7 +317,7 @@
 			<response code="409">If all attendance records are frozen and the request cannot be processed.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateWeeklyOffHolidayWorking(AttendanceManagement.InputModels.WeeklyOffHolidayWorkingDto)">
+		<member name="M:AttendanceManagement.Controllers.ApplicationController.CreateWeeklyOffHolidayWorking(AttendanceManagement.Application.Dtos.Attendance.WeeklyOffHolidayWorkingDto)">
 			<summary>
 				Creates a new Weekly off Holiday Working.
 			</summary>
@@ -333,7 +333,7 @@
 				Controller for handling operations related to the appraisal management process including staff selection, MIS uploads, AGM approvals, and appraisal acceptance.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.#ctor(AttendanceManagement.Services.AppraisalManagementService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.#ctor(AttendanceManagement.Infrastructure.Infra.AppraisalManagementService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.AppraisalManagementController"/> class.
 			</summary>
@@ -352,7 +352,7 @@
 			<response code="404">Returned when no eligible employees are found.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaffToMis(AttendanceManagement.InputModels.SelectedEmployeesRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaffToMis(AttendanceManagement.Application.Dtos.Attendance.SelectedEmployeesRequest)">
 			<summary>
 				Moves selected staff members to the MIS section for appraisal processing.
 			</summary>
@@ -375,7 +375,7 @@
 			<response code="404">Returned when no selected employee data is found.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MisUploadSheet(AttendanceManagement.InputModels.UploadMisSheetRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MisUploadSheet(AttendanceManagement.Application.Dtos.Attendance.UploadMisSheetRequest)">
 			<summary>
 				Uploads MIS sheet for selected employees in the appraisal process.
 			</summary>
@@ -406,7 +406,7 @@
 			<response code="404">If no AGM data is found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveToAgmApproval(AttendanceManagement.InputModels.AgmApprovalTab)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveToAgmApproval(AttendanceManagement.Application.Dtos.Attendance.AgmApprovalTab)">
 			<summary>
 				Moves selected employee appraisal records to AGM approval stage.
 			</summary>
@@ -429,7 +429,7 @@
 			<response code="404">Returned when no data is found.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.AgmApproval(AttendanceManagement.InputModels.AgmApprovalRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.AgmApproval(AttendanceManagement.Application.Dtos.Attendance.AgmApprovalRequest)">
 			<summary>
 				Processes the AGM approval for selected employees.
 			</summary>
@@ -470,7 +470,7 @@
 			<response code="404">If the appraisal letter is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.AcceptAppraisalLetter(AttendanceManagement.InputModels.LetterAcceptance)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.AcceptAppraisalLetter(AttendanceManagement.Application.Dtos.Attendance.LetterAcceptance)">
 			<summary>
 				Accepts the appraisal letter by the employee.
 			</summary>
@@ -503,7 +503,7 @@
 			<response code="404">If no employees are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaff(AttendanceManagement.InputModels.SelectedEmployeesRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaff(AttendanceManagement.Application.Dtos.Attendance.SelectedEmployeesRequest)">
 			<summary>
 				Moves selected non-production employees to the appraisal process.
 			</summary>
@@ -526,7 +526,7 @@
 			<response code="404">If no data is found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateKra(AttendanceManagement.InputModels.KraDto)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateKra(AttendanceManagement.Application.Dtos.Attendance.KraDto)">
 			<summary>
 				Creates Key Result Areas (KRA) for a specific employee's appraisal.
 			</summary>
@@ -549,7 +549,7 @@
 			<response code="404">If KRA data is not found.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateSelfEvaluation(AttendanceManagement.InputModels.SelfEvaluationRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateSelfEvaluation(AttendanceManagement.Application.Dtos.Attendance.SelfEvaluationRequest)">
 			<summary>
 				Creates a self-evaluation record as part of the appraisal process.
 			</summary>
@@ -572,7 +572,7 @@
 			<response code="404">If self-evaluation data is not found.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateManagerEvaluation(AttendanceManagement.InputModels.ManagerEvaluationRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateManagerEvaluation(AttendanceManagement.Application.Dtos.Attendance.ManagerEvaluationRequest)">
 			<summary>
 				Submits manager evaluation data for an employee's appraisal.
 			</summary>
@@ -608,7 +608,7 @@
 			<response code="404">If score data is not available.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.HrUploadSheet(AttendanceManagement.InputModels.UploadMisSheetRequest)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.HrUploadSheet(AttendanceManagement.Application.Dtos.Attendance.UploadMisSheetRequest)">
 			<summary>
 				Uploads a MIS sheet for HR to process non-production employee appraisal data.
 			</summary>
@@ -652,7 +652,7 @@
 			<response code="404">If no check-in record is found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceController.AddGraceTimeAndBreakTime(AttendanceManagement.InputModels.AttendanceGraceTimeCalcRequest)">
+		<member name="M:AttendanceController.AddGraceTimeAndBreakTime(AttendanceManagement.Application.Dtos.Attendance.AttendanceGraceTimeCalcRequest)">
 			<summary>
 				Adds grace time and break time for attendance calculations.
 			</summary>
@@ -671,7 +671,7 @@
 			<response code="404">If no records are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceController.UpdateGraceTimeAndBreakTime(AttendanceManagement.InputModels.UpdateAttendanceGraceTimeCalc)">
+		<member name="M:AttendanceController.UpdateGraceTimeAndBreakTime(AttendanceManagement.Application.Dtos.Attendance.UpdateAttendanceGraceTimeCalc)">
 			<summary>
 				Updates the existing grace time and break time configurations.
 			</summary>
@@ -690,7 +690,7 @@
 			<response code="404">If no attendance records found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceController.GetAllStaffsByDepartmentAndDivision(AttendanceManagement.InputModels.GetStaffByDepartmentDivision)">
+		<member name="M:AttendanceController.GetAllStaffsByDepartmentAndDivision(AttendanceManagement.Application.Dtos.Attendance.GetStaffByDepartmentDivision)">
 			<summary>
 				Retrieves a list of staff members based on the selected department and division.
 			</summary>
@@ -700,11 +700,11 @@
 			<response code="404">If no matching staff records are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceController.GetAttendanceRecords(AttendanceManagement.InputModels.AttendanceStatusResponse)">
+		<member name="M:AttendanceController.GetAttendanceRecords(AttendanceManagement.Application.Dtos.Attendance.AttendanceStatusResponse)">
 			<summary>
 				Retrieves attendance records based on staff ID, department ID, division ID, and date range.
 			</summary>
-			<param name="attendanceStatus" type="AttendanceManagement.InputModels.AttendanceStatusResponse">
+			<param name="attendanceStatus" type="AttendanceManagement.Application.Dtos.Attendance.AttendanceStatusResponse">
 				The attendance status filter model containing staff ID, department ID, division ID, and from/to date range.
 			</param>
 			<returns>
@@ -720,7 +720,7 @@
 				Internal Server Error - An unexpected error occurred while processing the request.
 			</response>
 		</member>
-		<member name="M:AttendanceController.FreezeAttendanceRecords(AttendanceManagement.InputModels.AttendanceFreezeRequest)">
+		<member name="M:AttendanceController.FreezeAttendanceRecords(AttendanceManagement.Application.Dtos.Attendance.AttendanceFreezeRequest)">
 			<summary>
 				Freezes the selected attendance records based on the provided request.
 			</summary>
@@ -741,7 +741,7 @@
 				Controller for handling branch-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.BranchMasterController.#ctor(AttendanceManagement.Services.BranchMasterService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.BranchMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.BranchMasterService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.BranchMasterController"/> class.
 			</summary>
@@ -757,7 +757,7 @@
 			<response code="404">If no branches are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.BranchMasterController.Create(AttendanceManagement.InputModels.BranchMasterRequest)">
+		<member name="M:AttendanceManagement.Controllers.BranchMasterController.Create(AttendanceManagement.Application.Dtos.Attendance.BranchMasterRequest)">
 			<summary>
 				Creates a new branch.
 			</summary>
@@ -768,7 +768,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.BranchMasterController.Update(AttendanceManagement.InputModels.UpdateBranch)">
+		<member name="M:AttendanceManagement.Controllers.BranchMasterController.Update(AttendanceManagement.Application.Dtos.Attendance.UpdateBranch)">
 			<summary>
 				Updates an existing branch.
 			</summary>
@@ -784,7 +784,7 @@
 				Controller for handling category-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.#ctor(AttendanceManagement.Services.CategoryMasterService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.CategoryMasterService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.CategoryMasterController"/> class.
 			</summary>
@@ -800,7 +800,7 @@
 			<response code="404">If no categories are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.CreateCategory(AttendanceManagement.InputModels.CategoryMasterRequest)">
+		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.CreateCategory(AttendanceManagement.Application.Dtos.Attendance.CategoryMasterRequest)">
 			<summary>
 				Creates a new category.
 			</summary>
@@ -810,7 +810,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.UpdateCategory(AttendanceManagement.InputModels.UpdateCategory)">
+		<member name="M:AttendanceManagement.Controllers.CategoryMasterController.UpdateCategory(AttendanceManagement.Application.Dtos.Attendance.UpdateCategory)">
 			<summary>
 				Updates an existing category.
 			</summary>
@@ -826,7 +826,7 @@
 				Controller for handling company-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.#ctor(AttendanceManagement.Services.CompanyMasterService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.CompanyMasterService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.CompanyMasterController"/> class.
 			</summary>
@@ -842,7 +842,7 @@
 			<response code="404">If no companies are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.AddCompanyMaster(AttendanceManagement.InputModels.CompanyMasterRequest)">
+		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.AddCompanyMaster(AttendanceManagement.Application.Dtos.Attendance.CompanyMasterRequest)">
 			<summary>
 				Creates a new company.
 			</summary>
@@ -852,7 +852,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.UpdateCompanyMaster(AttendanceManagement.InputModels.CompanyMasterDto)">
+		<member name="M:AttendanceManagement.Controllers.CompanyMasterController.UpdateCompanyMaster(AttendanceManagement.Application.Dtos.Attendance.CompanyMasterDto)">
 			<summary>
 				Updates an existing company.
 			</summary>
@@ -868,7 +868,7 @@
 				Controller for handling cost centre-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.#ctor(AttendanceManagement.Services.CostCentreMasterService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.CostCentreMasterService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.CostCentreMasterController"/> class.
 			</summary>
@@ -884,7 +884,7 @@
 			<response code="404">If no cost centres are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.CreateCostCentre(AttendanceManagement.InputModels.CostMasterRequest)">
+		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.CreateCostCentre(AttendanceManagement.Application.Dtos.Attendance.CostMasterRequest)">
 			<summary>
 				Creates a new cost centre.
 			</summary>
@@ -894,7 +894,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.UpdateCostCentre(AttendanceManagement.InputModels.UpdateCostMaster)">
+		<member name="M:AttendanceManagement.Controllers.CostCentreMasterController.UpdateCostCentre(AttendanceManagement.Application.Dtos.Attendance.UpdateCostMaster)">
 			<summary>
 				Updates an existing cost centre.
 			</summary>
@@ -917,7 +917,7 @@
 			<param name="dailyReportsService">The daily reports service.</param>
 			<param name="loggingService">The logging service.</param>
 		</member>
-		<member name="M:DailyReportsController.GetDailyReport(AttendanceManagement.InputModels.DailyReportRequest)">
+		<member name="M:DailyReportsController.GetDailyReport(AttendanceManagement.Application.Dtos.Attendance.DailyReportRequest)">
 			<summary>
 				Retrieves a daily report.
 			</summary>
@@ -936,7 +936,7 @@
 			<response code="404">If the report types are not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:DailyReportsController.AddWorkingTypeAmount(AttendanceManagement.InputModels.WorkingTypeAmountRequest)">
+		<member name="M:DailyReportsController.AddWorkingTypeAmount(AttendanceManagement.Application.Dtos.Attendance.WorkingTypeAmountRequest)">
 			<summary>
 				Adds a new working type amount for holiday or night shift working.
 			</summary>
@@ -955,7 +955,7 @@
 			<response code="404">If no records are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:DailyReportsController.UpdateWorkingTypeAmount(AttendanceManagement.InputModels.UpdateWorkingTypeAmount)">
+		<member name="M:DailyReportsController.UpdateWorkingTypeAmount(AttendanceManagement.Application.Dtos.Attendance.UpdateWorkingTypeAmount)">
 			<summary>
 				Updates an existing working type amount for holiday or night shift working.
 			</summary>
@@ -965,7 +965,7 @@
 			<response code="404">If the specified working type amount is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DashboardController.#ctor(AttendanceManagement.Services.DashboardService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.DashboardController.#ctor(AttendanceManagement.Infrastructure.Infra.DashboardService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.DashboardController"/> class.
 			</summary>
@@ -1034,7 +1034,7 @@
 			<response code="404">If no upcoming shifts are found for the specified staff member</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DashboardController.CreateAnnouncement(AttendanceManagement.InputModels.AnnouncementDto)">
+		<member name="M:AttendanceManagement.Controllers.DashboardController.CreateAnnouncement(AttendanceManagement.Application.Dtos.Attendance.AnnouncementDto)">
 			<summary>
 				Creates a new announcement.
 			</summary>
@@ -1062,7 +1062,7 @@
 			<response code="404">If no active announcement is found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DashboardController.UpdateAnnouncement(AttendanceManagement.InputModels.AnnouncementResponse)">
+		<member name="M:AttendanceManagement.Controllers.DashboardController.UpdateAnnouncement(AttendanceManagement.Application.Dtos.Attendance.AnnouncementResponse)">
 			<summary>
 				Updates an existing announcement.
 			</summary>
@@ -1077,7 +1077,7 @@
 				Controller for handling department-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.#ctor(AttendanceManagement.Services.DepartmentMasterService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.DepartmentMasterService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.DepartmentMasterController"/> class.
 			</summary>
@@ -1093,7 +1093,7 @@
 			<response code="404">If no departments are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.CreateDepartment(AttendanceManagement.InputModels.DepartmentRequest)">
+		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.CreateDepartment(AttendanceManagement.Application.Dtos.Attendance.DepartmentRequest)">
 			<summary>
 				Creates a new department.
 			</summary>
@@ -1103,7 +1103,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.UpdateDepartment(AttendanceManagement.InputModels.UpdateDepartment)">
+		<member name="M:AttendanceManagement.Controllers.DepartmentMasterController.UpdateDepartment(AttendanceManagement.Application.Dtos.Attendance.UpdateDepartment)">
 			<summary>
 				Updates an existing department.
 			</summary>
@@ -1119,7 +1119,7 @@
 				Controller for handling designation-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.#ctor(AttendanceManagement.Services.DesignationMasterService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.DesignationMasterService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.DesignationMasterController"/> class.
 			</summary>
@@ -1135,7 +1135,7 @@
 			<response code="404">If no designations are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.AddDesignation(AttendanceManagement.InputModels.DesignationRequest)">
+		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.AddDesignation(AttendanceManagement.Application.Dtos.Attendance.DesignationRequest)">
 			<summary>
 				Creates a new designation.
 			</summary>
@@ -1145,7 +1145,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.UpdateDesignation(AttendanceManagement.InputModels.UpdateDesignation)">
+		<member name="M:AttendanceManagement.Controllers.DesignationMasterController.UpdateDesignation(AttendanceManagement.Application.Dtos.Attendance.UpdateDesignation)">
 			<summary>
 				Updates an existing designation.
 			</summary>
@@ -1161,7 +1161,7 @@
 				Controller for handling division-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.#ctor(AttendanceManagement.Services.DivisionMasterService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.DivisionMasterService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.DivisionMasterController"/> class.
 			</summary>
@@ -1177,7 +1177,7 @@
 			<response code="404">If no divisions are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.AddDivision(AttendanceManagement.InputModels.DivisionRequest)">
+		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.AddDivision(AttendanceManagement.Application.Dtos.Attendance.DivisionRequest)">
 			<summary>
 				Creates a new division.
 			</summary>
@@ -1187,7 +1187,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.UpdateDivision(AttendanceManagement.InputModels.UpdateDivision)">
+		<member name="M:AttendanceManagement.Controllers.DivisionMasterController.UpdateDivision(AttendanceManagement.Application.Dtos.Attendance.UpdateDivision)">
 			<summary>
 				Updates an existing division.
 			</summary>
@@ -1203,14 +1203,14 @@
 				Controller for handling excel import-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ExcelImportController.#ctor(ExcelImportService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.ExcelImportController.#ctor(ExcelImportService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ExcelImportController"/> class.
 			</summary>
 			<param name="excelImportService">The excel import service.</param>
 			<param name="context">The attendance management system context.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ExcelImportController.ImportExcel(AttendanceManagement.InputModels.ExcelImportDto)">
+		<member name="M:AttendanceManagement.Controllers.ExcelImportController.ImportExcel(AttendanceManagement.Application.Dtos.Attendance.ExcelImportDto)">
 			<summary>
 				Imports data from an excel file.
 			</summary>
@@ -1236,7 +1236,7 @@
 				Controller for handling grade-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.GradeMasterController.#ctor(AttendanceManagement.Services.GradeMasterService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.GradeMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.GradeMasterService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.GradeMasterController"/> class.
 			</summary>
@@ -1252,7 +1252,7 @@
 			<response code="404">If no grades are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.GradeMasterController.Create(AttendanceManagement.InputModels.GradeMasterRequest)">
+		<member name="M:AttendanceManagement.Controllers.GradeMasterController.Create(AttendanceManagement.Application.Dtos.Attendance.GradeMasterRequest)">
 			<summary>
 				Creates a new grade.
 			</summary>
@@ -1262,7 +1262,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.GradeMasterController.Update(AttendanceManagement.InputModels.UpdateGradeMaster)">
+		<member name="M:AttendanceManagement.Controllers.GradeMasterController.Update(AttendanceManagement.Application.Dtos.Attendance.UpdateGradeMaster)">
 			<summary>
 				Updates an existing grade.
 			</summary>
@@ -1278,7 +1278,7 @@
 				Controller for handling holiday-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.#ctor(AttendanceManagement.Services.HolidayService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.HolidayController.#ctor(AttendanceManagement.Infrastructure.Infra.HolidayService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.HolidayController"/> class.
 			</summary>
@@ -1303,7 +1303,7 @@
 			<response code="404">If no holiday types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.CreateHoliday(AttendanceManagement.InputModels.HolidayRequest)">
+		<member name="M:AttendanceManagement.Controllers.HolidayController.CreateHoliday(AttendanceManagement.Application.Dtos.Attendance.HolidayRequest)">
 			<summary>
 				Creates a new holiday.
 			</summary>
@@ -1312,7 +1312,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.UpdateHoliday(AttendanceManagement.InputModels.UpdateHoliday)">
+		<member name="M:AttendanceManagement.Controllers.HolidayController.UpdateHoliday(AttendanceManagement.Application.Dtos.Attendance.UpdateHoliday)">
 			<summary>
 				Updates an existing holiday.
 			</summary>
@@ -1359,7 +1359,7 @@
 			<response code="404">If no holiday zones are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.PostHolidayZone(AttendanceManagement.InputModels.HolidayZoneRequest)">
+		<member name="M:AttendanceManagement.Controllers.HolidayController.PostHolidayZone(AttendanceManagement.Application.Dtos.Attendance.HolidayZoneRequest)">
 			<summary>
 				Creates a new holiday zone.
 			</summary>
@@ -1368,7 +1368,7 @@
 			<response code="200">Returns the created holiday zone</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.UpdateHolidayZoneby(AttendanceManagement.InputModels.UpdateHolidayZone)">
+		<member name="M:AttendanceManagement.Controllers.HolidayController.UpdateHolidayZoneby(AttendanceManagement.Application.Dtos.Attendance.UpdateHolidayZone)">
 			<summary>
 				Updates an existing holiday zone.
 			</summary>
@@ -1383,7 +1383,7 @@
 				Controller for handling leave group configuration-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveGroupConfigurationController.#ctor(AttendanceManagement.Services.LeaveGroupConfigurationService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.LeaveGroupConfigurationController.#ctor(AttendanceManagement.Infrastructure.Infra.LeaveGroupConfigurationService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.LeaveGroupConfigurationController"/> class.
 			</summary>
@@ -1409,7 +1409,7 @@
 			<response code="404">If the configuration is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveGroupConfigurationController.CreateConfiguration(AttendanceManagement.InputModels.LeaveGroupConfigurationRequest)">
+		<member name="M:AttendanceManagement.Controllers.LeaveGroupConfigurationController.CreateConfiguration(AttendanceManagement.Application.Dtos.Attendance.LeaveGroupConfigurationRequest)">
 			<summary>
 				Creates a new leave group configuration.
 			</summary>
@@ -1418,7 +1418,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveGroupConfigurationController.UpdateConfiguration(AttendanceManagement.InputModels.UpdateLeaveGroupConfiguration)">
+		<member name="M:AttendanceManagement.Controllers.LeaveGroupConfigurationController.UpdateConfiguration(AttendanceManagement.Application.Dtos.Attendance.UpdateLeaveGroupConfiguration)">
 			<summary>
 				Updates an existing leave group configuration.
 			</summary>
@@ -1433,7 +1433,7 @@
 				Controller for handling leave group-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.#ctor(AttendanceManagement.Services.LeaveGroupService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.#ctor(AttendanceManagement.Infrastructure.Infra.LeaveGroupService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.LeaveGroupController"/> class.
 			</summary>
@@ -1449,7 +1449,7 @@
 			<response code="404">If no leave groups are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.AddLeaveGroup(AttendanceManagement.InputModels.AddLeaveGroupDto)">
+		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.AddLeaveGroup(AttendanceManagement.Application.Dtos.Attendance.AddLeaveGroupDto)">
 			<summary>
 				Creates a new leave group.
 			</summary>
@@ -1458,7 +1458,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.UpdateLeaveGroup(AttendanceManagement.InputModels.UpdateLeaveGroup)">
+		<member name="M:AttendanceManagement.Controllers.LeaveGroupController.UpdateLeaveGroup(AttendanceManagement.Application.Dtos.Attendance.UpdateLeaveGroup)">
 			<summary>
 				Updates an existing leave group.
 			</summary>
@@ -1473,7 +1473,7 @@
 				Controller for handling leave type-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.#ctor(AttendanceManagement.Services.LeaveTypeService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.#ctor(AttendanceManagement.Infrastructure.Infra.LeaveTypeService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.LeaveTypeController"/> class.
 			</summary>
@@ -1489,7 +1489,7 @@
 			<response code="404">If no leave types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.CreateLeaveType(AttendanceManagement.InputModels.LeaveTypeRequest)">
+		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.CreateLeaveType(AttendanceManagement.Application.Dtos.Attendance.LeaveTypeRequest)">
 			<summary>
 				Creates a new leave type.
 			</summary>
@@ -1498,7 +1498,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.UpdateLeaveType(AttendanceManagement.InputModels.UpdateLeaveType)">
+		<member name="M:AttendanceManagement.Controllers.LeaveTypeController.UpdateLeaveType(AttendanceManagement.Application.Dtos.Attendance.UpdateLeaveType)">
 			<summary>
 				Updates an existing leave type.
 			</summary>
@@ -1513,7 +1513,7 @@
 				Controller for handling location-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LocationMasterController.#ctor(AttendanceManagement.Services.LocationService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.LocationMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.LocationService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.LocationMasterController"/> class.
 			</summary>
@@ -1529,7 +1529,7 @@
 			<response code="404">If no locations are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LocationMasterController.CreateLocation(AttendanceManagement.InputModels.LocationRequest)">
+		<member name="M:AttendanceManagement.Controllers.LocationMasterController.CreateLocation(AttendanceManagement.Application.Dtos.Attendance.LocationRequest)">
 			<summary>
 				Creates a new location.
 			</summary>
@@ -1539,7 +1539,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LocationMasterController.UpdateLocation(AttendanceManagement.InputModels.UpdateLocation)">
+		<member name="M:AttendanceManagement.Controllers.LocationMasterController.UpdateLocation(AttendanceManagement.Application.Dtos.Attendance.UpdateLocation)">
 			<summary>
 				Updates an existing location.
 			</summary>
@@ -1562,7 +1562,7 @@
 			<param name="loginService">The authentication service.</param>
 			<param name="logger">The logger.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LoginController.Login(AttendanceManagement.InputModels.Login)">
+		<member name="M:AttendanceManagement.Controllers.LoginController.Login(AttendanceManagement.Application.Dtos.Attendance.Login)">
 			<summary>
 				Authenticates a user and returns a JWT token.
 			</summary>
@@ -1572,7 +1572,7 @@
 			<response code="404">If the user is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.LoginController.RefreshToken(AttendanceManagement.InputModels.RefreshTokenDto)">
+		<member name="M:AttendanceManagement.Controllers.LoginController.RefreshToken(AttendanceManagement.Application.Dtos.Attendance.RefreshTokenDto)">
 			<summary>
 				Refreshes the access token using a valid refresh token.
 			</summary>
@@ -1588,7 +1588,7 @@
 				Controller for handling payroll-related operations, including uploading payslips and salary structures.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PayrollController.#ctor(AttendanceManagement.Services.PayrollService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.PayrollController.#ctor(AttendanceManagement.Infrastructure.Infra.PayrollService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.PayrollController"/> class.
 			</summary>
@@ -1617,7 +1617,7 @@
 			<response code="404">If required data is not found</response>
 			<response code="500">If an internal server error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySlip(AttendanceManagement.InputModels.GeneratePaySheetRequest)">
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySlip(AttendanceManagement.Application.Dtos.Attendance.GeneratePaySheetRequest)">
 			<summary>
 				Retrieves a payslip for a specific staff member.
 			</summary>
@@ -1653,7 +1653,7 @@
 			<response code="404">If the payslip file is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySheet(AttendanceManagement.InputModels.GeneratePaySheetRequest)">
+		<member name="M:AttendanceManagement.Controllers.PayrollController.GeneratePaySheet(AttendanceManagement.Application.Dtos.Attendance.GeneratePaySheetRequest)">
 			<summary>
 				Generates the paysheet PDF for a specified staff member for a given month and year.
 			</summary>
@@ -1740,7 +1740,7 @@
 				Controller for handling prefix and suffix-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.#ctor(PrefixAndSuffixService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.#ctor(PrefixAndSuffixService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.PrefixAndSuffixController"/> class.
 			</summary>
@@ -1756,7 +1756,7 @@
 			<response code="404">If no suffix leave types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Create(AttendanceManagement.InputModels.SuffixLeaveRequest)">
+		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Create(AttendanceManagement.Application.Dtos.Attendance.SuffixLeaveRequest)">
 			<summary>
 				Creates a new suffix leave type.
 			</summary>
@@ -1774,7 +1774,7 @@
 			<response code="404">If no prefix leave types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.AddPrefixLeaveType(AttendanceManagement.InputModels.PrefixLeaveRequest)">
+		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.AddPrefixLeaveType(AttendanceManagement.Application.Dtos.Attendance.PrefixLeaveRequest)">
 			<summary>
 				Creates a new prefix leave type.
 			</summary>
@@ -1792,7 +1792,7 @@
 			<response code="404">If no prefix and suffix records are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Create(AttendanceManagement.InputModels.PrefixAndSuffixRequest)">
+		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Create(AttendanceManagement.Application.Dtos.Attendance.PrefixAndSuffixRequest)">
 			<summary>
 				Creates a new prefix and suffix record.
 			</summary>
@@ -1801,7 +1801,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Update(AttendanceManagement.InputModels.UpdatePrefixAndSuffix)">
+		<member name="M:AttendanceManagement.Controllers.PrefixAndSuffixController.Update(AttendanceManagement.Application.Dtos.Attendance.UpdatePrefixAndSuffix)">
 			<summary>
 				Updates an existing prefix and suffix record.
 			</summary>
@@ -1816,7 +1816,7 @@
 				Controller for handling probation-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.#ctor(AttendanceManagement.Services.ProbationService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.#ctor(AttendanceManagement.Infrastructure.Infra.ProbationService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ProbationController"/> class.
 			</summary>
@@ -1851,7 +1851,7 @@
 			<response code="404">If the probation is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.CreateProbation(AttendanceManagement.InputModels.ProbationRequest)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.CreateProbation(AttendanceManagement.Application.Dtos.Attendance.ProbationRequest)">
 			<summary>
 				Creates a new probation.
 			</summary>
@@ -1860,7 +1860,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.UpdateProbation(AttendanceManagement.InputModels.UpdateProbation)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.UpdateProbation(AttendanceManagement.Application.Dtos.Attendance.UpdateProbation)">
 			<summary>
 				Updates an existing probation.
 			</summary>
@@ -1891,7 +1891,7 @@
 			<response code="404">If no probations are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.AssignManagerForProbationReview(AttendanceManagement.InputModels.AssignManagerRequest)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.AssignManagerForProbationReview(AttendanceManagement.Application.Dtos.Attendance.AssignManagerRequest)">
 			<summary>
 				Assigns a manager for the probation review of a staff member.
 			</summary>
@@ -1912,7 +1912,7 @@
 			<response code="404">If no feedbacks are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.ProcessApprovalAsync(AttendanceManagement.InputModels.HrConfirmation)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.ProcessApprovalAsync(AttendanceManagement.Application.Dtos.Attendance.HrConfirmation)">
 			<summary>
 				Processes HR approval with letter generation.
 			</summary>
@@ -1923,7 +1923,7 @@
 			<response code="409">If there is a conflict in the approval process (e.g., already processed or conflicting data)</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.AddFeedback(AttendanceManagement.InputModels.FeedbackRequest)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.AddFeedback(AttendanceManagement.Application.Dtos.Attendance.FeedbackRequest)">
 			<summary>
 				Adds feedback by manager.
 			</summary>
@@ -1953,7 +1953,7 @@
 			<response code="404">If no feedbacks are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ProbationController.UpdateFeedback(AttendanceManagement.InputModels.UpdateFeedback)">
+		<member name="M:AttendanceManagement.Controllers.ProbationController.UpdateFeedback(AttendanceManagement.Application.Dtos.Attendance.UpdateFeedback)">
 			<summary>
 				Updates an existing feedback.
 			</summary>
@@ -1996,7 +1996,7 @@
 				Controller for handling shift-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ShiftController.#ctor(AttendanceManagement.Services.ShiftService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.ShiftController.#ctor(AttendanceManagement.Infrastructure.Infra.ShiftService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ShiftController"/> class.
 			</summary>
@@ -2022,7 +2022,7 @@
 			<response code="404">If no staff members are found for the specified division</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ShiftController.CreateShift(AttendanceManagement.InputModels.ShiftRequest)">
+		<member name="M:AttendanceManagement.Controllers.ShiftController.CreateShift(AttendanceManagement.Application.Dtos.Attendance.ShiftRequest)">
 			<summary>
 				Creates a new shift.
 			</summary>
@@ -2032,7 +2032,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ShiftController.UpdateShift(AttendanceManagement.InputModels.UpdateShift)">
+		<member name="M:AttendanceManagement.Controllers.ShiftController.UpdateShift(AttendanceManagement.Application.Dtos.Attendance.UpdateShift)">
 			<summary>
 				Updates an existing shift.
 			</summary>
@@ -2043,7 +2043,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ShiftController.CreateRegularShift(AttendanceManagement.InputModels.RegularShiftRequest)">
+		<member name="M:AttendanceManagement.Controllers.ShiftController.CreateRegularShift(AttendanceManagement.Application.Dtos.Attendance.RegularShiftRequest)">
 			<summary>
 				Creates a new regular shift.
 			</summary>
@@ -2053,7 +2053,7 @@
 			<response code="404">If the shift is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ShiftController.AssignShiftToStaff(AttendanceManagement.InputModels.AssignShiftRequest)">
+		<member name="M:AttendanceManagement.Controllers.ShiftController.AssignShiftToStaff(AttendanceManagement.Application.Dtos.Attendance.AssignShiftRequest)">
 			<summary>
 				Assigns a shift to staff.
 			</summary>
@@ -2079,7 +2079,7 @@
 				Controller for handling staff creation-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.#ctor(AttendanceManagement.Services.StaffCreationService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.#ctor(AttendanceManagement.Infrastructure.Infra.StaffCreationService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.StaffCreationController"/> class.
 			</summary>
@@ -2096,7 +2096,7 @@
 			<response code="404">If the staff member is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.SearchStaff(AttendanceManagement.InputModels.GetStaff)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.SearchStaff(AttendanceManagement.Application.Dtos.Attendance.GetStaff)">
 			<summary>
 				Retrieves staffs based on the provided criteria.
 			</summary>
@@ -2106,7 +2106,7 @@
 			<response code="404">If no staffs are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateStaffCreation(AttendanceManagement.InputModels.UpdateStaff)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateStaffCreation(AttendanceManagement.Application.Dtos.Attendance.UpdateStaff)">
 			<summary>
 				Updates an existing staff member.
 			</summary>
@@ -2118,7 +2118,7 @@
 			<response code="409">The uploaded file is empty or conflicts with existing data.</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateApprovers(AttendanceManagement.InputModels.ApproverUpdateRequest)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateApprovers(AttendanceManagement.Application.Dtos.Attendance.ApproverUpdateRequest)">
 			<summary>
 				Change the approver for staff member.
 			</summary>
@@ -2129,7 +2129,7 @@
 			<response code="409">Returned when approver levels conflict (e.g., same approver selected for both levels).</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.AddStaff(AttendanceManagement.InputModels.StaffCreationInputModel)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.AddStaff(AttendanceManagement.Application.Dtos.Attendance.StaffCreationInputModel)">
 			<summary>
 				Creates a new staff member.
 			</summary>
@@ -2166,7 +2166,7 @@
 			<response code="500">If there is an internal server error.</response>
 		</member>
 
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateMyProfile(AttendanceManagement.InputModels.IndividualStaffUpdate)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateMyProfile(AttendanceManagement.Application.Dtos.Attendance.IndividualStaffUpdate)">
 			<summary>
 				Updates the profile details of a staff member.
 			</summary>
@@ -2185,7 +2185,7 @@
 			<response code="404">If no pending staff is found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.ApprovePendingStaffs(AttendanceManagement.InputModels.ApprovePendingStaff)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.ApprovePendingStaffs(AttendanceManagement.Application.Dtos.Attendance.ApprovePendingStaff)">
 			<summary>
 				Approves the pending staff members.
 			</summary>
@@ -2196,7 +2196,7 @@
 			<response code="409">If the staff is already approved or the approval request conflicts with existing data.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.CreateDropDownMaster(AttendanceManagement.InputModels.DropDownRequest)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.CreateDropDownMaster(AttendanceManagement.Application.Dtos.Attendance.DropDownRequest)">
 			<summary>
 				Creates a new dropdown master entry.
 			</summary>
@@ -2215,7 +2215,7 @@
 			<response code="404">No dropdown master records found.</response>
 			<response code="500">Internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateDropDownMaster(AttendanceManagement.InputModels.UpdateDropDown)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateDropDownMaster(AttendanceManagement.Application.Dtos.Attendance.UpdateDropDown)">
 			<summary>
 				Updates an existing dropdown master entry.
 			</summary>
@@ -2235,7 +2235,7 @@
 			<response code="404">Dropdown values not found.</response>
 			<response code="500">Internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.CreateDropDownDetails(AttendanceManagement.InputModels.DropDownDetailsRequest)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.CreateDropDownDetails(AttendanceManagement.Application.Dtos.Attendance.DropDownDetailsRequest)">
 			<summary>
 				Creates a new dropdown detail entry based on the provided DropDownMasterId.
 			</summary>
@@ -2245,7 +2245,7 @@
 			<response code="404">If the specified DropDownMasterId is not found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateDropDownDetails(AttendanceManagement.InputModels.DropDownDetailsUpdate)">
+		<member name="M:AttendanceManagement.Controllers.StaffCreationController.UpdateDropDownDetails(AttendanceManagement.Application.Dtos.Attendance.DropDownDetailsUpdate)">
 			<summary>
 				Updates an existing dropdown detail entry based on the provided ID.
 			</summary>
@@ -2260,7 +2260,7 @@
 				Controller for handling staff transaction-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.#ctor(AttendanceManagement.Services.StaffTransactionService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.#ctor(AttendanceManagement.Infrastructure.Infra.StaffTransactionService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.StaffTransactionController"/> class.
 			</summary>
@@ -2277,7 +2277,7 @@
 			<response code="404">If no academic details are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.InputModels.ListAcademicDetailRequest)">
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.Application.Dtos.Attendance.ListAcademicDetailRequest)">
 			<summary>
 				Creates new academic records for a specific staff member.
 			</summary>
@@ -2287,7 +2287,7 @@
 			<response code="404">Returned when no academic details are provided.</response>
 			<response code="500">Returned when there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.InputModels.ListAcademicDetailUpdateRequest)">
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Application.Dtos.Attendance.ListAcademicDetailUpdateRequest)">
 		  <summary>
 			Updates existing academic records for a specific staff member.
 		  </summary>
@@ -2321,7 +2321,7 @@
 			<response code="404">If no certification details are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.InputModels.ListCertificationCourseRequest)">
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.Application.Dtos.Attendance.ListCertificationCourseRequest)">
 			  <summary>
 				Creates new certification course records for a staff member.
 			  </summary>
@@ -2333,7 +2333,7 @@
 			  <response code="404">If no certification courses are provided.</response>
 			  <response code="500">If there is an internal server error.</response>
 			</member>
-			<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.InputModels.ListCertificationCourseUpdateRequest)">
+			<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Application.Dtos.Attendance.ListCertificationCourseUpdateRequest)">
 			  <summary>
 				Updates existing certification course records.
 			  </summary>
@@ -2367,7 +2367,7 @@
 			<response code="404">If no work history details are found</response>
 			<response code="500">If there is an internal server error</response>
 		 </member>
-		 <member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.InputModels.ListPreviousEmploymentRequest)">
+		 <member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.Application.Dtos.Attendance.ListPreviousEmploymentRequest)">
 		  <summary>
 			Creates new work history details for a staff member.
 		  </summary>
@@ -2379,7 +2379,7 @@
 		  <response code="404">If no work history details are provided.</response>
 		  <response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.InputModels.ListPreviousEmploymentUpdateRequest)">
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Update(AttendanceManagement.Application.Dtos.Attendance.ListPreviousEmploymentUpdateRequest)">
 			  <summary>
 				Updates existing work history records for a staff member.
 			  </summary>
@@ -2403,14 +2403,14 @@
 			<response code="404">If the work history detail is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StatutoryReportController.#ctor(AttendanceManagement.Services.StatutoryReportService,AttendanceManagement.Services.LoggingService)">
+		<member name="M:AttendanceManagement.Controllers.StatutoryReportController.#ctor(AttendanceManagement.Infrastructure.Infra.StatutoryReportService,AttendanceManagement.Infrastructure.Infra.LoggingService)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.StatutoryReportController"/> class.
 			</summary>
 			<param name="service">The statutory report service.</param>
 			<param name="loggingService">The logging service.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.StatutoryReportController.GenerateStatutoryReport(AttendanceManagement.InputModels.StatutoryReportRequest)">
+		<member name="M:AttendanceManagement.Controllers.StatutoryReportController.GenerateStatutoryReport(AttendanceManagement.Application.Dtos.Attendance.StatutoryReportRequest)">
 			<summary>
 				Generates the statutory report based on the provided input data.
 			</summary>
@@ -2425,7 +2425,7 @@
 				Controller for handling sub function-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.#ctor(AttendanceManagement.Services.SubFunctionMasterService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.SubFunctionMasterService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.SubFunctionMasterController"/> class.
 			</summary>
@@ -2441,7 +2441,7 @@
 			<response code="404">If no sub functions are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.Create(AttendanceManagement.InputModels.SubFunctionRequest)">
+		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.Create(AttendanceManagement.Application.Dtos.Attendance.SubFunctionRequest)">
 			<summary>
 				Creates a new sub function.
 			</summary>
@@ -2451,7 +2451,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.Update(AttendanceManagement.InputModels.UpdateSubFunction)">
+		<member name="M:AttendanceManagement.Controllers.SubFunctionMasterController.Update(AttendanceManagement.Application.Dtos.Attendance.UpdateSubFunction)">
 			<summary>
 				Updates an existing sub function.
 			</summary>
@@ -2467,7 +2467,7 @@
 				Controller for handling tools-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.#ctor(AttendanceManagement.Services.ToolsService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.#ctor(AttendanceManagement.Infrastructure.Infra.ToolsService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ToolsController"/> class.
 			</summary>
@@ -2493,7 +2493,7 @@
 			<response code="200">Returns the list of assigned leave types</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.Create(AttendanceManagement.InputModels.CreateAssignLeaveTypeDTO)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.Create(AttendanceManagement.Application.Dtos.Attendance.CreateAssignLeaveTypeDTO)">
 			<summary>
 				Creates a new assigned leave type.
 			</summary>
@@ -2503,7 +2503,7 @@
 			<response code="404">If the assigned leave type is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.Update(AttendanceManagement.InputModels.UpdateAssignLeaveTypeDTO)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.Update(AttendanceManagement.Application.Dtos.Attendance.UpdateAssignLeaveTypeDTO)">
 			<summary>
 				Updates an existing assigned leave type.
 			</summary>
@@ -2523,7 +2523,7 @@
 			<response code="404">If no organization types are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.AddLeaveCreditDebitForMultipleStaff(AttendanceManagement.InputModels.LeaveCreditDebitRequest)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.AddLeaveCreditDebitForMultipleStaff(AttendanceManagement.Application.Dtos.Attendance.LeaveCreditDebitRequest)">
 			<summary>
 				Creates a new multiple leave credit/debit record.
 			</summary>
@@ -2532,7 +2532,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateApplicationType(AttendanceManagement.InputModels.ApplicationTypeRequest)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateApplicationType(AttendanceManagement.Application.Dtos.Attendance.ApplicationTypeRequest)">
 			<summary>
 				Creates a new application type.
 			</summary>
@@ -2541,7 +2541,7 @@
 			<response code="200">Returns the success message</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateReader(AttendanceManagement.InputModels.ReaderConfigurationRequest)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateReader(AttendanceManagement.Application.Dtos.Attendance.ReaderConfigurationRequest)">
 			<summary>
 				Creates a new reader configuration.
 			</summary>
@@ -2560,7 +2560,7 @@
 			<response code="404">If no reader configurations are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.UpdateAttendanceStatus(AttendanceManagement.InputModels.UpdateAttendanceStatusRequest)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.UpdateAttendanceStatus(AttendanceManagement.Application.Dtos.Attendance.UpdateAttendanceStatusRequest)">
 			<summary>
 				Updates the attendance status for a specific employee.
 			</summary>
@@ -2570,7 +2570,7 @@
 			<response code="404">If staff not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateAttendanceStatusColor(AttendanceManagement.InputModels.AttendanceStatusColorDto)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.CreateAttendanceStatusColor(AttendanceManagement.Application.Dtos.Attendance.AttendanceStatusColorDto)">
 			<summary>
 				Creates a new attendance status color.
 			</summary>
@@ -2588,7 +2588,7 @@
 			<response code="404">If no attendance status colors are found.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ToolsController.UpdateAttendanceStatusColor(AttendanceManagement.InputModels.UpdateAttendanceStatusColor)">
+		<member name="M:AttendanceManagement.Controllers.ToolsController.UpdateAttendanceStatusColor(AttendanceManagement.Application.Dtos.Attendance.UpdateAttendanceStatusColor)">
 			<summary>
 				Updates the color associated with an attendance status.
 			</summary>
@@ -2603,7 +2603,7 @@
 				Controller for handling weekly off-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.#ctor(AttendanceManagement.Services.WeeklyOffService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.#ctor(AttendanceManagement.Infrastructure.Infra.WeeklyOffService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.WeeklyOffController"/> class.
 			</summary>
@@ -2619,7 +2619,7 @@
 			<response code="404">If no weekly offs are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.CreateWeeklyOff(AttendanceManagement.InputModels.WeeklyOffRequest)">
+		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.CreateWeeklyOff(AttendanceManagement.Application.Dtos.Attendance.WeeklyOffRequest)">
 			<summary>
 				Creates a new weekly off.
 			</summary>
@@ -2630,7 +2630,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.UpdateWeeklyOff(AttendanceManagement.InputModels.UpdateWeeklyOff)">
+		<member name="M:AttendanceManagement.Controllers.WeeklyOffController.UpdateWeeklyOff(AttendanceManagement.Application.Dtos.Attendance.UpdateWeeklyOff)">
 			<summary>
 				Updates an existing weekly off.
 			</summary>
@@ -2646,7 +2646,7 @@
 				Controller for handling workstation-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.#ctor(AttendanceManagement.Services.WorkstationMasterService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.WorkstationMasterService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.WorkstationMasterController"/> class.
 			</summary>
@@ -2662,7 +2662,7 @@
 			<response code="404">If no workstations are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.CreateWorkstation(AttendanceManagement.InputModels.WorkStationRequest)">
+		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.CreateWorkstation(AttendanceManagement.Application.Dtos.Attendance.WorkStationRequest)">
 			<summary>
 				Creates a new workstation.
 			</summary>
@@ -2672,7 +2672,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.UpdateWorkstation(AttendanceManagement.InputModels.UpdateWorkStation)">
+		<member name="M:AttendanceManagement.Controllers.WorkstationMasterController.UpdateWorkstation(AttendanceManagement.Application.Dtos.Attendance.UpdateWorkStation)">
 			<summary>
 				Updates an existing workstation.
 			</summary>
@@ -2688,7 +2688,7 @@
 				Controller for handling zone-related operations.
 			</summary>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.#ctor(AttendanceManagement.Services.ZoneMasterService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.#ctor(AttendanceManagement.Infrastructure.Infra.ZoneMasterInfra,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:AttendanceManagement.Controllers.ZoneMasterController"/> class.
 			</summary>
@@ -2704,7 +2704,7 @@
 			<response code="404">If no zones are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.Create(AttendanceManagement.InputModels.ZoneMasterRequest)">
+		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.Create(AttendanceManagement.Application.Dtos.Attendance.ZoneMasterRequest)">
 			<summary>
 				Creates a new zone.
 			</summary>
@@ -2714,7 +2714,7 @@
 			<response code="409">If the same name already exists</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.Update(AttendanceManagement.InputModels.UpdateZoneMaster)">
+		<member name="M:AttendanceManagement.Controllers.ZoneMasterController.Update(AttendanceManagement.Application.Dtos.Attendance.UpdateZoneMaster)">
 			<summary>
 				Updates an existing zone.
 			</summary>
@@ -2730,14 +2730,14 @@
 				Controller for managing user-related operations.
 			</summary>
 		</member>
-		<member name="M:UserManagementController.#ctor(UserManagementService,AttendanceManagement.Models.AttendanceManagementSystemContext)">
+		<member name="M:UserManagementController.#ctor(UserManagementService,AttendanceManagement.Infrastructure.Data.AttendanceManagementSystemContext)">
 			<summary>
 				Initializes a new instance of the <see cref="T:UserManagementController"/> class.
 			</summary>
 			<param name="userService">The user management service.</param>
 			<param name="context">The attendance management system context.</param>
 		</member>
-		<member name="M:UserManagementController.RegisterUser(AttendanceManagement.InputModels.UserManagementRequest)">
+		<member name="M:UserManagementController.RegisterUser(AttendanceManagement.Application.Dtos.Attendance.UserManagementRequest)">
 			<summary>
 				Registers a new user.
 			</summary>
@@ -2758,7 +2758,7 @@
 			<response code="404">If the user is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:UserManagementController.ChangePassword(AttendanceManagement.InputModels.ChangePasswordModel)">
+		<member name="M:UserManagementController.ChangePassword(AttendanceManagement.Application.Dtos.Attendance.ChangePasswordModel)">
 			<summary>
 				Changes the password for a user.
 			</summary>
@@ -2789,7 +2789,7 @@
 			<response code="404">If no menus are found for the specified role.</response>
 			<response code="500">If there is an internal server error.</response>
 		</member>
-		<member name="M:UserManagementController.ResetPassword(AttendanceManagement.InputModels.ResetPasswordModel)">
+		<member name="M:UserManagementController.ResetPassword(AttendanceManagement.Application.Dtos.Attendance.ResetPasswordModel)">
 			<summary>
 				Resets the password for a user.
 			</summary>

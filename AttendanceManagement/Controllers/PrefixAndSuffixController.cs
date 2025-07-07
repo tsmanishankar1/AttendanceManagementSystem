@@ -1,19 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AttendanceManagement.Models;
-using AttendanceManagement.InputModels;
-using AttendanceManagement.Services;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using AttendanceManagement.Services.Interface;
 namespace AttendanceManagement.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 public class PrefixAndSuffixController : ControllerBase
 {
-    private readonly IPrefixAndSuffixService _prefixAndSuffixService;
-    private readonly ILoggingService _loggingService;
+    private readonly IPrefixAndSuffixInfra _prefixAndSuffixService;
+    private readonly ILoggingInfra _loggingService;
 
-    public PrefixAndSuffixController(IPrefixAndSuffixService prefixAndSuffixService, ILoggingService loggingService)
+    public PrefixAndSuffixController(IPrefixAndSuffixInfra prefixAndSuffixService, ILoggingInfra loggingService)
     {
         _prefixAndSuffixService = prefixAndSuffixService;
         _loggingService = loggingService;

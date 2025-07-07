@@ -1,9 +1,6 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers;
@@ -13,9 +10,9 @@ namespace AttendanceManagement.Controllers;
 public class LeaveGroupConfigurationController : ControllerBase
 {
     private readonly ILeaveGroupConfigurationService _service;
-    private readonly ILoggingService _loggingService;
+    private readonly ILoggingInfra _loggingService;
 
-    public LeaveGroupConfigurationController(ILeaveGroupConfigurationService service, ILoggingService loggingService)
+    public LeaveGroupConfigurationController(ILeaveGroupConfigurationService service, ILoggingInfra loggingService)
     {
         _service = service;
         _loggingService = loggingService;

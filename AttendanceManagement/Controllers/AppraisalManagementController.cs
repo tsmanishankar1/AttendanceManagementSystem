@@ -1,9 +1,6 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
-using Microsoft.AspNetCore.Http;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Tsp;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers
@@ -12,9 +9,9 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class AppraisalManagementController : ControllerBase
     {
-        private readonly IAppraisalManagement _service;
-        private readonly ILoggingService _loggingService;
-        public AppraisalManagementController(IAppraisalManagement service, ILoggingService loggingService)
+        private readonly IAppraisalManagementInfra _service;
+        private readonly ILoggingInfra _loggingService;
+        public AppraisalManagementController(IAppraisalManagementInfra service, ILoggingInfra loggingService)
         {
             _service = service;
             _loggingService = loggingService;
@@ -126,7 +123,17 @@ namespace AttendanceManagement.Controllers
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
                 return ErrorClass.ConflictResponse(ex.Message);
             }
+            catch (InvalidDataException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.UnsupportedMediaTypeResponse(ex.Message);
+            }
             catch (ConflictException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.ConflictResponse(ex.Message);
+            }
+            catch (IOException ex)
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
                 return ErrorClass.ConflictResponse(ex.Message);
@@ -678,6 +685,11 @@ namespace AttendanceManagement.Controllers
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
                 return ErrorClass.ConflictResponse(ex.Message);
+            }
+            catch (InvalidDataException ex)
+            {
+                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/HrUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
+                return ErrorClass.UnsupportedMediaTypeResponse(ex.Message);
             }
             catch (ConflictException ex)
             {

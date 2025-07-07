@@ -1,15 +1,7 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using System.Text.Json;
-using Microsoft.AspNetCore.Http.HttpResults;
-using DocumentFormat.OpenXml.Wordprocessing;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Spreadsheet;
-using AttendanceManagement.Services.Interface;
 
 namespace AttendanceManagement.Controllers
 {
@@ -17,10 +9,10 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class StaffTransactionController : ControllerBase
     {
-        private readonly IStaffTransactionService _academicDetailService;
-        private readonly ILoggingService _loggingService;
+        private readonly IStaffTransactionInfra _academicDetailService;
+        private readonly ILoggingInfra _loggingService;
 
-        public StaffTransactionController(IStaffTransactionService academicDetailService, ILoggingService loggingService)
+        public StaffTransactionController(IStaffTransactionInfra academicDetailService, ILoggingInfra loggingService)
         {
             _academicDetailService = academicDetailService;
             _loggingService = loggingService;

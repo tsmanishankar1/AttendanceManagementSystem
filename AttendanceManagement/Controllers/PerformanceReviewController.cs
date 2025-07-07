@@ -1,10 +1,6 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
-using Microsoft.AspNetCore.Http;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace AttendanceManagement.Controllers
 {
@@ -12,8 +8,8 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class PerformanceReviewController : ControllerBase
     {
-        private readonly IPerformanceReview _service;
-        public PerformanceReviewController(IPerformanceReview service)
+        private readonly IPerformanceReviewInfra _service;
+        public PerformanceReviewController(IPerformanceReviewInfra service)
         {
             _service = service;
         }

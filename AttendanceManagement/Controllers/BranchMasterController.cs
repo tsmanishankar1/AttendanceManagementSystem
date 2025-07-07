@@ -1,7 +1,5 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
-using Microsoft.AspNetCore.Authorization;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -11,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class BranchMasterController : ControllerBase
 {
-    private readonly IBranchMasterService _service;
-    private readonly ILoggingService _loggingService;
+    private readonly IBranchMasterInfra _service;
+    private readonly ILoggingInfra _loggingService;
 
-    public BranchMasterController(IBranchMasterService service, ILoggingService loggingService)
+    public BranchMasterController(IBranchMasterInfra service, ILoggingInfra loggingService)
     {
         _service = service;
         _loggingService = loggingService;
@@ -34,6 +32,54 @@ public class BranchMasterController : ControllerBase
             return Ok(response);
         }
         catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetAppsettings")]
+    public IActionResult GetAppsettings()
+    {
+        try
+        {
+            var branches = _service.GetAppsettings();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetWorkspaceFile")]
+    public IActionResult GetWorkspaceFile()
+    {
+        try
+        {
+            var branches = _service.GetWorkspaceFile();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (DirectoryNotFoundException ex)
         {
             return ErrorClass.NotFoundResponse(ex.Message);
         }

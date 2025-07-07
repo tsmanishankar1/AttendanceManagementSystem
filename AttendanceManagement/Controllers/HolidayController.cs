@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.DTOs;
-using AttendanceManagement.InputModels;
-using Swashbuckle.AspNetCore.Annotations;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using AttendanceManagement.Services.Interface;
 
 namespace AttendanceManagement.Controllers;
 
@@ -13,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class HolidayController : ControllerBase
 {
-    private readonly IHolidayService _service;
-    private readonly ILoggingService _loggingService;
+    private readonly IHolidayInfra _service;
+    private readonly ILoggingInfra _loggingService;
 
-    public HolidayController(IHolidayService service, ILoggingService loggingService)
+    public HolidayController(IHolidayInfra service, ILoggingInfra loggingService)
     {
         _service = service;
         _loggingService = loggingService;

@@ -1,7 +1,5 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -11,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class WeeklyOffController : ControllerBase
 {
-    private readonly IWeeklyOffService _weeklyOffService;
-    private readonly ILoggingService _loggingService;
+    private readonly IWeeklyOffInfra _weeklyOffService;
+    private readonly ILoggingInfra _loggingService;
 
-    public WeeklyOffController(IWeeklyOffService weeklyOffService, ILoggingService loggingService)
+    public WeeklyOffController(IWeeklyOffInfra weeklyOffService, ILoggingInfra loggingService)
     {
         _weeklyOffService = weeklyOffService;
         _loggingService = loggingService;

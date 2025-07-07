@@ -1,18 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AttendanceManagement.Models;
-using AttendanceManagement.Services;
-using AttendanceManagement.InputModels;
 using System.Text.Json;
-using AttendanceManagement.Services.Interface;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Dtos.Attendance;
 namespace AttendanceManagement.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 public class ToolsController : ControllerBase
 {
-    private readonly IToolsService _service;
-    private readonly ILoggingService _loggingService;
-    public ToolsController(IToolsService toolsService, ILoggingService loggingService)
+    private readonly IToolsInfra _service;
+    private readonly ILoggingInfra _loggingService;
+    public ToolsController(IToolsInfra toolsService, ILoggingInfra loggingService)
     {
         _service = toolsService;
         _loggingService = loggingService;

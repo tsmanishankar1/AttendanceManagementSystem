@@ -1,21 +1,16 @@
-﻿using AttendanceManagement.InputModels;
-using AttendanceManagement.Services;
-using AttendanceManagement.Services.Interface;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 [Route("api/[controller]")]
 [ApiController]
 public class DailyReportsController : ControllerBase
 {
-    private readonly IDailyReport _dailyReportsService;
-    private readonly ILoggingService _loggingService;
+    private readonly IDailyReportInfra _dailyReportsService;
+    private readonly ILoggingInfra _loggingService;
 
-    public DailyReportsController(IDailyReport dailyReportsService, ILoggingService loggingService)
+    public DailyReportsController(IDailyReportInfra dailyReportsService, ILoggingInfra loggingService)
     {
         _dailyReportsService = dailyReportsService;
         _loggingService = loggingService;
