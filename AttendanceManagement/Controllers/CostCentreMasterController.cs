@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class CostCentreMasterController : ControllerBase
 {
-    private readonly ICostCentreInfra _service;
-    private readonly ILoggingInfra _loggingService;
+    private readonly ICostCentreApp _service;
+    private readonly ILoggingApp _loggingService;
 
-    public CostCentreMasterController(ICostCentreInfra service, ILoggingInfra loggingService)
+    public CostCentreMasterController(ICostCentreApp service, ILoggingApp loggingService)
     {
         _service = service;
         _loggingService = loggingService;

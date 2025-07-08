@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\Application\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\AttendanceManagement.Models\AttendanceManagement.Domain.csproj" />
   </ItemGroup>
 

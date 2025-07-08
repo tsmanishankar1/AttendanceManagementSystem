@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,9 +9,9 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class AppraisalManagementController : ControllerBase
     {
-        private readonly IAppraisalManagementInfra _service;
-        private readonly ILoggingInfra _loggingService;
-        public AppraisalManagementController(IAppraisalManagementInfra service, ILoggingInfra loggingService)
+        private readonly IAppraisalManagementApp _service;
+        private readonly ILoggingApp _loggingService;
+        public AppraisalManagementController(IAppraisalManagementApp service, ILoggingApp loggingService)
         {
             _service = service;
             _loggingService = loggingService;

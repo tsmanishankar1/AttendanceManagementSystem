@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -7,9 +7,9 @@ using System.Text.Json;
 [ApiController]
 public class UserManagementController : ControllerBase
 {
-    private readonly IUserManagementInfra _userService;
-    private readonly ILoggingInfra _loggingService;
-    public UserManagementController(IUserManagementInfra userService, ILoggingInfra loggingService)
+    private readonly IUserManagementApp _userService;
+    private readonly ILoggingApp _loggingService;
+    public UserManagementController(IUserManagementApp userService, ILoggingApp loggingService)
     {
         _userService = userService;
         _loggingService = loggingService;

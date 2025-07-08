@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 namespace AttendanceManagement.Controllers;
 
@@ -7,9 +7,9 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class LoginController : ControllerBase
 {
-    private readonly ILoginInfra _loginService;
+    private readonly ILoginApp _loginService;
 
-    public LoginController(ILoginInfra loginService)
+    public LoginController(ILoginApp loginService)
     {
         _loginService = loginService;
     }

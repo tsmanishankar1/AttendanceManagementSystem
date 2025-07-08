@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,11 +9,11 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class ApplicationController : ControllerBase
 {
-    private readonly IApplicationInfra _service;
-    private readonly IApproveApplicationInfra _approveApplicationService;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IApplicationApp _service;
+    private readonly IApproveApplicationApp _approveApplicationService;
+    private readonly ILoggingApp _loggingService;
 
-    public ApplicationController(IApplicationInfra service, IApproveApplicationInfra approveApplicationService, ILoggingInfra loggingService)
+    public ApplicationController(IApplicationApp service, IApproveApplicationApp approveApplicationService, ILoggingApp loggingService)
     {
         _service = service;
         _approveApplicationService = approveApplicationService;

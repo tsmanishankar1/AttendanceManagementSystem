@@ -1,4 +1,6 @@
-﻿using AttendanceManagement.Application.Dtos.Attendance;
+﻿using AttendanceManagement.Application.App;
+using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Application;
 using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure;
@@ -31,7 +33,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000", "*", "http://servicedesk.vleadservices.com:84", "http://172.16.10.79")
+            policy.WithOrigins("http://localhost:3000", "*", "http://servicedesk.vleadservices.com:84")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -45,6 +47,46 @@ builder.Services.AddDbContext<AtrakContext>(options =>
     ));
 builder.Services.AddDbContext<StoredProcedureDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
+
+builder.Services.AddScoped<ILoginApp, LoginApp>();
+builder.Services.AddScoped<IBranchMasterApp, BranchMasterApp>();
+builder.Services.AddScoped<ICategoryMasterApp, CategoryMasterApp>();
+builder.Services.AddScoped<ICompanyMasterApp, CompanyMasterApp>();
+builder.Services.AddScoped<ICostCentreApp, CostCentreMasterApp>();
+builder.Services.AddScoped<IDepartmentMasterApp, DepartmentMasterApp>();
+builder.Services.AddScoped<IDesignationMasterApp, DesignationMasterApp>();
+builder.Services.AddScoped<IDivisionMasterApp, DivisionMasterApp>();
+builder.Services.AddScoped<IExcelImportApp, ExcelImportApp>();
+builder.Services.AddScoped<IGradeMasterApp, GradeMasterApp>();
+builder.Services.AddScoped<ILocationApp, LocationApp>();
+builder.Services.AddScoped<IStaffCreationApp, StaffCreationApp>();
+builder.Services.AddScoped<ISubFunctionMasterApp, SubFunctionMasterApp>();
+builder.Services.AddScoped<IUserManagementApp, UserManagementApp>();
+builder.Services.AddScoped<IWorkstationMasterApp, WorkStationMasterApp>();
+builder.Services.AddScoped<IZoneMasterApp, ZoneMasterApp>();
+builder.Services.AddScoped<ILeaveTypeApp, LeaveTypeApp>();
+builder.Services.AddScoped<IPrefixAndSuffixApp, PrefixAndSuffixApp>();
+builder.Services.AddScoped<ILeaveGroupApp, LeaveGroupApp>();
+builder.Services.AddScoped<ILeaveGroupConfigurationApp, LeaveGroupConfigurationApp>();
+builder.Services.AddScoped<IShiftApp, ShiftApp>();
+builder.Services.AddScoped<IWeeklyOffApp, WeeklyOffApp>();
+builder.Services.AddScoped<IHolidayApp, HolidayApp>();
+builder.Services.AddScoped<IApplicationApp, ApplicationApp>();
+builder.Services.AddScoped<IToolsApp, ToolsApp>();
+builder.Services.AddScoped<IDashboardApp, DashboardApp>();
+builder.Services.AddScoped<IProbationApp, ProbationApp>();
+builder.Services.AddScoped<ILoggingApp, LoggingApp>();
+builder.Services.AddScoped<IDailyReportApp, DailyReportsApp>();
+builder.Services.AddScoped<IPayrollApp, PayrollApp>();
+builder.Services.AddScoped<IAttendanceApp, AttendanceApp>();
+builder.Services.AddScoped<IEmailApp, EmailApp>();
+builder.Services.AddScoped<IStaffTransactionApp, StaffTransactionApp>();
+builder.Services.AddScoped<IApproveApplicationApp, ApproveApplicationApp>();
+builder.Services.AddScoped<IStatutoryReportApp, StatutoryReportApp>();
+builder.Services.AddScoped<IPerformanceReviewApp, PerformanceReviewApp>();
+builder.Services.AddScoped<IAppraisalManagementApp, AppraisalManagementApp>();
+builder.Services.AddScoped<ILetterGenerationApp, LetterGenerationApp>();
+
 
 builder.Services.AddScoped<ILoginInfra, LoginInfra>();
 builder.Services.AddScoped<IBranchMasterInfra, BranchMasterInfra>();
@@ -66,7 +108,7 @@ builder.Services.AddScoped<IZoneMasterInfra, ZoneMasterInfra>();
 builder.Services.AddScoped<ILeaveTypeInfra, LeaveTypeInfra>();
 builder.Services.AddScoped<IPrefixAndSuffixInfra, PrefixAndSuffixInfra>();
 builder.Services.AddScoped<ILeaveGroupInfra, LeaveGroupInfra>();
-builder.Services.AddScoped<ILeaveGroupConfigurationService, LeaveGroupConfigurationInfra>();
+builder.Services.AddScoped<ILeaveGroupConfigurationInfra, LeaveGroupConfigurationInfra>();
 builder.Services.AddScoped<IShiftInfra, ShiftInfra>();
 builder.Services.AddScoped<IWeeklyOffInfra, WeeklyOffInfra>();
 builder.Services.AddScoped<IHolidayInfra, HolidayInfra>();

@@ -198,194 +198,175 @@ namespace AttendanceManagement.Infrastructure.Infra
             }
             string uploadFileName = $"{Path.GetFileNameWithoutExtension(uploadMisSheetRequest.File.FileName)}_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
             string uploadFilePath = Path.Combine(_workspacePath, uploadFileName);
-            try
+            using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
             {
-                using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
-                {
-                    await uploadMisSheetRequest.File.CopyToAsync(fileStream);
-                }
-            }
-            catch (IOException)
-            {
-                throw new InvalidOperationException("Unable to copy the Excel file. Please check if the file is readonly or in use");
+                await uploadMisSheetRequest.File.CopyToAsync(fileStream);
             }
             using (var stream = new MemoryStream())
             {
                 await uploadMisSheetRequest.File.CopyToAsync(stream);
-                stream.Position = 0;
-                try
+                using (var package = new ExcelPackage(stream))
                 {
-                    using (var package = new ExcelPackage(stream))
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
+                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
+                    var requiredHeaders = new List<string>();
+                    requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
+                    var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
+                    if (missingHeaders.Count == requiredHeaders.Count)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
-                        var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
-                        var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
-                        var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
-                        if (missingHeaders.Count == requiredHeaders.Count)
+                        throw new ArgumentException("Invalid Excel file");
+                    }
+                    if (missingHeaders.Any())
+                    {
+                        throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                    }
+                    var extraHeaders = headerRow.Except(requiredHeaders).ToList();
+                    if (extraHeaders.Any())
+                    {
+                        throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                    }
+                    var columnIndexes = requiredHeaders.ToDictionary(
+                        header => header,
+                        header => headerRow.IndexOf(header) + 1
+                    );
+                    var rowCount = worksheet.Dimension.Rows;
+                    var employeePerformanceReviews = new List<EmployeePerformanceReview>();
+                    var errorLogs = new List<string>();
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            throw new ArgumentException("Invalid Excel file");
+                            errorLogs.Add($"Staff Id is empty at {row}");
+                            continue;
                         }
-                        if (missingHeaders.Any())
+                        var staffs = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == empId && s.IsActive == true);
+                        if (staffs == null)
                         {
-                            throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                            errorLogs.Add($"Staff Id '{empId}' not found at row {row}");
+                            continue;
                         }
-                        var extraHeaders = headerRow.Except(requiredHeaders).ToList();
-                        if (extraHeaders.Any())
+                        var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                            errorLogs.Add($"Staff Name is empty at {row}");
+                            continue;
                         }
-                        var columnIndexes = requiredHeaders.ToDictionary(
-                            header => header,
-                            header => headerRow.IndexOf(header) + 1
-                        );
-                        var rowCount = worksheet.Dimension.Rows;
-                        var employeePerformanceReviews = new List<EmployeePerformanceReview>();
-                        var errorLogs = new List<string>();
-                        for (int row = 2; row <= rowCount; row++)
+                        var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
+                        var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
-                            if (string.IsNullOrEmpty(empId))
-                            {
-                                errorLogs.Add($"Staff Id is empty at {row}");
-                                continue;
-                            }
-                            var staffs = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == empId && s.IsActive == true);
-                            if (staffs == null)
-                            {
-                                errorLogs.Add($"Staff Id '{empId}' not found at row {row}");
-                                continue;
-                            }
-                            var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
-                            if (string.IsNullOrEmpty(empId))
-                            {
-                                errorLogs.Add($"Staff Name is empty at {row}");
-                                continue;
-                            }
-                            var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
-                            var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
-                            if (string.IsNullOrEmpty(empId))
-                            {
-                                errorLogs.Add($"Reporting Manager is empty at {row}");
-                                continue;
-                            }
-                            var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
-                            if (string.IsNullOrEmpty(empId))
-                            {
-                                errorLogs.Add($"Division is empty at {row}");
-                                continue;
-                            }
-                            var divisionName = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name == division && d.IsActive);
-                            if (divisionName == null)
-                            {
-                                errorLogs.Add($"Division {division} not found at {row}");
-                            }
-                            var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
-                            if (string.IsNullOrEmpty(empId))
-                            {
-                                errorLogs.Add($"Department is empty at {row}");
-                                continue;
-                            }
-                            var departmentName = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name == department && d.IsActive);
-                            if (departmentName == null)
-                            {
-                                errorLogs.Add($"Department {department} not found at {row}");
-                            }
-                            var productivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out var productivity) ? productivity : 0;
-                            var qualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out var quality) ? quality : 0;
-                            var presentPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text.Trim(), out var present) ? present : 0;
-                            var finalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out var final) ? final : 0;
-                            var grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim();
-                            var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
-                            var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
-                            var employeeReview = new EmployeePerformanceReview
-                            {
-                                EmpId = empId,
-                                EmpName = empName,
-                                TenureInYears = tenureYears,
-                                ReportingManagers = reportingManager,
-                                Division = division,
-                                Department = department,
-                                ProductivityPercentage = productivityPercentage,
-                                QualityPercentage = qualityPercentage,
-                                PresentPercentage = presentPercentage,
-                                FinalPercentage = finalPercentage,
-                                Grade = grade,
-                                AbsentDays = absentDays,
-                                HrComments = hrComments,
-                                AppraisalId = uploadMisSheetRequest.AppraisalId,
-                                Year = uploadMisSheetRequest.Year,
-                                Quarter = uploadMisSheetRequest.Quarter,
-                                IsCompleted = false,
-                                IsActive = true,
-                                CreatedBy = uploadMisSheetRequest.CreatedBy,
-                                CreatedUtc = DateTime.UtcNow
-                            };
-                            employeePerformanceReviews.Add(employeeReview);
+                            errorLogs.Add($"Reporting Manager is empty at {row}");
+                            continue;
                         }
-                        if (employeePerformanceReviews.Count > 0)
+                        var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            var empIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
-                            var alreadyUploaded = await _context.EmployeePerformanceReviews
-                                .Where(x =>
-                                    empIds.Contains(x.EmpId) &&
-                                    x.AppraisalId == uploadMisSheetRequest.AppraisalId &&
-                                    x.Year == uploadMisSheetRequest.Year &&
-                                    x.Quarter == uploadMisSheetRequest.Quarter)
-                                .Select(x => x.EmpId)
-                                .Distinct()
-                                .ToListAsync();
-                            var rowsToProcess = employeePerformanceReviews.Where(r => !alreadyUploaded.Contains(r.EmpId)).ToList();
-                            if (!rowsToProcess.Any())
-                            {
-                                throw new ConflictException($"All selected staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}");
-                            }
-                            var newRecords = employeePerformanceReviews
-                                .Where(x => !alreadyUploaded.Contains(x.EmpId))
-                                .ToList();
-                            var selectedEmployeesToUpdate = await _context.SelectedEmployeesForAppraisals
-                                .Where(x => newRecords.Select(e => e.EmpId).Contains(x.EmployeeId)
-                                            && x.AppraisalId == uploadMisSheetRequest.AppraisalId
-                                            && x.IsActive)
-                                .ToListAsync();
-                            foreach (var selected in selectedEmployeesToUpdate)
-                            {
-                                selected.IsCompleted = true;
-                                selected.IsActive = false;
-                                selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
-                                selected.UpdatedUtc = DateTime.UtcNow;
-                            }
-                            await _context.EmployeePerformanceReviews.AddRangeAsync(rowsToProcess);
-                            await _context.SaveChangesAsync();
+                            errorLogs.Add($"Division is empty at {row}");
+                            continue;
+                        }
+                        var divisionName = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name == division && d.IsActive);
+                        if (divisionName == null)
+                        {
+                            errorLogs.Add($"Division {division} not found at {row}");
+                        }
+                        var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
+                        {
+                            errorLogs.Add($"Department is empty at {row}");
+                            continue;
+                        }
+                        var departmentName = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name == department && d.IsActive);
+                        if (departmentName == null)
+                        {
+                            errorLogs.Add($"Department {department} not found at {row}");
+                        }
+                        var productivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out var productivity) ? productivity : 0;
+                        var qualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out var quality) ? quality : 0;
+                        var presentPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text.Trim(), out var present) ? present : 0;
+                        var finalPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Final %"]].Text.Trim(), out var final) ? final : 0;
+                        var grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim();
+                        var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
+                        var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
+                        var employeeReview = new EmployeePerformanceReview
+                        {
+                            EmpId = empId,
+                            EmpName = empName,
+                            TenureInYears = tenureYears,
+                            ReportingManagers = reportingManager,
+                            Division = division,
+                            Department = department,
+                            ProductivityPercentage = productivityPercentage,
+                            QualityPercentage = qualityPercentage,
+                            PresentPercentage = presentPercentage,
+                            FinalPercentage = finalPercentage,
+                            Grade = grade,
+                            AbsentDays = absentDays,
+                            HrComments = hrComments,
+                            AppraisalId = uploadMisSheetRequest.AppraisalId,
+                            Year = uploadMisSheetRequest.Year,
+                            Quarter = uploadMisSheetRequest.Quarter,
+                            IsCompleted = false,
+                            IsActive = true,
+                            CreatedBy = uploadMisSheetRequest.CreatedBy,
+                            CreatedUtc = DateTime.UtcNow
+                        };
+                        employeePerformanceReviews.Add(employeeReview);
+                    }
+                    if (employeePerformanceReviews.Count > 0)
+                    {
+                        var empIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
+                        var alreadyUploaded = await _context.EmployeePerformanceReviews
+                            .Where(x =>
+                                empIds.Contains(x.EmpId) &&
+                                x.AppraisalId == uploadMisSheetRequest.AppraisalId &&
+                                x.Year == uploadMisSheetRequest.Year &&
+                                x.Quarter == uploadMisSheetRequest.Quarter)
+                            .Select(x => x.EmpId)
+                            .Distinct()
+                            .ToListAsync();
+                        var rowsToProcess = employeePerformanceReviews.Where(r => !alreadyUploaded.Contains(r.EmpId)).ToList();
+                        if (!rowsToProcess.Any())
+                        {
+                            throw new ConflictException($"All selected staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}");
+                        }
+                        var newRecords = employeePerformanceReviews
+                            .Where(x => !alreadyUploaded.Contains(x.EmpId))
+                            .ToList();
+                        var selectedEmployeesToUpdate = await _context.SelectedEmployeesForAppraisals
+                            .Where(x => newRecords.Select(e => e.EmpId).Contains(x.EmployeeId)
+                                        && x.AppraisalId == uploadMisSheetRequest.AppraisalId
+                                        && x.IsActive)
+                            .ToListAsync();
+                        foreach (var selected in selectedEmployeesToUpdate)
+                        {
+                            selected.IsCompleted = true;
+                            selected.IsActive = false;
+                            selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
+                            selected.UpdatedUtc = DateTime.UtcNow;
+                        }
+                        await _context.EmployeePerformanceReviews.AddRangeAsync(rowsToProcess);
+                        await _context.SaveChangesAsync();
 
-                            await _emailService.SendMisUploadNotificationToHr(uploadMisSheetRequest.CreatedBy, name, appraisal.Name);
+                        await _emailService.SendMisUploadNotificationToHr(uploadMisSheetRequest.CreatedBy, name, appraisal.Name);
 
-                            if (alreadyUploaded.Any())
-                            {
-                                throw new ConflictException($"The following staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}: " + string.Join(", ", alreadyUploaded));
-                            }
+                        if (alreadyUploaded.Any())
+                        {
+                            throw new ConflictException($"The following staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}: " + string.Join(", ", alreadyUploaded));
+                        }
+                    }
+                    else
+                    {
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
                         }
                         else
                         {
-                            if (errorLogs.Any())
-                            {
-                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
-                            }
-                            else
-                            {
-                                throw new MessageNotFoundException("File is empty");
-                            }
+                            throw new MessageNotFoundException("File is empty");
                         }
                     }
-                }
-                catch (InvalidDataException ex)
-                {
-                    throw new InvalidDataException("The uploaded Excel file is password-protected, encrypted, or corrupt. Please remove protection and try again.", ex);
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidDataException("Unable to read the uploaded Excel file. Please ensure it is a valid .xlsx file and not restricted.", ex);
                 }
             }
             return "Excel data imported successfully";
@@ -1121,7 +1102,6 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (getSelfEvaluation.Count == 0) throw new MessageNotFoundException("No staff evaluation found");
             return getSelfEvaluation;
         }
-
         public async Task<string> CreateManagerEvaluation(ManagerEvaluationRequest managerEvaluationRequest)
         {
             var selectedRows = managerEvaluationRequest.SelectedRows;
@@ -1256,192 +1236,173 @@ namespace AttendanceManagement.Infrastructure.Infra
             }
             string uploadFileName = $"{Path.GetFileNameWithoutExtension(uploadMisSheetRequest.File.FileName)}_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
             string uploadFilePath = Path.Combine(_workspacePath, uploadFileName);
-            try
+            using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
             {
-                using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
-                {
-                    await uploadMisSheetRequest.File.CopyToAsync(fileStream);
-                }
-            }
-            catch (IOException)
-            {
-                throw new InvalidOperationException("Unable to copy the Excel file. Please check if the file is readonly or in use");
+                await uploadMisSheetRequest.File.CopyToAsync(fileStream);
             }
             using (var stream = new MemoryStream())
             {
                 await uploadMisSheetRequest.File.CopyToAsync(stream);
-                stream.Position = 0;
-                try
+                using (var package = new ExcelPackage(stream))
                 {
-                    using (var package = new ExcelPackage(stream))
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
+                    var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
+                    var requiredHeaders = new List<string>();
+                    requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
+                    var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
+                    if (missingHeaders.Count == requiredHeaders.Count)
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
-                        var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
-                        var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
-                        var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
-                        if (missingHeaders.Count == requiredHeaders.Count)
+                        throw new ArgumentException("Invalid Excel file");
+                    }
+                    if (missingHeaders.Any())
+                    {
+                        throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                    }
+                    var extraHeaders = headerRow.Except(requiredHeaders).ToList();
+                    if (extraHeaders.Any())
+                    {
+                        throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                    }
+                    var columnIndexes = requiredHeaders.ToDictionary(
+                        header => header,
+                        header => headerRow.IndexOf(header) + 1
+                    );
+                    var rowCount = worksheet.Dimension.Rows;
+                    var employeePerformanceReviews = new List<NonProductionEmployeePerformanceReview>();
+                    var errorLogs = new List<string>();
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empId))
                         {
-                            throw new ArgumentException("Invalid Excel file");
+                            errorLogs.Add($"Staff Id is empty at {row}");
+                            continue;
                         }
-                        if (missingHeaders.Any())
+                        var staffs = await _context.StaffCreations.FirstOrDefaultAsync(d => d.StaffId == empId && d.IsActive == true);
+                        if (staffs == null)
                         {
-                            throw new ArgumentException($"Missing headers: {string.Join(", ", missingHeaders)}");
+                            errorLogs.Add($"Staff Id '{empId}' not found at row {row}");
+                            continue;
                         }
-                        var extraHeaders = headerRow.Except(requiredHeaders).ToList();
-                        if (extraHeaders.Any())
+                        var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
+                        if (string.IsNullOrEmpty(empName))
                         {
-                            throw new ArgumentException($"Contains unexpected headers: {string.Join(", ", extraHeaders)}");
+                            errorLogs.Add($"Staff Name is empty at {row}");
+                            continue;
                         }
-                        var columnIndexes = requiredHeaders.ToDictionary(
-                            header => header,
-                            header => headerRow.IndexOf(header) + 1
-                        );
-                        var rowCount = worksheet.Dimension.Rows;
-                        var employeePerformanceReviews = new List<NonProductionEmployeePerformanceReview>();
-                        var errorLogs = new List<string>();
-                        for (int row = 2; row <= rowCount; row++)
+                        var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
+                        var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
+                        if (string.IsNullOrEmpty(reportingManager))
                         {
-                            var empId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
-                            if (string.IsNullOrEmpty(empId))
-                            {
-                                errorLogs.Add($"Staff Id is empty at {row}");
-                                continue;
-                            }
-                            var staffs = await _context.StaffCreations.FirstOrDefaultAsync(d => d.StaffId == empId && d.IsActive == true);
-                            if (staffs == null)
-                            {
-                                errorLogs.Add($"Staff Id '{empId}' not found at row {row}");
-                                continue;
-                            }
-                            var empName = worksheet.Cells[row, columnIndexes["Emp Name"]].Text.Trim();
-                            if (string.IsNullOrEmpty(empName))
-                            {
-                                errorLogs.Add($"Staff Name is empty at {row}");
-                                continue;
-                            }
-                            var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
-                            var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
-                            if (string.IsNullOrEmpty(reportingManager))
-                            {
-                                errorLogs.Add($"Reporting Manager is empty at {row}");
-                                continue;
-                            }
-                            var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
-                            if (string.IsNullOrEmpty(division))
-                            {
-                                errorLogs.Add($"Division is empty at {row}");
-                                continue;
-                            }
-                            var divisionName = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name == division && d.IsActive);
-                            if (divisionName == null)
-                            {
-                                errorLogs.Add($"Division '{divisionName}' not found at row {row}");
-                                continue;
-                            }
-                            var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
-                            if (string.IsNullOrEmpty(department))
-                            {
-                                errorLogs.Add($"Department is empty at {row}");
-                                continue;
-                            }
-                            var departmentName = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name == department && d.IsActive);
-                            if (departmentName == null)
-                            {
-                                errorLogs.Add($"Department '{department}' not found at row {row}");
-                                continue;
-                            }
-                            var cellText = worksheet.Cells[row, columnIndexes["Final Average KRA Grade"]].Text.Trim();
-                            if (string.IsNullOrEmpty(cellText))
-                            {
-                                errorLogs.Add($"Final Average KRA is empty at {row}");
-                                continue;
-                            }
-                            var finalAverageKraGrade = decimal.TryParse(cellText, out var kra) ? kra : 0;
-                            var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
-                            var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
-                            var employeeReview = new NonProductionEmployeePerformanceReview
-                            {
-                                EmpId = empId,
-                                EmpName = empName,
-                                TenureInYears = tenureYears,
-                                ReportingManagers = reportingManager,
-                                Division = division,
-                                Department = department,
-                                FinalAverageKraGrade = finalAverageKraGrade,
-                                AbsentDays = absentDays,
-                                HrComments = hrComments,
-                                AppraisalId = uploadMisSheetRequest.AppraisalId,
-                                Year = uploadMisSheetRequest.Year,
-                                Quarter = uploadMisSheetRequest.Quarter,
-                                IsCompleted = true,
-                                IsActive = true,
-                                CreatedBy = uploadMisSheetRequest.CreatedBy,
-                                CreatedUtc = DateTime.UtcNow
-                            };
-                            employeePerformanceReviews.Add(employeeReview);
+                            errorLogs.Add($"Reporting Manager is empty at {row}");
+                            continue;
                         }
-                        if (employeePerformanceReviews.Count > 0)
+                        var division = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
+                        if (string.IsNullOrEmpty(division))
                         {
-                            var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
-                            var alreadyUploaded = await _context.NonProductionEmployeePerformanceReviews
-                                .Where(x =>
-                                    selectedEmpIds.Contains(x.EmpId) &&
-                                    x.AppraisalId == uploadMisSheetRequest.AppraisalId &&
-                                    x.Year == uploadMisSheetRequest.Year &&
-                                    x.Quarter == uploadMisSheetRequest.Quarter)
-                                .Select(x => x.EmpId)
-                                .Distinct()
-                                .ToListAsync();
-                            var rowsToProcess = employeePerformanceReviews.Where(r => !alreadyUploaded.Contains(r.EmpId)).ToList();
-                            if (!rowsToProcess.Any())
-                            {
-                                throw new ConflictException($"All selected staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}");
-                            }
-                            var newRecords = employeePerformanceReviews
-                                .Where(x => !alreadyUploaded.Contains(x.EmpId))
-                                .ToList();
-                            var selectedEmployeesToUpdate = await _context.SelectedNonProductionEmployees
-                                .Where(x => newRecords.Select(e => e.EmpId).Contains(x.EmployeeId)
-                                            && x.AppraisalId == uploadMisSheetRequest.AppraisalId
-                                            && x.IsActive)
-                                .ToListAsync();
-                            foreach (var selected in selectedEmployeesToUpdate)
-                            {
-                                selected.IsCompleted = true;
-                                selected.IsActive = false;
-                                selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
-                                selected.UpdatedUtc = DateTime.UtcNow;
-                            }
-                            await _context.NonProductionEmployeePerformanceReviews.AddRangeAsync(rowsToProcess);
-                            await _context.SaveChangesAsync();
+                            errorLogs.Add($"Division is empty at {row}");
+                            continue;
+                        }
+                        var divisionName = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Name == division && d.IsActive);
+                        if (divisionName == null)
+                        {
+                            errorLogs.Add($"Division '{divisionName}' not found at row {row}");
+                            continue;
+                        }
+                        var department = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
+                        if (string.IsNullOrEmpty(department))
+                        {
+                            errorLogs.Add($"Department is empty at {row}");
+                            continue;
+                        }
+                        var departmentName = await _context.DepartmentMasters.FirstOrDefaultAsync(d => d.Name == department && d.IsActive);
+                        if (departmentName == null)
+                        {
+                            errorLogs.Add($"Department '{department}' not found at row {row}");
+                            continue;
+                        }
+                        var cellText = worksheet.Cells[row, columnIndexes["Final Average KRA Grade"]].Text.Trim();
+                        if (string.IsNullOrEmpty(cellText))
+                        {
+                            errorLogs.Add($"Final Average KRA is empty at {row}");
+                            continue;
+                        }
+                        var finalAverageKraGrade = decimal.TryParse(cellText, out var kra) ? kra : 0;
+                        var absentDays = int.TryParse(worksheet.Cells[row, columnIndexes["Absent Days"]].Text.Trim(), out var absent) ? absent : 0;
+                        var hrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim();
+                        var employeeReview = new NonProductionEmployeePerformanceReview
+                        {
+                            EmpId = empId,
+                            EmpName = empName,
+                            TenureInYears = tenureYears,
+                            ReportingManagers = reportingManager,
+                            Division = division,
+                            Department = department,
+                            FinalAverageKraGrade = finalAverageKraGrade,
+                            AbsentDays = absentDays,
+                            HrComments = hrComments,
+                            AppraisalId = uploadMisSheetRequest.AppraisalId,
+                            Year = uploadMisSheetRequest.Year,
+                            Quarter = uploadMisSheetRequest.Quarter,
+                            IsCompleted = true,
+                            IsActive = true,
+                            CreatedBy = uploadMisSheetRequest.CreatedBy,
+                            CreatedUtc = DateTime.UtcNow
+                        };
+                        employeePerformanceReviews.Add(employeeReview);
+                    }
+                    if (employeePerformanceReviews.Count > 0)
+                    {
+                        var selectedEmpIds = employeePerformanceReviews.Select(x => x.EmpId).Distinct().ToList();
+                        var alreadyUploaded = await _context.NonProductionEmployeePerformanceReviews
+                            .Where(x =>
+                                selectedEmpIds.Contains(x.EmpId) &&
+                                x.AppraisalId == uploadMisSheetRequest.AppraisalId &&
+                                x.Year == uploadMisSheetRequest.Year &&
+                                x.Quarter == uploadMisSheetRequest.Quarter)
+                            .Select(x => x.EmpId)
+                            .Distinct()
+                            .ToListAsync();
+                        var rowsToProcess = employeePerformanceReviews.Where(r => !alreadyUploaded.Contains(r.EmpId)).ToList();
+                        if (!rowsToProcess.Any())
+                        {
+                            throw new ConflictException($"All selected staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}");
+                        }
+                        var newRecords = employeePerformanceReviews
+                            .Where(x => !alreadyUploaded.Contains(x.EmpId))
+                            .ToList();
+                        var selectedEmployeesToUpdate = await _context.SelectedNonProductionEmployees
+                            .Where(x => newRecords.Select(e => e.EmpId).Contains(x.EmployeeId)
+                                        && x.AppraisalId == uploadMisSheetRequest.AppraisalId
+                                        && x.IsActive)
+                            .ToListAsync();
+                        foreach (var selected in selectedEmployeesToUpdate)
+                        {
+                            selected.IsCompleted = true;
+                            selected.IsActive = false;
+                            selected.UpdatedBy = uploadMisSheetRequest.CreatedBy;
+                            selected.UpdatedUtc = DateTime.UtcNow;
+                        }
+                        await _context.NonProductionEmployeePerformanceReviews.AddRangeAsync(rowsToProcess);
+                        await _context.SaveChangesAsync();
 
-                            if (alreadyUploaded.Any())
-                            {
-                                throw new ConflictException($"The following staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}: " + string.Join(", ", alreadyUploaded));
-                            }
+                        if (alreadyUploaded.Any())
+                        {
+                            throw new ConflictException($"The following staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}: " + string.Join(", ", alreadyUploaded));
+                        }
+                    }
+                    else
+                    {
+                        if (errorLogs.Any())
+                        {
+                            throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
                         }
                         else
                         {
-                            if (errorLogs.Any())
-                            {
-                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
-                            }
-                            else
-                            {
-                                throw new MessageNotFoundException("File is empty");
-                            }
+                            throw new MessageNotFoundException("File is empty");
                         }
                     }
-                }
-                catch (InvalidDataException ex)
-                {
-                    throw new InvalidDataException("The uploaded Excel file is password-protected, encrypted, or corrupt. Please remove protection and try again.", ex);
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidDataException("Unable to read the uploaded Excel file. Please ensure it is a valid .xlsx file and not restricted.", ex);
                 }
             }
             return "Excel data imported successfully";

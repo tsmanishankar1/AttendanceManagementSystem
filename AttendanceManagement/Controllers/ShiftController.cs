@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AttendanceManagement.Controllers;
@@ -8,10 +8,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class ShiftController : ControllerBase
 {
-    private readonly IShiftInfra _shiftService;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IShiftApp _shiftService;
+    private readonly ILoggingApp _loggingService;
 
-    public ShiftController(IShiftInfra shiftService, ILoggingInfra loggingService)
+    public ShiftController(IShiftApp shiftService, ILoggingApp loggingService)
     {
         _shiftService = shiftService;
         _loggingService = loggingService;

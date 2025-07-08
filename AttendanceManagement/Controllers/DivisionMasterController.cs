@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class DivisionMasterController : ControllerBase
 {
-    private readonly IDivisionMasterInfra _service;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IDivisionMasterApp _service;
+    private readonly ILoggingApp _loggingService;
 
-    public DivisionMasterController(IDivisionMasterInfra service, ILoggingInfra loggingService)
+    public DivisionMasterController(IDivisionMasterApp service, ILoggingApp loggingService)
     {
         _service = service;
         _loggingService = loggingService;

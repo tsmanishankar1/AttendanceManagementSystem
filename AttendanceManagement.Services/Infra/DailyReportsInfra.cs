@@ -53,6 +53,11 @@ public class DailyReportsInfra : IDailyReportInfra
             fromDate = request.FromDate.Value;
             toDate = request.ToDate.Value;
         }
+        else if (request.FromMonth.HasValue && request.ToMonth.HasValue)
+        {
+            fromDate = request.FromMonth.Value;
+            toDate = request.ToMonth.Value;
+        }
         else if (request.CurrentMonth == true)
         {
             var now = DateTime.Now;
@@ -608,6 +613,7 @@ public class DailyReportsInfra : IDailyReportInfra
                 ReportName = reportName1,
                 FromDate = fromDate1,
                 ToDate = toDate1,
+                ReportDate = reportDate,
                 UserId = userId,
                 UserCreationId = userCreationId,
                 UserName = userName,

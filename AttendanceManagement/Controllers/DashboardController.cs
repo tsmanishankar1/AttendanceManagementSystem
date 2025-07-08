@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,9 +9,9 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class DashboardController : ControllerBase
 {
-    private readonly IDashboardInfra _dashboardService;
-    private readonly ILoggingInfra _loggingService;
-    public DashboardController(IDashboardInfra dashboardService, ILoggingInfra loggingService)
+    private readonly IDashboardApp _dashboardService;
+    private readonly ILoggingApp _loggingService;
+    public DashboardController(IDashboardApp dashboardService, ILoggingApp loggingService)
     {
         _dashboardService = dashboardService;
         _loggingService = loggingService;

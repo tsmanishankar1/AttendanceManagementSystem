@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AttendanceManagement.Controllers
@@ -8,8 +8,8 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class PerformanceReviewController : ControllerBase
     {
-        private readonly IPerformanceReviewInfra _service;
-        public PerformanceReviewController(IPerformanceReviewInfra service)
+        private readonly IPerformanceReviewApp _service;
+        public PerformanceReviewController(IPerformanceReviewApp service)
         {
             _service = service;
         }

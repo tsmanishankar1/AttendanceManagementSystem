@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class ExcelImportController : ControllerBase
 {
-    private readonly IExcelImportInfra _excelImportService;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IExcelImportApp _excelImportService;
+    private readonly ILoggingApp _loggingService;
 
-    public ExcelImportController(IExcelImportInfra excelImportService, ILoggingInfra loggingService)
+    public ExcelImportController(IExcelImportApp excelImportService, ILoggingApp loggingService)
     {
         _excelImportService = excelImportService;
         _loggingService = loggingService;

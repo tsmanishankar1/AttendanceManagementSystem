@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class BranchMasterController : ControllerBase
 {
-    private readonly IBranchMasterInfra _service;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IBranchMasterApp _service;
+    private readonly ILoggingApp _loggingService;
 
-    public BranchMasterController(IBranchMasterInfra service, ILoggingInfra loggingService)
+    public BranchMasterController(IBranchMasterApp service, ILoggingApp loggingService)
     {
         _service = service;
         _loggingService = loggingService;
@@ -80,6 +80,78 @@ public class BranchMasterController : ControllerBase
             return Ok(response);
         }
         catch (DirectoryNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetGoals")]
+    public async Task<IActionResult> GetGoals()
+    {
+        try
+        {
+            var branches = await _service.GetGoals();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetManagerReview")]
+    public async Task<IActionResult> GetManagerReview()
+    {
+        try
+        {
+            var branches = await _service.KraManagerReviews();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetSelfReview")]
+    public async Task<IActionResult> GetSelfReview()
+    {
+        try
+        {
+            var branches = await _service.KraSelfReviews();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
         {
             return ErrorClass.NotFoundResponse(ex.Message);
         }

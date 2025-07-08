@@ -474,7 +474,7 @@ public class ApplicationInfra : IApplicationInfra
                       {
                           Id = tempWithSc.tempWithS.temp.sc.Id,
                           ApplicationTypeId = tempWithSc.tempWithS.temp.sc.ApplicationTypeId,
-                         ApplicationTypeName = tempWithSc.tempWithS.temp.at.Name,
+                          ApplicationTypeName = tempWithSc.tempWithS.temp.at.Name,
                           ShiftName = tempWithSc.tempWithS.s.Name,
                           FromDate = tempWithSc.tempWithS.temp.sc.FromDate,
                           ToDate = tempWithSc.tempWithS.temp.sc.ToDate,
@@ -700,17 +700,17 @@ public class ApplicationInfra : IApplicationInfra
                 lr.Reason
             })
             .ToListAsync();
-        var assignedShift = await(from sh in _context.AssignShifts
-                                  where sh.StaffId == staffId && sh.IsActive &&
-                                        sh.FromDate >= DateOnly.FromDateTime(startDate) &&
-                                        sh.FromDate <= DateOnly.FromDateTime(endDate)
-                                  select new
-                                  {
-                                      Date = sh.FromDate,
-                                      ShiftName = sh.Shift.Name,
-                                      ShiftStartTime = sh.Shift.StartTime,
-                                      ShiftEndTime = sh.Shift.EndTime
-                                  }).ToListAsync();
+        var assignedShift = await (from sh in _context.AssignShifts
+                                   where sh.StaffId == staffId && sh.IsActive &&
+                                         sh.FromDate >= DateOnly.FromDateTime(startDate) &&
+                                         sh.FromDate <= DateOnly.FromDateTime(endDate)
+                                   select new
+                                   {
+                                       Date = sh.FromDate,
+                                       ShiftName = sh.Shift.Name,
+                                       ShiftStartTime = sh.Shift.StartTime,
+                                       ShiftEndTime = sh.Shift.EndTime
+                                   }).ToListAsync();
 
         var workFromHomeRecords = await _context.WorkFromHomes
             .Where(wfh => (wfh.StaffId != null ? wfh.StaffId == staffId : wfh.CreatedBy == staffId) &&
@@ -3045,12 +3045,12 @@ public class ApplicationInfra : IApplicationInfra
         await _context.ShiftChanges.AddAsync(shiftChange);
         await _context.SaveChangesAsync();
 
-/*        foreach (var assignShift in assignedShifts)
-        {
-            assignShift.ShiftId = request.ShiftId;
-        }
-        await _context.SaveChangesAsync();
-*/
+        /*        foreach (var assignShift in assignedShifts)
+                {
+                    assignShift.ShiftId = request.ShiftId;
+                }
+                await _context.SaveChangesAsync();
+        */
         string requestDateTime = shiftChange.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
         var approver1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == staffId.ApprovalLevel1 && s.IsActive == true);
         if (approver1 == null) throw new MessageNotFoundException("Approver not found");

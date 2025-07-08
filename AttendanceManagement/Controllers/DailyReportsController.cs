@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -7,10 +7,10 @@ using System.Text.Json;
 [ApiController]
 public class DailyReportsController : ControllerBase
 {
-    private readonly IDailyReportInfra _dailyReportsService;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IDailyReportApp _dailyReportsService;
+    private readonly ILoggingApp _loggingService;
 
-    public DailyReportsController(IDailyReportInfra dailyReportsService, ILoggingInfra loggingService)
+    public DailyReportsController(IDailyReportApp dailyReportsService, ILoggingApp loggingService)
     {
         _dailyReportsService = dailyReportsService;
         _loggingService = loggingService;

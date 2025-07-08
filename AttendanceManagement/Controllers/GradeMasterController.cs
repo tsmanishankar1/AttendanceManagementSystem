@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class GradeMasterController : ControllerBase
 {
-    private readonly IGradeMasterInfra _service;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IGradeMasterApp _service;
+    private readonly ILoggingApp _loggingService;
 
-    public GradeMasterController(IGradeMasterInfra service, ILoggingInfra loggingService)
+    public GradeMasterController(IGradeMasterApp service, ILoggingApp loggingService)
     {
         _service = service;
         _loggingService = loggingService;

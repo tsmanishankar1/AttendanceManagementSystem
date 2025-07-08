@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,9 +9,9 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class SubFunctionMasterController : ControllerBase
 {
-    private readonly ISubFunctionMasterInfra _service;
-    private readonly ILoggingInfra _loggingService;
-    public SubFunctionMasterController(ISubFunctionMasterInfra service, ILoggingInfra loggingService)
+    private readonly ISubFunctionMasterApp _service;
+    private readonly ILoggingApp _loggingService;
+    public SubFunctionMasterController(ISubFunctionMasterApp service, ILoggingApp loggingService)
     {
         _service = service;
         _loggingService = loggingService;

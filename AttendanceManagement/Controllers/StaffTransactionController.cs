@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,10 +9,10 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class StaffTransactionController : ControllerBase
     {
-        private readonly IStaffTransactionInfra _academicDetailService;
-        private readonly ILoggingInfra _loggingService;
+        private readonly IStaffTransactionApp _academicDetailService;
+        private readonly ILoggingApp _loggingService;
 
-        public StaffTransactionController(IStaffTransactionInfra academicDetailService, ILoggingInfra loggingService)
+        public StaffTransactionController(IStaffTransactionApp academicDetailService, ILoggingApp loggingService)
         {
             _academicDetailService = academicDetailService;
             _loggingService = loggingService;

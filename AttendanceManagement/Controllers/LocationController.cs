@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 namespace AttendanceManagement.Controllers;
@@ -8,10 +8,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class LocationMasterController : ControllerBase
 {
-    private readonly ILocationInfra _service;
-    private readonly ILoggingInfra _loggingService;
+    private readonly ILocationApp _service;
+    private readonly ILoggingApp _loggingService;
 
-    public LocationMasterController(ILocationInfra service, ILoggingInfra loggingService)
+    public LocationMasterController(ILocationApp service, ILoggingApp loggingService)
     {
         _service = service;
         _loggingService = loggingService;

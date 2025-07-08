@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,9 +9,9 @@ namespace AttendanceManagement.Controllers
     [ApiController]
     public class PayrollController : ControllerBase
     {
-        private readonly IPayrollInfra _payrollService;
-        private readonly ILoggingInfra _loggingService;
-        public PayrollController(IPayrollInfra payrollService, ILoggingInfra loggingService)
+        private readonly IPayrollApp _payrollService;
+        private readonly ILoggingApp _loggingService;
+        public PayrollController(IPayrollApp payrollService, ILoggingApp loggingService)
         {
             _payrollService = payrollService;
             _loggingService = loggingService;

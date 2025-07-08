@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -7,14 +7,13 @@ using System.Text.Json;
 [ApiController]
 public class AttendanceController : ControllerBase
 {
-    private readonly IAttendanceInfra _smaxTransactionService;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IAttendanceApp _smaxTransactionService;
+    private readonly ILoggingApp _loggingService;
 
-    public AttendanceController(IAttendanceInfra smaxTransactionService, ILoggingInfra loggingService)
+    public AttendanceController(IAttendanceApp smaxTransactionService, ILoggingApp loggingService)
     {
         _smaxTransactionService = smaxTransactionService;
         _loggingService = loggingService;
-
     }
 
     [HttpGet("AttendanceDetails")]

@@ -2,7 +2,7 @@
 
 namespace AttendanceManagement.Application.Interfaces.Infrastructure
 {
-    public interface ILeaveGroupConfigurationService
+    public interface ILeaveGroupConfigurationInfra
     {
         Task<List<LeaveGroupConfigurationDto>> GetAllConfigurations();
         Task<LeaveGroupConfigurationDto> GetConfigurationDetailsById(int leaveGroupConfigurationId);

@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 namespace AttendanceManagement.Controllers;
@@ -8,10 +8,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class PrefixAndSuffixController : ControllerBase
 {
-    private readonly IPrefixAndSuffixInfra _prefixAndSuffixService;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IPrefixAndSuffixApp _prefixAndSuffixService;
+    private readonly ILoggingApp _loggingService;
 
-    public PrefixAndSuffixController(IPrefixAndSuffixInfra prefixAndSuffixService, ILoggingInfra loggingService)
+    public PrefixAndSuffixController(IPrefixAndSuffixApp prefixAndSuffixService, ILoggingApp loggingService)
     {
         _prefixAndSuffixService = prefixAndSuffixService;
         _loggingService = loggingService;

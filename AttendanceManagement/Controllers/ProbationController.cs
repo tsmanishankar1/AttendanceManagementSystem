@@ -1,5 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 namespace AttendanceManagement.Controllers;
@@ -8,10 +8,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class ProbationController : ControllerBase
 {
-    private readonly IProbationInfra _probationService;
-    private readonly ILoggingInfra _loggingService;
+    private readonly IProbationApp _probationService;
+    private readonly ILoggingApp _loggingService;
 
-    public ProbationController(IProbationInfra probationService, ILoggingInfra loggingService)
+    public ProbationController(IProbationApp probationService, ILoggingApp loggingService)
     {
         _probationService = probationService;
         _loggingService = loggingService;

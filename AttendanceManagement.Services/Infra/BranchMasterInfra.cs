@@ -12,12 +12,10 @@ public class BranchMasterInfra : IBranchMasterInfra
 {
     private readonly AttendanceManagementSystemContext _context;
     private readonly IWebHostEnvironment _env;
-    private readonly IConfiguration _configuration;
-    public BranchMasterInfra(AttendanceManagementSystemContext context, IWebHostEnvironment env, IConfiguration configuration)
+    public BranchMasterInfra(AttendanceManagementSystemContext context, IWebHostEnvironment env)
     {
         _context = context;
         _env = env;
-        _configuration = configuration;
     }
 
     public async Task<List<BranchMasterResponse>> GetAllBranches()
@@ -134,5 +132,20 @@ public class BranchMasterInfra : IBranchMasterInfra
         var allFiles = Directory.GetFiles(rootPath, "*", SearchOption.AllDirectories);
         var relativePaths = allFiles.Select(file => Path.GetRelativePath(rootPath, file).Replace("\\", "/")).ToList();
         return relativePaths;
+    }
+
+    public async Task<List<Goal>> GetGoals()
+    {
+        return await _context.Goals.ToListAsync();
+    }
+
+    public async Task<List<KraSelfReview>> KraSelfReviews()
+    {
+        return await _context.KraSelfReviews.ToListAsync();
+    }
+
+    public async Task<List<KraManagerReview>> KraManagerReviews()
+    {
+        return await _context.KraManagerReviews.ToListAsync();
     }
 }

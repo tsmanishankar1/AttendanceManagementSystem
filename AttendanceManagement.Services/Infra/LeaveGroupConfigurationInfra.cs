@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AttendanceManagement.Infrastructure.Infra
 {
-    public class LeaveGroupConfigurationInfra : ILeaveGroupConfigurationService
+    public class LeaveGroupConfigurationInfra : ILeaveGroupConfigurationInfra
     {
         private readonly AttendanceManagementSystemContext _context;
 

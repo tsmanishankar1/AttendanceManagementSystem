@@ -1,6 +1,5 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
-using AttendanceManagement.Infrastructure.Interface;
+using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -10,10 +9,10 @@ namespace AttendanceManagement.Controllers;
 [ApiController]
 public class LeaveGroupController : ControllerBase
 {
-    private readonly ILeaveGroupInfra _service;
-    private readonly ILoggingInfra _loggingService;
+    private readonly ILeaveGroupApp _service;
+    private readonly ILoggingApp _loggingService;
 
-    public LeaveGroupController(ILeaveGroupInfra service, ILoggingInfra loggingService)
+    public LeaveGroupController(ILeaveGroupApp service, ILoggingApp loggingService)
     {
         _service = service;
         _loggingService = loggingService;
