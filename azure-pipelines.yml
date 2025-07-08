@@ -84,6 +84,54 @@ stages:
               artifactName: 'drop'
               downloadPath: '$(Pipeline.Workspace)'
 
+          # - task: PowerShell@2
+          #   displayName: 'Extract and Deploy WebApp to IIS'
+          #   inputs:
+          #     targetType: 'inline'
+          #     script: |
+          #       Write-Host "Deploying WebApp to Windows VM"
+                
+          #       # Define paths
+          #       $zipFilePath = "$(Pipeline.Workspace)\drop\s.zip"
+          #       $extractPath = "E:\Vlead_Projects\Attendance\API"
+
+          #       # Ensure the ZIP file exists
+          #       if (!(Test-Path $zipFilePath)) {
+          #         Write-Host "ERROR: ZIP file not found!"
+          #         exit 1
+          #       }
+          #       # Stop IIS before deleting files
+          #       Write-Host "Stopping IIS..."
+          #       Stop-Service -Name W3SVC -Force
+                
+          #       # Remove old files before extracting
+          #       if (Test-Path $extractPath) {
+          #         Remove-Item -Recurse -Force "$extractPath\*"
+          #       } else {
+          #         New-Item -ItemType Directory -Path $extractPath -Force
+          #       }
+
+          #       # Extract the first ZIP (AttendanceSystemAPI.zip)
+          #       Add-Type -AssemblyName System.IO.Compression.FileSystem
+          #       [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $extractPath)
+
+          #       # Find and extract the inner "s.zip"
+          #       $innerZip = Get-ChildItem -Path $extractPath -Filter "s.zip" -Recurse | Select-Object -ExpandProperty FullName
+          #       if ($innerZip) {
+          #         Write-Host "Extracting inner s.zip..."
+          #         [System.IO.Compression.ZipFile]::ExtractToDirectory($innerZip, $extractPath)
+          #         Remove-Item -Force $innerZip  # Clean up inner ZIP after extraction
+          #       }
+
+          #       # Display extracted files for debugging
+          #       Write-Host "Extracted files:"
+          #       Get-ChildItem -Path $extractPath -Recurse
+
+          #       # Restart IIS to apply changes
+          #       IISReset /Restart
+
+          #       Write-Host "Deployment completed successfully."
+
           - task: PowerShell@2
             displayName: 'Extract and Deploy WebApp to IIS'
             inputs:
@@ -91,45 +139,37 @@ stages:
               script: |
                 Write-Host "Deploying WebApp to Windows VM"
                 
-                # Define paths
                 $zipFilePath = "$(Pipeline.Workspace)\drop\s.zip"
                 $extractPath = "E:\Vlead_Projects\Attendance\API"
 
-                # Ensure the ZIP file exists
                 if (!(Test-Path $zipFilePath)) {
-                  Write-Host "ERROR: ZIP file not found!"
+                  Write-Error "ZIP file not found at $zipFilePath"
                   exit 1
                 }
-                # Stop IIS before deleting files
+
                 Write-Host "Stopping IIS..."
                 Stop-Service -Name W3SVC -Force
-                
-                # Remove old files before extracting
+
                 if (Test-Path $extractPath) {
                   Remove-Item -Recurse -Force "$extractPath\*"
                 } else {
                   New-Item -ItemType Directory -Path $extractPath -Force
                 }
 
-                # Extract the first ZIP (AttendanceSystemAPI.zip)
-                Add-Type -AssemblyName System.IO.Compression.FileSystem
-                [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $extractPath)
+                # ✅ Extract outer ZIP
+                Expand-Archive -Path $zipFilePath -DestinationPath $extractPath -Force
 
-                # Find and extract the inner "s.zip"
+                # ✅ Extract inner s.zip if it exists
                 $innerZip = Get-ChildItem -Path $extractPath -Filter "s.zip" -Recurse | Select-Object -ExpandProperty FullName
                 if ($innerZip) {
                   Write-Host "Extracting inner s.zip..."
-                  [System.IO.Compression.ZipFile]::ExtractToDirectory($innerZip, $extractPath)
-                  Remove-Item -Force $innerZip  # Clean up inner ZIP after extraction
+                  Expand-Archive -Path $innerZip -DestinationPath $extractPath -Force
+                  Remove-Item -Force $innerZip
                 }
 
-                # Display extracted files for debugging
                 Write-Host "Extracted files:"
                 Get-ChildItem -Path $extractPath -Recurse
 
-                # Restart IIS to apply changes
                 IISReset /Restart
-
                 Write-Host "Deployment completed successfully."
-
-
+          
