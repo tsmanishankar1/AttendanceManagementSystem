@@ -44,7 +44,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int DesignationId { get; set; }
         public int? GradeId { get; set; }
         public int CategoryId { get; set; }
-        public int CostCenterId { get; set; }
+        public int? CostCenterId { get; set; }
         public int WorkStationId { get; set; }
         [MaxLength(50)]
         public string City { get; set; } = null!;
@@ -161,8 +161,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string? Grade { get; set; }
         public int CategoryId { get; set; }
         public string Category { get; set; } = null!;
-        public int CostCenterId { get; set; }
-        public string CostCenter { get; set; } = null!;
+        public int? CostCenterId { get; set; }
+        public string? CostCenter { get; set; }
         public int WorkStationId { get; set; }
         public string WorkStation { get; set; } = null!;
         public string City { get; set; } = null!;
@@ -461,7 +461,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int DesignationId { get; set; }
         public int? GradeId { get; set; }
         public int CategoryId { get; set; }
-        public int CostCenterId { get; set; }
+        public int? CostCenterId { get; set; }
         public int WorkStationId { get; set; }
         [MaxLength(50)]
         public string City { get; set; } = null!;

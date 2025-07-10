@@ -153,6 +153,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> AddLeaveCreditDebitForMultipleStaffAsync(LeaveCreditDebitRequest leaveCreditDebitRequest)
         {
             var message = "";
+            if (leaveCreditDebitRequest.SelectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
             var selectedRows = leaveCreditDebitRequest.SelectedRows;
             foreach (var item in selectedRows)
             {

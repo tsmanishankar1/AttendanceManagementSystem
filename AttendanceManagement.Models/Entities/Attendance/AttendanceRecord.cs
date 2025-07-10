@@ -1,4 +1,8 @@
-﻿namespace AttendanceManagement.Domain.Entities.Attendance;
+﻿using System;
+using System.Collections.Generic;
+
+namespace AttendanceManagement.Domain.Entities.Attendance;
+
 public partial class AttendanceRecord
 {
     public int Id { get; set; }
@@ -61,7 +65,7 @@ public partial class AttendanceRecord
 
     public virtual StaffCreation? FreezedByNavigation { get; set; }
 
-    public virtual AssignShift? Shift { get; set; }
+    public virtual Shift? Shift { get; set; }
 
     public virtual StaffCreation Staff { get; set; } = null!;
 

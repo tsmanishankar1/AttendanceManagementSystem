@@ -5,6 +5,7 @@ using AttendanceManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace AttendanceManagement.Infrastructure.Infra;
 
@@ -691,12 +692,16 @@ public class ApplicationInfra : IApplicationInfra
             .Where(lr => (lr.StaffId != null ? lr.StaffId == staffId : lr.CreatedBy == staffId) &&
                          (lr.FromDate <= DateOnly.FromDateTime(endDate) &&
                           lr.ToDate >= DateOnly.FromDateTime(startDate)) && !lr.IsActive &&
-                          ((lr.Staff.ApprovalLevel2 != null && lr.Status1 == true && lr.Status2 == true) || (lr.Staff.ApprovalLevel2 == null && lr.Status1 == true)))
+                         ((lr.Staff.ApprovalLevel2 != null && lr.Status1 == true && lr.Status2 == true) ||
+                          (lr.Staff.ApprovalLevel2 == null && lr.Status1 == true)))
             .Select(lr => new
             {
                 lr.FromDate,
                 lr.ToDate,
-                LeaveTypeName = lr.LeaveType.Name,
+                lr.LeaveTypeId,
+                lr.LeaveType.Name,
+                lr.StartDuration,
+                lr.EndDuration,
                 lr.Reason
             })
             .ToListAsync();
@@ -721,6 +726,8 @@ public class ApplicationInfra : IApplicationInfra
             {
                 wfh.FromDate,
                 wfh.ToDate,
+                wfh.StartDuration,
+                wfh.EndDuration,
                 wfh.Reason
             })
             .ToListAsync();
@@ -730,20 +737,26 @@ public class ApplicationInfra : IApplicationInfra
             .Where(od => (od.StaffId != null ? od.StaffId == staffId : od.CreatedBy == staffId) &&
                          od.StartDate <= endDateOnly && od.EndDate >= startDateOnly && !od.IsActive &&
                          ((od.Staff.ApprovalLevel2 != null && od.Status1 == true && od.Status2 == true) || (od.Staff.ApprovalLevel2 == null && od.Status1 == true)))
-            .Select(od => new { od.StartDate, od.EndDate, od.Reason })
+            .Select(od => new { od.StartDate, od.EndDate, od.StartDuration, od.EndDuration, od.Reason })
             .ToListAsync();
         var businessTravelRecords = await _context.BusinessTravels
             .Where(bt => (bt.StaffId != null ? bt.StaffId == staffId : bt.CreatedBy == staffId) &&
                          bt.FromDate <= endDateOnly && bt.ToDate >= startDateOnly && !bt.IsActive &&
                          ((bt.Staff.ApprovalLevel2 != null && bt.Status1 == true && bt.Status2 == true) || (bt.Staff.ApprovalLevel2 == null && bt.Status1 == true)))
-            .Select(bt => new { bt.FromDate, bt.ToDate, bt.Reason })
+            .Select(bt => new { bt.FromDate, bt.ToDate, bt.StartDuration, bt.EndDuration, bt.Reason })
             .ToListAsync();
         var compOffRecords = await _context.CompOffAvails
             .Where(co => (co.StaffId != null ? co.StaffId == staffId : co.CreatedBy == staffId) &&
                          co.FromDate <= endDateOnly && co.ToDate >= startDateOnly && !co.IsActive &&
                          ((co.Staff.ApprovalLevel2 != null && co.Status1 == true && co.Status2 == true) || (co.Staff.ApprovalLevel2 == null && co.Status1 == true)))
-            .Select(co => new { co.FromDate, co.ToDate })
+            .Select(co => new { co.FromDate, co.ToDate, co.FromDuration, co.ToDuration })
             .ToListAsync();
+        var holidayWorkingRecords = await _context.WeeklyOffHolidayWorkings
+    .Where(co => (co.StaffId != null ? co.StaffId == staffId : co.CreatedBy == staffId) &&
+                 co.TxnDate <= endDateOnly && co.TxnDate >= startDateOnly && !co.IsActive &&
+                 ((co.Staff.ApprovalLevel2 != null && co.Status1 == true && co.Status2 == true) || (co.Staff.ApprovalLevel2 == null && co.Status1 == true)))
+    .Select(co => new { co.TxnDate })
+    .ToListAsync();
         var weeklyOffRecords = await _context.AssignShifts
        .Include(x => x.Shift)
        .Where(x => x.StaffId == staffId && x.IsActive && x.Shift.IsActive && x.FromDate >= startDateOnly && x.FromDate <= endDateOnly && x.ShiftId == 18)
@@ -755,18 +768,32 @@ public class ApplicationInfra : IApplicationInfra
            x.Shift.EndTime
        })
        .ToListAsync();
-        var holidayRecords = await _context.HolidayMasters
-            .Include(hm => hm.HolidayCalendarTransactions)
-            .Where(hm => hm.HolidayCalendarTransactions.Any(x => ((x.FromDate.Month == month && x.FromDate.Year == year) || (x.ToDate.Month == month && x.ToDate.Year == year))))
-            .Select(hm => new
+        var shiftTypeIds = await (
+            from a in _context.AssignShifts
+            join s in _context.Shifts on a.ShiftId equals s.Id
+            where a.StaffId == staffId && a.IsActive && a.FromDate >= startDateOnly && a.FromDate <= endDateOnly
+            select s.ShiftTypeId
+        ).Distinct().ToListAsync();
+        var holidayCalendarIds = await (
+            from hcc in _context.HolidayCalendarConfigurations
+            where hcc.IsActive && hcc.CalendarYear == year && shiftTypeIds.Contains((int)hcc.ShiftTypeId!)
+            select hcc.Id
+        ).ToListAsync();
+        var holidayRecords = await (
+            from hc in _context.HolidayCalendarTransactions
+            join hm in _context.HolidayMasters on hc.HolidayMasterId equals hm.Id
+            where hc.IsActive && hm.IsActive &&
+                  holidayCalendarIds.Contains(hc.HolidayCalendarId) &&
+                  (
+                    (hc.FromDate.Month == month && hc.FromDate.Year == year) ||
+                    (hc.ToDate.Month == month && hc.ToDate.Year == year)
+                  )
+            select new
             {
                 HolidayName = hm.Name,
-                Transactions = hm.HolidayCalendarTransactions
-                    .Where(x => (x.FromDate.Month == month && x.FromDate.Year == year) || (x.ToDate.Month == month && x.ToDate.Year == year))
-                    .Select(x => new { x.FromDate, x.ToDate })
-                    .ToList()
-            })
-            .ToListAsync();
+                Date = hc.FromDate
+            }
+        ).ToListAsync();
         var assignedShifts = await _context.AssignShifts
        .Include(x => x.Shift)
        .Where(x => x.StaffId == staffId && x.IsActive && x.Shift.IsActive &&
@@ -776,7 +803,8 @@ public class ApplicationInfra : IApplicationInfra
            Date = x.FromDate,
            x.Shift.Name,
            x.Shift.StartTime,
-           x.Shift.EndTime
+           x.Shift.EndTime,
+           ShiftTypeId = x.Shift.ShiftTypeId
        })
        .ToListAsync();
         var statusColors = await (
@@ -803,16 +831,28 @@ public class ApplicationInfra : IApplicationInfra
             string colorCode = "#ffffff";
             string shortName = "UN";
             var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);
+            var workFromHomeAny = workFromHomeRecords.FirstOrDefault(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
             var workFromHome = workFromHomeRecords.Any(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
+            var onDutyAny = onDutyRecords.FirstOrDefault(od => dateOnly >= od.StartDate && dateOnly <= od.EndDate);
             var onDuty = onDutyRecords.Any(od => dateOnly >= od.StartDate && dateOnly <= od.EndDate);
+            var businessTravelAny = businessTravelRecords.FirstOrDefault(bt => dateOnly >= bt.FromDate && dateOnly <= bt.ToDate);
             var businessTravel = businessTravelRecords.Any(bt => dateOnly >= bt.FromDate && dateOnly <= bt.ToDate);
+            var compOffAny = compOffRecords.FirstOrDefault(co => dateOnly >= co.FromDate && dateOnly <= co.ToDate);
             var compOff = compOffRecords.Any(co => dateOnly >= co.FromDate && dateOnly <= co.ToDate);
             var weeklyOff = weeklyOffRecords.FirstOrDefault(wo => wo.Date == dateOnly);
-            var holiday = holidayRecords.FirstOrDefault(h => h.Transactions.Any(t => dateOnly >= t.FromDate && dateOnly <= t.ToDate));
+            var holidayWorking = holidayWorkingRecords.FirstOrDefault(wo => wo.TxnDate >= dateOnly && wo.TxnDate <= dateOnly);
+            var holiday = holidayRecords.FirstOrDefault(h => dateOnly == h.Date);
             var shift = assignedShift.FirstOrDefault(s => s.Date >= startDateOnly && s.Date <= endDateOnly);
             if (leave != null)
             {
-                var leaveStatus = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 3);
+                int leaveStatusId = GetLeaveStatusId(leave.LeaveTypeId, leave.StartDuration, leave?.EndDuration);
+                var leaveStatus = await _context.StatusDropdowns
+                    .Where(sd => sd.Id == leaveStatusId && sd.IsActive)
+                    .Join(_context.AttendanceStatusColors,
+                          sd => sd.ColorCodeId,
+                          asc => asc.Id,
+                          (sd, asc) => new { sd.Name, sd.ShortName, asc.ColourCode })
+                    .FirstOrDefaultAsync();
                 if (leaveStatus != null)
                 {
                     statusName = leaveStatus.Name;
@@ -820,9 +860,16 @@ public class ApplicationInfra : IApplicationInfra
                     colorCode = leaveStatus?.ColourCode ?? "#f99da3";
                 }
             }
-            else if (workFromHome)
+            else if (workFromHomeAny != null)
             {
-                var wfh = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 6);
+                int compOffStatusId = GetCompOffStatusId(workFromHomeAny.StartDuration, workFromHomeAny.EndDuration);
+                var wfh = await _context.StatusDropdowns
+                    .Where(sd => sd.Id == compOffStatusId && sd.IsActive)
+                    .Join(_context.AttendanceStatusColors,
+                          sd => sd.ColorCodeId,
+                          asc => asc.Id,
+                          (sd, asc) => new { sd.Name, sd.ShortName, asc.ColourCode })
+                    .FirstOrDefaultAsync();
                 if (wfh != null)
                 {
                     statusName = wfh.Name;
@@ -830,34 +877,55 @@ public class ApplicationInfra : IApplicationInfra
                     colorCode = wfh?.ColourCode ?? "#ede7f6";
                 }
             }
-            else if (onDuty)
+            else if (onDutyAny != null)
             {
-                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 7);
-                if (notUpdated != null)
+                int compOffStatusId = GetCompOffStatusId(onDutyAny.StartDuration, onDutyAny.EndDuration);
+                var onDutyStatus = await _context.StatusDropdowns
+                    .Where(sd => sd.Id == compOffStatusId && sd.IsActive)
+                    .Join(_context.AttendanceStatusColors,
+                          sd => sd.ColorCodeId,
+                          asc => asc.Id,
+                          (sd, asc) => new { sd.Name, sd.ShortName, asc.ColourCode })
+                    .FirstOrDefaultAsync();
+                if (onDutyStatus != null)
                 {
-                    statusName = notUpdated.Name;
-                    shortName = notUpdated.ShortName;
-                    colorCode = notUpdated?.ColourCode ?? "rgb(134,194,230)";
+                    statusName = onDutyStatus.Name;
+                    shortName = onDutyStatus.ShortName;
+                    colorCode = onDutyStatus?.ColourCode ?? "rgb(134,194,230)";
                 }
             }
-            else if (businessTravel)
+            else if (businessTravelAny != null)
             {
-                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 8);
-                if (notUpdated != null)
+                int compOffStatusId = GetCompOffStatusId(businessTravelAny.StartDuration, businessTravelAny.EndDuration);
+                var businessTravelStatus = await _context.StatusDropdowns
+                    .Where(sd => sd.Id == compOffStatusId && sd.IsActive)
+                    .Join(_context.AttendanceStatusColors,
+                          sd => sd.ColorCodeId,
+                          asc => asc.Id,
+                          (sd, asc) => new { sd.Name, sd.ShortName, asc.ColourCode })
+                    .FirstOrDefaultAsync();
+                if (businessTravelStatus != null)
                 {
-                    statusName = notUpdated.Name;
-                    shortName = notUpdated.ShortName;
-                    colorCode = notUpdated?.ColourCode ?? "#e3f2fd";
+                    statusName = businessTravelStatus.Name;
+                    shortName = businessTravelStatus.ShortName;
+                    colorCode = businessTravelStatus?.ColourCode ?? "#e3f2fd";
                 }
             }
-            else if (compOff)
+            else if (compOffAny != null)
             {
-                var notUpdated = await _context.AttendanceStatusColors.FirstOrDefaultAsync(a => a.Id == 4);
-                if (notUpdated != null)
+                int compOffStatusId = GetCompOffStatusId(compOffAny.FromDuration, compOffAny.ToDuration);
+                var compOffStatus = await _context.StatusDropdowns
+                    .Where(sd => sd.Id == compOffStatusId && sd.IsActive)
+                    .Join(_context.AttendanceStatusColors,
+                          sd => sd.ColorCodeId,
+                          asc => asc.Id,
+                          (sd, asc) => new { sd.Name, sd.ShortName, asc.ColourCode })
+                    .FirstOrDefaultAsync();
+                if (compOffStatus != null)
                 {
-                    statusName = notUpdated.Name;
-                    shortName = notUpdated.ShortName;
-                    colorCode = notUpdated?.ColourCode ?? "#e0f7fa";
+                    statusName = compOffStatus.Name;
+                    shortName = compOffStatus.ShortName;
+                    colorCode = compOffStatus.ColourCode ?? "#e0f7fa";
                 }
             }
             else if (holiday != null)
@@ -914,10 +982,11 @@ public class ApplicationInfra : IApplicationInfra
                 totalHoursWorked = attendance?.TotalHoursWorked != null ? Math.Round(attendance.TotalHoursWorked, 2) : 0.00,
                 shiftName = shiftForDate?.Name,
                 workFromHome,
-                leaveTypeName = leave?.LeaveTypeName,
+                leaveTypeName = leave?.Name,
                 onDuty,
                 businessTravel,
                 compOff,
+                holidayWorking,
                 weeklyOff = weeklyOff != null,
                 holidayName = holiday?.HolidayName,
                 assignedShiftStart = shiftForDate?.StartTime ?? "00:00",
@@ -933,6 +1002,48 @@ public class ApplicationInfra : IApplicationInfra
             endDate = endDate.ToString("yyyy-MM-dd"),
             records = result
         };
+    }
+
+    private int GetCompOffStatusId(string fromDuration, string? toDuration)
+    {
+        if (fromDuration == "First Half" || toDuration == "First Half")
+            return 15;
+        else if (fromDuration == "Second Half" || toDuration == "Second Half")
+            return 16;
+        else if (fromDuration == "Full Day" || toDuration == "Full Day")
+            return 14;
+        else
+            return 37;
+    }
+
+    private int GetLeaveStatusId(int leaveTypeId, string startDuration, string? endDuration)
+    {
+        switch (leaveTypeId)
+        {
+            case 5:
+                if (startDuration == "Full Day" && endDuration == "Full Day") return 11;
+                if (startDuration == "First Half" || endDuration == "First Half") return 12;
+                if (startDuration == "Second Half" || endDuration == "Second Half") return 13;
+                return 37;
+            case 6:
+                if (startDuration == "Full Day" && endDuration == "Full Day") return 17;
+                if (startDuration == "First Half" || endDuration == "First Half") return 18;
+                if (startDuration == "Second Half" || endDuration == "Second Half") return 19;
+                return 37;
+
+            case 18: return 20;
+            case 43: return 23;
+            case 15: return 21;
+            case 39: return 31;
+
+            case 40:
+                if (startDuration == "Full Day" && endDuration == "Full Day") return 39;
+                if (startDuration == "First Half" || endDuration == "First Half") return 40;
+                if (startDuration == "Second Half" || endDuration == "Second Half") return 41;
+                return 37;
+
+            default: return 37;
+        }
     }
 
     public async Task<List<CompOffCreditResponseDto>> GetCompOffCreditAllAsync()

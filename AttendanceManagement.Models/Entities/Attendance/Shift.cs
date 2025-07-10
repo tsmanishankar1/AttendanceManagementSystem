@@ -1,4 +1,7 @@
-﻿namespace AttendanceManagement.Domain.Entities.Attendance;
+﻿using System;
+using System.Collections.Generic;
+
+namespace AttendanceManagement.Domain.Entities.Attendance;
 
 public partial class Shift
 {
@@ -25,6 +28,8 @@ public partial class Shift
     public int ShiftTypeId { get; set; }
 
     public virtual ICollection<AssignShift> AssignShifts { get; set; } = new List<AssignShift>();
+
+    public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

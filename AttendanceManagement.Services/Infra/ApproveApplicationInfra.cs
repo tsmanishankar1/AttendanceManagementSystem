@@ -25,6 +25,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             var application = await _context.ApplicationTypes.AnyAsync(a => a.Id == approveLeaveRequest.ApplicationTypeId && a.IsActive);
             if (!application) throw new MessageNotFoundException("Application type not found");
             var selectedRows = approveLeaveRequest.SelectedRows;
+            if (approveLeaveRequest.SelectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
             var approverName = await _context.StaffCreations
                 .Where(s => s.Id == approveLeaveRequest.ApprovedBy && s.IsActive == true)
                 .Select(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}")

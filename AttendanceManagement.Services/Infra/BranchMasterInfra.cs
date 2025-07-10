@@ -148,4 +148,24 @@ public class BranchMasterInfra : IBranchMasterInfra
     {
         return await _context.KraManagerReviews.ToListAsync();
     }
+
+    public async Task<List<UserManagement>> GetUserManagement()
+    {
+        return await _context.UserManagements.ToListAsync();
+    }
+
+    public async Task<List<Probation>> GetProbations()
+    {
+        return await _context.Probations.ToListAsync();
+    }
+
+    public async Task<List<Feedback>> GetFeedbacks()
+    {
+        return await _context.Feedbacks.ToListAsync();
+    }
+
+    public async Task<List<ProbationReport>> GetProbationReports()
+    {
+        return await _context.ProbationReports.ToListAsync();
+    }
 }

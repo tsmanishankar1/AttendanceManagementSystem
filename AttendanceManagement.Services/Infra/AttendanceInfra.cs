@@ -293,6 +293,7 @@ public class AttendanceInfra : IAttendanceInfra
     public async Task<string> FreezeAttendanceRecords(AttendanceFreezeRequest attendanceFreezeRequest)
     {
         var message = "Selected attendance records freezed successfully";
+        if (attendanceFreezeRequest.SelectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
         var selectedRows = attendanceFreezeRequest.SelectedRows;
         foreach(var item in selectedRows)
         {

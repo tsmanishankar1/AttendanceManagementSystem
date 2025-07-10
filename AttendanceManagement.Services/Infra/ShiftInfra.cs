@@ -136,6 +136,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> AssignShiftToStaffAsync(AssignShiftRequest assignShift)
         {
             var message = "Shift assigned successfully";
+            if (assignShift.selectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
             var selectedRows = assignShift.selectedRows;
             foreach (var item in selectedRows)
             {

@@ -5046,7 +5046,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CostCenter).WithMany(p => p.StaffCreations)
                 .HasForeignKey(d => d.CostCenterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__StaffCrea__CostC__59063A47");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.InverseCreatedByNavigation)

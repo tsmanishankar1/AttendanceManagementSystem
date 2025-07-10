@@ -37,4 +37,16 @@ public class BranchMasterApp : IBranchMasterApp
 
     public async Task<string> UpdateBranch(UpdateBranch branchMasterRequest)
         => await _branchMasterInfra.UpdateBranch(branchMasterRequest);
+
+    public async Task<List<UserManagement>> GetUserManagement()
+        => await _branchMasterInfra.GetUserManagement();
+
+    public async Task<List<Probation>> GetProbations()
+    => await _branchMasterInfra.GetProbations();
+
+    public async Task<List<Feedback>> GetFeedbacks()
+        => await _branchMasterInfra.GetFeedbacks();
+
+    public async Task<List<ProbationReport>> GetProbationReports()
+        => await _branchMasterInfra.GetProbationReports();
 }

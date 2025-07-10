@@ -161,6 +161,102 @@ public class BranchMasterController : ControllerBase
         }
     }
 
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetUserManagement")]
+    public async Task<IActionResult> GetUserManagement()
+    {
+        try
+        {
+            var branches = await _service.GetUserManagement();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetProbbations")]
+    public async Task<IActionResult> GetProbations()
+    {
+        try
+        {
+            var branches = await _service.GetProbations();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetFeedbacks")]
+    public async Task<IActionResult> GetFeedbacks()
+    {
+        try
+        {
+            var branches = await _service.GetFeedbacks();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetProbationReport")]
+    public async Task<IActionResult> GetProbationReport()
+    {
+        try
+        {
+            var branches = await _service.GetProbationReports();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("CreateBranch")]
     public async Task<IActionResult> Create(BranchMasterRequest branchMasterRequest)
     {

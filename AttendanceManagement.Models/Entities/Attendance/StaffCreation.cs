@@ -1,4 +1,7 @@
-﻿namespace AttendanceManagement.Domain.Entities.Attendance;
+﻿using System;
+using System.Collections.Generic;
+
+namespace AttendanceManagement.Domain.Entities.Attendance;
 
 public partial class StaffCreation
 {
@@ -48,7 +51,7 @@ public partial class StaffCreation
 
     public int CategoryId { get; set; }
 
-    public int CostCenterId { get; set; }
+    public int? CostCenterId { get; set; }
 
     public int WorkStationId { get; set; }
 
@@ -346,7 +349,7 @@ public partial class StaffCreation
 
     public virtual ICollection<ComplianceDocument> ComplianceDocumentUpdatedByNavigations { get; set; } = new List<ComplianceDocument>();
 
-    public virtual CostCentreMaster CostCenter { get; set; } = null!;
+    public virtual CostCentreMaster? CostCenter { get; set; }
 
     public virtual ICollection<CostCentreMaster> CostCentreMasterCreatedByNavigations { get; set; } = new List<CostCentreMaster>();
 

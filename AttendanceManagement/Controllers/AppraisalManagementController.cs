@@ -94,6 +94,33 @@ namespace AttendanceManagement.Controllers
             }
         }
 
+        [HttpGet("GetExcelTemplates")]
+        public async Task<IActionResult> GetExcelTemplates(string name)
+        {
+            try
+            {
+                var filePath = _service.GetExcelTemplateFile(name);
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return ErrorClass.NotFoundResponse("Excel template file not found");
+                }
+
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+                var fileName = Path.GetFileName(filePath);
+                var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
         [HttpPost("MisUploadSheet")]
         public async Task<IActionResult> MisUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
         {
@@ -123,17 +150,7 @@ namespace AttendanceManagement.Controllers
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
                 return ErrorClass.ConflictResponse(ex.Message);
             }
-            catch (InvalidDataException ex)
-            {
-                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
-                return ErrorClass.UnsupportedMediaTypeResponse(ex.Message);
-            }
             catch (ConflictException ex)
-            {
-                await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
-                return ErrorClass.ConflictResponse(ex.Message);
-            }
-            catch (IOException ex)
             {
                 await _loggingService.LogError("Appraisal Management", "POST", "/api/AppraisalManagement/MisUploadSheet", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, uploadMisSheetRequest.CreatedBy, JsonSerializer.Serialize(uploadMisSheetRequest));
                 return ErrorClass.ConflictResponse(ex.Message);

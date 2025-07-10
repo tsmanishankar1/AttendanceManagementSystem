@@ -1,4 +1,7 @@
-﻿namespace AttendanceManagement.Domain.Entities.Attendance;
+﻿using System;
+using System.Collections.Generic;
+
+namespace AttendanceManagement.Domain.Entities.Attendance;
 
 public partial class GradeMaster
 {

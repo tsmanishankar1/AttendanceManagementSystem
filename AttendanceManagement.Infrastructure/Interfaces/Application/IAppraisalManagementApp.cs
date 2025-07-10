@@ -7,6 +7,7 @@ namespace AttendanceManagement.Application.Interfaces.Application
         Task<List<object>> GetProductionEmployees(int appraisalId, int year, string quarter);
         Task<string> MoveSelectedStaffToMis(SelectedEmployeesRequest selectedEmployeesRequest);
         Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedEmployees(int appraisalId, int year, string quarter);
+        string GetExcelTemplateFile(string fileName);
         Task<string> MisUploadSheet(UploadMisSheetRequest uploadMisSheetRequest);
         Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(int appraisalId, int year, string quarter);
         Task<List<AgmDetails>> GetAllAgm();

@@ -13,5 +13,9 @@ namespace AttendanceManagement.Application.Interfaces.Infrastructure
         Task<List<Goal>> GetGoals();
         Task<List<KraSelfReview>> KraSelfReviews();
         Task<List<KraManagerReview>> KraManagerReviews();
+        Task<List<UserManagement>> GetUserManagement();
+        Task<List<Probation>> GetProbations();
+        Task<List<Feedback>> GetFeedbacks();
+        Task<List<ProbationReport>> GetProbationReports();
     }
 }

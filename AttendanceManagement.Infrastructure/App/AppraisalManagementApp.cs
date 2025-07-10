@@ -76,6 +76,9 @@ namespace AttendanceManagement.Application.App
         public async Task<string> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
             => await _appraisalManagementInfra.HrUploadSheet(uploadMisSheetRequest);
 
+        public string GetExcelTemplateFile(string fileName)
+            => _appraisalManagementInfra.GetExcelTemplateFile(fileName);
+
         public async Task<string> MisUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
             => await _appraisalManagementInfra.MisUploadSheet(uploadMisSheetRequest);
 

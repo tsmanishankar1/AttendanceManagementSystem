@@ -296,10 +296,11 @@ namespace AttendanceManagement.Infrastructure.Infra
                                  join department in _context.DepartmentMasters on s.DepartmentId equals department.Id
                                  join division in _context.DivisionMasters on s.DivisionId equals division.Id
                                  join designation in _context.DesignationMasters on s.DesignationId equals designation.Id
-                                 join grade in _context.GradeMasters on s.GradeId equals grade.Id
                                  join org in _context.OrganizationTypes on s.OrganizationTypeId equals org.Id
                                  join workingStatus in _context.WorkingStatuses on s.WorkingStatus equals workingStatus.Name
                                  join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
+                                 join grade in _context.GradeMasters on s.GradeId equals grade.Id into gradeJoin
+                                 from grade in gradeJoin.DefaultIfEmpty()
                                  where s.Id == staffId && s.IsActive == true && division.IsActive && department.IsActive && grade.IsActive 
                                  && org.IsActive && workingStatus.IsActive && maritalStatus.IsActive
                                  select new IndividualStaffResponse
@@ -445,8 +446,6 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!categoryId) throw new MessageNotFoundException("Category not found");
             var workStationId = await _context.WorkstationMasters.AnyAsync(d => d.Id == staffInput.WorkStationId && d.IsActive);
             if (!workStationId) throw new MessageNotFoundException("WorkStation not found");
-            var costCentreId = await _context.CostCentreMasters.AnyAsync(d => d.Id == staffInput.CostCenterId && d.IsActive);
-            if (!costCentreId) throw new MessageNotFoundException("CostCentre not found");
             var leaveGroupId = await _context.LeaveGroups.AnyAsync(d => d.Id == staffInput.LeaveGroupId && d.IsActive);
             if (!leaveGroupId) throw new MessageNotFoundException("Leave group not found");
             var statusId = await _context.Statuses.AnyAsync(d => d.Id == staffInput.StatusId && d.IsActive);
@@ -577,8 +576,6 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!categoryId) throw new MessageNotFoundException("Category not found");
             var workStationId = await _context.WorkstationMasters.AnyAsync(d => d.Id == updatedStaff.WorkStationId && d.IsActive);
             if (!workStationId) throw new MessageNotFoundException("WorkStation not found");
-            var costCentreId = await _context.CostCentreMasters.AnyAsync(d => d.Id == updatedStaff.CostCenterId && d.IsActive);
-            if (!costCentreId) throw new MessageNotFoundException("CostCentre not found");
             var leaveGroupId = await _context.LeaveGroups.AnyAsync(d => d.Id == updatedStaff.LeaveGroupId && d.IsActive);
             if (!leaveGroupId) throw new MessageNotFoundException("Leave group not found");
             var statusId = await _context.Statuses.AnyAsync(d => d.Id == updatedStaff.StatusId && d.IsActive);
@@ -965,6 +962,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> ApprovePendingStaffs(ApprovePendingStaff approvePendingStaff)
         {
             var message = "";
+            if (approvePendingStaff.SelectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
             var selectedRows = approvePendingStaff.SelectedRows;
             foreach (var item in selectedRows)
             {

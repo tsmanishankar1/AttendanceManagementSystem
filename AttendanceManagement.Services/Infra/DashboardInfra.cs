@@ -38,7 +38,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .ToListAsync();
             if (!staffWithAnniversaries.Any())
             {
-                throw new MessageNotFoundException("No records found for the selected event type");
+                throw new MessageNotFoundException("No records found");
             }
             if (eventTypeId == 1) 
             {
@@ -219,8 +219,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 {
                     Id = hc.Id,
                     HolidayName = hm.Name,
-                    FromDate = hc.FromDate,
-                    ToDate = hc.ToDate
+                    Date = hc.FromDate,
                 })
                 .ToListAsync<object>();
 

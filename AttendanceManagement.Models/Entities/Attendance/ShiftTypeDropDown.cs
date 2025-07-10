@@ -1,4 +1,8 @@
-﻿namespace AttendanceManagement.Domain.Entities.Attendance;
+﻿using System;
+using System.Collections.Generic;
+
+namespace AttendanceManagement.Domain.Entities.Attendance;
+
 public partial class ShiftTypeDropDown
 {
     public int Id { get; set; }
