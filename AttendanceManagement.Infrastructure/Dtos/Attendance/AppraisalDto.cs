@@ -7,7 +7,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int StaffId { get; set; }
         public string EmpId { get; set; } = null!;
         public string EmpName { get; set; } = null!;
-        public decimal Tenure { get; set; }
+        public string? Tenure { get; set; }
         public string ReportingManagers { get; set; } = null!;
         public string Division { get; set; } = null!;
         public string Department { get; set; } = null!;
@@ -19,7 +19,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int StaffId { get; set; }
         public string EmpId { get; set; } = null!;
         public string EmpName { get; set; } = null!;
-        public decimal Tenure { get; set; }
+        public string? Tenure { get; set; }
         public string ReportingManagers { get; set; } = null!;
         public string Division { get; set; } = null!;
         public string Department { get; set; } = null!;

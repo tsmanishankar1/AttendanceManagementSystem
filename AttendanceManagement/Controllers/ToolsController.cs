@@ -175,7 +175,7 @@ public class ToolsController : ControllerBase
             };
             await _loggingService.AuditLog("Reader Configuration", "POST", "/api/Tools/ReaderConfiguration", ReaderConfig, readerConfiguration.CreatedBy, JsonSerializer.Serialize(readerConfiguration));
             return Ok(response);
-        }   
+        }
         catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("Reader Configuration", "POST", "/api/Tools/ReaderConfiguration", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, readerConfiguration.CreatedBy, JsonSerializer.Serialize(readerConfiguration));
@@ -243,7 +243,7 @@ public class ToolsController : ControllerBase
     }
 
     [HttpPost("AttendanceStatusColor")]
-    public async Task<IActionResult> CreateAttendanceStatusColor( AttendanceStatusColorDto dto)
+    public async Task<IActionResult> CreateAttendanceStatusColor(AttendanceStatusColorDto dto)
     {
         try
         {
@@ -260,7 +260,7 @@ public class ToolsController : ControllerBase
         }
         catch (Exception ex)
         {
-            await _loggingService.LogError( "Attendance Status Color", "POST", "/api/Tools/AttendanceStatusColor",  ex.Message, ex.StackTrace ?? string.Empty,    ex.InnerException?.ToString() ?? string.Empty,dto.CreatedBy,   JsonSerializer.Serialize(dto)  );
+            await _loggingService.LogError("Attendance Status Color", "POST", "/api/Tools/AttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.CreatedBy, JsonSerializer.Serialize(dto));
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
@@ -278,11 +278,11 @@ public class ToolsController : ControllerBase
             };
             return Ok(response);
         }
-        catch(MessageNotFoundException ex)
+        catch (MessageNotFoundException ex)
         {
             return ErrorClass.NotFoundResponse(ex.Message);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return ErrorClass.ErrorResponse(ex.Message);
         }
@@ -302,7 +302,7 @@ public class ToolsController : ControllerBase
             await _loggingService.AuditLog("Attendance Status Color", "POST", "/api/Tools/UpdateAttendanceStatusColor", JsonSerializer.Serialize(response), dto.UpdatedBy, JsonSerializer.Serialize(dto));
             return Ok(response);
         }
-        catch(MessageNotFoundException ex)
+        catch (MessageNotFoundException ex)
         {
             await _loggingService.LogError("Attendance Status Color", "POST", "/api/Tools/UpdateAttendanceStatusColor", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, dto.UpdatedBy, JsonSerializer.Serialize(dto));
             return ErrorClass.NotFoundResponse(ex.Message);

@@ -66,7 +66,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string PolicyGroup { get; set; } = null!;
         [MaxLength(50)]
         public string WorkingDayPattern { get; set; } = null!;
-        public decimal Tenure { get; set; }
+        public string? Tenure { get; set; }
         [MaxLength(50)]
         public string? UanNumber { get; set; }
         [MaxLength(50)]
@@ -182,7 +182,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string PolicyGroup { get; set; } = null!;
         public int WorkingDayPatternId { get; set; }
         public string WorkingDayPattern { get; set; } = null!;
-        public decimal Tenure { get; set; }
+        public string? Tenure { get; set; }
         public string? UanNumber { get; set; }
         public string? EsiNumber { get; set; }
         public bool IsMobileAppEligible { get; set; }
@@ -333,7 +333,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string ApprovalLevel1 { get; set; } = null!;
         public int? ApprovalLevelId2 { get; set; }
         public string? ApprovalLevel2 { get; set; }
-        public decimal Tenure { get; set; }
+        public string? Tenure { get; set; }
         public string? UanNumber { get; set; }
         public string? EsiNumber { get; set; }
         public string? MiddleName { get; set; }
@@ -483,7 +483,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string PolicyGroup { get; set; } = null!;
         [MaxLength(50)]
         public string WorkingDayPattern { get; set; } = null!;
-        public decimal Tenure { get; set; }
+        public string? Tenure { get; set; }
         [MaxLength(50)]
         public string? UanNumber { get; set; }
         [MaxLength(50)]

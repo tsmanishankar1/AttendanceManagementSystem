@@ -554,7 +554,7 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpPost("CreateSelfEvaluation")]
-        public async Task<IActionResult> CreateSelfEvaluation([FromForm] SelfEvaluationRequest selfEvaluationRequest)
+        public async Task<IActionResult> CreateSelfEvaluation(SelfEvaluationRequest selfEvaluationRequest)
         {
             try
             {

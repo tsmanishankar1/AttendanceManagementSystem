@@ -75,6 +75,8 @@ public partial class ProbationReport
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public int? Month { get; set; }
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }

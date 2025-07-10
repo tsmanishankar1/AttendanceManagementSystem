@@ -75,7 +75,7 @@ public partial class StaffCreation
 
     public string WorkingDayPattern { get; set; } = null!;
 
-    public decimal Tenure { get; set; }
+    public string? Tenure { get; set; }
 
     public string? UanNumber { get; set; }
 
@@ -446,6 +446,12 @@ public partial class StaffCreation
     public virtual ICollection<GeoStatus> GeoStatusCreatedByNavigations { get; set; } = new List<GeoStatus>();
 
     public virtual ICollection<GeoStatus> GeoStatusUpdatedByNavigations { get; set; } = new List<GeoStatus>();
+
+    public virtual ICollection<GoalAssignment> GoalAssignmentCreatedByNavigations { get; set; } = new List<GoalAssignment>();
+
+    public virtual ICollection<GoalAssignment> GoalAssignmentStaffs { get; set; } = new List<GoalAssignment>();
+
+    public virtual ICollection<GoalAssignment> GoalAssignmentUpdatedByNavigations { get; set; } = new List<GoalAssignment>();
 
     public virtual ICollection<Goal> GoalCreatedByNavigations { get; set; } = new List<Goal>();
 

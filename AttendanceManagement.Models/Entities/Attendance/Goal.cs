@@ -31,11 +31,11 @@ public partial class Goal
 
     public string Quarter { get; set; } = null!;
 
-    public int StaffId { get; set; }
-
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
+    public virtual ICollection<GoalAssignment> GoalAssignments { get; set; } = new List<GoalAssignment>();
 
     public virtual ICollection<KraSelfReview> KraSelfReviews { get; set; } = new List<KraSelfReview>();
 

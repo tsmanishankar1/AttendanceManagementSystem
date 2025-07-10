@@ -1006,24 +1006,30 @@ namespace AttendanceManagement.Infrastructure.Infra
             var selectedRows = kraDto.SelectedRows;
             foreach (var item in selectedRows)
             {
+                var kra = new Goal
+                {
+                    Kra = item.Kra,
+                    Weightage = item.Weightage,
+                    EvaluationPeriod = item.Quarter,
+                    Year = item.Year,
+                    Quarter = item.Quarter,
+                    AppraisalId = item.AppraisalId,
+                    IsActive = true,
+                    CreatedBy = kraDto.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                };
                 foreach (var staffId in item.StaffId)
                 {
-                    var kra = new Goal
+                    kra.GoalAssignments.Add(new GoalAssignment
                     {
-                        Kra = item.Kra,
-                        Weightage = item.Weightage,
-                        EvaluationPeriod = item.Quarter,
-                        Year = item.Year,
-                        Quarter = item.Quarter,
                         StaffId = staffId,
-                        AppraisalId = item.AppraisalId,
                         IsActive = true,
                         CreatedBy = kraDto.CreatedBy,
                         CreatedUtc = DateTime.UtcNow
-                    };
-
-                    await _context.Goals.AddAsync(kra);
+                    });
                 }
+
+                await _context.Goals.AddAsync(kra);
             }
             await _context.SaveChangesAsync();
             return "KRA submitted successfully";
@@ -1036,166 +1042,235 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
             bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
-            var getKra = await (from kra in _context.Goals
-                                join s in _context.StaffCreations on kra.CreatedBy equals s.Id
-                                where kra.Year == year && kra.Quarter == quarter && kra.AppraisalId == appraisalId && (isSuperAdmin || kra.CreatedBy == createdBy || kra.StaffId == createdBy)
-                                select new KraResponse
-                                {
-                                    Id = kra.Id,
-                                    Kra = kra.Kra,
-                                    Weightage = kra.Weightage,
-                                    Year = kra.Year,
-                                    Quarter = kra.Quarter,
-                                    CreatedBy = kra.CreatedBy
-                                })
-                                .ToListAsync();
+            var getKraRaw = await (
+                from kra in _context.Goals
+                where kra.Year == year
+                      && kra.Quarter == quarter
+                      && kra.AppraisalId == appraisalId
+                      && kra.IsActive
+                      && (
+                            isSuperAdmin ||
+                            kra.CreatedBy == createdBy ||
+                            kra.GoalAssignments.Any(ga => ga.StaffId == createdBy)
+                         )
+                select new
+                {
+                    kra.Id,
+                    kra.Kra,
+                    kra.Weightage,
+                    kra.Year,
+                    kra.Quarter,
+                    kra.CreatedBy,
+                    AssignedStaff = kra.GoalAssignments.Select(ga => new
+                    {
+                        ga.StaffId,
+                        StaffName = $"{ga.Staff.FirstName}{(string.IsNullOrWhiteSpace(ga.Staff.LastName) ? "" : " " + ga.Staff.LastName)}"
+                    }).ToList()
+                }
+            ).ToListAsync();
+            var getKra = getKraRaw
+                .Select(kra => new KraResponse
+                {
+                    Id = kra.Id,
+                    Kra = kra.Kra,
+                    Weightage = kra.Weightage,
+                    Year = kra.Year,
+                    Quarter = kra.Quarter,
+                    CreatedBy = kra.CreatedBy,
+                    AssignedStaffIds = isSuperAdmin || kra.CreatedBy == createdBy
+                        ? kra.AssignedStaff.Select(a => a.StaffId).Distinct().ToList()
+                        : kra.AssignedStaff
+                            .Where(a => a.StaffId == createdBy)
+                            .Select(a => a.StaffId)
+                            .ToList(),
+                    AssignedStaffNames = isSuperAdmin || kra.CreatedBy == createdBy
+                        ? kra.AssignedStaff.Select(a => a.StaffName).Distinct().ToList()
+                        : kra.AssignedStaff
+                            .Where(a => a.StaffId == createdBy)
+                            .Select(a => a.StaffName)
+                            .ToList()
+                })
+                .ToList();
 
-            if (getKra.Count == 0) throw new MessageNotFoundException("No kra found");
+            if (getKra.Count == 0)
+                throw new MessageNotFoundException("No KRA found");
+
             return getKra;
         }
 
         public async Task<string> CreateSelfEvaluation(SelfEvaluationRequest selfEvaluationRequest)
         {
-            var selectedRows = selfEvaluationRequest.SelectedRows;
-            if (selfEvaluationRequest.SelectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
-            foreach (var item in selectedRows)
+            string? savedFilePath = null;
+            if (selfEvaluationRequest.AttachmentsSelf != null && selfEvaluationRequest.AttachmentsSelf.Length > 0)
             {
-                string? savedFilePath = null;
-                if (item.AttachmentsSelf != null && item.AttachmentsSelf.Length > 0)
+                var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraSelfAttachments");
+                if (!Directory.Exists(uploadsFolder))
                 {
-                    var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraSelfAttachments");
                     Directory.CreateDirectory(uploadsFolder);
-                    var originalFileName = Path.GetFileNameWithoutExtension(item.AttachmentsSelf.FileName);
-                    var extension = Path.GetExtension(item.AttachmentsSelf.FileName);
-                    var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-                    var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await item.AttachmentsSelf.CopyToAsync(stream);
-                    }
-                    savedFilePath = Path.Combine("KraAttachments", "KraSelfAttachments", uniqueFileName);
                 }
-                var selfEvaluation = new KraSelfReview
+                var originalFileName = Path.GetFileNameWithoutExtension(selfEvaluationRequest.AttachmentsSelf.FileName);
+                var extension = Path.GetExtension(selfEvaluationRequest.AttachmentsSelf.FileName);
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    GoalId = item.GoalId,
-                    SelfEvaluationScale = item.SelfEvaluationScale,
-                    SelfScore = item.SelfScore,
-                    SelfEvaluationComments = item.SelfEvaluationComments,
-                    AttachmentsSelf = savedFilePath,
-                    AppraisalId = item.AppraisalId,
-                    IsActive = true,
-                    CreatedBy = selfEvaluationRequest.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-                await _context.KraSelfReviews.AddAsync(selfEvaluation);
+                    await selfEvaluationRequest.AttachmentsSelf.CopyToAsync(stream);
+                }
+                savedFilePath = Path.Combine("KraAttachments", "KraSelfAttachments", uniqueFileName);
             }
+            var selfEvaluation = new KraSelfReview
+            {
+                GoalId = selfEvaluationRequest.GoalId,
+                SelfEvaluationScale = selfEvaluationRequest.SelfEvaluationScale,
+                SelfScore = selfEvaluationRequest.SelfScore,
+                SelfEvaluationComments = selfEvaluationRequest.SelfEvaluationComments,
+                AttachmentsSelf = savedFilePath,
+                AppraisalId = selfEvaluationRequest.AppraisalId,
+                IsActive = true,
+                CreatedBy = selfEvaluationRequest.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+            await _context.KraSelfReviews.AddAsync(selfEvaluation);
             await _context.SaveChangesAsync();
             return "Self Kra submitted successfully";
         }
 
         public async Task<List<SelfEvaluationResponse>> GetSelfEvaluation(int approverId, int appraisalId, int year, string quarter)
         {
-            var approver = await _context.StaffCreations
+            // Get access level of the current user
+            var approverAccessLevel = await _context.StaffCreations
                 .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
-            var isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == approverId && s.IsActive == true);
-            var isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == approverId && s.IsActive == true);
 
-            var getSelfEvaluation = await (from selfEvaluation in _context.KraSelfReviews
-                                           join goal in _context.Goals on selfEvaluation.GoalId equals goal.Id
-                                           join s in _context.StaffCreations on selfEvaluation.CreatedBy equals s.Id
-                                           where selfEvaluation.AppraisalId == appraisalId && goal.Year == year && goal.Quarter == quarter && (isSuperAdmin || selfEvaluation.CreatedBy == approverId ||                         // Direct creator
-                                                 (isApprovalLevel1 && s.ApprovalLevel1 == approverId) || (isApprovalLevel2 && s.ApprovalLevel2 == approverId))
-                                           select new SelfEvaluationResponse
-                                           {
-                                               Id = selfEvaluation.Id,
-                                               GoalId = selfEvaluation.GoalId,
-                                               SelfEvaluationScale = selfEvaluation.SelfEvaluationScale,
-                                               SelfScore = selfEvaluation.SelfScore,
-                                               SelfEvaluationComments = selfEvaluation.SelfEvaluationComments,
-                                               AttachmentsSelf = selfEvaluation.AttachmentsSelf,
-                                               StaffName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
-                                               Year = goal.Year,
-                                               Quarter = goal.Quarter,
-                                               CreatedBy = selfEvaluation.CreatedBy
-                                           })
-                                           .ToListAsync();
-            if (getSelfEvaluation.Count == 0) throw new MessageNotFoundException("No staff evaluation found");
-            return getSelfEvaluation;
+            bool isSuperAdmin = approverAccessLevel == "SUPER ADMIN" || approverAccessLevel == "HR ADMIN";
+
+            // Determine if the approver is at Approval Level 1 or 2
+            bool isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == approverId && s.IsActive == true);
+            bool isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == approverId && s.IsActive == true);
+
+            var getSelfEvaluations = await (
+                from selfReview in _context.KraSelfReviews
+                join goal in _context.Goals on selfReview.GoalId equals goal.Id
+                join assignment in _context.GoalAssignments on goal.Id equals assignment.GoalId
+                join staff in _context.StaffCreations on selfReview.CreatedBy equals staff.Id
+                where selfReview.AppraisalId == appraisalId
+                      && goal.Year == year
+                      && goal.Quarter == quarter
+                      && (
+                          isSuperAdmin ||
+                          selfReview.CreatedBy == approverId ||
+                          (isApprovalLevel1 && staff.ApprovalLevel1 == approverId) ||
+                          (isApprovalLevel2 && staff.ApprovalLevel2 == approverId)
+                      )
+                group new { selfReview, goal, staff } by selfReview.Id into g
+                select new SelfEvaluationResponse
+                {
+                    Id = g.Key,
+                    GoalId = g.First().selfReview.GoalId,
+                    SelfEvaluationScale = g.First().selfReview.SelfEvaluationScale,
+                    SelfScore = g.First().selfReview.SelfScore,
+                    SelfEvaluationComments = g.First().selfReview.SelfEvaluationComments,
+                    AttachmentsSelf = g.First().selfReview.AttachmentsSelf,
+                    StaffName = g.First().staff.FirstName + (string.IsNullOrWhiteSpace(g.First().staff.LastName) ? "" : " " + g.First().staff.LastName),
+                    Year = g.First().goal.Year,
+                    Quarter = g.First().goal.Quarter,
+                    CreatedBy = g.First().selfReview.CreatedBy
+                }
+            ).ToListAsync();
+            if (getSelfEvaluations.Count == 0)  throw new MessageNotFoundException("No staff evaluation found");
+            return getSelfEvaluations;
         }
+
         public async Task<string> CreateManagerEvaluation(ManagerEvaluationRequest managerEvaluationRequest)
         {
-            var selectedRows = managerEvaluationRequest.SelectedRows;
-            if (managerEvaluationRequest.SelectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
-            foreach (var item in selectedRows)
+            string? savedFilePath = null;
+            if (managerEvaluationRequest.AttachmentsManager != null && managerEvaluationRequest.AttachmentsManager.Length > 0)
             {
-                string? savedFilePath = null;
-                if (item.AttachmentsManager != null && item.AttachmentsManager.Length > 0)
+                var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraManagerAttachments");
+                if (!Directory.Exists(uploadsFolder))
                 {
-                    var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraManagerAttachments");
                     Directory.CreateDirectory(uploadsFolder);
-                    var originalFileName = Path.GetFileNameWithoutExtension(item.AttachmentsManager.FileName);
-                    var extension = Path.GetExtension(item.AttachmentsManager.FileName);
-                    var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-                    var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await item.AttachmentsManager.CopyToAsync(stream);
-                    }
-                    savedFilePath = Path.Combine("KraAttachments", "KraManagerAttachments", uniqueFileName);
                 }
-                var managerEvaluation = new KraManagerReview
+                var originalFileName = Path.GetFileNameWithoutExtension(managerEvaluationRequest.AttachmentsManager.FileName);
+                var extension = Path.GetExtension(managerEvaluationRequest.AttachmentsManager.FileName);
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    KraSelfReviewId = item.KraSelfReviewId,
-                    ManagerEvaluationScale = item.ManagerEvaluationScale,
-                    ManagerScore = item.ManagerScore,
-                    ManagerEvaluationComments = item.ManagerEvaluationComments,
-                    AttachmentsManager = savedFilePath,
-                    IsCompleted = true,
-                    AppraisalId = item.AppraisalId,
-                    IsActive = true,
-                    CreatedBy = managerEvaluationRequest.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
-                await _context.KraManagerReviews.AddAsync(managerEvaluation);
+                    await managerEvaluationRequest.AttachmentsManager.CopyToAsync(stream);
+                }
+                savedFilePath = Path.Combine("KraAttachments", "KraManagerAttachments", uniqueFileName);
             }
+            var managerEvaluation = new KraManagerReview
+            {
+                KraSelfReviewId = managerEvaluationRequest.KraSelfReviewId,
+                ManagerEvaluationScale = managerEvaluationRequest.ManagerEvaluationScale,
+                ManagerScore = managerEvaluationRequest.ManagerScore,
+                ManagerEvaluationComments = managerEvaluationRequest.ManagerEvaluationComments,
+                AttachmentsManager = savedFilePath,
+                IsCompleted = true,
+                AppraisalId = managerEvaluationRequest.AppraisalId,
+                IsActive = true,
+                CreatedBy = managerEvaluationRequest.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+            await _context.KraManagerReviews.AddAsync(managerEvaluation);
             await _context.SaveChangesAsync();
             return "Self Kra submitted successfully";
         }
 
         public async Task<List<ManagerEvaluationResponse>> GetManagerEvaluation(int createdBy, int appraisalId, int year, string quarter)
         {
-            var approver = await _context.StaffCreations
+            var approverAccessLevel = await _context.StaffCreations
                 .Where(x => x.Id == createdBy && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-            bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
-            var getManagerEvaluation = await (from managerEvaluation in _context.KraManagerReviews
-                                              join selfKra in _context.KraSelfReviews on managerEvaluation.KraSelfReviewId equals selfKra.Id
-                                              join goal in _context.Goals on selfKra.GoalId equals goal.Id
-                                              join s in _context.StaffCreations on managerEvaluation.CreatedBy equals s.Id
-                                              where managerEvaluation.AppraisalId == appraisalId && goal.Year == year && goal.Quarter == quarter && (isSuperAdmin || managerEvaluation.CreatedBy == createdBy || goal.StaffId == createdBy)
-                                              select new ManagerEvaluationResponse
-                                              {
-                                                  Id = managerEvaluation.Id,
-                                                  KraSelfReviewId = managerEvaluation.KraSelfReviewId,
-                                                  ManagerEvaluationScale = managerEvaluation.ManagerEvaluationScale,
-                                                  ManagerScore = managerEvaluation.ManagerScore,
-                                                  ManagerEvaluationComments = managerEvaluation.ManagerEvaluationComments,
-                                                  AttachmentsManager = managerEvaluation.AttachmentsManager,
-                                                  IsCompleted = managerEvaluation.IsCompleted,
-                                                  ManagerName = $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}",
-                                                  Year = goal.Year,
-                                                  Quarter = goal.Quarter,
-                                                  CreatedBy = managerEvaluation.CreatedBy
-                                              })
-                                           .ToListAsync();
-            if (getManagerEvaluation.Count == 0) throw new MessageNotFoundException("No manager evaluation found");
-            return getManagerEvaluation;
+
+            bool isSuperAdmin = approverAccessLevel == "SUPER ADMIN" || approverAccessLevel == "HR ADMIN";
+
+            var staffUnderApprover = await _context.StaffCreations
+                .Where(s => s.IsActive == true && (s.ApprovalLevel1 == createdBy || s.ApprovalLevel2 == createdBy))
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var managerEvaluations = await (
+                from managerEval in _context.KraManagerReviews
+                join selfReview in _context.KraSelfReviews on managerEval.KraSelfReviewId equals selfReview.Id
+                join goal in _context.Goals on selfReview.GoalId equals goal.Id
+                join staff in _context.StaffCreations on selfReview.CreatedBy equals staff.Id
+                join manager in _context.StaffCreations on managerEval.CreatedBy equals manager.Id
+                where managerEval.AppraisalId == appraisalId
+                      && goal.Year == year
+                      && goal.Quarter == quarter
+                      && (
+                            isSuperAdmin ||
+                            managerEval.CreatedBy == createdBy ||
+                            selfReview.CreatedBy == createdBy || // <-- include self-reviewed entries
+                            staffUnderApprover.Contains(selfReview.CreatedBy)
+                         )
+                select new ManagerEvaluationResponse
+                {
+                    Id = managerEval.Id,
+                    KraSelfReviewId = managerEval.KraSelfReviewId,
+                    ManagerEvaluationScale = managerEval.ManagerEvaluationScale,
+                    ManagerScore = managerEval.ManagerScore,
+                    ManagerEvaluationComments = managerEval.ManagerEvaluationComments,
+                    AttachmentsManager = managerEval.AttachmentsManager,
+                    IsCompleted = managerEval.IsCompleted,
+                    ManagerName = manager.FirstName + (string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName),
+                    Year = goal.Year,
+                    Quarter = goal.Quarter,
+                    CreatedBy = managerEval.CreatedBy
+                }
+            ).ToListAsync();
+
+            if (managerEvaluations.Count == 0)
+                throw new MessageNotFoundException("No manager evaluation found");
+
+            return managerEvaluations;
         }
 
         public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter)
@@ -1217,7 +1292,11 @@ namespace AttendanceManagement.Infrastructure.Infra
                       && managerEvaluation.AppraisalId == appraisalId
                       && goal.Year == year
                       && (string.IsNullOrEmpty(quarter) || goal.Quarter == quarter)
-                      && (isSuperAdmin || managerEvaluation.CreatedBy == createdBy || goal.StaffId == createdBy)
+                      && (
+                            isSuperAdmin ||
+                            managerEvaluation.CreatedBy == createdBy ||
+                            goal.GoalAssignments.Any(ga => ga.StaffId == createdBy)
+                         )
                 select new
                 {
                     EmpId = staff.StaffId,
@@ -1227,7 +1306,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     ReportingManagerName = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                     Year = goal.Year,
                     Quarter = goal.Quarter
-                }).ToListAsync();
+                }).Distinct().ToListAsync(); // <-- OR add distinct here
 
             if (!managerEvaluations.Any())
                 throw new MessageNotFoundException("No manager evaluation found");

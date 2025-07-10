@@ -500,7 +500,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 AccessLevel = worksheet.Cells[row, columnIndexes["AccessLevel"]].Text.Trim(),
                                 PolicyGroup = worksheet.Cells[row, columnIndexes["PolicyGroup"]].Text.Trim(),
                                 WorkingDayPattern = worksheet.Cells[row, columnIndexes["WorkingDayPattern"]].Text.Trim(),
-                                Tenure = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure"]].Text.Trim(), out decimal tenure) ? tenure : 0m,
+                                Tenure = worksheet.Cells[row, columnIndexes["Tenure"]].Text.Trim(),
                                 UanNumber = worksheet.Cells[row, columnIndexes["Uannumber"]]?.Text.Trim(),
                                 EsiNumber = worksheet.Cells[row, columnIndexes["EsiNumber"]]?.Text.Trim(),
                                 IsMobileAppEligible = (bool)(bool.TryParse(worksheet.Cells[row, columnIndexes["IsMobileAppEligible"]].Text, out var isMobileAppEligible) ? isMobileAppEligible : false),
@@ -1694,6 +1694,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 ProductionAchievedPercentageNov = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Nov"]]?.Text.Trim(), out decimal nov) ? nov : (decimal?)null,
                                 ProductionAchievedPercentageDec = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Dec"]]?.Text.Trim(), out decimal dec) ? dec : (decimal?)null,
                                 ProductivityYear = excelImportDto.Year ?? 0,
+                                //Month = excelImportDto.Month ?? 0,
                                 IsActive = true,
                                 CreatedBy = excelImportDto.CreatedBy,
                                 CreatedUtc = DateTime.UtcNow

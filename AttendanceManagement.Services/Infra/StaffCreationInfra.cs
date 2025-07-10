@@ -121,7 +121,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     WorkingStatus = s.WorkingStatus,
                     GeoStatusId = _context.GeoStatuses.Where(g => g.Name == s.GeoStatus && g.IsActive).Select(g => g.Id).FirstOrDefault(),
                     GeoStatus = s.GeoStatus,
-                    Tenure = s.Tenure,
+                    Tenure = GetTenure(s.JoiningDate),
                     ApprovalLevel = s.ApprovalLevel,
                     ApprovalLevelId1 = s.ApprovalLevel1,
                     ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel1Navigation.LastName) ? "" : " " + s.ApprovalLevel1Navigation.LastName)}" : null,
@@ -328,7 +328,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                      City = s.City,
                                      MiddleName = s.MiddleName,
                                      PersonalLocation = s.PersonalLocation,
-                                     Tenure = s.Tenure,
+                                     Tenure = GetTenure(s.JoiningDate),
                                      ApprovalLevelId1 = s.ApprovalLevel1,
                                      ApprovalLevel1 = $"{s.ApprovalLevel1Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel1Navigation.LastName) ? "" : " " + s.ApprovalLevel1Navigation.LastName)}",
                                      ApprovalLevelId2 = s.ApprovalLevel2,
@@ -348,7 +348,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                      DesignationId = s.DesignationId,
                                      Designation = designation.Name,
                                      GradeId = s.GradeId,
-                                     Grade = grade.Name,
+                                     Grade = grade != null ? grade.Name : null,
                                      AadharNo = s.AadharNo,
                                      PanNo = s.PanNo,
                                      PassportNo = s.PassportNo,
@@ -761,7 +761,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     WorkingStatus = s.WorkingStatus,
                     GeoStatusId = _context.GeoStatuses.Where(g => g.Name == s.GeoStatus && g.IsActive).Select(g => g.Id).FirstOrDefault(),
                     GeoStatus = s.GeoStatus,
-                    Tenure = s.Tenure,
+                    Tenure = GetTenure(s.JoiningDate),
                     ApprovalLevel = s.ApprovalLevel,
                     ApprovalLevelId1 = s.ApprovalLevel1,
                     ApprovalLevel1 = s.ApprovalLevel1Navigation != null ? $"{s.ApprovalLevel1Navigation.FirstName}{(string.IsNullOrWhiteSpace(s.ApprovalLevel1Navigation.LastName) ? "" : " " + s.ApprovalLevel1Navigation.LastName)}" : null,
@@ -835,6 +835,23 @@ namespace AttendanceManagement.Infrastructure.Infra
             return records;
         }
 
+        private static string GetTenure(DateOnly joiningDate)
+        {
+            var now = DateTime.Now;
+            int years = now.Year - joiningDate.Year;
+            int months = now.Month - joiningDate.Month;
+            if (now.Day < joiningDate.Day)
+            {
+                months--;
+            }
+            if (months < 0)
+            {
+                years--;
+                months += 12;
+            }
+
+            return $"{years} Year{(years != 1 ? "s" : "")} {months} Month{(months != 1 ? "s" : "")}";
+        }
         public async Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId)
         {
             var approver = await _context.StaffCreations

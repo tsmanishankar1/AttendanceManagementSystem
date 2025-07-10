@@ -120,6 +120,8 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<Goal> Goals { get; set; }
 
+    public virtual DbSet<GoalAssignment> GoalAssignments { get; set; }
+
     public virtual DbSet<GraceTimeDropdown> GraceTimeDropdowns { get; set; }
 
     public virtual DbSet<GradeMaster> GradeMasters { get; set; }
@@ -2235,6 +2237,36 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_Goals_UpdatedBy");
         });
 
+        modelBuilder.Entity<GoalAssignment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__GoalAssi__3214EC073B8F9C53");
+
+            entity.ToTable("GoalAssignment");
+
+            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
+            entity.Property(e => e.GoalId).HasColumnName("GoalId ");
+            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.GoalAssignmentCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AsGoals_CreatedBy");
+
+            entity.HasOne(d => d.Goal).WithMany(p => p.GoalAssignments)
+                .HasForeignKey(d => d.GoalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AsGoals_Goal");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.GoalAssignmentStaffs)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AsGoals_Staff");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.GoalAssignmentUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_AsGoals_UpdatedBy");
+        });
+
         modelBuilder.Entity<GraceTimeDropdown>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__GraceTim__3214EC07968E2C71");
@@ -4023,6 +4055,7 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.FinalScorePercentage).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.FinalTotal).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Month).HasColumnName("MONTH");
             entity.Property(e => e.Name)
                 .HasMaxLength(200)
                 .IsUnicode(false);
@@ -5000,7 +5033,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.State)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.Tenure).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Tenure)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.Title)
                 .HasMaxLength(100)
                 .IsUnicode(false);

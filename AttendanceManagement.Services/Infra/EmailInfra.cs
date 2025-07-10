@@ -289,8 +289,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string fromDateFormatted = fromDate.ToString("dd-MMM-yyyy");
                         string toDateFormatted = toDate.ToString("dd-MMM-yyyy");
 
@@ -366,8 +366,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string permissionDateFormatted = permissionDate.ToString("dd-MMM-yyyy");
                         string startTimeFormatted = startTime.ToString("hh:mm tt");
                         string endTimeFormatted = endTime.ToString("hh:mm tt");
@@ -443,8 +443,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string inPunchFormatted = inPunch.HasValue ? inPunch.Value.ToString("hh:mm tt") : "N/A";
                         string outPunchFormatted = outPunch.HasValue ? outPunch.Value.ToString("hh:mm tt") : "N/A";
 
@@ -522,8 +522,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string details;
                         if (startDate.HasValue && endDate.HasValue)
                         {
@@ -605,8 +605,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string details;
                         if (fromDate.HasValue && toDate.HasValue)
                         {
@@ -688,8 +688,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string details;
                         if (fromDate.HasValue && toDate.HasValue)
                         {
@@ -771,8 +771,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
 
                         string details = $@"
                         <p><strong>Shift Name:</strong> {shiftName}</p>
@@ -844,8 +844,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string details = $@"
                         <p><strong>Transaction Date:</strong> {transactionDate:dd-MMM-yyyy}</p>
                         <p><strong>Duration Hours:</strong> {durationHours}</p>";
@@ -921,8 +921,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string shiftInTimeFormatted = shiftInTime.HasValue ? shiftInTime.Value.ToString("dd-MMM-yyyy hh:mm tt") : "N/A";
                         string shiftOutTimeFormatted = shiftOutTime.HasValue ? shiftOutTime.Value.ToString("dd-MMM-yyyy hh:mm tt") : "N/A";
 
@@ -999,8 +999,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string balanceText = balance.HasValue ? balance.Value.ToString() : "0";
 
                         string emailBody = $@"
@@ -1070,8 +1070,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
@@ -1140,8 +1140,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         });
                         string approvalEncoded = Base64UrlEncode(approvalJson);
                         string rejectEncoded = Base64UrlEncode(rejectJson);
-                        string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={approvalEncoded}";
-                        string rejectLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?data={rejectEncoded}";
+                        string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
+                        string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>
@@ -1175,7 +1175,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 var createdBy = int.TryParse(_configuration["Smtp:mailTriggerId"], out var id) ? id : 4;
                 var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                //string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?staffId={createdBy}";
+                //string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?staffId={createdBy}";
                 var subject = $"Probation Confirmation Required: {probationerName}";
                 var body = $@"
                 <p>Dear HR Team,</p>
@@ -1204,7 +1204,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 if (receiver1 != null)
                 {
                     var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                    //string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?staffId={recipientId}";
+                    //string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?staffId={recipientId}";
                     string subject = "Probation Confirmation Review Assignment";
 
                     string fromDateFormatted = startDate.ToString("dd-MMM-yyyy");
@@ -1243,7 +1243,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     string startDateFormatted = startDate.ToString("dd-MMM-yyyy");
                     string endDateFormatted = endDate.ToString("dd-MMM-yyyy");
                     var frontEndUrl = _configuration["FrontEnd:FrontEndUrl"];
-                    //string approvalLink = $"{frontEndUrl}/#/main/Tools/On-behalf Approval?staffId={recipientId}";
+                    //string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?staffId={recipientId}";
                     //string actionText = $"You can view the details <a href='{approvalLink}'>here</a>.";
                     string emailBody = $@"
                     <p>Dear HR Team,</p>

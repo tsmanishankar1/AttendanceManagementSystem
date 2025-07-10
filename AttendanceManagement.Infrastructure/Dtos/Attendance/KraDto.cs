@@ -26,11 +26,20 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int Year { get; set; }
         public string Quarter { get; set; } = null!;
         public int CreatedBy { get; set; }
+        public List<int> AssignedStaffIds { get; set; } = new();
+        public List<string>? AssignedStaffNames { get; set; }
     }
 
     public class SelfEvaluationRequest
     {
-        public IEnumerable<SelectedSelfEvaluation> SelectedRows { get; set; } = null!;
+        public int GoalId { get; set; }
+        public int SelfEvaluationScale { get; set; }
+        public decimal SelfScore { get; set; }
+        public string SelfEvaluationComments { get; set; } = null!;
+        public IFormFile? AttachmentsSelf { get; set; }
+        public int Year { get; set; }
+        public string Quarter { get; set; } = null!;
+        public int AppraisalId { get; set; }
         public int CreatedBy { get; set; }
     }
 
@@ -62,7 +71,14 @@ namespace AttendanceManagement.Application.Dtos.Attendance
 
     public class ManagerEvaluationRequest
     {
-        public IEnumerable<SelectedManagerEvaluation> SelectedRows { get; set; } = null!;
+        public int KraSelfReviewId { get; set; }
+        public int ManagerEvaluationScale { get; set; }
+        public decimal ManagerScore { get; set; }
+        public string ManagerEvaluationComments { get; set; } = null!;
+        public IFormFile? AttachmentsManager { get; set; }
+        public int Year { get; set; }
+        public string Quarter { get; set; } = null!;
+        public int AppraisalId { get; set; }
         public int CreatedBy { get; set; }
     }
 
