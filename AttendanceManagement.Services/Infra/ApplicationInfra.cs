@@ -684,8 +684,10 @@ public class ApplicationInfra : IApplicationInfra
                                            LogoutTime = a.LastOut,
                                            a.ShiftId,
                                            TotalHoursWorked = a.LastOut.HasValue && a.FirstIn.HasValue
-                                               ? (a.LastOut.Value - a.FirstIn.Value).TotalHours
-                                               : 0
+    ? ((a.LastOut.Value < a.FirstIn.Value)
+        ? (a.LastOut.Value.AddDays(1) - a.FirstIn.Value).TotalHours
+        : (a.LastOut.Value - a.FirstIn.Value).TotalHours)
+    : 0
                                        })
                                    .ToListAsync();
         var leaveRecords = await _context.LeaveRequisitions
@@ -825,9 +827,9 @@ public class ApplicationInfra : IApplicationInfra
             var attendance = attendanceRecords.FirstOrDefault(a => a.LoginTime.HasValue && a.LogoutTime.HasValue && a.LoginTime.Value.Date == date);
             var todayDateOnly = DateOnly.FromDateTime(DateTime.Today);
             var attendanceRecord = await _context.AttendanceRecords.FirstOrDefaultAsync(a => !a.IsDeleted && a.AttendanceDate == dateOnly && a.StaffId == staffId);
-            string statusName = "Unprocessed";
-            string colorCode = "#ffffff";
-            string shortName = "UN";
+            string statusName = "";
+            string colorCode = "";
+            string shortName = "";
             var leave = leaveRecords.FirstOrDefault(l => dateOnly >= l.FromDate && dateOnly <= l.ToDate);
             var workFromHomeAny = workFromHomeRecords.FirstOrDefault(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
             var workFromHome = workFromHomeRecords.Any(wfh => wfh.FromDate.HasValue && wfh.ToDate.HasValue && dateOnly >= wfh.FromDate.Value && dateOnly <= wfh.ToDate.Value);
@@ -949,7 +951,7 @@ public class ApplicationInfra : IApplicationInfra
             else if (attendanceRecord != null)
             {
                 var status = await _context.StatusDropdowns.FirstOrDefaultAsync(s => s.Id == attendanceRecord.StatusId && s.IsActive);
-                statusName = status?.Name ?? "Unprocessed";
+                statusName = status?.Name ?? "";
 
                 var colorEntry = statusColors.FirstOrDefault(c => c.StatusName == statusName);
                 if (colorEntry != null)
@@ -977,7 +979,9 @@ public class ApplicationInfra : IApplicationInfra
                 colorCode = colorCode,
                 login = attendance?.LoginTime?.ToString("hh:mm tt") ?? "00:00:000",
                 logout = attendance?.LogoutTime?.ToString("hh:mm tt") ?? "00:00:000",
-                totalHoursWorked = attendance?.TotalHoursWorked != null ? Math.Round(attendance.TotalHoursWorked, 2) : 0.00,
+                totalHoursWorked = attendance?.LoginTime != null && attendance.LogoutTime != null
+    ? CalculateTotalHoursWorked(attendance.LoginTime.Value, attendance.LogoutTime.Value)
+    : "0.00",
                 shiftName = shiftForDate?.Name,
                 workFromHome,
                 leaveTypeName = leave?.Name,
@@ -1000,6 +1004,21 @@ public class ApplicationInfra : IApplicationInfra
             endDate = endDate.ToString("yyyy-MM-dd"),
             records = result
         };
+    }
+
+    private string CalculateTotalHoursWorked(DateTime login, DateTime logout)
+    {
+        if (logout < login)
+        {
+            logout = logout.AddDays(1);
+        }
+
+        TimeSpan totalWorked = logout - login;
+
+        int totalHours = (int)totalWorked.TotalHours;
+        int totalMinutes = totalWorked.Minutes;
+
+        return $"{totalHours}.{totalMinutes:D2}";
     }
 
     private int GetCompOffStatusId(string fromDuration, string? toDuration)
