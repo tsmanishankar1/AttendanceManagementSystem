@@ -31,6 +31,8 @@ public partial class KraSelfReview
 
     public DateTime? CompletedUtc { get; set; }
 
+    public bool? IsSelfEvaluation { get; set; }
+
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;

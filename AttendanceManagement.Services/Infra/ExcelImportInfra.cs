@@ -107,7 +107,7 @@ public class ExcelImportInfra : IExcelImportInfra
                         "CardCode", "StaffId", "Title", "FirstName", "LastName", "ShortName", "Gender", "Hide", "BloodGroup", "MaritalStatus", "Dob", "MarriageDate",
                         "PersonalPhone", "JoiningDate", "Confirmed", "Branch", "Department", "Division", "Volume", "Designation", "Grade", "Category",
                         "CostCenter", "WorkStation", "City", "District", "State","Country", "OtEligible", "ApprovalLevel1", "ApprovalLevel2", "AccessLevel",
-                        "PolicyGroup", "WorkingDayPattern", "Tenure", "UanNumber", "EsiNumber", "IsMobileAppEligible", "GeoStatus", "MiddleName",
+                        "PolicyGroup", "WorkingDayPattern", "UanNumber", "EsiNumber", "IsMobileAppEligible", "GeoStatus", "MiddleName",
                         "OfficialPhone", "PersonalLocation", "PersonalEmail", "LeaveGroup", "Company", "Location", "HolidayCalendar", "Status",
                         "AadharNo", "PanNo", "PassportNo", "DrivingLicense", "BankName", "BankAccountNo", "BankIfscCode", "BankBranch",
                         "HomeAddress", "FatherName", "EmergencyContactPerson1", "EmergencyContactPerson2", "EmergencyContactNo1", "EmergencyContactNo2", "MotherName",
@@ -204,21 +204,21 @@ public class ExcelImportInfra : IExcelImportInfra
                             requiredHeaders = new List<string>
                         {
                             "Employee Code", "Employee Name", "Designation", "Productivity Score", "Quality Score", "Present Score", "Total Score", "Productivity %", "Quality %",
-                            "Present %", "Final %", "Grade", "Total Absents", "Reporting Head", "Tenure Years", "HR Comments"
+                            "Present %", "Final %", "Grade", "Total Absents", "Reporting Head", "HR Comments"
                         };
                         }
                         else if (excelImportDto.PerformanceTypeId == 2)
                         {
                             requiredHeaders = new List<string>
                         {
-                            "Employee Code", "Employee Name", "Designation", "Tenure Years", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments"
+                            "Employee Code", "Employee Name", "Designation", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments"
                         };
                         }
                         else if (excelImportDto.PerformanceTypeId == 3)
                         {
                             requiredHeaders = new List<string>
                         {
-                            "Employee Code", "Employee Name", "Designation", "Tenure Years", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments"
+                            "Employee Code", "Employee Name", "Designation", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments"
                         };
                         }
                     }
@@ -500,7 +500,6 @@ public class ExcelImportInfra : IExcelImportInfra
                                 AccessLevel = worksheet.Cells[row, columnIndexes["AccessLevel"]].Text.Trim(),
                                 PolicyGroup = worksheet.Cells[row, columnIndexes["PolicyGroup"]].Text.Trim(),
                                 WorkingDayPattern = worksheet.Cells[row, columnIndexes["WorkingDayPattern"]].Text.Trim(),
-                                Tenure = worksheet.Cells[row, columnIndexes["Tenure"]].Text.Trim(),
                                 UanNumber = worksheet.Cells[row, columnIndexes["Uannumber"]]?.Text.Trim(),
                                 EsiNumber = worksheet.Cells[row, columnIndexes["EsiNumber"]]?.Text.Trim(),
                                 IsMobileAppEligible = (bool)(bool.TryParse(worksheet.Cells[row, columnIndexes["IsMobileAppEligible"]].Text, out var isMobileAppEligible) ? isMobileAppEligible : false),
@@ -1965,7 +1964,6 @@ public class ExcelImportInfra : IExcelImportInfra
                                     Grade = worksheet.Cells[row, columnIndexes["Grade"]].Text.Trim(),
                                     TotalAbsents = decimal.TryParse(worksheet.Cells[row, columnIndexes["Total Absents"]].Text.Trim(), out decimal totalAbs) ? totalAbs : 0m,
                                     ReportingHead = worksheet.Cells[row, columnIndexes["Reporting Head"]].Text.Trim(),
-                                    TenureYears = int.TryParse(worksheet.Cells[row, columnIndexes["Tenure Years"]].Text.Trim(), out var postal) ? postal : 0,
                                     HrComments = worksheet.Cells[row, columnIndexes["HR Comments"]].Text.Trim(),
                                     PerformanceTypeId = excelImportDto.PerformanceTypeId ?? 0,
                                     Month = excelImportDto.Month ?? 0,
@@ -2026,7 +2024,6 @@ public class ExcelImportInfra : IExcelImportInfra
                                     EmployeeCode = employeeId,
                                     EmployeeName = employeeName,
                                     Designation = designationName,
-                                    TenureYears = int.TryParse(worksheet.Cells[row, columnIndexes["Tenure Years"]].Text.Trim(), out var postal) ? postal : 0,
                                     ProductivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
                                     QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out decimal qualPer) ? qualPer : 0m,
                                     PresentPercentage = int.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text, out var postalCode) ? postalCode : 0,
@@ -2093,7 +2090,6 @@ public class ExcelImportInfra : IExcelImportInfra
                                     EmployeeCode = employeeId,
                                     EmployeeName = employeeName,
                                     Designation = designationName,
-                                    TenureYears = int.TryParse(worksheet.Cells[row, columnIndexes["Tenure Years"]].Text.Trim(), out var postal) ? postal : 0,
                                     ProductivityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Productivity %"]].Text.Trim(), out decimal convEarned) ? convEarned : 0m,
                                     QualityPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Quality %"]].Text.Trim(), out decimal qualPer) ? qualPer : 0m,
                                     PresentPercentage = int.TryParse(worksheet.Cells[row, columnIndexes["Present %"]].Text, out var postalCode) ? postalCode : 0,

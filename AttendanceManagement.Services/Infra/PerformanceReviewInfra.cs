@@ -100,6 +100,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         {
             var performances = await (from per in _context.MonthlyPerformances
                                       join perty in _context.PerformanceUploadTypes on per.PerformanceTypeId equals perty.Id
+                                      join staff in _context.StaffCreations on per.EmployeeCode equals staff.StaffId
                                       where per.Year == year && per.Month == month && per.IsActive == true && perty.IsActive
                                       select new MonthlyPerformanceResponse
                                       {
@@ -117,7 +118,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                           Grade = per.Grade,
                                           TotalAbsents = per.TotalAbsents,
                                           ReportingHead = per.ReportingHead,
-                                          TenureYears = per.TenureYears,
+                                          TenureYears = GetTenure(staff.JoiningDate),
                                           HrComments = per.HrComments,
                                           PerformanceType = perty.Name,
                                           Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(per.Month),
@@ -131,13 +132,14 @@ namespace AttendanceManagement.Infrastructure.Infra
         {
             var performances = await (from per in _context.QuarterlyPerformances
                                       join perty in _context.PerformanceUploadTypes on per.PerformanceTypeId equals perty.Id
+                                      join staff in _context.StaffCreations on per.EmployeeCode equals staff.StaffId
                                       where per.Year == year && per.Quarter == quarterType && per.IsActive && perty.IsActive
                                       select new QuarterlyPerformanceResponse
                                       {
                                           EmployeeCode = per.EmployeeCode,
                                           EmployeeName = per.EmployeeName,
                                           Designation = per.Designation,
-                                          TenureYears = per.TenureYears,
+                                          TenureYears = GetTenure(staff.JoiningDate),
                                           ProductivityPercentage = per.ProductivityPercentage,
                                           QualityPercentage = per.QualityPercentage,
                                           PresentPercentage = per.PresentPercentage,
@@ -157,13 +159,14 @@ namespace AttendanceManagement.Infrastructure.Infra
         {
             var performances = await (from per in _context.YearlyPerformances
                                       join perty in _context.PerformanceUploadTypes on per.PerformanceTypeId equals perty.Id
+                                      join staff in _context.StaffCreations on per.EmployeeCode equals staff.StaffId
                                       where per.Year == year && per.IsActive == true
                                       select new YearlyPerformanceResponse
                                       {
                                           EmployeeCode = per.EmployeeCode,
                                           EmployeeName = per.EmployeeName,
                                           Designation = per.Designation,
-                                          TenureYears = per.TenureYears,
+                                          TenureYears = GetTenure(staff.JoiningDate),
                                           ProductivityPercentage = per.ProductivityPercentage,
                                           QualityPercentage = per.QualityPercentage,
                                           PresentPercentage = per.PresentPercentage,
@@ -176,6 +179,24 @@ namespace AttendanceManagement.Infrastructure.Infra
                                       }).ToListAsync();
             if (performances.Count == 0) throw new MessageNotFoundException("No yearly performance report found for the given year and month");
             return performances;
+        }
+
+        private static string GetTenure(DateOnly joiningDate)
+        {
+            var now = DateTime.Now;
+            int years = now.Year - joiningDate.Year;
+            int months = now.Month - joiningDate.Month;
+            if (now.Day < joiningDate.Day)
+            {
+                months--;
+            }
+            if (months < 0)
+            {
+                years--;
+                months += 12;
+            }
+
+            return $"{years} Year{(years != 1 ? "s" : "")} {months} Month{(months != 1 ? "s" : "")}";
         }
     }
 }

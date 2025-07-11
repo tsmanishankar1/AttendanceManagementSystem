@@ -67,7 +67,7 @@
         public string Grade { get; set; } = null!;
         public decimal TotalAbsents { get; set; }
         public string ReportingHead { get; set; } = null!;
-        public decimal TenureYears { get; set; }
+        public string? TenureYears { get; set; }
         public string HrComments { get; set; } = null!;
         public string PerformanceType { get; set; } = null!;
         public string Month { get; set; } = null!;
@@ -79,7 +79,7 @@
         public string EmployeeCode { get; set; } = null!;
         public string EmployeeName { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public decimal TenureYears { get; set; }
+        public string? TenureYears { get; set; }
         public decimal ProductivityPercentage { get; set; }
         public decimal QualityPercentage { get; set; }
         public decimal PresentPercentage { get; set; }
@@ -97,7 +97,7 @@
         public string EmployeeCode { get; set; } = null!;
         public string EmployeeName { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public decimal TenureYears { get; set; }
+        public string? TenureYears { get; set; }
         public decimal ProductivityPercentage { get; set; }
         public decimal QualityPercentage { get; set; }
         public decimal PresentPercentage { get; set; }

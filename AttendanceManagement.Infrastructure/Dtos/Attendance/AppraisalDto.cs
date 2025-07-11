@@ -44,7 +44,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public string EmpId { get; set; } = null!;
         public string EmpName { get; set; } = null!;
-        public decimal TenureInYears { get; set; }
+        public string? TenureInYears { get; set; }
         public string ReportingManagers { get; set; } = null!;
         public string Division { get; set; } = null!;
         public string Department { get; set; } = null!;
@@ -53,7 +53,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public string EmpId { get; set; } = null!;
         public string EmpName { get; set; } = null!;
-        public decimal TenureInYears { get; set; }
+        public string? TenureInYears { get; set; }
         public string ReportingManagers { get; set; } = null!;
         public string Division { get; set; } = null!;
         public string Department { get; set; } = null!;
@@ -77,7 +77,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int Id { get; set; }
         public string EmpId { get; set; } = null!;
         public string EmpName { get; set; } = null!;
-        public decimal TenureInYears { get; set; }
+        public string? TenureInYears { get; set; }
         public string ReportingManagers { get; set; } = null!;
         public string Division { get; set; } = null!;
         public string Department { get; set; } = null!;
@@ -142,7 +142,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int Id { get; set; }
         public string EmpId { get; set; } = null!;
         public string EmpName { get; set; } = null!;
-        public decimal TenureInYears { get; set; }
+        public string? TenureInYears { get; set; }
         public string ReportingManagers { get; set; } = null!;
         public string Division { get; set; } = null!;
         public string Department { get; set; } = null!;

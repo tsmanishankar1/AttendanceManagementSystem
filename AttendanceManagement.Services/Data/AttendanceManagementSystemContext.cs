@@ -1976,7 +1976,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TenureInYears)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
             entity.HasOne(d => d.Appraisal).WithMany(p => p.EmployeePerformanceReviews)
@@ -3166,7 +3168,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.ReportingHead)
                 .HasMaxLength(250)
                 .IsUnicode(false);
-            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.TenureYears)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.TotalAbsents).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.TotalScore).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
@@ -3256,7 +3260,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TenureInYears)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
             entity.HasOne(d => d.Appraisal).WithMany(p => p.NonProductionEmployeePerformanceReviews)
@@ -4244,7 +4250,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Quarter)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.TenureYears)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.QuarterlyPerformanceCreatedByNavigations)
@@ -4621,7 +4629,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(250)
                 .IsUnicode(false);
-            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TenureInYears)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
             entity.HasOne(d => d.Appraisal).WithMany(p => p.SelectedEmployeesForAppraisals)
@@ -4662,7 +4672,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(250)
                 .IsUnicode(false);
-            entity.Property(e => e.TenureInYears).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.TenureInYears)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
             entity.HasOne(d => d.Appraisal).WithMany(p => p.SelectedNonProductionEmployees)
@@ -5840,7 +5852,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
+            entity.Property(e => e.TenureYears)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.YearlyPerformanceCreatedByNavigations)

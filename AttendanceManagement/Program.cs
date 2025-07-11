@@ -1,4 +1,4 @@
-﻿using AttendanceManagement.Infrastructure;
+﻿using AttendanceManagement.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);

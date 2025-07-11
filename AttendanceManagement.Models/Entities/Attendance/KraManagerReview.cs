@@ -31,6 +31,8 @@ public partial class KraManagerReview
 
     public DateTime? UpdatedUtc { get; set; }
 
+    public bool? IsManagerEvaluation { get; set; }
+
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;

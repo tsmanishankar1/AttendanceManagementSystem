@@ -186,6 +186,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .FirstOrDefaultAsync();
             bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
             var matchingProbations = await (from p in _context.Probations
+                                            join f in _context.Feedbacks on p.Id equals f.ProbationId into feedbackGroup
+                                            from feedback in feedbackGroup.DefaultIfEmpty()
                                             join s in _context.StaffCreations on p.StaffCreationId equals s.Id
                                             join d in _context.DepartmentMasters on s.DepartmentId equals d.Id
                                             join r in _context.ProbationReports on s.StaffId equals r.EmpId into reportGroup
@@ -194,7 +196,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                             .Where(f => f.ProbationId == p.Id && f.IsActive)
                                             .OrderByDescending(f => f.Id)
                                             .FirstOrDefault()
-                                            where s.IsActive == true && d.IsActive && report.ProductivityYear == year && (isSuperAdmin || p.ManagerId == approverLevel)
+                                            where s.IsActive == true && d.IsActive && report.ProductivityYear == year && (isSuperAdmin || p.ManagerId == approverLevel) && (feedback.IsApproved == null || feedback.IsApproved == false)
                                             select new ProbationReportResponse
                                             {
                                                 EmpId = s.StaffId,
@@ -250,7 +252,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                       .Where(f => f.ProbationId == p.Id && f.IsActive)
                                       .OrderByDescending(f => f.Id)
                                       .FirstOrDefault()
-                                      where p.IsActive && s.IsActive == true && d.IsActive && (isSuperAdmin || p.ManagerId == approverLevelId) && (p.ProbationEndDate >= DateOnly.FromDateTime(DateTime.UtcNow) || latestFeedback.ExtensionPeriod >= DateOnly.FromDateTime(DateTime.UtcNow))
+                                      where p.IsActive && s.IsActive == true && d.IsActive && (isSuperAdmin || p.ManagerId == approverLevelId) && (p.ProbationEndDate <= DateOnly.FromDateTime(DateTime.UtcNow) || latestFeedback.ExtensionPeriod <= DateOnly.FromDateTime(DateTime.UtcNow))
                                       select new ProbationResponse
                                       {
                                           ProbationId = p.Id,

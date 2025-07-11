@@ -11,7 +11,7 @@ public partial class SelectedEmployeesForAppraisal
 
     public string EmployeeName { get; set; } = null!;
 
-    public decimal TenureInYears { get; set; }
+    public string? TenureInYears { get; set; }
 
     public string ReportingManagers { get; set; } = null!;
 

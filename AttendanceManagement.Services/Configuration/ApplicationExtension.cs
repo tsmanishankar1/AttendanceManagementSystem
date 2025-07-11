@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AttendanceManagement.Infrastructure
+namespace AttendanceManagement.Infrastructure.Configuration
 {
     public static class DependencyInjection
     {

@@ -1332,7 +1332,7 @@
 			<response code="404">If the holiday is not found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.CreateHolidayCalendar(AttendanceManagement.DTOs.HolidayCalendarRequestDto)">
+		<member name="M:AttendanceManagement.Controllers.HolidayController.CreateHolidayCalendar(AttendanceManagement.Application.Dtos.Attendance.HolidayCalendarRequestDto)">
 			<summary>
 				Creates a new holiday calendar group.
 			</summary>
@@ -1350,7 +1350,7 @@
 			<response code="404">If no holiday calendar groups are found</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.HolidayController.UpdateHolidayCalendar(AttendanceManagement.DTOs.UpdateHolidayCalanderDto)">
+		<member name="M:AttendanceManagement.Controllers.HolidayController.UpdateHolidayCalendar(AttendanceManagement.Application.Dtos.Attendance.UpdateHolidayCalanderDto)">
 			<summary>
 				Updates an existing holiday calendar group.
 			</summary>

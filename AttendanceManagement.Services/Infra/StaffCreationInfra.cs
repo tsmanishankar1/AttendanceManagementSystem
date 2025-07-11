@@ -301,7 +301,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                  join maritalStatus in _context.MaritalStatuses on s.MaritalStatus equals maritalStatus.Name
                                  join grade in _context.GradeMasters on s.GradeId equals grade.Id into gradeJoin
                                  from grade in gradeJoin.DefaultIfEmpty()
-                                 where s.Id == staffId && s.IsActive == true && division.IsActive && department.IsActive && grade.IsActive 
+                                 where s.Id == staffId && s.IsActive == true && division.IsActive && department.IsActive &&  (grade == null || grade.IsActive)
                                  && org.IsActive && workingStatus.IsActive && maritalStatus.IsActive
                                  select new IndividualStaffResponse
                                  {
@@ -348,7 +348,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                      DesignationId = s.DesignationId,
                                      Designation = designation.Name,
                                      GradeId = s.GradeId,
-                                     Grade = grade != null ? grade.Name : null,
+                                     Grade = grade != null ? grade.Name : "",
                                      AadharNo = s.AadharNo,
                                      PanNo = s.PanNo,
                                      PassportNo = s.PassportNo,

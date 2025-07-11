@@ -6,6 +6,7 @@ using AttendanceManagement.Infrastructure.Data;
 using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Application.Dtos.Attendance;
 using AttendanceManagement.Domain.Entities.Attendance;
+using Microsoft.AspNetCore.Http;
 namespace AttendanceManagement.Infrastructure.Infra
 {
     public class AppraisalManagementInfra : IAppraisalManagementInfra
@@ -57,7 +58,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         StaffId = staff.Id,
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                        Tenure = staff.Tenure,
+                        Tenure = GetTenure(staff.JoiningDate),
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -90,7 +91,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         StaffId = staff.Id,
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                        Tenure = staff.Tenure,
+                        Tenure = GetTenure(staff.JoiningDate),
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -144,12 +145,13 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedEmployees(int appraisalId, int year, string quarter)
         {
             var selectedEmployees = await (from staff in _context.SelectedEmployeesForAppraisals
+                                           join s in _context.StaffCreations on staff.EmployeeId equals s.StaffId
                                            where staff.IsActive == true && staff.AppraisalId == appraisalId && staff.Year == year && staff.Quarter == quarter
                                            select new SelectedEmployeesResponseSelectedRows
                                            {
                                                EmpId = staff.EmployeeId,
                                                EmpName = staff.EmployeeName,
-                                               TenureInYears = staff.TenureInYears,
+                                               TenureInYears = GetTenure(s.JoiningDate),
                                                ReportingManagers = staff.ReportingManagers,
                                                Division = staff.Division,
                                                Department = staff.Department,
@@ -227,7 +229,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
                         var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                         var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
+                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
                         var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                         if (missingHeaders.Count == requiredHeaders.Count)
                         {
@@ -269,7 +271,6 @@ namespace AttendanceManagement.Infrastructure.Infra
                                 errorLogs.Add($"Staff Name is empty at {row}");
                                 continue;
                             }
-                            var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
                             var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
                             if (string.IsNullOrEmpty(empId))
                             {
@@ -309,7 +310,6 @@ namespace AttendanceManagement.Infrastructure.Infra
                             {
                                 EmpId = empId,
                                 EmpName = empName,
-                                TenureInYears = tenureYears,
                                 ReportingManagers = reportingManager,
                                 Division = division,
                                 Department = department,
@@ -396,13 +396,14 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(int appraisalId, int year, string quarter)
         {
             var selectedEmployees = await (from staff in _context.EmployeePerformanceReviews
-                                           where staff.IsActive == true && staff.AppraisalId == appraisalId && staff.Year == year && staff.Quarter == quarter
+                                           join s in _context.StaffCreations on staff.EmpId equals s.StaffId
+                                           where staff.IsActive == true && staff.AppraisalId == appraisalId && staff.Year == year && staff.Quarter == quarter && s.IsActive == true
                                            select new PerformanceReviewResponse
                                            {
                                                Id = staff.Id,
                                                EmpId = staff.EmpId,
                                                EmpName = staff.EmpName,
-                                               TenureInYears = staff.TenureInYears,
+                                               TenureInYears = GetTenure(s.JoiningDate),
                                                ReportingManagers = staff.ReportingManagers,
                                                Division = staff.Division,
                                                Department = staff.Department,
@@ -421,6 +422,24 @@ namespace AttendanceManagement.Infrastructure.Infra
                 throw new MessageNotFoundException("No employees found");
             }
             return selectedEmployees;
+        }
+
+        private static string GetTenure(DateOnly joiningDate)
+        {
+            var now = DateTime.Now;
+            int years = now.Year - joiningDate.Year;
+            int months = now.Month - joiningDate.Month;
+            if (now.Day < joiningDate.Day)
+            {
+                months--;
+            }
+            if (months < 0)
+            {
+                years--;
+                months += 12;
+            }
+
+            return $"{years} Year{(years != 1 ? "s" : "")} {months} Month{(months != 1 ? "s" : "")}";
         }
 
         public async Task<List<AgmDetails>> GetAllAgm()
@@ -500,13 +519,14 @@ namespace AttendanceManagement.Infrastructure.Infra
         {
             var selectedEmployees = await (from staff in _context.AgmApprovals
                                            join per in _context.EmployeePerformanceReviews on staff.EmployeePerformanceReviewId equals per.Id
+                                           join s in _context.StaffCreations on per.EmpId equals s.StaffId
                                            where staff.IsActive == true && per.AppraisalId == appraisalId && per.Year == year && per.Quarter == quarter
                                            select new PerformanceReviewResponse
                                            {
                                                Id = staff.Id,
                                                EmpId = per.EmpId,
                                                EmpName = per.EmpName,
-                                               TenureInYears = per.TenureInYears,
+                                               TenureInYears = GetTenure(s.JoiningDate),
                                                ReportingManagers = per.ReportingManagers,
                                                Division = per.Division,
                                                Department = per.Department,
@@ -891,7 +911,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         StaffId = staff.Id,
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                        Tenure = staff.Tenure,
+                        Tenure = GetTenure(staff.JoiningDate),
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -922,7 +942,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         StaffId = staff.Id,
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                        Tenure = staff.Tenure,
+                        Tenure = GetTenure(staff.JoiningDate),
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -981,12 +1001,13 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedNonProductionEmployees(int appraisalId, int year, string quarter)
         {
             var selectedEmployees = await (from staff in _context.SelectedNonProductionEmployees
+                                           join s in _context.StaffCreations on staff.EmployeeId equals s.StaffId
                                            where staff.IsCompleted == false && staff.AppraisalId == appraisalId && staff.Year == year && staff.Quarter == quarter
                                            select new SelectedEmployeesResponseSelectedRows
                                            {
                                                EmpId = staff.EmployeeId,
                                                EmpName = staff.EmployeeName,
-                                               TenureInYears = staff.TenureInYears,
+                                               TenureInYears = GetTenure(s.JoiningDate),
                                                ReportingManagers = staff.ReportingManagers,
                                                Division = staff.Division,
                                                Department = staff.Department,
@@ -1064,6 +1085,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     AssignedStaff = kra.GoalAssignments.Select(ga => new
                     {
                         ga.StaffId,
+                        EmpId = ga.Staff.StaffId,
                         StaffName = $"{ga.Staff.FirstName}{(string.IsNullOrWhiteSpace(ga.Staff.LastName) ? "" : " " + ga.Staff.LastName)}"
                     }).ToList()
                 }
@@ -1084,10 +1106,10 @@ namespace AttendanceManagement.Infrastructure.Infra
                             .Select(a => a.StaffId)
                             .ToList(),
                     AssignedStaffNames = isSuperAdmin || kra.CreatedBy == createdBy
-                        ? kra.AssignedStaff.Select(a => a.StaffName).Distinct().ToList()
+                        ? kra.AssignedStaff.Select(a => a.EmpId).Distinct().ToList()
                         : kra.AssignedStaff
                             .Where(a => a.StaffId == createdBy)
-                            .Select(a => a.StaffName)
+                            .Select(a => a.EmpId)
                             .ToList()
                 })
                 .ToList();
@@ -1103,21 +1125,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             string? savedFilePath = null;
             if (selfEvaluationRequest.AttachmentsSelf != null && selfEvaluationRequest.AttachmentsSelf.Length > 0)
             {
-                var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraSelfAttachments");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-                var originalFileName = Path.GetFileNameWithoutExtension(selfEvaluationRequest.AttachmentsSelf.FileName);
-                var extension = Path.GetExtension(selfEvaluationRequest.AttachmentsSelf.FileName);
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-                var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await selfEvaluationRequest.AttachmentsSelf.CopyToAsync(stream);
-                }
-                savedFilePath = Path.Combine("KraAttachments", "KraSelfAttachments", uniqueFileName);
+                savedFilePath = await SaveFileAsync(selfEvaluationRequest.AttachmentsSelf, Path.Combine("KraAttachments", "KraSelfAttachments"));
             }
             var selfEvaluation = new KraSelfReview
             {
@@ -1127,26 +1135,46 @@ namespace AttendanceManagement.Infrastructure.Infra
                 SelfEvaluationComments = selfEvaluationRequest.SelfEvaluationComments,
                 AttachmentsSelf = savedFilePath,
                 AppraisalId = selfEvaluationRequest.AppraisalId,
+                IsSelfEvaluation = true,
                 IsActive = true,
                 CreatedBy = selfEvaluationRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
+
             await _context.KraSelfReviews.AddAsync(selfEvaluation);
             await _context.SaveChangesAsync();
-            return "Self Kra submitted successfully";
+
+            return "Self evaluation submitted successfully";
+        }
+
+        private async Task<string> SaveFileAsync(IFormFile file, string folderName)
+        {
+            if (file == null) throw new ArgumentNullException(nameof(file), "File cannot be null.");
+            if (file.Length == 0) throw new InvalidOperationException("Uploaded file is empty.");
+
+            string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", folderName);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            string fileName = $"{Guid.NewGuid()}_{file.FileName}";
+            string filePath = Path.Combine(directoryPath, fileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+            return $"/{folderName.Replace("\\", "/")}/{fileName}";
         }
 
         public async Task<List<SelfEvaluationResponse>> GetSelfEvaluation(int approverId, int appraisalId, int year, string quarter)
         {
-            // Get access level of the current user
             var approverAccessLevel = await _context.StaffCreations
                 .Where(x => x.Id == approverId && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-
             bool isSuperAdmin = approverAccessLevel == "SUPER ADMIN" || approverAccessLevel == "HR ADMIN";
-
-            // Determine if the approver is at Approval Level 1 or 2
             bool isApprovalLevel1 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel1 == approverId && s.IsActive == true);
             bool isApprovalLevel2 = await _context.StaffCreations.AnyAsync(s => s.ApprovalLevel2 == approverId && s.IsActive == true);
 
@@ -1176,10 +1204,11 @@ namespace AttendanceManagement.Infrastructure.Infra
                     StaffName = g.First().staff.FirstName + (string.IsNullOrWhiteSpace(g.First().staff.LastName) ? "" : " " + g.First().staff.LastName),
                     Year = g.First().goal.Year,
                     Quarter = g.First().goal.Quarter,
+                    IsSelfEvaluation = g.First().selfReview.IsSelfEvaluation,
                     CreatedBy = g.First().selfReview.CreatedBy
                 }
             ).ToListAsync();
-            if (getSelfEvaluations.Count == 0)  throw new MessageNotFoundException("No staff evaluation found");
+            if (getSelfEvaluations.Count == 0)  throw new MessageNotFoundException("No self evaluation found");
             return getSelfEvaluations;
         }
 
@@ -1188,21 +1217,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             string? savedFilePath = null;
             if (managerEvaluationRequest.AttachmentsManager != null && managerEvaluationRequest.AttachmentsManager.Length > 0)
             {
-                var uploadsFolder = Path.Combine("wwwroot", "KraAttachments", "KraManagerAttachments");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-                var originalFileName = Path.GetFileNameWithoutExtension(managerEvaluationRequest.AttachmentsManager.FileName);
-                var extension = Path.GetExtension(managerEvaluationRequest.AttachmentsManager.FileName);
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-                var uniqueFileName = $"{originalFileName}_{timestamp}{extension}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await managerEvaluationRequest.AttachmentsManager.CopyToAsync(stream);
-                }
-                savedFilePath = Path.Combine("KraAttachments", "KraManagerAttachments", uniqueFileName);
+                savedFilePath = await SaveFileAsync(managerEvaluationRequest.AttachmentsManager, Path.Combine("KraAttachments", "KraManagerAttachments"));
             }
             var managerEvaluation = new KraManagerReview
             {
@@ -1212,6 +1227,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 ManagerEvaluationComments = managerEvaluationRequest.ManagerEvaluationComments,
                 AttachmentsManager = savedFilePath,
                 IsCompleted = true,
+                IsManagerEvaluation = true,
                 AppraisalId = managerEvaluationRequest.AppraisalId,
                 IsActive = true,
                 CreatedBy = managerEvaluationRequest.CreatedBy,
@@ -1219,7 +1235,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             };
             await _context.KraManagerReviews.AddAsync(managerEvaluation);
             await _context.SaveChangesAsync();
-            return "Self Kra submitted successfully";
+            return "Manager evaluation submitted successfully";
         }
 
         public async Task<List<ManagerEvaluationResponse>> GetManagerEvaluation(int createdBy, int appraisalId, int year, string quarter)
@@ -1228,14 +1244,11 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .Where(x => x.Id == createdBy && x.IsActive == true)
                 .Select(x => x.AccessLevel)
                 .FirstOrDefaultAsync();
-
             bool isSuperAdmin = approverAccessLevel == "SUPER ADMIN" || approverAccessLevel == "HR ADMIN";
-
             var staffUnderApprover = await _context.StaffCreations
                 .Where(s => s.IsActive == true && (s.ApprovalLevel1 == createdBy || s.ApprovalLevel2 == createdBy))
                 .Select(s => s.Id)
                 .ToListAsync();
-
             var managerEvaluations = await (
                 from managerEval in _context.KraManagerReviews
                 join selfReview in _context.KraSelfReviews on managerEval.KraSelfReviewId equals selfReview.Id
@@ -1248,7 +1261,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                       && (
                             isSuperAdmin ||
                             managerEval.CreatedBy == createdBy ||
-                            selfReview.CreatedBy == createdBy || // <-- include self-reviewed entries
+                            selfReview.CreatedBy == createdBy ||
                             staffUnderApprover.Contains(selfReview.CreatedBy)
                          )
                 select new ManagerEvaluationResponse
@@ -1263,12 +1276,11 @@ namespace AttendanceManagement.Infrastructure.Infra
                     ManagerName = manager.FirstName + (string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName),
                     Year = goal.Year,
                     Quarter = goal.Quarter,
+                    IsManagerEvaluation = managerEval.IsManagerEvaluation,
                     CreatedBy = managerEval.CreatedBy
                 }
             ).ToListAsync();
-
-            if (managerEvaluations.Count == 0)
-                throw new MessageNotFoundException("No manager evaluation found");
+            if (managerEvaluations.Count == 0) throw new MessageNotFoundException("No manager evaluation found");
 
             return managerEvaluations;
         }
@@ -1355,7 +1367,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
                         var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                         var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Tenure in years", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
+                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
                         var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                         if (missingHeaders.Count == requiredHeaders.Count)
                         {
@@ -1397,7 +1409,6 @@ namespace AttendanceManagement.Infrastructure.Infra
                                 errorLogs.Add($"Staff Name is empty at {row}");
                                 continue;
                             }
-                            var tenureYears = decimal.TryParse(worksheet.Cells[row, columnIndexes["Tenure in years"]].Text.Trim(), out var tenure) ? tenure : 0;
                             var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
                             if (string.IsNullOrEmpty(reportingManager))
                             {
@@ -1441,7 +1452,6 @@ namespace AttendanceManagement.Infrastructure.Infra
                             {
                                 EmpId = empId,
                                 EmpName = empName,
-                                TenureInYears = tenureYears,
                                 ReportingManagers = reportingManager,
                                 Division = division,
                                 Department = department,
@@ -1523,13 +1533,14 @@ namespace AttendanceManagement.Infrastructure.Infra
         {
             var response = await (from hr in _context.NonProductionEmployeePerformanceReviews
                                   join ap in _context.AppraisalSelectionDropDowns on hr.AppraisalId equals ap.Id
+                                  join s in _context.StaffCreations on hr.EmpId equals s.StaffId
                                   where hr.Year == year && hr.Quarter == quarter && ap.IsActive && hr.AppraisalId == appraisalId
                                   select new HrUploadResponse
                                   {
                                       Id = hr.Id,
                                       EmpId = hr.EmpId,
                                       EmpName = hr.EmpName,
-                                      TenureInYears = hr.TenureInYears,
+                                      TenureInYears = GetTenure(s.JoiningDate),
                                       ReportingManagers = hr.ReportingManagers,
                                       Division = hr.Division,
                                       Department = hr.Department,

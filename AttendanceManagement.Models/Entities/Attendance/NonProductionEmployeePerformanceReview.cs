@@ -11,7 +11,7 @@ public partial class NonProductionEmployeePerformanceReview
 
     public string EmpName { get; set; } = null!;
 
-    public decimal TenureInYears { get; set; }
+    public string? TenureInYears { get; set; }
 
     public string ReportingManagers { get; set; } = null!;
 

@@ -66,6 +66,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string StaffName { get; set; } = null!;
         public int Year { get; set; }
         public string Quarter { get; set; } = null!;
+        public bool? IsSelfEvaluation { get; set; }
         public int CreatedBy { get; set; }
     }
 
@@ -106,6 +107,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int Year { get; set; }
         public string Quarter { get; set; } = null!;
         public bool? IsCompleted { get; set; }
+        public bool? IsManagerEvaluation { get; set; }
         public int CreatedBy { get; set; }
     }
 }

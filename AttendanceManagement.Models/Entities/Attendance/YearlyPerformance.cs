@@ -13,7 +13,7 @@ public partial class YearlyPerformance
 
     public string Designation { get; set; } = null!;
 
-    public decimal TenureYears { get; set; }
+    public string? TenureYears { get; set; }
 
     public decimal ProductivityPercentage { get; set; }
 

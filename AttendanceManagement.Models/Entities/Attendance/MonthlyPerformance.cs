@@ -35,7 +35,7 @@ public partial class MonthlyPerformance
 
     public string ReportingHead { get; set; } = null!;
 
-    public decimal TenureYears { get; set; }
+    public string? TenureYears { get; set; }
 
     public string HrComments { get; set; } = null!;
 
