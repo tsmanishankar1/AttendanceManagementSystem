@@ -445,7 +445,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<AgmDetails>> GetAllAgm()
         {
             var allAgm = await (from agm in _context.StaffCreations
-                                where agm.IsActive == true && agm.DesignationId == 65
+                                where agm.IsActive == true && agm.AccessLevel == "AGM"
                                 select new AgmDetails
                                 {
                                     Id = agm.Id,

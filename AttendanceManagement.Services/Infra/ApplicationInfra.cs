@@ -808,16 +808,14 @@ public class ApplicationInfra : IApplicationInfra
        })
        .ToListAsync();
         var statusColors = await (
-            from asc in _context.AttendanceStatusColors
-            join sd in _context.StatusDropdowns
-                on asc.Name equals sd.Name
-            where asc.IsActive && sd.IsActive
+            from sd in _context.StatusDropdowns
+            where sd.IsActive
             select new
             {
-                StatusId = asc.Id,
-                StatusName = asc.Name,
-                ShortName = asc.ShortName,
-                ColorCode = asc.ColourCode,
+                StatusId = sd.Id,
+                StatusName = sd.Name,
+                ShortName = sd.ShortName,
+                ColorCode = sd.ColorCode.ColourCode,
             }).ToListAsync();
         var result = new List<object>();
         foreach (var date in allDates)
