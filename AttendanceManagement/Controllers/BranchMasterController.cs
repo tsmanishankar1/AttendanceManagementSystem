@@ -257,6 +257,30 @@ public class BranchMasterController : ControllerBase
         }
     }
 
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetRefreshToken")]
+    public async Task<IActionResult> GetRefreshToken()
+    {
+        try
+        {
+            var branches = await _service.GetRefreshToken();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("CreateBranch")]
     public async Task<IActionResult> Create(BranchMasterRequest branchMasterRequest)
     {

@@ -51,6 +51,8 @@ public partial class EmployeePerformanceReview
 
     public string Quarter { get; set; } = null!;
 
+    public string? ReportingManagerId { get; set; }
+
     public virtual ICollection<AgmApproval> AgmApprovals { get; set; } = new List<AgmApproval>();
 
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;

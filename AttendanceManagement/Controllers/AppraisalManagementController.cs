@@ -1,6 +1,7 @@
 ﻿using AttendanceManagement.Application.Dtos.Attendance;
 using AttendanceManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using System.Text.Json;
 
 namespace AttendanceManagement.Controllers
@@ -591,6 +592,62 @@ namespace AttendanceManagement.Controllers
                     Message = appraisalDetails
                 };
                 return Ok(response);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("ViewSelfEvaluationAttachment")]
+        public async Task<IActionResult> ViewSelfEvaluationAttachment(int selfEvaluationId)
+        {
+            try
+            {
+                var (stream, fileName) = await _service.ViewSelfEvaluationAttachment(selfEvaluationId);
+                var provider = new FileExtensionContentTypeProvider();
+                if (!provider.TryGetContentType(fileName, out var contentType))
+                {
+                    contentType = "application/octet-stream";
+                }
+                Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
+                return File(stream, contentType);
+            }
+            catch (FileNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (MessageNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorClass.ErrorResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("ViewManagerEvaluationAttachment")]
+        public async Task<IActionResult> ViewManagerEvaluationAttachment(int managerEvaluationId)
+        {
+            try
+            {
+                var (stream, fileName) = await _service.ViewManagerEvaluationAttachment(managerEvaluationId);
+                var provider = new FileExtensionContentTypeProvider();
+                if (!provider.TryGetContentType(fileName, out var contentType))
+                {
+                    contentType = "application/octet-stream";
+                }
+                Response.Headers.Append("Content-Disposition", $"inline; filename=\"{fileName}\"");
+                return File(stream, contentType);
+            }
+            catch (FileNotFoundException ex)
+            {
+                return ErrorClass.NotFoundResponse(ex.Message);
             }
             catch (MessageNotFoundException ex)
             {

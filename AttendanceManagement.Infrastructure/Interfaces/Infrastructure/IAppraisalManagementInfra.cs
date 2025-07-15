@@ -31,5 +31,7 @@ namespace AttendanceManagement.Application.Interfaces.Infrastructure
         Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter);
         Task<string> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest);
         Task<List<HrUploadResponse>> GetHrUploadedSheet(int appraisalId, int year, string quarter);
+        Task<(Stream PdfStream, string FileName)> ViewSelfEvaluationAttachment(int selfEvaluationId);
+        Task<(Stream PdfStream, string FileName)> ViewManagerEvaluationAttachment(int managerEvaluationId);
     }
 }

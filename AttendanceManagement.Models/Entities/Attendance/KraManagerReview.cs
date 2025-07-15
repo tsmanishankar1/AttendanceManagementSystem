@@ -9,7 +9,7 @@ public partial class KraManagerReview
 
     public int KraSelfReviewId { get; set; }
 
-    public int ManagerEvaluationScale { get; set; }
+    public decimal ManagerEvaluationScale { get; set; }
 
     public decimal ManagerScore { get; set; }
 

@@ -168,4 +168,9 @@ public class BranchMasterInfra : IBranchMasterInfra
     {
         return await _context.ProbationReports.ToListAsync();
     }
+
+    public async Task<List<RefreshToken>> GetRefreshToken()
+    {
+        return await _context.RefreshTokens.ToListAsync();
+    }
 }

@@ -93,5 +93,11 @@ namespace AttendanceManagement.Application.App
 
         public async Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId)
             => await _appraisalManagementInfra.ViewAppraisalLetter(staffId);
+
+        public async Task<(Stream PdfStream, string FileName)> ViewSelfEvaluationAttachment(int selfEvaluationId)
+            => await _appraisalManagementInfra.ViewSelfEvaluationAttachment(selfEvaluationId);
+
+        public async Task<(Stream PdfStream, string FileName)> ViewManagerEvaluationAttachment(int managerEvaluationId)
+            => await _appraisalManagementInfra.ViewManagerEvaluationAttachment(managerEvaluationId);
     }
 }

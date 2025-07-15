@@ -49,4 +49,7 @@ public class BranchMasterApp : IBranchMasterApp
 
     public async Task<List<ProbationReport>> GetProbationReports()
         => await _branchMasterInfra.GetProbationReports();
+
+    public async Task<List<RefreshToken>> GetRefreshToken()
+        => await _branchMasterInfra.GetRefreshToken();
 }

@@ -178,7 +178,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             return message;
         }
 
-        public async Task<List<ProbationReportResponse>> GetProbationReportsByApproverLevel(int approverLevel, int year)
+        public async Task<List<ProbationReportResponse>> GetProbationReportsByApproverLevel(int approverLevel, int year, int month)
         {
             var approver = await _context.StaffCreations
                 .Where(x => x.Id == approverLevel && x.IsActive == true)
@@ -196,7 +196,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                             .Where(f => f.ProbationId == p.Id && f.IsActive)
                                             .OrderByDescending(f => f.Id)
                                             .FirstOrDefault()
-                                            where s.IsActive == true && d.IsActive && report.ProductivityYear == year && (isSuperAdmin || p.ManagerId == approverLevel) && (feedback.IsApproved == null || feedback.IsApproved == false)
+                                            where s.IsActive == true && d.IsActive && report.ProductivityYear == year && report.Month == month && (isSuperAdmin || p.ManagerId == approverLevel) && (feedback.IsApproved == null || feedback.IsApproved == false)
                                             select new ProbationReportResponse
                                             {
                                                 EmpId = s.StaffId,
@@ -235,7 +235,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             }
             return matchingProbations;
         }
-        public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId)
+        public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId, int year, int month)
         {
             var approver = await _context.StaffCreations
                 .Where(x => x.Id == approverLevelId && x.IsActive == true)
@@ -252,7 +252,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                       .Where(f => f.ProbationId == p.Id && f.IsActive)
                                       .OrderByDescending(f => f.Id)
                                       .FirstOrDefault()
-                                      where p.IsActive && s.IsActive == true && d.IsActive && (isSuperAdmin || p.ManagerId == approverLevelId) && (p.ProbationEndDate <= DateOnly.FromDateTime(DateTime.UtcNow) || latestFeedback.ExtensionPeriod <= DateOnly.FromDateTime(DateTime.UtcNow))
+                                      where p.IsActive && s.IsActive == true && d.IsActive && ((p.ProbationEndDate.Month == month && p.ProbationEndDate.Year == year) || latestFeedback.ExtensionPeriod.HasValue && latestFeedback.ExtensionPeriod.Value.Month == month && latestFeedback.ExtensionPeriod.Value.Year == year) && (isSuperAdmin || p.ManagerId == approverLevelId) && (p.ProbationEndDate <= DateOnly.FromDateTime(DateTime.UtcNow) || latestFeedback.ExtensionPeriod <= DateOnly.FromDateTime(DateTime.UtcNow))
                                       select new ProbationResponse
                                       {
                                           ProbationId = p.Id,

@@ -52,11 +52,11 @@ namespace AttendanceManagement.Application.App
         public async Task<ProbationResponse> GetProbationByIdAsync(int probationId)
             => await _probationInfra.GetProbationByIdAsync(probationId);
 
-        public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId)
-            => await _probationInfra.GetProbationDetailsByApproverLevel(approverLevelId);
+        public async Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId, int year, int month)
+            => await _probationInfra.GetProbationDetailsByApproverLevel(approverLevelId, year, month);
 
-        public async Task<List<ProbationReportResponse>> GetProbationReportsByApproverLevel(int approverLevel, int year)
-            => await _probationInfra.GetProbationReportsByApproverLevel(approverLevel, year);
+        public async Task<List<ProbationReportResponse>> GetProbationReportsByApproverLevel(int approverLevel, int year, int month)
+            => await _probationInfra.GetProbationReportsByApproverLevel(approverLevel, year, month);
 
         public async Task<string> ProcessApprovalAsync(HrConfirmation hrConfirmation)
             => await _probationInfra.ProcessApprovalAsync(hrConfirmation);

@@ -18,8 +18,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<AcademicDetailResponse>> GetByStaffIdAsync(int staffId)
         {
             var academicDetails = await _context.AcademicDetails
-                .Include(a => a.Staff)
-                .Where(a => a.IsActive == true && a.StaffId == staffId)
+                .Where(a => a.IsActive == true && a.Id == staffId)
                 .ToListAsync();
             if (!academicDetails.Any()) return new List<AcademicDetailResponse>();
             var result = academicDetails.Select(academicDetail => new AcademicDetailResponse
@@ -40,9 +39,9 @@ namespace AttendanceManagement.Infrastructure.Infra
             return result;
         }
 
-        private async Task StaffFoundMethod(int staffId)
+        private async Task StaffFoundMethod(string staffId)
         {
-            var staff = await _context.StaffCreations.AnyAsync(p => p.Id == staffId && p.IsActive == true);
+            var staff = await _context.StaffCreations.AnyAsync(p => p.StaffId == staffId && p.IsActive == true);
             if (!staff) throw new MessageNotFoundException("Staff not found");
         }
 
@@ -114,8 +113,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<CertificationCourseResponse>> GetByCerticateStaffIdAsync(int staffId)
         {
             var certificationCourses = await _context.CertificationCourses
-                .Include(c => c.Staff)
-                .Where(c => c.IsActive == true && c.StaffId == staffId)
+                .Where(c => c.IsActive == true && c.Id == staffId)
                 .ToListAsync();
             if (!certificationCourses.Any()) return new List<CertificationCourseResponse>();
             var result = certificationCourses.Select(certificationCourse => new CertificationCourseResponse
@@ -187,8 +185,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<PreviousEmploymentResponse>> GetWorkhistoryByStaffIdAsync(int staffId)
         {
             var previousEmployments = await _context.PreviousEmployments
-                .Include(pe => pe.Staff)
-                .Where(pe => pe.StaffId == staffId && pe.IsActive)
+                .Where(pe => pe.Id == staffId && pe.IsActive)
                 .ToListAsync();
             if (!previousEmployments.Any()) return new List<PreviousEmploymentResponse>();
             return previousEmployments.Select(previousEmployment => new PreviousEmploymentResponse

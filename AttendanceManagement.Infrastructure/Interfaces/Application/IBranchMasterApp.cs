@@ -17,5 +17,6 @@ namespace AttendanceManagement.Application.Interfaces.Application
         Task<List<Probation>> GetProbations();
         Task<List<Feedback>> GetFeedbacks();
         Task<List<ProbationReport>> GetProbationReports();
+        Task<List<RefreshToken>> GetRefreshToken();
     }
 }

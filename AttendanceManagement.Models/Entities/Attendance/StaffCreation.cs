@@ -175,8 +175,6 @@ public partial class StaffCreation
 
     public virtual ICollection<AcademicDetail> AcademicDetailCreatedByNavigations { get; set; } = new List<AcademicDetail>();
 
-    public virtual ICollection<AcademicDetail> AcademicDetailStaffs { get; set; } = new List<AcademicDetail>();
-
     public virtual ICollection<AcademicDetail> AcademicDetailUpdatedByNavigations { get; set; } = new List<AcademicDetail>();
 
     public virtual ICollection<AccessLevel> AccessLevelCreatedByNavigations { get; set; } = new List<AccessLevel>();
@@ -302,8 +300,6 @@ public partial class StaffCreation
     public virtual ICollection<CertificateTracking> CertificateTrackingUpdatedByNavigations { get; set; } = new List<CertificateTracking>();
 
     public virtual ICollection<CertificationCourse> CertificationCourseCreatedByNavigations { get; set; } = new List<CertificationCourse>();
-
-    public virtual ICollection<CertificationCourse> CertificationCourseStaffs { get; set; } = new List<CertificationCourse>();
 
     public virtual ICollection<CertificationCourse> CertificationCourseUpdatedByNavigations { get; set; } = new List<CertificationCourse>();
 
@@ -694,8 +690,6 @@ public partial class StaffCreation
     public virtual ICollection<PrefixLeaveType> PrefixLeaveTypeUpdatedByNavigations { get; set; } = new List<PrefixLeaveType>();
 
     public virtual ICollection<PreviousEmployment> PreviousEmploymentCreatedByNavigations { get; set; } = new List<PreviousEmployment>();
-
-    public virtual ICollection<PreviousEmployment> PreviousEmploymentStaffs { get; set; } = new List<PreviousEmployment>();
 
     public virtual ICollection<PreviousEmployment> PreviousEmploymentUpdatedByNavigations { get; set; } = new List<PreviousEmployment>();
 

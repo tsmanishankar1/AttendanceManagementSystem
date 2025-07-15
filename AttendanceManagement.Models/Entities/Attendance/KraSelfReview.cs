@@ -9,7 +9,7 @@ public partial class KraSelfReview
 
     public int GoalId { get; set; }
 
-    public int SelfEvaluationScale { get; set; }
+    public decimal SelfEvaluationScale { get; set; }
 
     public decimal SelfScore { get; set; }
 

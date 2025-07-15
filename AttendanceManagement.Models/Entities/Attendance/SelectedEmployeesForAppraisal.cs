@@ -37,6 +37,8 @@ public partial class SelectedEmployeesForAppraisal
 
     public string Quarter { get; set; } = null!;
 
+    public string? ReportingManagerId { get; set; }
+
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;

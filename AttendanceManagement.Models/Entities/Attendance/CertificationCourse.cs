@@ -7,7 +7,7 @@ public partial class CertificationCourse
 {
     public int Id { get; set; }
 
-    public int StaffId { get; set; }
+    public string StaffId { get; set; } = null!;
 
     public string? Course { get; set; }
 
@@ -28,8 +28,6 @@ public partial class CertificationCourse
     public DateTime? UpdatedUtc { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
-
-    public virtual StaffCreation Staff { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

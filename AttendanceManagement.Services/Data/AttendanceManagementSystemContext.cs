@@ -348,6 +348,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Specialization)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.StaffId)
+                .HasMaxLength(15)
+                .IsUnicode(false);
             entity.Property(e => e.University)
                 .HasMaxLength(255)
                 .IsUnicode(false);
@@ -359,11 +362,6 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AcademicDetails_CreatedBy");
-
-            entity.HasOne(d => d.Staff).WithMany(p => p.AcademicDetailStaffs)
-                .HasForeignKey(d => d.StaffId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AcademicDetails_Staff");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.AcademicDetailUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
@@ -1141,6 +1139,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("CreatedUTC");
+            entity.Property(e => e.StaffId)
+                .HasMaxLength(15)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("UpdatedUTC");
@@ -1149,11 +1150,6 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_CertificationCourse_CreatedBy");
-
-            entity.HasOne(d => d.Staff).WithMany(p => p.CertificationCourseStaffs)
-                .HasForeignKey(d => d.StaffId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CertificationCourse_Staff");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.CertificationCourseUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
@@ -1973,6 +1969,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Quarter)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.ReportingManagerId)
+                .HasMaxLength(15)
+                .IsUnicode(false);
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -2594,6 +2593,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.AttachmentsManager).IsUnicode(false);
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.ManagerEvaluationComments).IsUnicode(false);
+            entity.Property(e => e.ManagerEvaluationScale).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ManagerScore).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
@@ -2627,6 +2627,7 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.CompletedUtc).HasColumnType("datetime");
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.SelfEvaluationComments).IsUnicode(false);
+            entity.Property(e => e.SelfEvaluationScale).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.SelfScore).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
 
@@ -3256,6 +3257,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.HrComments).IsUnicode(false);
             entity.Property(e => e.Quarter)
                 .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.ReportingManagerId)
+                .HasMaxLength(15)
                 .IsUnicode(false);
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(100)
@@ -3982,6 +3986,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.PreviousLocation)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+            entity.Property(e => e.StaffId)
+                .HasMaxLength(15)
+                .IsUnicode(false);
             entity.Property(e => e.UpdatedUtc)
                 .HasColumnType("datetime")
                 .HasColumnName("UpdatedUTC");
@@ -3990,11 +3997,6 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PreviousEmployment_CreatedBy");
-
-            entity.HasOne(d => d.Staff).WithMany(p => p.PreviousEmploymentStaffs)
-                .HasForeignKey(d => d.StaffId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PreviousEmployment_Staff");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PreviousEmploymentUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
@@ -4626,6 +4628,9 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.Quarter)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.ReportingManagerId)
+                .HasMaxLength(15)
+                .IsUnicode(false);
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(250)
                 .IsUnicode(false);
@@ -4668,6 +4673,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Quarter)
                 .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.ReportingManagerId)
+                .HasMaxLength(15)
                 .IsUnicode(false);
             entity.Property(e => e.ReportingManagers)
                 .HasMaxLength(250)

@@ -147,11 +147,11 @@ public class ProbationController : ControllerBase
     }
 
     [HttpGet("GetProbationReportsByApproverLevel")]
-    public async Task<IActionResult> GetProbationReportsByApproverLevel(int approverLevelId, int year)
+    public async Task<IActionResult> GetProbationReportsByApproverLevel(int approverLevelId, int year, int month)
     {
         try
         {
-            var result = await _probationService.GetProbationReportsByApproverLevel(approverLevelId, year);
+            var result = await _probationService.GetProbationReportsByApproverLevel(approverLevelId, year, month);
             var response = new
             {
                 Success = true,
@@ -170,11 +170,11 @@ public class ProbationController : ControllerBase
     }
 
     [HttpGet("GetProbationDetailsByApproverLevel")]
-    public async Task<IActionResult> GetProbationDetailsByApproverLevel(int approverLevelId)
+    public async Task<IActionResult> GetProbationDetailsByApproverLevel(int approverLevelId, int year, int month)
     {
         try
         {
-            var result = await _probationService.GetProbationDetailsByApproverLevel(approverLevelId);
+            var result = await _probationService.GetProbationDetailsByApproverLevel(approverLevelId, year, month);
             var response = new
             {
                 Success = true,

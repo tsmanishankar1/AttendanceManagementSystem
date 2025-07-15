@@ -5,8 +5,8 @@ namespace AttendanceManagement.Application.Interfaces.Application
     public interface IProbationApp
     {
         Task<List<ProbationResponse>> GetAllProbationsAsync();
-        Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId);
-        Task<List<ProbationReportResponse>> GetProbationReportsByApproverLevel(int approverLevel, int year);
+        Task<List<ProbationResponse>> GetProbationDetailsByApproverLevel(int approverLevelId, int year, int month);
+        Task<List<ProbationReportResponse>> GetProbationReportsByApproverLevel(int approverLevel, int year, int month);
         Task<ProbationResponse> GetProbationByIdAsync(int probationId);
         Task<object> GetAllManagers();
         Task<string> AssignManagerForProbationReview(AssignManagerRequest assignManagerRequest);

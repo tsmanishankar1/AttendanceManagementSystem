@@ -14,6 +14,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         private readonly AttendanceManagementSystemContext _context;
         private readonly IEmailInfra _emailService;
         private readonly string _workspacePath;
+        private readonly string _workspaceLetter;
         private readonly string _workspace;
         private readonly ILetterGenerationInfra _letterGenerationService;
         public AppraisalManagementInfra(AttendanceManagementSystemContext context, IEmailInfra emailService, IWebHostEnvironment env, ILetterGenerationInfra letterGenerationService)
@@ -24,6 +25,11 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!Directory.Exists(_workspacePath))
             {
                 Directory.CreateDirectory(_workspacePath);
+            }
+            _workspaceLetter = Path.Combine(env.ContentRootPath, "wwwroot\\GeneratedLetters\\AppraisalLetter");
+            if (!Directory.Exists(_workspaceLetter))
+            {
+                Directory.CreateDirectory(_workspaceLetter);
             }
             _workspace = Path.Combine(env.ContentRootPath, "wwwroot\\ExcelTemplates");
             if (!Directory.Exists(_workspace))
@@ -59,6 +65,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                         Tenure = GetTenure(staff.JoiningDate),
+                        ReportingManagerId = manager.StaffId,
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -92,6 +99,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                         Tenure = GetTenure(staff.JoiningDate),
+                        ReportingManagerId = manager.StaffId,
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -123,6 +131,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 EmployeeId = row.EmpId,
                 EmployeeName = row.EmpName,
                 TenureInYears = row.TenureInYears,
+                ReportingManagerId = row.ReportingManagerId,
                 ReportingManagers = row.ReportingManagers,
                 Division = row.Division,
                 Department = row.Department,
@@ -152,6 +161,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                                EmpId = staff.EmployeeId,
                                                EmpName = staff.EmployeeName,
                                                TenureInYears = GetTenure(s.JoiningDate),
+                                               ReportingManagerId = staff.ReportingManagerId,
                                                ReportingManagers = staff.ReportingManagers,
                                                Division = staff.Division,
                                                Department = staff.Department,
@@ -229,7 +239,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
                         var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                         var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
+                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Reporting ManagerId", "Reporting Managers", "Division", "Department", "Productivity %", "Quality %", "Present %", "Final %", "Grade", "Absent Days", "HR Comments" };
                         var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                         if (missingHeaders.Count == requiredHeaders.Count)
                         {
@@ -271,6 +281,12 @@ namespace AttendanceManagement.Infrastructure.Infra
                                 errorLogs.Add($"Staff Name is empty at {row}");
                                 continue;
                             }
+                            var reportingManagerId = worksheet.Cells[row, columnIndexes["Reporting ManagerId"]].Text.Trim();
+                            if (string.IsNullOrEmpty(empId))
+                            {
+                                errorLogs.Add($"Reporting ManagerId is empty at {row}");
+                                continue;
+                            }
                             var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
                             if (string.IsNullOrEmpty(empId))
                             {
@@ -310,6 +326,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                             {
                                 EmpId = empId,
                                 EmpName = empName,
+                                ReportingManagerId = reportingManagerId,
                                 ReportingManagers = reportingManager,
                                 Division = division,
                                 Department = department,
@@ -366,7 +383,6 @@ namespace AttendanceManagement.Infrastructure.Infra
                             await _context.SaveChangesAsync();
 
                             await _emailService.SendMisUploadNotificationToHr(uploadMisSheetRequest.CreatedBy, name, appraisal.Name);
-
                             if (alreadyUploaded.Any())
                             {
                                 throw new ConflictException($"The following staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}: " + string.Join(", ", alreadyUploaded));
@@ -404,6 +420,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                                EmpId = staff.EmpId,
                                                EmpName = staff.EmpName,
                                                TenureInYears = GetTenure(s.JoiningDate),
+                                               ReportingManagerId = staff.ReportingManagerId,
                                                ReportingManagers = staff.ReportingManagers,
                                                Division = staff.Division,
                                                Department = staff.Department,
@@ -527,6 +544,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                                EmpId = per.EmpId,
                                                EmpName = per.EmpName,
                                                TenureInYears = GetTenure(s.JoiningDate),
+                                               ReportingManagerId = per.ReportingManagerId,
                                                ReportingManagers = per.ReportingManagers,
                                                Division = per.Division,
                                                Department = per.Department,
@@ -742,11 +760,12 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new MessageNotFoundException("Staff not found");
             }
-            string filePrefix = $"Appraisal_Letter_Without_DC_{staff.StaffId}_" ?? $"Appraisal_Letter_With_DC_{staff.StaffId}";
+            string prefixWithoutDC = $"Appraisal_Letter_Without_DC_{staff.StaffId}_";
+            string prefixWithDC = $"Appraisal_Letter_With_DC_{staff.StaffId}_";
             var letterGeneration = await _context.LetterGenerations
-                 .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
-                 .OrderByDescending(x => x.CreatedUtc)
-                 .FirstOrDefaultAsync();
+                .Where(x => (x.FileName.StartsWith(prefixWithoutDC) || x.FileName.StartsWith(prefixWithDC)) && x.IsActive)
+                .OrderByDescending(x => x.CreatedUtc)
+                .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
                 throw new FileNotFoundException("Appraisal letter not found");
@@ -768,12 +787,12 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new MessageNotFoundException("Staff not found");
             }
-            string filePrefix = $"Appraisal_Letter_Without_DC_{staff.StaffId}_" ?? $"Appraisal_Letter_With_DC_{staff.StaffId}";
+            string prefixWithoutDC = $"Appraisal_Letter_Without_DC_{staff.StaffId}_";
+            string prefixWithDC = $"Appraisal_Letter_With_DC_{staff.StaffId}_";
             var letterGeneration = await _context.LetterGenerations
-                .Where(x => x.FileName.StartsWith(filePrefix) && x.IsActive)
+                .Where(x => (x.FileName.StartsWith(prefixWithoutDC) || x.FileName.StartsWith(prefixWithDC)) && x.IsActive)
                 .OrderByDescending(x => x.CreatedUtc)
                 .FirstOrDefaultAsync();
-
             if (letterGeneration == null)
             {
                 throw new MessageNotFoundException("Appraisal letter not found");
@@ -783,7 +802,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new MessageNotFoundException("File is empty");
             }
-            return Path.Combine(_workspacePath, file);
+            return Path.Combine(_workspaceLetter, file);
         }
 
         public async Task<string> AcceptAppraisalLetter(LetterAcceptance letterAcceptance)
@@ -912,6 +931,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                         Tenure = GetTenure(staff.JoiningDate),
+                        ReportingManagerId = manager.StaffId,
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -943,6 +963,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         EmpId = staff.StaffId,
                         EmpName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
                         Tenure = GetTenure(staff.JoiningDate),
+                        ReportingManagerId = manager.StaffId,
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
@@ -977,6 +998,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 EmployeeId = row.EmpId,
                 EmployeeName = row.EmpName,
                 TenureInYears = row.TenureInYears,
+                ReportingManagerId = row.ReportingManagerId,
                 ReportingManagers = row.ReportingManagers,
                 Division = row.Division,
                 Department = row.Department,
@@ -1008,6 +1030,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                                EmpId = staff.EmployeeId,
                                                EmpName = staff.EmployeeName,
                                                TenureInYears = GetTenure(s.JoiningDate),
+                                               ReportingManagerId = staff.ReportingManagerId,
                                                ReportingManagers = staff.ReportingManagers,
                                                Division = staff.Division,
                                                Department = staff.Department,
@@ -1201,6 +1224,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     SelfScore = g.First().selfReview.SelfScore,
                     SelfEvaluationComments = g.First().selfReview.SelfEvaluationComments,
                     AttachmentsSelf = g.First().selfReview.AttachmentsSelf,
+                    StaffId = g.First().staff.StaffId,
                     StaffName = g.First().staff.FirstName + (string.IsNullOrWhiteSpace(g.First().staff.LastName) ? "" : " " + g.First().staff.LastName),
                     Year = g.First().goal.Year,
                     Quarter = g.First().goal.Quarter,
@@ -1212,6 +1236,29 @@ namespace AttendanceManagement.Infrastructure.Infra
             return getSelfEvaluations;
         }
 
+        public async Task<(Stream PdfStream, string FileName)> ViewSelfEvaluationAttachment(int selfEvaluationId)
+        {
+            var selfEval = await _context.KraSelfReviews.FirstOrDefaultAsync(s => s.Id == selfEvaluationId && s.IsActive);
+            if (selfEval == null) throw new MessageNotFoundException("Self evaluation not found");
+            if (string.IsNullOrWhiteSpace(selfEval.AttachmentsSelf)) throw new FileNotFoundException("No attachment found for this self evaluation");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", selfEval.AttachmentsSelf.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+            if (!System.IO.File.Exists(filePath)) throw new MessageNotFoundException("Attachment file not found");
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var fileName = Path.GetFileName(filePath);
+            return (stream, fileName);
+        }
+
+        public async Task<(Stream PdfStream, string FileName)> ViewManagerEvaluationAttachment(int managerEvaluationId)
+        {
+            var selfEval = await _context.KraManagerReviews.FirstOrDefaultAsync(s => s.Id == managerEvaluationId && s.IsActive);
+            if (selfEval == null) throw new MessageNotFoundException("Self evaluation not found");
+            if (string.IsNullOrWhiteSpace(selfEval.AttachmentsManager)) throw new FileNotFoundException("No attachment found for this self evaluation");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", selfEval.AttachmentsManager.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+            if (!System.IO.File.Exists(filePath)) throw new MessageNotFoundException("Attachment file not found");
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var fileName = Path.GetFileName(filePath);
+            return (stream, fileName);
+        }
         public async Task<string> CreateManagerEvaluation(ManagerEvaluationRequest managerEvaluationRequest)
         {
             string? savedFilePath = null;
@@ -1273,6 +1320,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     ManagerEvaluationComments = managerEval.ManagerEvaluationComments,
                     AttachmentsManager = managerEval.AttachmentsManager,
                     IsCompleted = managerEval.IsCompleted,
+                    ManagerId = manager.StaffId,
                     ManagerName = manager.FirstName + (string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName),
                     Year = goal.Year,
                     Quarter = goal.Quarter,
@@ -1318,7 +1366,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     ReportingManagerName = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                     Year = goal.Year,
                     Quarter = goal.Quarter
-                }).Distinct().ToListAsync(); // <-- OR add distinct here
+                }).Distinct().ToListAsync();
 
             if (!managerEvaluations.Any())
                 throw new MessageNotFoundException("No manager evaluation found");
@@ -1367,7 +1415,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         if (worksheet == null) throw new MessageNotFoundException("Worksheet not found in the uploaded file");
                         var headerRow = worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Select(cell => cell.Text.Trim()).ToList();
                         var requiredHeaders = new List<string>();
-                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
+                        requiredHeaders = new List<string> { "Emp ID", "Emp Name", "Reporting ManagerId", "Reporting Managers", "Division", "Department", "Final Average KRA Grade", "Absent Days", "HR Comments" };
                         var missingHeaders = requiredHeaders.Where(header => !headerRow.Contains(header)).ToList();
                         if (missingHeaders.Count == requiredHeaders.Count)
                         {
@@ -1407,6 +1455,12 @@ namespace AttendanceManagement.Infrastructure.Infra
                             if (string.IsNullOrEmpty(empName))
                             {
                                 errorLogs.Add($"Staff Name is empty at {row}");
+                                continue;
+                            }
+                            var reportingManagerId = worksheet.Cells[row, columnIndexes["Reporting ManagerId"]].Text.Trim();
+                            if (string.IsNullOrEmpty(reportingManagerId))
+                            {
+                                errorLogs.Add($"Reporting ManagerId is empty at {row}");
                                 continue;
                             }
                             var reportingManager = worksheet.Cells[row, columnIndexes["Reporting Managers"]].Text.Trim();
@@ -1452,6 +1506,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                             {
                                 EmpId = empId,
                                 EmpName = empName,
+                                ReportingManagerId = reportingManagerId,
                                 ReportingManagers = reportingManager,
                                 Division = division,
                                 Department = department,
@@ -1541,6 +1596,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                       EmpId = hr.EmpId,
                                       EmpName = hr.EmpName,
                                       TenureInYears = GetTenure(s.JoiningDate),
+                                      ReportingManagerId = hr.ReportingManagerId,
                                       ReportingManagers = hr.ReportingManagers,
                                       Division = hr.Division,
                                       Department = hr.Department,

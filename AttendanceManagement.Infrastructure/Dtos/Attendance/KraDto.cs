@@ -59,10 +59,11 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public int Id { get; set; }
         public int GoalId { get; set; }
-        public int SelfEvaluationScale { get; set; }
+        public decimal SelfEvaluationScale { get; set; }
         public decimal SelfScore { get; set; }
         public string SelfEvaluationComments { get; set; } = null!;
         public string? AttachmentsSelf { get; set; }
+        public string StaffId { get; set; } = null!;
         public string StaffName { get; set; } = null!;
         public int Year { get; set; }
         public string Quarter { get; set; } = null!;
@@ -73,7 +74,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     public class ManagerEvaluationRequest
     {
         public int KraSelfReviewId { get; set; }
-        public int ManagerEvaluationScale { get; set; }
+        public decimal ManagerEvaluationScale { get; set; }
         public decimal ManagerScore { get; set; }
         public string ManagerEvaluationComments { get; set; } = null!;
         public IFormFile? AttachmentsManager { get; set; }
@@ -86,7 +87,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     public class SelectedManagerEvaluation
     {
         public int KraSelfReviewId { get; set; }
-        public int ManagerEvaluationScale { get; set; }
+        public decimal ManagerEvaluationScale { get; set; }
         public decimal ManagerScore { get; set; }
         public string ManagerEvaluationComments { get; set; } = null!;
         public IFormFile? AttachmentsManager { get; set; }
@@ -99,10 +100,11 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public int Id { get; set; }
         public int KraSelfReviewId { get; set; }
-        public int ManagerEvaluationScale { get; set; }
+        public decimal ManagerEvaluationScale { get; set; }
         public decimal ManagerScore { get; set; }
         public string ManagerEvaluationComments { get; set; } = null!;
         public string? AttachmentsManager { get; set; }
+        public string ManagerId { get; set; } = null!;
         public string ManagerName { get; set; } = null!;
         public int Year { get; set; }
         public string Quarter { get; set; } = null!;
