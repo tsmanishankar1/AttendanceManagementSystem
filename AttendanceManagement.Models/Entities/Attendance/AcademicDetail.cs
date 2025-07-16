@@ -25,7 +25,7 @@ public partial class AcademicDetail
 
     public string? Board { get; set; }
 
-    public string StaffId { get; set; } = null!;
+    public int StaffId { get; set; }
 
     public int CreatedBy { get; set; }
 
@@ -38,6 +38,8 @@ public partial class AcademicDetail
     public bool? IsActive { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
+    public virtual StaffCreation Staff { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

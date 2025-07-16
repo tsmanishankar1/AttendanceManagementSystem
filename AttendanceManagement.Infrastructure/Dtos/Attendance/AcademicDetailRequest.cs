@@ -27,7 +27,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
 
     public class ListAcademicDetailRequest
     {
-        public string StaffId { get; set; } = null!;
+        public int StaffId { get; set; }
         public int CreatedBy { get; set; }
         public List<AcademicDetailRequest> AcademicDetails { get; set; } = new List<AcademicDetailRequest>();
     }
@@ -63,7 +63,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     public class AcademicDetailResponse
     {
         public int Id { get; set; }
-        public string StaffId { get; set; } = null!;
+        public int StaffId { get; set; }
         public string? Qualification { get; set; }
         public string? Specialization { get; set; }
         public string? Institution { get; set; }
@@ -89,7 +89,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
 
     public class ListCertificationCourseRequest
     {
-        public string StaffId { get; set; } = null!;
+        public int StaffId { get; set; }
         public int CreatedBy { get; set; }
         public List<CertificationCourseRequest> CertificationCourses { get; set; } = new List<CertificationCourseRequest>();
     }
@@ -115,7 +115,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     public class CertificationCourseResponse
     {
         public int Id { get; set; }
-        public string StaffId { get; set; } = null!;
+        public int StaffId { get; set; }
         public string? CertificationCourseName { get; set; }
         public DateOnly? ValidUpto { get; set; }
         public string? CourseAppraisal { get; set; }
@@ -137,7 +137,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
 
     public class ListPreviousEmploymentRequest
     {
-        public string StaffId { get; set; } = null!;
+        public int StaffId { get; set; }
         public int CreatedBy { get; set; }
         public List<PreviousEmploymentRequest> PreviousEmployments { get; set; } = new List<PreviousEmploymentRequest>();
     }
@@ -166,7 +166,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     public class PreviousEmploymentResponse
     {
         public int? Id { get; set; }
-        public string StaffId { get; set; } = null!;
+        public int StaffId { get; set; }
         public string? CompanyName { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }

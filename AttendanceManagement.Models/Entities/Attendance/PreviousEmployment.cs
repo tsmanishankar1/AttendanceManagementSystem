@@ -7,7 +7,7 @@ public partial class PreviousEmployment
 {
     public int Id { get; set; }
 
-    public string StaffId { get; set; } = null!;
+    public int StaffId { get; set; }
 
     public string? CompanyName { get; set; }
 
@@ -32,6 +32,8 @@ public partial class PreviousEmployment
     public DateTime? UpdatedUtc { get; set; }
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
+
+    public virtual StaffCreation Staff { get; set; } = null!;
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

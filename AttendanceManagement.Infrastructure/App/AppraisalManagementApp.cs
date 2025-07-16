@@ -40,38 +40,38 @@ namespace AttendanceManagement.Application.App
         public async Task<List<AgmDetails>> GetAllAgm()
             => await _appraisalManagementInfra.GetAllAgm();
 
-        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter)
-            => await _appraisalManagementInfra.GetFinalAverageManagerScore(createdBy, appraisalId, year, quarter);
+        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetFinalAverageManagerScore(createdBy, appraisalId, year, quarter, month);
 
-        public async Task<List<HrUploadResponse>> GetHrUploadedSheet(int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetHrUploadedSheet(appraisalId, year, quarter);
+        public async Task<List<HrUploadResponse>> GetHrUploadedSheet(int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetHrUploadedSheet(appraisalId, year, quarter, month);
 
-        public async Task<List<KraResponse>> GetKra(int createdBy, int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetKra(createdBy, appraisalId, year, quarter);
+        public async Task<List<KraResponse>> GetKra(int createdBy, int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetKra(createdBy, appraisalId, year, quarter, month);
 
-        public async Task<List<ManagerEvaluationResponse>> GetManagerEvaluation(int createdBy, int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetManagerEvaluation(createdBy, appraisalId, year, quarter);
+        public async Task<List<ManagerEvaluationResponse>> GetManagerEvaluation(int createdBy, int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetManagerEvaluation(createdBy, appraisalId, year, quarter, month);
 
-        public async Task<List<object>> GetNonProductionEmployees(int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetNonProductionEmployees(appraisalId, year, quarter);
+        public async Task<List<object>> GetNonProductionEmployees(int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetNonProductionEmployees(appraisalId, year, quarter, month);
 
-        public async Task<List<object>> GetProductionEmployees(int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetProductionEmployees(appraisalId, year, quarter);
+        public async Task<List<object>> GetProductionEmployees(int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetProductionEmployees(appraisalId, year, quarter, month);
 
-        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeAgmApproval(int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetSelectedEmployeeAgmApproval(appraisalId, year, quarter);
+        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeAgmApproval(int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetSelectedEmployeeAgmApproval(appraisalId, year, quarter, month);
 
-        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetSelectedEmployeeReview(appraisalId, year, quarter);
+        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetSelectedEmployeeReview(appraisalId, year, quarter, month);
 
-        public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedEmployees(int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetSelectedEmployees(appraisalId, year, quarter);
+        public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedEmployees(int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetSelectedEmployees(appraisalId, year, quarter, month);
 
-        public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedNonProductionEmployees(int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetSelectedNonProductionEmployees(appraisalId, year, quarter);
+        public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedNonProductionEmployees(int appraisalId, int year, string?quarter, int? month)
+            => await _appraisalManagementInfra.GetSelectedNonProductionEmployees(appraisalId, year, quarter, month);
 
-        public async Task<List<SelfEvaluationResponse>> GetSelfEvaluation(int approverId, int appraisalId, int year, string quarter)
-            => await _appraisalManagementInfra.GetSelfEvaluation(approverId, appraisalId, year, quarter);
+        public async Task<List<SelfEvaluationResponse>> GetSelfEvaluation(int approverId, int appraisalId, int year, string? quarter, int? month)
+            => await _appraisalManagementInfra.GetSelfEvaluation(approverId, appraisalId, year, quarter, month);
 
         public async Task<string> HrUploadSheet(UploadMisSheetRequest uploadMisSheetRequest)
             => await _appraisalManagementInfra.HrUploadSheet(uploadMisSheetRequest);

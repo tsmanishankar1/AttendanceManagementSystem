@@ -19,11 +19,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetProductionEmployees")]
-        public async Task<IActionResult> GetProductionEmployees(int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetProductionEmployees(int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var appraisalDetails = await _service.GetProductionEmployees(appraisalId, year, quarter);
+                var appraisalDetails = await _service.GetProductionEmployees(appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -73,11 +73,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetSelectedEmployees")]
-        public async Task<IActionResult> GetSelectedEmployees(int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetSelectedEmployees(int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var fileBytes = await _service.GetSelectedEmployees(appraisalId, year, quarter);
+                var fileBytes = await _service.GetSelectedEmployees(appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -164,11 +164,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetSelectedEmployeeReview")]
-        public async Task<IActionResult> GetSelectedEmployeeReview(int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetSelectedEmployeeReview(int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var fileBytes = await _service.GetSelectedEmployeeReview(appraisalId, year, quarter);
+                var fileBytes = await _service.GetSelectedEmployeeReview(appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -241,11 +241,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetSelectedEmployeeAgmApproval")]
-        public async Task<IActionResult> GetSelectedEmployeeAgmApproval(int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetSelectedEmployeeAgmApproval(int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var fileBytes = await _service.GetSelectedEmployeeAgmApproval(appraisalId, year, quarter);
+                var fileBytes = await _service.GetSelectedEmployeeAgmApproval(appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -429,11 +429,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetNonProductionEmployees")]
-        public async Task<IActionResult> GetNonProductionEmployees(int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetNonProductionEmployees(int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var appraisalDetails = await _service.GetNonProductionEmployees(appraisalId, year, quarter);
+                var appraisalDetails = await _service.GetNonProductionEmployees(appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -483,11 +483,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetSelectedNonProductionEmployees")]
-        public async Task<IActionResult> GetSelectedNonProductionEmployees(int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetSelectedNonProductionEmployees(int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var fileBytes = await _service.GetSelectedNonProductionEmployees(appraisalId, year, quarter);
+                var fileBytes = await _service.GetSelectedNonProductionEmployees(appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -532,11 +532,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetKra")]
-        public async Task<IActionResult> GetKra(int createdBy, int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetKra(int createdBy, int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var appraisalDetails = await _service.GetKra(createdBy, appraisalId, year, quarter);
+                var appraisalDetails = await _service.GetKra(createdBy, appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -581,11 +581,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetSelfEvaluation")]
-        public async Task<IActionResult> GetSelfEvaluation(int createdBy, int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetSelfEvaluation(int createdBy, int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var appraisalDetails = await _service.GetSelfEvaluation(createdBy, appraisalId, year, quarter);
+                var appraisalDetails = await _service.GetSelfEvaluation(createdBy, appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -686,11 +686,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetManagerEvaluation")]
-        public async Task<IActionResult> GetManagerEvaluation(int createdBy, int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetManagerEvaluation(int createdBy, int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var appraisalDetails = await _service.GetManagerEvaluation(createdBy, appraisalId, year, quarter);
+                var appraisalDetails = await _service.GetManagerEvaluation(createdBy, appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -709,11 +709,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetFinalAverageManagerScore")]
-        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter)
+        public async Task<object> GetFinalAverageManagerScore(int createdBy, int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var appraisalDetails = await _service.GetFinalAverageManagerScore(createdBy, appraisalId, year, quarter);
+                var appraisalDetails = await _service.GetFinalAverageManagerScore(createdBy, appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,
@@ -778,11 +778,11 @@ namespace AttendanceManagement.Controllers
         }
 
         [HttpGet("GetHrUploadedSheet")]
-        public async Task<IActionResult> GetHrUploadedSheet(int appraisalId, int year, string quarter)
+        public async Task<IActionResult> GetHrUploadedSheet(int appraisalId, int year, string? quarter, int? month)
         {
             try
             {
-                var appraisalDetails = await _service.GetHrUploadedSheet(appraisalId, year, quarter);
+                var appraisalDetails = await _service.GetHrUploadedSheet(appraisalId, year, quarter, month);
                 var response = new
                 {
                     Success = true,

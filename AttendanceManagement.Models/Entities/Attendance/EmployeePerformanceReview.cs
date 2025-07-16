@@ -49,9 +49,11 @@ public partial class EmployeePerformanceReview
 
     public int Year { get; set; }
 
-    public string Quarter { get; set; } = null!;
+    public string? Quarter { get; set; }
 
     public string? ReportingManagerId { get; set; }
+
+    public int? Month { get; set; }
 
     public virtual ICollection<AgmApproval> AgmApprovals { get; set; } = new List<AgmApproval>();
 

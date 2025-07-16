@@ -18,9 +18,9 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<AcademicDetailResponse>> GetByStaffIdAsync(int staffId)
         {
             var academicDetails = await _context.AcademicDetails
-                .Where(a => a.IsActive == true && a.Id == staffId)
+                .Where(a => a.IsActive == true && a.StaffId == staffId)
                 .ToListAsync();
-            if (!academicDetails.Any()) return new List<AcademicDetailResponse>();
+            if (!academicDetails.Any()) throw new MessageNotFoundException("Academic details not found");
             var result = academicDetails.Select(academicDetail => new AcademicDetailResponse
             {
                 Id = academicDetail.Id,
@@ -39,9 +39,22 @@ namespace AttendanceManagement.Infrastructure.Infra
             return result;
         }
 
-        private async Task StaffFoundMethod(string staffId)
+        public async Task<int> GetStaffCreation()
         {
-            var staff = await _context.StaffCreations.AnyAsync(p => p.StaffId == staffId && p.IsActive == true);
+            var getUser = await _context.StaffCreations
+         .OrderByDescending(s => s.Id)
+         .Select(s => s.Id)
+         .FirstOrDefaultAsync();
+#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
+            if (getUser == null)
+            {
+                throw new MessageNotFoundException("Staff not found");
+            }
+            return getUser;
+        }
+        private async Task StaffFoundMethod(int staffId)
+        {
+            var staff = await _context.StaffCreations.AnyAsync(p => p.Id == staffId && (p.IsActive == true || p.IsActive == null));
             if (!staff) throw new MessageNotFoundException("Staff not found");
         }
 
@@ -69,13 +82,17 @@ namespace AttendanceManagement.Infrastructure.Infra
                 await _context.AcademicDetails.AddRangeAsync(academicDetail);
                 await _context.SaveChangesAsync();
             }
-            return "Academic records added successfully.";
+            return "Academic details submitted successfully";
         }
 
         public async Task<string> UpdateAsync(ListAcademicDetailUpdateRequest academicDetailsRequests)
         {
             var academicDetailIds = academicDetailsRequests.AcademicDetails.Select(a => a.AcademicDetailId).ToList();
-            var existingRecords = _context.AcademicDetails.Where(b => academicDetailIds.Contains(b.Id)).ToList();
+            var existingRecords = _context.AcademicDetails.Where(b => academicDetailIds.Contains(b.Id) && b.IsActive == true).ToList();
+            if(existingRecords.Count == 0)
+            {
+                throw new MessageNotFoundException("No academic details found");
+            }
             foreach (var academicDetail in academicDetailsRequests.AcademicDetails)
             {
                 var existing = existingRecords.FirstOrDefault(b => b.Id == academicDetail.AcademicDetailId);
@@ -95,12 +112,12 @@ namespace AttendanceManagement.Infrastructure.Infra
                 }
             }
             await _context.SaveChangesAsync();
-            return $"{existingRecords.Count} academic records updated successfully.";
+            return "Academic details updated successfully";
         }
 
         public async Task<string> DeleteAcademicDetailAsync(int academicDetailId, int deletedBy)
         {
-            var message = " Details Deleted Successfully;";
+            var message = " Academic details deleted successfully;";
             var academicDetail = await _context.AcademicDetails.FirstOrDefaultAsync(a => a.Id == academicDetailId && a.IsActive == true);
             if (academicDetail == null) throw new MessageNotFoundException("No academic details found");
             academicDetail.IsActive = false;
@@ -113,9 +130,9 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<CertificationCourseResponse>> GetByCerticateStaffIdAsync(int staffId)
         {
             var certificationCourses = await _context.CertificationCourses
-                .Where(c => c.IsActive == true && c.Id == staffId)
+                .Where(c => c.IsActive == true && c.StaffId == staffId)
                 .ToListAsync();
-            if (!certificationCourses.Any()) return new List<CertificationCourseResponse>();
+            if (!certificationCourses.Any()) throw new MessageNotFoundException("No certificate course found");
             var result = certificationCourses.Select(certificationCourse => new CertificationCourseResponse
             {
                 Id = certificationCourse.Id,
@@ -148,13 +165,17 @@ namespace AttendanceManagement.Infrastructure.Infra
                 await _context.CertificationCourses.AddAsync(certificationCourse);
                 await _context.SaveChangesAsync();
             }
-            return "Certification courses added successfully.";
+            return "Certification courses submitted successfully";
         }
 
         public async Task<string> UpdateAsync(ListCertificationCourseUpdateRequest certificationCourseRequests)
         {
             var ids = certificationCourseRequests.CertificationCourses.Select(c => c.Id).ToList();
-            var existingCourses = await _context.CertificationCourses.Where(c => ids.Contains(c.Id)).ToListAsync();
+            var existingCourses = await _context.CertificationCourses.Where(c => ids.Contains(c.Id) && c.IsActive == true).ToListAsync();
+            if(existingCourses.Count == 0)
+            {
+                throw new MessageNotFoundException("No certification courses found");
+            }
             foreach (var courseRequest in certificationCourseRequests.CertificationCourses)
             {
                 var existing = existingCourses.FirstOrDefault(c => c.Id == courseRequest.Id);
@@ -169,7 +190,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 }
             }
             await _context.SaveChangesAsync();
-            return $"{existingCourses.Count} certification courses updated successfully.";
+            return "Certification courses updated successfully";
         }
 
         public async Task<string> DeleteCertificationCourseAsync(int certificationCourseId, int deletedBy)
@@ -178,6 +199,8 @@ namespace AttendanceManagement.Infrastructure.Infra
             var certificationCourse = await _context.CertificationCourses.FirstOrDefaultAsync(c => c.Id == certificationCourseId && c.IsActive == true);
             if (certificationCourse == null) throw new MessageNotFoundException("Certification course not found");
             certificationCourse.IsActive = false;
+            certificationCourse.UpdatedBy = deletedBy;
+            certificationCourse.UpdatedUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return message;
         }
@@ -185,9 +208,9 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<PreviousEmploymentResponse>> GetWorkhistoryByStaffIdAsync(int staffId)
         {
             var previousEmployments = await _context.PreviousEmployments
-                .Where(pe => pe.Id == staffId && pe.IsActive)
+                .Where(pe => pe.StaffId == staffId && pe.IsActive)
                 .ToListAsync();
-            if (!previousEmployments.Any()) return new List<PreviousEmploymentResponse>();
+            if (!previousEmployments.Any()) throw new MessageNotFoundException("No previous employment found");
             return previousEmployments.Select(previousEmployment => new PreviousEmploymentResponse
             {
                 Id = previousEmployment.Id,
@@ -222,16 +245,16 @@ namespace AttendanceManagement.Infrastructure.Infra
                 await _context.PreviousEmployments.AddAsync(previousEmployment);
                 await _context.SaveChangesAsync();
             }
-            return "Previous employment records added successfully.";
+            return "Previous employment records added successfully";
         }
 
         public async Task<string> UpdateAsync(ListPreviousEmploymentUpdateRequest previousEmploymentUpdateRequest)
         {
             var ids = previousEmploymentUpdateRequest.PreviousEmployments.Select(r => r.Id).ToList();
             var existingRecords = await _context.PreviousEmployments
-                .Where(pe => ids.Contains(pe.Id))
+                .Where(pe => ids.Contains(pe.Id) && pe.IsActive == true)
                 .ToListAsync();
-            if (!existingRecords.Any()) throw new MessageNotFoundException("No matching records found for update.");
+            if (!existingRecords.Any()) throw new MessageNotFoundException("No previous employment found");
             foreach (var request in previousEmploymentUpdateRequest.PreviousEmployments)
             {
                 var existing = existingRecords.FirstOrDefault(pe => pe.Id == request.Id);
@@ -248,15 +271,17 @@ namespace AttendanceManagement.Infrastructure.Infra
                 }
             }
             await _context.SaveChangesAsync();
-            return $"{existingRecords.Count} previous employment records updated successfully.";
+            return "Previous employment updated successfully";
         }
 
         public async Task<string> DeleteAsync(int previousEmploymentId, int deletedBy)
         {
             var message = "Previous employment record deleted successfully";
             var previousEmployment = await _context.PreviousEmployments.FirstOrDefaultAsync(pe => pe.Id == previousEmploymentId && pe.IsActive == true);
-            if (previousEmployment == null) throw new MessageNotFoundException("Previous employment record not found");
+            if (previousEmployment == null) throw new MessageNotFoundException("Previous employment not found");
             previousEmployment.IsActive = false;
+            previousEmployment.UpdatedBy = deletedBy;
+            previousEmployment.UpdatedUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return message;
         }

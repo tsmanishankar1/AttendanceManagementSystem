@@ -12,7 +12,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public string Kra { get; set; } = null!;
         public decimal Weightage { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int Year { get; set; }
         public List<int> StaffId { get; set; } = new List<int>();
         public int AppraisalId { get; set; }
@@ -24,7 +25,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string Kra { get; set; } = null!;
         public decimal Weightage { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int CreatedBy { get; set; }
         public List<int> AssignedStaffIds { get; set; } = new();
         public List<string>? AssignedStaffNames { get; set; }
@@ -38,7 +40,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string SelfEvaluationComments { get; set; } = null!;
         public IFormFile? AttachmentsSelf { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int AppraisalId { get; set; }
         public int CreatedBy { get; set; }
     }
@@ -51,7 +54,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string SelfEvaluationComments { get; set; } = null!;
         public IFormFile? AttachmentsSelf { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int AppraisalId { get; set; }
     }
 
@@ -66,7 +70,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string StaffId { get; set; } = null!;
         public string StaffName { get; set; } = null!;
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public bool? IsSelfEvaluation { get; set; }
         public int CreatedBy { get; set; }
     }
@@ -79,7 +84,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string ManagerEvaluationComments { get; set; } = null!;
         public IFormFile? AttachmentsManager { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int AppraisalId { get; set; }
         public int CreatedBy { get; set; }
     }
@@ -92,7 +98,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string ManagerEvaluationComments { get; set; } = null!;
         public IFormFile? AttachmentsManager { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int AppraisalId { get; set; }
     }
 
@@ -107,7 +114,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string ManagerId { get; set; } = null!;
         public string ManagerName { get; set; } = null!;
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public bool? IsCompleted { get; set; }
         public bool? IsManagerEvaluation { get; set; }
         public int CreatedBy { get; set; }

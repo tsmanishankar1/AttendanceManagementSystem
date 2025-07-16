@@ -48,5 +48,8 @@ namespace AttendanceManagement.Application.App
 
         public async Task<List<PreviousEmploymentResponse>> GetWorkhistoryByStaffIdAsync(int staffId)
             => await _staffTransactionInfra.GetWorkhistoryByStaffIdAsync(staffId);
+
+        public async Task<int> GetStaffCreation()
+            => await _staffTransactionInfra.GetStaffCreation(); 
     }
 }

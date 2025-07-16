@@ -37,7 +37,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public int AppraisalId { get; set; }
         public int Year {  get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month {  get; set; }
         public List<SelectedEmployeesRequestSelectedRows> SelectedRows { get; set; } = new List<SelectedEmployeesRequestSelectedRows>();
         public int CreatedBy { get; set; }
     }
@@ -62,7 +63,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string Division { get; set; } = null!;
         public string Department { get; set; } = null!;
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public bool? IsCompleted { get; set; }
     }
 
@@ -71,7 +73,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public int AppraisalId { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public IFormFile File { get; set; } = null!;
         public int CreatedBy { get; set; }
     }
@@ -93,7 +96,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string Grade { get; set; } = null!;
         public decimal AbsentDays { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public bool? IsCompleted { get; set; }
     }
 
@@ -101,7 +105,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public List<SelectedAgmApproval> SelectedRows { get; set; } = new List<SelectedAgmApproval>();
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public bool IsApproved { get; set; }
         public int ApprovedBy { get; set; }
     }
@@ -117,7 +122,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public List<SelectedAgmApproval> SelectedRows { get; set; } = new List<SelectedAgmApproval>();
         public int AgmId { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int CreatedBy { get; set; }
     }
 
@@ -128,7 +134,6 @@ namespace AttendanceManagement.Application.Dtos.Attendance
 
     public class LetterAcceptance
     {
-        public int Id { get; set; }
         public bool IsAccepted { get; set; }
         public int AcceptedBy { get; set; }
     }
@@ -158,7 +163,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string AppraisalType { get; set; } = null!;
         public bool? IsCompleted { get; set; }
         public int Year { get; set; }
-        public string Quarter { get; set; } = null!;
+        public string? Quarter { get; set; }
+        public int? Month { get; set; }
         public int CreatedBy { get; set; }
     }
 }

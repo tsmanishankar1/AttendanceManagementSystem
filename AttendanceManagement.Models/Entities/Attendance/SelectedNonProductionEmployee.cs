@@ -35,9 +35,11 @@ public partial class SelectedNonProductionEmployee
 
     public int Year { get; set; }
 
-    public string Quarter { get; set; } = null!;
+    public string? Quarter { get; set; }
 
     public string? ReportingManagerId { get; set; }
+
+    public int? Month { get; set; }
 
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;
 

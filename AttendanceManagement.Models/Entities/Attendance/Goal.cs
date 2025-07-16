@@ -11,7 +11,7 @@ public partial class Goal
 
     public decimal Weightage { get; set; }
 
-    public string EvaluationPeriod { get; set; } = null!;
+    public string? EvaluationPeriod { get; set; }
 
     public int AppraisalId { get; set; }
 
@@ -29,7 +29,9 @@ public partial class Goal
 
     public int Year { get; set; }
 
-    public string Quarter { get; set; } = null!;
+    public string? Quarter { get; set; }
+
+    public int? Month { get; set; }
 
     public virtual AppraisalSelectionDropDown Appraisal { get; set; } = null!;
 

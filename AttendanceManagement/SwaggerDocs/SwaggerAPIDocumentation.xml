@@ -340,14 +340,15 @@
 			<param name="service">The appraisal management service.</param>
 			<param name="logging">The logging service for capturing audit and error logs.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetProductionEmployees(System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetProductionEmployees(System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves all production employees eligible for appraisal based on the specified appraisal cycle.
 			</summary>
 			<param name="appraisalId">The ID of the appraisal cycle.</param>
 			<param name="year">The year of the appraisal.</param>
-			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4).</param>
-			<returns>List of eligible production employees for the given appraisal period.</returns>
+			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4). Nullable.</param>
+			<param name="month">The month of the appraisal. Nullable.</param>
+			<returns>Returns a list of eligible production employees for the given appraisal period.</returns>
 			<response code="200">Returns the list of production employees.</response>
 			<response code="404">Returned when no eligible employees are found.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
@@ -363,7 +364,7 @@
 			<response code="409">If conflict occurs while moving staff</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployees(System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployees(System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the list of production employees already selected for appraisal for the specified year and quarter.
 			</summary>
@@ -395,7 +396,7 @@
 			<response code="404">If data not found</response>
 			<response code="500">If upload fails or an internal error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeReview(System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeReview(System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the review data of selected employees for a specific appraisal cycle, year, and quarter.
 			</summary>
@@ -427,7 +428,7 @@
 			<response code="409">If there is a conflict or invalid state</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeAgmApproval(System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeAgmApproval(System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the list of employees sent for AGM approval.
 			</summary>
@@ -501,7 +502,7 @@
 			<response code="404">If no accepted employees are found for the given year.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetNonProductionEmployees(System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetNonProductionEmployees(System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves all non-production employees eligible for appraisal for the specified appraisal ID, year, and quarter.
 			</summary>
@@ -524,7 +525,7 @@
 			<response code="409">If conflict occurs while moving staff</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedNonProductionEmployees(System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedNonProductionEmployees(System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the list of non-production employees already selected for appraisal based on appraisal ID, year, and quarter.
 			</summary>
@@ -546,7 +547,7 @@
 			<response code="404">If required information is not found.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetKra(System.Int32,System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetKra(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the KRA (Key Result Area) data for a given employee and appraisal cycle.
 			</summary>
@@ -569,7 +570,7 @@
 			<response code="404">If relevant appraisal data is not found.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelfEvaluation(System.Int32,System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelfEvaluation(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the self-evaluation record for a specific appraisal cycle based on employee ID, appraisal ID, year, and quarter.
 			</summary>
@@ -612,7 +613,7 @@
 			<response code="404">If necessary appraisal information is missing.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetManagerEvaluation(System.Int32,System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetManagerEvaluation(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the manager's evaluation for a specific employee and appraisal cycle.
 			</summary>
@@ -625,7 +626,7 @@
 			<response code="404">If manager evaluation data is not found.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetFinalAverageManagerScore(System.Int32,System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetFinalAverageManagerScore(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the final average score given by the manager for the employee's appraisal.
 			</summary>
@@ -648,7 +649,7 @@
 			<response code="404">If data not found</response>
 			<response code="500">If upload fails or an internal error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetHrUploadedSheet(System.Int32,System.Int32,System.String)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetHrUploadedSheet(System.Int32,System.Int32,System.String,System.Int32)">
 			<summary>
 				Retrieves the HR-uploaded MIS sheet containing appraisal data for the specified cycle.
 			</summary>
@@ -2350,6 +2351,15 @@
 			<response code="200">Returns the certification details</response>
 			<response code="404">If no certification details are found</response>
 			<response code="500">If there is an internal server error</response>
+		</member>
+		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.GetStaffCreation">
+			<summary>
+				Retrieves the staff creation details.
+			</summary>
+			<returns>An object containing the staff creation details.</returns>
+			<response code="200">Returns the staff creation details successfully.</response>
+			<response code="404">If no staff creation details are found.</response>
+			<response code="500">If there is an internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.StaffTransactionController.Create(AttendanceManagement.Application.Dtos.Attendance.ListCertificationCourseRequest)">
 			  <summary>

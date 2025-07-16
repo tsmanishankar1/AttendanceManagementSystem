@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1500,7 +1501,8 @@ public class DailyReportsInfra : IDailyReportInfra
             using (var connection = new SqlConnection(_context.Database.GetConnectionString()))
             {
                 await connection.OpenAsync();
-                using (var command = new SqlCommand("EXEC DailyReport @DailyReportId, @StaffIds, @FromDate, @ToDate, @CurrentMonth, @PreviousMonth, @FromMonth, @ToMonth, @IncludeTerminated, @TerminatedFrom, @TerminatedTo", connection))
+                using (var command = new SqlCommand(@" EXEC DailyReport  @DailyReportId = @DailyReportId, @StaffIds = @StaffIds, @FromDate = @FromDate, @ToDate = @ToDate, @CurrentMonth = @CurrentMonth,
+                @PreviousMonth = @PreviousMonth, @FromMonth = @FromMonth, @ToMonth = @ToMonth, @IncludeTerminated = @IncludeTerminated, @TerminatedFrom = @TerminatedFrom, @TerminatedTo = @TerminatedTo", connection))
                 {
                     command.Parameters.AddWithValue("@DailyReportId", request.DailyReportsId);
                     command.Parameters.AddWithValue("@StaffIds", staffIds);
@@ -1510,9 +1512,9 @@ public class DailyReportsInfra : IDailyReportInfra
                     command.Parameters.AddWithValue("@PreviousMonth", request.PreviousMonth ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@FromMonth", request.FromMonth ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@ToMonth", request.ToMonth ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@IncludeTerminated", request.IncludeTerminated ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@TerminatedFrom", request.TerminatedFromDate ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@TerminatedTo", request.TerminatedToDate ?? (object)DBNull.Value);
+                    command.Parameters.Add("@IncludeTerminated", SqlDbType.Bit).Value = (object?)request.IncludeTerminated ?? DBNull.Value;
+                    command.Parameters.Add("@TerminatedFrom", SqlDbType.Date).Value = (object?)request.TerminatedFromDate ?? DBNull.Value;
+                    command.Parameters.Add("@TerminatedTo", SqlDbType.Date).Value = (object?)request.TerminatedToDate ?? DBNull.Value;
 
                     var reader = await command.ExecuteReaderAsync();
                     var records = new List<Dictionary<string, object>>();

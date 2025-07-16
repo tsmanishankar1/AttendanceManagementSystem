@@ -16,5 +16,6 @@ namespace AttendanceManagement.Application.Interfaces.Application
         Task<string> CreateAsync(ListPreviousEmploymentRequest previousEmploymentRequests);
         Task<string> UpdateAsync(ListPreviousEmploymentUpdateRequest previousEmploymentUpdateRequest);
         Task<string> DeleteAsync(int previousEmploymentId, int deletedBy);
+        Task<int> GetStaffCreation();
     }
 }

@@ -277,7 +277,7 @@ public class ExcelImportInfra : IExcelImportInfra
                         var validDepartmentIds = _context.DepartmentMasters.Where(d => d.IsActive).Select(d => d.Id).ToHashSet();
                         for (int row = 2; row <= rowCount; row++)
                         {
-                            var branchName = worksheet.Cells[row, columnIndexes["BranchName"]].Text.Trim();
+                            var branchName = worksheet.Cells[row, columnIndexes["Branch"]].Text.Trim();
                             if (string.IsNullOrEmpty(branchName))
                             {
                                 errorLogs.Add($"Branch is empty at {row}");
@@ -286,7 +286,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             var branch = await _context.BranchMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == branchName.ToLower() && d.IsActive);
                             if (branch == null)
                             {
-                                errorLogs.Add($"Branch {branchName} not found at {row}");
+                                errorLogs.Add($"Branch '{branchName}' not found at {row}");
                                 continue;
                             }
                             var approvalLevel1 = worksheet.Cells[row, columnIndexes["ApprovalLevel1"]].Text.Trim();
@@ -298,17 +298,17 @@ public class ExcelImportInfra : IExcelImportInfra
                             var approval1 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == approvalLevel1 && s.IsActive == true);
                             if (approval1 == null)
                             {
-                                errorLogs.Add($"Approval Level1 {approvalLevel1} not found at {row}");
+                                errorLogs.Add($"Approval Level1 '{approvalLevel1}' not found at {row}");
                                 continue;
                             }
                             var approvalLevel2 = worksheet.Cells[row, columnIndexes["ApprovalLevel2"]]?.Text.Trim();
                             var approval2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == approvalLevel2 && s.IsActive == true);
                             if (approval2 == null)
                             {
-                                errorLogs.Add($"Approval Level2 {approvalLevel2} not found at {row}");
+                                errorLogs.Add($"Approval Level2 '{approvalLevel2}' not found at {row}");
                                 continue;
                             }
-                            var departmentName = worksheet.Cells[row, columnIndexes["DepartmentName"]].Text.Trim();
+                            var departmentName = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
                             if (string.IsNullOrEmpty(departmentName))
                             {
                                 errorLogs.Add($"Department is empty at {row}");
@@ -320,7 +320,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Department '{departmentName}' not found at row {row}");
                                 continue;
                             }
-                            var statusName = worksheet.Cells[row, columnIndexes["StatusName"]].Text.Trim();
+                            var statusName = worksheet.Cells[row, columnIndexes["Status"]].Text.Trim();
                             if (string.IsNullOrEmpty(statusName))
                             {
                                 errorLogs.Add($"Status is empty at {row}");
@@ -332,7 +332,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Status '{statusName}' not found at row {row}");
                                 continue;
                             }
-                            var divisionName = worksheet.Cells[row, columnIndexes["DivisionName"]].Text.Trim();
+                            var divisionName = worksheet.Cells[row, columnIndexes["Division"]].Text.Trim();
                             if (string.IsNullOrEmpty(divisionName))
                             {
                                 errorLogs.Add($"Division is empty at {row}");
@@ -344,7 +344,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Division '{divisionName}' not found at row {row}");
                                 continue;
                             }
-                            var designationName = worksheet.Cells[row, columnIndexes["DesignationName"]].Text.Trim();
+                            var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
                             if (string.IsNullOrEmpty(designationName))
                             {
                                 errorLogs.Add($"Designation is empty at {row}");
@@ -356,12 +356,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Designation '{designationName}' not found at row {row}");
                                 continue;
                             }
-                            var gradeName = worksheet.Cells[row, columnIndexes["GradeName"]].Text.Trim();
-                            if (string.IsNullOrEmpty(gradeName))
-                            {
-                                errorLogs.Add($"Grade is empty at {row}");
-                                continue;
-                            }
+                            var gradeName = worksheet.Cells[row, columnIndexes["Grade"]]?.Text.Trim();
                             var grade = await _context.GradeMasters.FirstOrDefaultAsync(g => g.Name.ToLower() == gradeName.ToLower() && g.IsActive);
                             if (grade == null)
                             {
@@ -374,13 +369,13 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Organization type is empty at {row}");
                                 continue;
                             }
-                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(g => g.ShortName.ToLower() == organizationTypeName.ToLower() && g.IsActive);
+                            var organizationType = await _context.OrganizationTypes.FirstOrDefaultAsync(g => g.Name.ToLower() == organizationTypeName.ToLower() && g.IsActive);
                             if (organizationType == null)
                             {
                                 errorLogs.Add($"Organization type '{organizationTypeName}' not found at row {row}");
                                 continue;
                             }
-                            var categoryName = worksheet.Cells[row, columnIndexes["CategoryName"]].Text.Trim();
+                            var categoryName = worksheet.Cells[row, columnIndexes["Category"]].Text.Trim();
                             if (string.IsNullOrEmpty(categoryName))
                             {
                                 errorLogs.Add($"Category is empty at {row}");
@@ -392,19 +387,14 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Category '{categoryName}' not found at row {row}");
                                 continue;
                             }
-                            var costCenterName = worksheet.Cells[row, columnIndexes["CostCenterName"]].Text.Trim();
-                            if (string.IsNullOrEmpty(costCenterName))
-                            {
-                                errorLogs.Add($"Cost centre is empty at {row}");
-                                continue;
-                            }
+                            var costCenterName = worksheet.Cells[row, columnIndexes["CostCenter"]]?.Text.Trim();
                             var costCenter = await _context.CostCentreMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == costCenterName.ToLower() && c.IsActive);
                             if (costCenter == null)
                             {
                                 errorLogs.Add($"Cost Center '{costCenterName}' not found at row {row}");
                                 continue;
                             }
-                            var workStationName = worksheet.Cells[row, columnIndexes["WorkStationName"]].Text.Trim();
+                            var workStationName = worksheet.Cells[row, columnIndexes["WorkStation"]].Text.Trim();
                             if (string.IsNullOrEmpty(workStationName))
                             {
                                 errorLogs.Add($"Workstation is empty at {row}");
@@ -416,19 +406,19 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Workstation '{workStationName}' not found at row {row}");
                                 continue;
                             }
-                            var leaveGroupName = worksheet.Cells[row, columnIndexes["LeaveGroupName"]].Text.Trim();
+                            var leaveGroupName = worksheet.Cells[row, columnIndexes["LeaveGroup"]].Text.Trim();
                             if (string.IsNullOrEmpty(leaveGroupName))
                             {
                                 errorLogs.Add($"Leave group is empty at {row}");
                                 continue;
                             }
-                            var leaveGroup = await _context.LeaveGroupConfigurations.FirstOrDefaultAsync(l => l.LeaveGroupConfigurationName.ToLower() == leaveGroupName.ToLower() && l.IsActive);
+                            var leaveGroup = await _context.LeaveGroups.FirstOrDefaultAsync(l => l.Name.ToLower() == leaveGroupName.ToLower() && l.IsActive);
                             if (leaveGroup == null)
                             {
                                 errorLogs.Add($"Leave Group '{leaveGroupName}' not found at row {row}");
                                 continue;
                             }
-                            var companyName = worksheet.Cells[row, columnIndexes["CompanyMasterName"]].Text.Trim();
+                            var companyName = worksheet.Cells[row, columnIndexes["Company"]].Text.Trim();
                             if (string.IsNullOrEmpty(companyName))
                             {
                                 errorLogs.Add($"Company is empty at {row}");
@@ -440,7 +430,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Company '{companyName}' not found at row {row}");
                                 continue;
                             }
-                            var locationName = worksheet.Cells[row, columnIndexes["LocationMasterName"]].Text.Trim();
+                            var locationName = worksheet.Cells[row, columnIndexes["Location"]].Text.Trim();
                             if (string.IsNullOrEmpty(locationName))
                             {
                                 errorLogs.Add($"Location is empty at {row}");
@@ -452,7 +442,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Location '{locationName}' not found at row {row}");
                                 continue;
                             }
-                            var holidayCalendarName = worksheet.Cells[row, columnIndexes["HolidayCalendarName"]].Text.Trim();
+                            var holidayCalendarName = worksheet.Cells[row, columnIndexes["HolidayCalendar"]].Text.Trim();
                             if (string.IsNullOrEmpty(holidayCalendarName))
                             {
                                 errorLogs.Add($"Holiday Calander is empty at {row}");
@@ -494,13 +484,13 @@ public class ExcelImportInfra : IExcelImportInfra
                                 District = worksheet.Cells[row, columnIndexes["District"]].Text.Trim(),
                                 State = worksheet.Cells[row, columnIndexes["State"]].Text.Trim(),
                                 Country = worksheet.Cells[row, columnIndexes["Country"]].Text.Trim(),
-                                OtEligible = bool.TryParse(worksheet.Cells[row, columnIndexes["Oteligible"]].Text, out var otEligible) ? otEligible : false,
+                                OtEligible = bool.TryParse(worksheet.Cells[row, columnIndexes["OtEligible"]].Text, out var otEligible) ? otEligible : false,
                                 ApprovalLevel1 = approval1.Id,
                                 ApprovalLevel2 = approval2.Id,
                                 AccessLevel = worksheet.Cells[row, columnIndexes["AccessLevel"]].Text.Trim(),
                                 PolicyGroup = worksheet.Cells[row, columnIndexes["PolicyGroup"]].Text.Trim(),
                                 WorkingDayPattern = worksheet.Cells[row, columnIndexes["WorkingDayPattern"]].Text.Trim(),
-                                UanNumber = worksheet.Cells[row, columnIndexes["Uannumber"]]?.Text.Trim(),
+                                UanNumber = worksheet.Cells[row, columnIndexes["UanNumber"]]?.Text.Trim(),
                                 EsiNumber = worksheet.Cells[row, columnIndexes["EsiNumber"]]?.Text.Trim(),
                                 IsMobileAppEligible = (bool)(bool.TryParse(worksheet.Cells[row, columnIndexes["IsMobileAppEligible"]].Text, out var isMobileAppEligible) ? isMobileAppEligible : false),
                                 GeoStatus = worksheet.Cells[row, columnIndexes["GeoStatus"]].Text.Trim(),
@@ -547,6 +537,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.StaffCreations.AddRangeAsync(staffCreations);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -587,15 +582,28 @@ public class ExcelImportInfra : IExcelImportInfra
                             var staffCreation = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffCreationIdStr && s.IsActive == true);
                             if (staffCreation == null)
                             {
-                                errorLogs.Add($"Staff {staffCreationIdStr} not found at row {row}");
+                                errorLogs.Add($"Staff '{staffCreationIdStr}' not found at row {row}");
                                 continue;
                             }
-                            var transactionFlagValue = worksheet.Cells[row, columnIndexes["TransactionFlag"]].Text.Trim().ToLower();
-                            var transactionFlag = transactionFlagValue == "true" || transactionFlagValue == "false";
+                            var value = worksheet.Cells[row, columnIndexes["TransactionFlag"]].Text?.Trim().ToLower();
+                            bool transactionFlag;
+                            if (value == "credit")
+                            {
+                                transactionFlag = true;
+                            }
+                            else if (value == "debit")
+                            {
+                                transactionFlag = false;
+                            }
+                            else
+                            {
+                                errorLogs.Add($"Invalid transaction flag at row {row}");
+                                continue;
+                            }
                             var leaveCount = decimal.TryParse(worksheet.Cells[row, columnIndexes["LeaveCount"]].Text, out var parsedLeaveCount) ? parsedLeaveCount : 0;
                             if (leaveCount <= 0)
                             {
-                                errorLogs.Add($"Invalid leave count {leaveCount} at row {row}");
+                                errorLogs.Add($"Invalid leave count '{leaveCount}' at row {row}");
                                 continue;
                             }
                             var actualBalance = await _context.IndividualLeaveCreditDebits
@@ -644,6 +652,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.IndividualLeaveCreditDebits.AddRangeAsync(individualLeaveCreditDebits);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -692,6 +705,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.DepartmentMasters.AddRangeAsync(departmentMasters);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -743,6 +761,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.DesignationMasters.AddRangeAsync(designationMasters);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -794,6 +817,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.DivisionMasters.AddRangeAsync(divisionMasters);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -845,6 +873,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.CostCentreMasters.AddRangeAsync(costCentreMasters);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -896,6 +929,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.Volumes.AddRangeAsync(volumes);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -939,19 +977,23 @@ public class ExcelImportInfra : IExcelImportInfra
                                 errorLogs.Add($"Staff '{staffIdText}' not found at row {row}");
                                 continue;
                             }
+                            var selectedPunch = worksheet.Cells[row, columnIndexes["SelectPunch"]].Text.Trim().ToLower();
                             DateTime? inPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["InPunch"]]?.Text, out var parsedInPunch) ? parsedInPunch : null;
                             DateTime? outPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["OutPunch"]]?.Text, out var parsedOutPunch) ? parsedOutPunch : null;
-                            if (!inPunch.HasValue || !outPunch.HasValue)
+                            if(selectedPunch == "In & Out")
                             {
-                                errorLogs.Add($"Invalid InPunch or OutPunch format at row {row}");
-                                continue;
+                                if (!inPunch.HasValue || !outPunch.HasValue)
+                                {
+                                    errorLogs.Add($"Invalid InPunch or OutPunch format at row {row}");
+                                    continue;
+                                }
                             }
                             var manualPunchRequisition = new ManualPunchRequistion
                             {
                                 StaffId = staff.Id,
-                                SelectPunch = worksheet.Cells[row, columnIndexes["SelectPunch"]].Text.Trim(),
-                                InPunch = inPunch.Value,
-                                OutPunch = outPunch.Value,
+                                SelectPunch = selectedPunch,
+                                InPunch = inPunch.HasValue ? inPunch.Value : (DateTime?)null,
+                                OutPunch = outPunch.HasValue ? outPunch.Value : (DateTime?)null,
                                 Remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim(),
                                 IsActive = true,
                                 CreatedBy = excelImportDto.CreatedBy,
@@ -964,6 +1006,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.ManualPunchRequistions.AddRangeAsync(manualPunchRequisitions);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1059,6 +1106,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.CommonPermissions.AddRangeAsync(commonPermissions);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1087,7 +1139,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             var existingStaff = _context.StaffCreations.FirstOrDefault(s => s.StaffId == staffText && s.IsActive == true);
                             if (existingStaff == null)
                             {
-                                errorLogs.Add($"Staff {staffText} not found at {row}");
+                                errorLogs.Add($"Staff '{staffText}' not found at {row}");
                                 continue;
                             }
                             var statusName = worksheet.Cells[row, columnIndexes["Status"]].Text.Trim();
@@ -1102,7 +1154,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 .FirstOrDefaultAsync();
                             if (statusId == 0)
                             {
-                                errorLogs.Add($"Status {statusName} not found at {row}");
+                                errorLogs.Add($"Status '{statusName}' not found at {row}");
                                 continue;
                             }
                             var resignationDateText = worksheet.Cells[row, columnIndexes["ResignationDate"]]?.Text;
@@ -1121,6 +1173,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             _context.StaffCreations.UpdateRange(staffCreations);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1144,7 +1201,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             var shiftTypeId = await _context.ShiftTypeDropDowns.FirstOrDefaultAsync(s => s.Name == shiftType && s.IsActive);
                             if (shiftTypeId == null)
                             {
-                                errorLogs.Add($"Shift type {shiftType} not found at row {row}");
+                                errorLogs.Add($"Shift type '{shiftType}' not found at row {row}");
                                 continue;
                             }
                             var isActive = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
@@ -1170,6 +1227,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.Shifts.AddRangeAsync(shiftMasters);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1224,7 +1286,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             bool isToDateValid = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["ToDate"]].Text, out var toDate);
                             if (!isFromDateValid)
                             {
-                                errorLogs.Add($"Invalid FromDate {isFromDateValid} at row {row}");
+                                errorLogs.Add($"Invalid FromDate '{isFromDateValid}' at row {row}");
                                 continue;
                             }
                             toDate = isToDateValid ? toDate : fromDate;
@@ -1249,6 +1311,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.LeaveRequisitions.AddRangeAsync(leaveRequisitions);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1326,6 +1393,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.OnDutyRequisitions.AddRangeAsync(onDutyRequisitions);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1404,6 +1476,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.WorkFromHomes.AddRangeAsync(workFromHomes);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1466,6 +1543,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.OnDutyOvertimes.AddRangeAsync(onDutyOvertimes);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1506,7 +1588,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
                             if (staff == null)
                             {
-                                errorLogs.Add($"Staff {staffIdText} not found at {row}");
+                                errorLogs.Add($"Staff '{staffIdText}' not found at {row}");
                                 continue;
                             }
                             var shift = worksheet.Cells[row, columnIndexes["Shift"]].Text.Trim();
@@ -1548,6 +1630,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.ShiftExtensions.AddRangeAsync(shiftExtensions);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1570,13 +1657,13 @@ public class ExcelImportInfra : IExcelImportInfra
                             var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                             if (string.IsNullOrEmpty(staffIdText))
                             {
-                                errorLogs.Add($"Staff is empty at row {row}");
+                                errorLogs.Add($"StaffId is empty at row {row}");
                                 continue;
                             }
                             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
                             if (staff == null)
                             {
-                                errorLogs.Add($"Staff '{staffIdText}' not found at row {row}");
+                                errorLogs.Add($"StaffId '{staffIdText}' not found at row {row}");
                                 continue;
                             }
                             DateOnly? vaccinatedDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["VaccinatedDate"]]?.Text, out var parsedVaccinatedDate) ? parsedVaccinatedDate : null;
@@ -1630,6 +1717,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.StaffVaccinations.AddRangeAsync(staffVaccinations);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1650,6 +1742,23 @@ public class ExcelImportInfra : IExcelImportInfra
                         var validDepartmentIds = _context.DepartmentMasters.Where(d => d.IsActive).Select(d => d.Id).ToHashSet();
                         for (int row = 2; row <= rowCount; row++)
                         {
+                            var employeeId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                            var staffId = await _context.StaffCreations.AnyAsync(s => s.IsActive == true && s.StaffId == employeeId);
+                            if (!staffId)
+                            {
+                                errorLogs.Add($"StaffId '{employeeId}' not found at row {row}");
+                                continue;
+                            }
+                            var employeeName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
+                            var employee = _context.StaffCreations.Where(s => s.IsActive == true)
+                                .AsEnumerable()
+                                .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
+                            if (employee == null)
+                            {
+                                errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
+                                continue;
+
+                            }
                             var departmentName = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
                             if (string.IsNullOrEmpty(departmentName))
                             {
@@ -1664,8 +1773,8 @@ public class ExcelImportInfra : IExcelImportInfra
                             }
                             var addProbation = new ProbationReport
                             {
-                                EmpId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim(),
-                                Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
+                                EmpId = employeeId,
+                                Name = employeeName,
                                 DepartmentId = department.Id,
                                 ProdScore = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod Score"]].Text.Trim(), out decimal prodeScore) ? prodeScore : 0m,
                                 ProdPercentage = decimal.TryParse(worksheet.Cells[row, columnIndexes["Prod %"]].Text.Trim(), out decimal prodPercentage) ? prodPercentage : 0m,
@@ -1693,7 +1802,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 ProductionAchievedPercentageNov = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Nov"]]?.Text.Trim(), out decimal nov) ? nov : (decimal?)null,
                                 ProductionAchievedPercentageDec = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Dec"]]?.Text.Trim(), out decimal dec) ? dec : (decimal?)null,
                                 ProductivityYear = excelImportDto.Year ?? 0,
-                                //Month = excelImportDto.Month ?? 0,
+                                Month = excelImportDto.Month ?? 0,
                                 IsActive = true,
                                 CreatedBy = excelImportDto.CreatedBy,
                                 CreatedUtc = DateTime.UtcNow
@@ -1704,6 +1813,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.ProbationReports.AddRangeAsync(probations);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1724,6 +1838,23 @@ public class ExcelImportInfra : IExcelImportInfra
                         var validDivisionIds = _context.DivisionMasters.Where(d => d.IsActive).Select(d => d.Id).ToHashSet();
                         for (int row = 2; row <= rowCount; row++)
                         {
+                            var employeeId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim();
+                            var staffId = await _context.StaffCreations.AnyAsync(s => s.IsActive == true && s.StaffId == employeeId);
+                            if (!staffId)
+                            {
+                                errorLogs.Add($"StaffId '{employeeId}' not found at row {row}");
+                                continue;
+                            }
+                            var employeeName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
+                            var employee = _context.StaffCreations.Where(s => s.IsActive == true)
+                                .AsEnumerable()
+                                .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
+                            if (employee == null)
+                            {
+                                errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
+                                continue;
+
+                            }
                             var divisionName = worksheet.Cells[row, columnIndexes["EMP Division"]].Text.Trim();
                             if (string.IsNullOrEmpty(divisionName))
                             {
@@ -1738,8 +1869,8 @@ public class ExcelImportInfra : IExcelImportInfra
                             }
                             var addProbation = new ProbationTarget
                             {
-                                EmpId = worksheet.Cells[row, columnIndexes["Emp ID"]].Text.Trim(),
-                                Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
+                                EmpId = employeeId,
+                                Name = employeeName,
                                 DivisionId = division.Id,
                                 Jan = decimal.TryParse(worksheet.Cells[row, columnIndexes["Jan"]]?.Text.Trim(), out decimal jan) ? jan : (decimal?)null,
                                 Feb = decimal.TryParse(worksheet.Cells[row, columnIndexes["Feb"]]?.Text.Trim(), out decimal feb) ? feb : (decimal?)null,
@@ -1764,6 +1895,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.ProbationTargets.AddRangeAsync(probations);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1904,6 +2040,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.PaySheets.AddRangeAsync(paySheets);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -1926,13 +2067,19 @@ public class ExcelImportInfra : IExcelImportInfra
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 var employeeId = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim();
+                                var staffId = await _context.StaffCreations.AnyAsync(s => s.IsActive == true && s.StaffId == employeeId);
+                                if (!staffId)
+                                {
+                                    errorLogs.Add($"StaffId '{employeeId}' not found at row {row}");
+                                    continue;
+                                }
                                 var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
                                 var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                     .AsEnumerable()
                                     .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
                                 if (employee == null)
                                 {
-                                    errorLogs.Add($"Staff {employeeId} not found at row {row}");
+                                    errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
                                     continue;
 
                                 }
@@ -1978,6 +2125,11 @@ public class ExcelImportInfra : IExcelImportInfra
                             {
                                 await _context.MonthlyPerformances.AddRangeAsync(monthlyPerformances);
                                 await _context.SaveChangesAsync();
+
+                                if (errorLogs.Any())
+                                {
+                                    throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                                }
                             }
                             else
                             {
@@ -1998,13 +2150,19 @@ public class ExcelImportInfra : IExcelImportInfra
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 var employeeId = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim();
+                                var staffId = await _context.StaffCreations.AnyAsync(s => s.IsActive == true && s.StaffId == employeeId);
+                                if (!staffId)
+                                {
+                                    errorLogs.Add($"StaffId '{employeeId}' not found at row {row}");
+                                    continue;
+                                }
                                 var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
                                 var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                     .AsEnumerable()
                                     .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
                                 if (employee == null)
                                 {
-                                    errorLogs.Add($"Staff {employeeId} not found at row {row}");
+                                    errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
                                     continue;
                                 }
                                 var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
@@ -2044,6 +2202,11 @@ public class ExcelImportInfra : IExcelImportInfra
                             {
                                 await _context.QuarterlyPerformances.AddRangeAsync(quarterlyPerformances);
                                 await _context.SaveChangesAsync();
+
+                                if (errorLogs.Any())
+                                {
+                                    throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                                }
                             }
                             else
                             {
@@ -2064,13 +2227,19 @@ public class ExcelImportInfra : IExcelImportInfra
                             for (int row = 2; row <= rowCount; row++)
                             {
                                 var employeeId = worksheet.Cells[row, columnIndexes["Employee Code"]].Text.Trim();
+                                var staffId = await _context.StaffCreations.AnyAsync(s => s.IsActive == true && s.StaffId == employeeId);
+                                if (!staffId)
+                                {
+                                    errorLogs.Add($"StaffId '{employeeId}' not found at row {row}");
+                                    continue;
+                                }
                                 var employeeName = worksheet.Cells[row, columnIndexes["Employee Name"]].Text.Trim();
                                 var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                     .AsEnumerable()
                                     .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
                                 if (employee == null)
                                 {
-                                    errorLogs.Add($"Staff {employeeId} not found at row {row}");
+                                    errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
                                     continue;
                                 }
                                 var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
@@ -2109,6 +2278,11 @@ public class ExcelImportInfra : IExcelImportInfra
                             {
                                 await _context.YearlyPerformances.AddRangeAsync(quarterlyPerformances);
                                 await _context.SaveChangesAsync();
+
+                                if (errorLogs.Any())
+                                {
+                                    throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                                }
                             }
                             else
                             {
@@ -2130,13 +2304,19 @@ public class ExcelImportInfra : IExcelImportInfra
                         for (int row = 2; row <= rowCount; row++)
                         {
                             var employeeId = worksheet.Cells[row, columnIndexes["EmployeeCode"]].Text.Trim();
+                            var staffId = await _context.StaffCreations.AnyAsync(s => s.IsActive == true && s.StaffId == employeeId);
+                            if (!staffId)
+                            {
+                                errorLogs.Add($"StaffId '{employeeId}' not found at row {row}");
+                                continue;
+                            }
                             var employeeName = worksheet.Cells[row, columnIndexes["EmployeeName"]].Text.Trim();
                             var employee = _context.StaffCreations.Where(s => s.IsActive == true)
                                 .AsEnumerable()
                                 .FirstOrDefault(s => $"{s.FirstName}{(string.IsNullOrWhiteSpace(s.LastName) ? "" : " " + s.LastName)}" == employeeName);
                             if (employee == null)
                             {
-                                errorLogs.Add($"Staff {employeeId} not found at row {row}");
+                                errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
                                 continue;
                             }
                             var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
@@ -2242,6 +2422,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.EmployeeAppraisalSheets.AddRangeAsync(appraisals);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
@@ -2265,7 +2450,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == employeeId && s.IsActive == true);
                             if (staff == null)
                             {
-                                errorLogs.Add($"Staff {employeeId} not found at row {row}");
+                                errorLogs.Add($"StaffId '{employeeId}' not found at row {row}");
                                 continue;
                             }
                             var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
@@ -2274,7 +2459,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Name.Trim() == shiftName && s.IsActive);
                             if (shift == null)
                             {
-                                errorLogs.Add($"Shift {rawShift} not found at row {row}");
+                                errorLogs.Add($"Shift '{rawShift}' not found at row {row}");
                                 continue;
                             }
                             var dateText = worksheet.Cells[row, columnIndexes["Date"]]?.Text?.Trim();
@@ -2296,7 +2481,7 @@ public class ExcelImportInfra : IExcelImportInfra
                                 .ToListAsync();
                             if (existingAssignedShift.Count > 0)
                             {
-                                errorLogs.Add($"Shift already assigned for staff {staffName} at row {row}");
+                                errorLogs.Add($"Shift already assigned for staff '{staffName}' at row {row}");
                                 continue;
                             }
                             var shiftAssign = new AssignShift
@@ -2315,6 +2500,11 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             await _context.AssignShifts.AddRangeAsync(assignShifts);
                             await _context.SaveChangesAsync();
+
+                            if (errorLogs.Any())
+                            {
+                                throw new InvalidOperationException("Some records could not be processed: " + string.Join(", ", errorLogs));
+                            }
                         }
                         else
                         {
