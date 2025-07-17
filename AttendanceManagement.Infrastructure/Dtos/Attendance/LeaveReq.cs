@@ -20,9 +20,9 @@
     {
         public int Id { get; set; }
         public int? ApplicationTypeId { get; set; }
-        public string? ApplicationTypeName { get; set; } 
-        public TimeOnly StartTime { get; set; }
-        public TimeOnly EndTime { get; set; }
+        public string? ApplicationTypeName { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
         public string TotalHours { get; set; } = null!;
         public DateOnly PermissionDate { get; set; }
         public string PermissionType { get; set; } = null!;

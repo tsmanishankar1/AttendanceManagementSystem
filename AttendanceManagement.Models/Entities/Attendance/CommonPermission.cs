@@ -51,6 +51,10 @@ public partial class CommonPermission
 
     public int? CancelledBy { get; set; }
 
+    public DateOnly? FromDate { get; set; }
+
+    public DateOnly? ToDate { get; set; }
+
     public virtual ApplicationType? ApplicationType { get; set; }
 
     public virtual ApprovalNotification? ApprovalNotification { get; set; }

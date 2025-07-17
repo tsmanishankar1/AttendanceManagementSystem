@@ -452,8 +452,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                                     id: permissionRequest.Id,
                                     permissionType: permissionRequest.PermissionType,
                                     permissionDate: permissionRequest.PermissionDate,
-                                    startTime: permissionRequest.StartTime,
-                                    endTime: permissionRequest.EndTime,
+                                    startTime: Combine(permissionRequest.FromDate, permissionRequest.StartTime),
+                                    endTime: Combine(permissionRequest.ToDate, permissionRequest.EndTime),
                                     duration: formattedDuration,
                                     remarks: permissionRequest.Remarks,
                                     createdBy: staffOrCreatorId,
@@ -1804,6 +1804,13 @@ namespace AttendanceManagement.Infrastructure.Infra
                 }
             }
             return message;
+        }
+
+        private static DateTime Combine(DateOnly? date, TimeOnly? time)
+        {
+            if (!date.HasValue || !time.HasValue)
+                throw new ArgumentException("Date or Time is null");
+            return date.Value.ToDateTime(time.Value);
         }
 
         public async Task AttendanceFreeze(int staffId, DateOnly startDate, DateOnly endDate)

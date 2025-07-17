@@ -4,9 +4,9 @@ namespace AttendanceManagement.Application.Dtos.Attendance
 {
     public partial class CommonPermissionRequest
     {
-        public TimeOnly StartTime { get; set; }
+        public DateTime StartTime { get; set; }
         public int? StaffId { get; set; }
-        public TimeOnly EndTime { get; set; }
+        public DateTime EndTime { get; set; }
         public int ApplicationTypeId { get; set; }
         public DateOnly PermissionDate { get; set; }
         [MaxLength(50)]

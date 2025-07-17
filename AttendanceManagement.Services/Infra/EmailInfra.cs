@@ -322,7 +322,7 @@ namespace AttendanceManagement.Infrastructure.Infra
 
         public async Task SendCommonPermissionRequestEmail(
         string recipientEmail, int recipientId, string recipientName, int? applicationTypeId, int id, string permissionType, DateOnly permissionDate,
-        TimeOnly startTime, TimeOnly endTime, string duration, string remarks, int createdBy, string creatorName, string requestDate)
+        DateTime startTime, DateTime endTime, string duration, string remarks, int createdBy, string creatorName, string requestDate)
         {
             if (!string.IsNullOrEmpty(recipientEmail))
             {
@@ -369,8 +369,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                         string approvalLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={approvalEncoded}";
                         string rejectLink = $"{frontEndUrl}/#/main/Tools/MyApprovalsTools?data={rejectEncoded}";
                         string permissionDateFormatted = permissionDate.ToString("dd-MMM-yyyy");
-                        string startTimeFormatted = startTime.ToString("hh:mm tt");
-                        string endTimeFormatted = endTime.ToString("hh:mm tt");
+                        string startTimeFormatted = startTime.ToString("dd-MMM-yyyy hh:mm tt");
+                        string endTimeFormatted = endTime.ToString("dd-MMM-yyyy hh:mm tt");
 
                         string emailBody = $@"
                         <p>Dear {recipientName},</p>

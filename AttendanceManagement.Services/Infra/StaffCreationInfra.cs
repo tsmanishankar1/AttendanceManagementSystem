@@ -713,14 +713,17 @@ namespace AttendanceManagement.Infrastructure.Infra
             bool isSuperAdmin = approver == "SUPER ADMIN" || approver == "HR ADMIN";
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == currentApprovar1 && s.IsActive == true);
             if (staff == null) throw new MessageNotFoundException("Approver not found");
+            var accessLevelsWithSelfView = new[] { "REPORTING MANAGER", "SITE HR", "TEAM LEAD", "MIS", "AGM" };
+            bool canViewOwnRecord = accessLevelsWithSelfView.Contains(approver);
             var query = _context.StaffCreations
-                   .Where(s => s.IsActive == true &&
-                   (
-                       isSuperAdmin ||
-                       (isApprovalLevel1 == true && isApprovalLevel2 == null && s.ApprovalLevel1 == currentApprovar1) ||
-                       (isApprovalLevel2 == true && isApprovalLevel1 == null && s.ApprovalLevel2 == currentApprovar1) ||
-                       (isApprovalLevel1 == null && isApprovalLevel2 == null && (s.ApprovalLevel1 == currentApprovar1 || s.ApprovalLevel2 == currentApprovar1))
-                   ));
+                .Where(s => s.IsActive == true &&
+                (
+                    isSuperAdmin
+                    || (isApprovalLevel1 == true && isApprovalLevel2 == null && s.ApprovalLevel1 == currentApprovar1)
+                    || (isApprovalLevel2 == true && isApprovalLevel1 == null && s.ApprovalLevel2 == currentApprovar1)
+                    || (isApprovalLevel1 == null && isApprovalLevel2 == null && (s.ApprovalLevel1 == currentApprovar1 || s.ApprovalLevel2 == currentApprovar1))
+                    || (canViewOwnRecord && s.Id == currentApprovar1)
+                ));
             var records = await query
                 .Select(s => new StaffCreationResponse
                 {

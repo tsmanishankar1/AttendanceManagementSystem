@@ -15,7 +15,7 @@ namespace AttendanceManagement.Application.Interfaces.Application
         string fromDuration, string? toDuration, decimal totalDays, string reason, int createdBy, string creatorName, string requestDate);
         Task SendCommonPermissionRequestEmail(
         string recipientEmail, int recipientId, string recipientName, int? applicationTypeId, int id, string permissionType, DateOnly permissionDate,
-        TimeOnly startTime, TimeOnly endTime, string duration, string remarks, int createdBy, string creatorName, string requestDate);
+        DateTime startTime, DateTime endTime, string duration, string remarks, int createdBy, string creatorName, string requestDate);
         Task SendManualPunchRequestEmail(
         string recipientEmail, int recipientId, string recipientName, string staffName, int id, int applicationTypeId,
         string selectPunch, DateTime? inPunch, DateTime? outPunch, string remarks, int createdBy, string requestDate);

@@ -323,8 +323,12 @@ public class ApplicationInfra : IApplicationInfra
                                 : null,
                         PermissionDate = tempWithSc.cp.PermissionDate,
                         TotalHours = tempWithSc.cp.TotalHours,
-                        StartTime = tempWithSc.cp.StartTime,
-                        EndTime = tempWithSc.cp.EndTime,
+                        StartTime = tempWithSc.cp.FromDate != null
+                        ? tempWithSc.cp.FromDate.Value.ToDateTime(tempWithSc.cp.StartTime)
+                        : (DateTime?)null,
+                        EndTime = tempWithSc.cp.ToDate != null
+                        ? tempWithSc.cp.ToDate.Value.ToDateTime(tempWithSc.cp.EndTime)
+                        : (DateTime?)null,
                         PermissionType = tempWithSc.cp.PermissionType,
                         Remarks = tempWithSc.cp.Remarks
                     })
@@ -1443,6 +1447,7 @@ public class ApplicationInfra : IApplicationInfra
         }
         else if (applicationTypeId == 2)
         {
+#pragma warning disable CS8629 // Nullable value type may be null.
             var getCommonPermissions = await (from permission in _context.CommonPermissions
                                               let staffIdToUse = permission.StaffId ?? permission.CreatedBy
                                               join creatorStaff in _context.StaffCreations on staffIdToUse equals creatorStaff.Id
@@ -1492,8 +1497,12 @@ public class ApplicationInfra : IApplicationInfra
                                                       ? $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}"
                                                       : $"{creatorStaff.FirstName}{(string.IsNullOrWhiteSpace(creatorStaff.LastName) ? "" : " " + creatorStaff.LastName)}",
                                                   permission.PermissionDate,
-                                                  permission.StartTime,
-                                                  permission.EndTime,
+                                                  StartTime = permission.FromDate != null
+                                                    ? permission.FromDate.Value.ToDateTime(permission.StartTime)
+                                                    : (DateTime?)null,
+                                                  EndTime = permission.ToDate != null
+                                                    ? permission.ToDate.Value.ToDateTime(permission.EndTime)
+                                                    : (DateTime?)null,
                                                   permission.TotalHours,
                                                   permission.Remarks
                                               }).ToListAsync();
@@ -2417,14 +2426,14 @@ public class ApplicationInfra : IApplicationInfra
         CommonPermission commonPermission = new CommonPermission();
         var permissionDate = commonPermissionRequest.PermissionDate;
         var dayOfWeek = permissionDate.DayOfWeek;
-        if (dayOfWeek == DayOfWeek.Saturday) throw new ConflictException("Permission is not allowed on Saturdays.");
+        if (dayOfWeek == DayOfWeek.Saturday) throw new ConflictException("Permission is not allowed on Saturdays");
         var hasLeaveOnDate = await _context.LeaveRequisitions.AnyAsync(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
             (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
             (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
             (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
             permissionDate >= l.FromDate && permissionDate <= l.ToDate && (l.Status1 == null || l.Status1 == true) &&
             l.IsActive == true && (l.IsCancelled == false || l.IsCancelled == null));
-        if (hasLeaveOnDate) throw new ConflictException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken.");
+        if (hasLeaveOnDate) throw new ConflictException($"Cannot apply for permission on {permissionDate:yyyy-MM-dd}, as leave is already taken");
         var startOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month, 1);
         var endOfMonth = new DateOnly(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month,
             DateTime.DaysInMonth(commonPermissionRequest.PermissionDate.Year, commonPermissionRequest.PermissionDate.Month));
@@ -2436,7 +2445,7 @@ public class ApplicationInfra : IApplicationInfra
             (commonPermissionRequest.StaffId == null && l.StaffId == (int?)commonPermissionRequest.CreatedBy) ||
             (commonPermissionRequest.StaffId == null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.CreatedBy)) &&
             l.PermissionDate == commonPermissionRequest.PermissionDate);
-        if (existingPermissionOnDate) throw new ConflictException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists.");
+        if (existingPermissionOnDate) throw new ConflictException($"Permission for the date {commonPermissionRequest.PermissionDate:yyyy-MM-dd} already exists");
         var permissionsThisMonth = await _context.CommonPermissions
             .Where(l => ((commonPermissionRequest.StaffId != null && l.StaffId == (int?)commonPermissionRequest.StaffId) ||
                 (commonPermissionRequest.StaffId != null && l.StaffId == null && l.CreatedBy == (int?)commonPermissionRequest.StaffId) ||
@@ -2447,8 +2456,7 @@ public class ApplicationInfra : IApplicationInfra
             .ToListAsync();
         if (permissionsThisMonth.Count >= 2) throw new ConflictException($"You cannot apply for permission more than twice in {monthName}.");
         var duration = commonPermissionRequest.EndTime - commonPermissionRequest.StartTime;
-        if (duration.TotalMinutes <= 0) throw new ConflictException("End time must be greater than start time.");
-        if (duration.TotalMinutes > 120) throw new ConflictException("Permission duration cannot exceed 2 hours.");
+        if (duration.TotalMinutes > 120) throw new ConflictException("Permission duration cannot exceed 2 hours");
         var totalMinutesThisMonth = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
         if (totalMinutesThisMonth + duration.TotalMinutes > 120) throw new ConflictException($"Cumulative permission time for {monthName} cannot exceed 2 hours.");
         var formattedDuration = $"{duration.Hours:D2}:{duration.Minutes:D2}";
@@ -2456,8 +2464,10 @@ public class ApplicationInfra : IApplicationInfra
         commonPermission.StaffId = commonPermissionRequest.StaffId;
         commonPermission.ApplicationTypeId = commonPermissionRequest.ApplicationTypeId;
         commonPermission.PermissionType = commonPermissionRequest.PermissionType;
-        commonPermission.StartTime = commonPermissionRequest.StartTime;
-        commonPermission.EndTime = commonPermissionRequest.EndTime;
+        commonPermission.FromDate = DateOnly.FromDateTime(commonPermissionRequest.StartTime);
+        commonPermission.ToDate = DateOnly.FromDateTime(commonPermissionRequest.EndTime);
+        commonPermission.StartTime = TimeOnly.FromDateTime(commonPermissionRequest.StartTime);
+        commonPermission.EndTime = TimeOnly.FromDateTime(commonPermissionRequest.EndTime);
         commonPermission.PermissionDate = commonPermissionRequest.PermissionDate;
         commonPermission.TotalHours = formattedDuration;
         commonPermission.Remarks = commonPermissionRequest.Remarks;
