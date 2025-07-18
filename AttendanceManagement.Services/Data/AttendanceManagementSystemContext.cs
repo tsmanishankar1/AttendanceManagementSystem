@@ -796,9 +796,13 @@ public partial class AttendanceManagementSystemContext : DbContext
 
             entity.ToTable("AttendanceRecord");
 
-            entity.Property(e => e.BreakHour).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.BreakHour)
+                .HasMaxLength(20)
+                .IsUnicode(false);
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
-            entity.Property(e => e.ExtraBreakHours).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.ExtraBreakHours)
+                .HasMaxLength(20)
+                .IsUnicode(false);
             entity.Property(e => e.FirstIn).HasColumnType("datetime");
             entity.Property(e => e.FreezedOn).HasColumnType("datetime");
             entity.Property(e => e.LastOut).HasColumnType("datetime");

@@ -143,7 +143,7 @@
         public TimeOnly? InTime { get; set; }
         public TimeOnly? OutTime { get; set; }
         public TimeOnly? TotalHoursWorked { get; set; }
-        public decimal? BreakHours { get; set; }
+        public string? BreakHours { get; set; }
         public bool? IsBreakHoursExceeded { get; set; }
         public decimal? ProductiveHours { get; set; }
         public string AttendanceStatus { get; set; } = null!;

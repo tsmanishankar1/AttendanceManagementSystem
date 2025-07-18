@@ -7,11 +7,11 @@ public partial class AttendanceRecord
 {
     public int Id { get; set; }
 
-    public decimal? BreakHour { get; set; }
+    public string? BreakHour { get; set; }
 
     public bool? IsBreakHoursExceed { get; set; }
 
-    public decimal? ExtraBreakHours { get; set; }
+    public string? ExtraBreakHours { get; set; }
 
     public DateTime? FirstIn { get; set; }
 
