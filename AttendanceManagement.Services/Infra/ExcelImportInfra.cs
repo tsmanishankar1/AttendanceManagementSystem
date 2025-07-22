@@ -302,11 +302,15 @@ public class ExcelImportInfra : IExcelImportInfra
                                 continue;
                             }
                             var approvalLevel2 = worksheet.Cells[row, columnIndexes["ApprovalLevel2"]]?.Text.Trim();
-                            var approval2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == approvalLevel2 && s.IsActive == true);
-                            if (approval2 == null)
+                            StaffCreation? approval2 = null;
+                            if (!string.IsNullOrWhiteSpace(approvalLevel2))
                             {
-                                errorLogs.Add($"Approval Level2 '{approvalLevel2}' not found at {row}");
-                                continue;
+                                approval2 = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == approvalLevel2 && s.IsActive == true);
+                                if (approval2 == null)
+                                {
+                                    errorLogs.Add($"Approval Level2 '{approvalLevel2}' not found at {row}");
+                                    continue;
+                                }
                             }
                             var departmentName = worksheet.Cells[row, columnIndexes["Department"]].Text.Trim();
                             if (string.IsNullOrEmpty(departmentName))
@@ -357,11 +361,15 @@ public class ExcelImportInfra : IExcelImportInfra
                                 continue;
                             }
                             var gradeName = worksheet.Cells[row, columnIndexes["Grade"]]?.Text.Trim();
-                            var grade = await _context.GradeMasters.FirstOrDefaultAsync(g => g.Name.ToLower() == gradeName.ToLower() && g.IsActive);
-                            if (grade == null)
+                            GradeMaster? grade = null;
+                            if (!string.IsNullOrWhiteSpace(gradeName))
                             {
-                                errorLogs.Add($"Grade '{gradeName}' not found at row {row}");
-                                continue;
+                                grade = await _context.GradeMasters.FirstOrDefaultAsync(g => g.Name.ToLower() == gradeName.ToLower() && g.IsActive);
+                                if (grade == null)
+                                {
+                                    errorLogs.Add($"Grade '{gradeName}' not found at row {row}");
+                                    continue;
+                                }
                             }
                             var organizationTypeName = worksheet.Cells[row, columnIndexes["OrganizationType"]].Text.Trim();
                             if (string.IsNullOrEmpty(organizationTypeName))
@@ -388,11 +396,15 @@ public class ExcelImportInfra : IExcelImportInfra
                                 continue;
                             }
                             var costCenterName = worksheet.Cells[row, columnIndexes["CostCenter"]]?.Text.Trim();
-                            var costCenter = await _context.CostCentreMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == costCenterName.ToLower() && c.IsActive);
-                            if (costCenter == null)
+                            CostCentreMaster? costCenter = null;
+                            if (!string.IsNullOrWhiteSpace(costCenterName))
                             {
-                                errorLogs.Add($"Cost Center '{costCenterName}' not found at row {row}");
-                                continue;
+                                costCenter = await _context.CostCentreMasters.FirstOrDefaultAsync(c => c.Name.ToLower() == costCenterName.ToLower() && c.IsActive);
+                                if (costCenter == null)
+                                {
+                                    errorLogs.Add($"Cost Center '{costCenterName}' not found at row {row}");
+                                    continue;
+                                }
                             }
                             var workStationName = worksheet.Cells[row, columnIndexes["WorkStation"]].Text.Trim();
                             if (string.IsNullOrEmpty(workStationName))
