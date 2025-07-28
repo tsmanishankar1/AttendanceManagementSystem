@@ -340,17 +340,17 @@
 			<param name="service">The appraisal management service.</param>
 			<param name="logging">The logging service for capturing audit and error logs.</param>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetProductionEmployees(System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetProductionEmployees(System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves all production employees eligible for appraisal based on the specified appraisal cycle.
+				Retrieves the list of production employees associated with the specified appraisal cycle, year, and optionally filtered by quarter or month.
 			</summary>
 			<param name="appraisalId">The ID of the appraisal cycle.</param>
 			<param name="year">The year of the appraisal.</param>
-			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4). Nullable.</param>
-			<param name="month">The month of the appraisal. Nullable.</param>
-			<returns>Returns a list of eligible production employees for the given appraisal period.</returns>
+			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4). Optional.</param>
+			<param name="month">The month of the appraisal (1–12). Optional.</param>
+			<returns>An object containing a success status and the production employee data.</returns>
 			<response code="200">Returns the list of production employees.</response>
-			<response code="404">Returned when no eligible employees are found.</response>
+			<response code="404">Returned when no production employee data is found.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaffToMis(AttendanceManagement.Application.Dtos.Attendance.SelectedEmployeesRequest)">
@@ -364,13 +364,14 @@
 			<response code="409">If conflict occurs while moving staff</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployees(System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployees(System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
 				Retrieves the list of production employees already selected for appraisal for the specified year and quarter.
 			</summary>
 			<param name="appraisalId">The ID of the appraisal cycle.</param>
 			<param name="year">The year of the appraisal.</param>
-			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4).</param>
+			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4). Optional.</param>
+			<param name="month">The month of the appraisal (1–12). Optional.</param>
 			<returns>A byte array representing the selected employee data, typically as a downloadable file.</returns>
 			<response code="200">Returns selected employee data.</response>
 			<response code="404">Returned when no selected employee data is found.</response>
@@ -396,15 +397,16 @@
 			<response code="404">If data not found</response>
 			<response code="500">If upload fails or an internal error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeReview(System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeReview(System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the review data of selected employees for a specific appraisal cycle, year, and quarter.
+				Retrieves review data for selected employees for the given appraisal cycle, year, and optional time period.
 			</summary>
 			<param name="appraisalId">The ID of the appraisal cycle.</param>
-			<param name="year">The year of the appraisal.</param>
-			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4).</param>
-			<returns>Byte array containing employee review data (typically as a downloadable file).</returns>
-			<response code="200">Returns the employee review data.</response>
+			<param name="year">The appraisal year.</param>
+			<param name="quarter">The quarter of the appraisal (e.g., Q1–Q4). Optional.</param>
+			<param name="month">The appraisal month (1–12). Optional.</param>
+			<returns>A byte array containing the review data.</returns>
+			<response code="200">Returns employee review data.</response>
 			<response code="404">Returned when no review data is found.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
@@ -428,15 +430,16 @@
 			<response code="409">If there is a conflict or invalid state</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeAgmApproval(System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedEmployeeAgmApproval(System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the list of employees sent for AGM approval.
+				Retrieves AGM approval data for selected employees based on appraisal parameters.
 			</summary>
 			<param name="appraisalId">The ID of the appraisal cycle.</param>
-			<param name="year">The year of the appraisal.</param>
-			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, Q3, Q4).</param>
-			<returns>List of employees under AGM approval.</returns>
-			<response code="200">Returns the AGM approval data.</response>
+			<param name="year">The appraisal year.</param>
+			<param name="quarter">The quarter of the appraisal (e.g., Q1–Q4). Optional.</param>
+			<param name="month">The appraisal month (1–12). Optional.</param>
+			<returns>Byte data representing AGM approval records.</returns>
+			<response code="200">Returns AGM approval data.</response>
 			<response code="404">Returned when no data is found.</response>
 			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
@@ -502,17 +505,18 @@
 			<response code="404">If no accepted employees are found for the given year.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetNonProductionEmployees(System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetNonProductionEmployees(System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves all non-production employees eligible for appraisal for the specified appraisal ID, year, and quarter.
+				Retrieves a list of non-production employees for a given appraisal cycle and period.
 			</summary>
-			<param name="appraisalId">The appraisal ID.</param>
+			<param name="appraisalId">The ID of the appraisal cycle.</param>
 			<param name="year">The appraisal year.</param>
-			<param name="quarter">The appraisal quarter (e.g., Q1, Q2).</param>
-			<returns>List of eligible non-production employees.</returns>
-			<response code="200">Returns the list of non-production employees.</response>
-			<response code="404">If no employees are found.</response>
-			<response code="500">If there is an internal server error.</response>
+			<param name="quarter">The quarter of the appraisal (optional).</param>
+			<param name="month">The month of the appraisal (optional).</param>
+			<returns>JSON object containing employee data.</returns>
+			<response code="200">Returns non-production employee list.</response>
+			<response code="404">Returned when no employee data is found.</response>
+			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.MoveSelectedStaff(AttendanceManagement.Application.Dtos.Attendance.SelectedEmployeesRequest)">
 			<summary>
@@ -525,17 +529,18 @@
 			<response code="409">If conflict occurs while moving staff</response>
 			<response code="500">If there is an internal server error</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedNonProductionEmployees(System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelectedNonProductionEmployees(System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the list of non-production employees already selected for appraisal based on appraisal ID, year, and quarter.
+				Retrieves selected non-production employee data for a specific appraisal cycle.
 			</summary>
-			<param name="appraisalId">The appraisal ID.</param>
-			<param name="year">The appraisal year.</param>
-			<param name="quarter">The appraisal quarter (e.g., Q1, Q2, etc.).</param>
-			<returns>Data of selected non-production employees.</returns>
-			<response code="200">Returns the selected employee data.</response>
-			<response code="404">If no data is found.</response>
-			<response code="500">If there is an internal server error.</response>
+			<param name="appraisalId">Appraisal cycle ID.</param>
+			<param name="year">Year of appraisal.</param>
+			<param name="quarter">Quarter (optional).</param>
+			<param name="month">Month (optional).</param>
+			<returns>Byte array containing selected employee data.</returns>
+			<response code="200">Returns selected employee data.</response>
+			<response code="404">Data not found.</response>
+			<response code="500">Internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateKra(AttendanceManagement.Application.Dtos.Attendance.KraDto)">
 			<summary>
@@ -547,18 +552,19 @@
 			<response code="404">If required information is not found.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetKra(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetKra(System.Int32,System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the KRA (Key Result Area) data for a given employee and appraisal cycle.
+				Retrieves the Key Result Areas (KRA) for a specific user and appraisal period.
 			</summary>
-			<param name="createdBy">The ID of the user who created the KRA.</param>
-			<param name="appraisalId">The appraisal cycle ID.</param>
-			<param name="year">The appraisal year.</param>
-			<param name="quarter">The appraisal quarter (e.g., Q1, Q2, etc.).</param>
-			<returns>Returns the KRA data for the specified employee and appraisal cycle.</returns>
-			<response code="200">If the KRA data is found successfully.</response>
-			<response code="404">If KRA data is not found.</response>
-			<response code="500">If an internal server error occurs.</response>
+			<param name="createdBy">ID of the user who created the KRA.</param>
+			<param name="appraisalId">Appraisal cycle ID.</param>
+			<param name="year">Appraisal year.</param>
+			<param name="quarter">Quarter (optional).</param>
+			<param name="month">Month (optional).</param>
+			<returns>Object containing KRA data.</returns>
+			<response code="200">Returns KRA details.</response>
+			<response code="404">KRA data not found.</response>
+			<response code="500">Internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.CreateSelfEvaluation(AttendanceManagement.Application.Dtos.Attendance.SelfEvaluationRequest)">
 			<summary>
@@ -570,18 +576,19 @@
 			<response code="404">If relevant appraisal data is not found.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelfEvaluation(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetSelfEvaluation(System.Int32,System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the self-evaluation record for a specific appraisal cycle based on employee ID, appraisal ID, year, and quarter.
+				Retrieves self-evaluation data for the given user and appraisal period.
 			</summary>
-			<param name="createdBy">The ID of the employee who submitted the self-evaluation.</param>
-			<param name="appraisalId">The appraisal cycle ID.</param>
-			<param name="year">The appraisal year.</param>
-			<param name="quarter">The appraisal quarter (e.g., Q1, Q2, etc.).</param>
-			<returns>Returns the self-evaluation data.</returns>
-			<response code="200">If the self-evaluation data is found.</response>
-			<response code="404">If self-evaluation data is not found.</response>
-			<response code="500">If an internal server error occurs.</response>
+			<param name="createdBy">ID of the employee.</param>
+			<param name="appraisalId">Appraisal cycle ID.</param>
+			<param name="year">Appraisal year.</param>
+			<param name="quarter">Quarter (optional).</param>
+			<param name="month">Month (optional).</param>
+			<returns>Self-evaluation data.</returns>
+			<response code="200">Returns self-evaluation details.</response>
+			<response code="404">Data not found.</response>
+			<response code="500">Internal server error.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.ViewSelfEvaluationAttachment(System.Int32)">
 			<summary>
@@ -613,31 +620,33 @@
 			<response code="404">If necessary appraisal information is missing.</response>
 			<response code="500">If an internal server error occurs.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetManagerEvaluation(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetManagerEvaluation(System.Int32,System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the manager's evaluation for a specific employee and appraisal cycle.
+				Retrieves manager evaluation data for a specific employee and appraisal cycle.
 			</summary>
-			<param name="createdBy">The ID of the employee being evaluated.</param>
-			<param name="appraisalId">The appraisal cycle ID.</param>
-			<param name="year">The appraisal year.</param>
-			<param name="quarter">The appraisal quarter (e.g., Q1, Q2, etc.).</param>
-			<returns>Returns the manager's evaluation data.</returns>
-			<response code="200">If the manager evaluation is found.</response>
-			<response code="404">If manager evaluation data is not found.</response>
-			<response code="500">If an internal server error occurs.</response>
+			<param name="createdBy">ID of the employee being evaluated.</param>
+			<param name="appraisalId">Appraisal cycle ID.</param>
+			<param name="year">Year of appraisal.</param>
+			<param name="quarter">Quarter (optional).</param>
+			<param name="month">Month (optional).</param>
+			<returns>Manager evaluation information.</returns>
+			<response code="200">Returns manager evaluation data.</response>
+			<response code="404">Evaluation data not found.</response>
+			<response code="500">Internal server error.</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetFinalAverageManagerScore(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetFinalAverageManagerScore(System.Int32,System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the final average score given by the manager for the employee's appraisal.
+				Retrieves the final average score given by the manager for a specific employee within a defined appraisal cycle and period.
 			</summary>
 			<param name="createdBy">The ID of the employee being appraised.</param>
-			<param name="appraisalId">The appraisal cycle ID.</param>
-			<param name="year">The appraisal year.</param>
-			<param name="quarter">The appraisal quarter (e.g., Q1, Q2, etc.).</param>
-			<returns>Returns the final average manager score.</returns>
-			<response code="200">If the score is calculated successfully.</response>
-			<response code="404">If score data is not available.</response>
-			<response code="500">If an internal server error occurs.</response>
+			<param name="appraisalId">The ID of the appraisal cycle.</param>
+			<param name="year">The year of the appraisal.</param>
+			<param name="quarter">The quarter of the appraisal (e.g., Q1–Q4). Optional.</param>
+			<param name="month">The month of the appraisal (1–12). Optional.</param>
+			<returns>An object containing the success status and the manager's final average score.</returns>
+			<response code="200">Returns the final average manager score.</response>
+			<response code="404">Returned when no score is found for the provided parameters.</response>
+			<response code="500">Returned when an internal server error occurs.</response>
 		</member>
 		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.HrUploadSheet(AttendanceManagement.Application.Dtos.Attendance.UploadMisSheetRequest)">
 			<summary>
@@ -649,17 +658,18 @@
 			<response code="404">If data not found</response>
 			<response code="500">If upload fails or an internal error occurs</response>
 		</member>
-		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetHrUploadedSheet(System.Int32,System.Int32,System.String,System.Int32)">
+		<member name="M:AttendanceManagement.Controllers.AppraisalManagementController.GetHrUploadedSheet(System.Int32,System.Int32,System.String,System.Nullable{System.Int32})">
 			<summary>
-				Retrieves the HR-uploaded MIS sheet containing appraisal data for the specified cycle.
+				Retrieves the HR-uploaded appraisal sheet for a specified cycle and time frame.
 			</summary>
-			<param name="appraisalId">The ID of the appraisal cycle.</param>
-			<param name="year">The year of the appraisal.</param>
-			<param name="quarter">The quarter of the appraisal (e.g., Q1, Q2, etc.).</param>
-			<returns>Returns the MIS sheet data uploaded by HR.</returns>
-			<response code="200">If the data is retrieved successfully.</response>
-			<response code="404">If the MIS sheet is not found.</response>
-			<response code="500">If an internal server error occurs.</response>
+			<param name="appraisalId">Appraisal cycle ID.</param>
+			<param name="year">Year of appraisal.</param>
+			<param name="quarter">Quarter (optional).</param>
+			<param name="month">Month (optional).</param>
+			<returns>HR-uploaded data file.</returns>
+			<response code="200">Returns HR-uploaded sheet.</response>
+			<response code="404">Sheet not found.</response>
+			<response code="500">Internal server error.</response>
 		</member>
 		<member name="T:AttendanceController">
 			<summary>

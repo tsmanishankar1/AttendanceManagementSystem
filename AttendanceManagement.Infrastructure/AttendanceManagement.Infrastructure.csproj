@@ -1,33 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<GenerateDocumentationFile>False</GenerateDocumentationFile>
-		<DocumentationFile></DocumentationFile>
-	  <UserSecretsId>58bfa732-bbe8-43a9-b038-5bcc0932491c</UserSecretsId>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<Optimize>False</Optimize>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<Optimize>True</Optimize>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="wwwroot\**\*.*">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-	
-	<ItemGroup>
-		<None Update="SwaggerDocs\SwaggerAPIDocumentation.xml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
@@ -58,10 +35,10 @@
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="7.2.0" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\AttendanceManagement.Domain\AttendanceManagement.Domain.csproj" />
-	  <ProjectReference Include="..\AttendanceManagement.Infrastructure\AttendanceManagement.Infrastructure.csproj" />
-	</ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\AttendanceManagement.Application\AttendanceManagement.Application.csproj" />
+    <ProjectReference Include="..\AttendanceManagement.Domain\AttendanceManagement.Domain.csproj" />
+  </ItemGroup>
 
 </Project>
