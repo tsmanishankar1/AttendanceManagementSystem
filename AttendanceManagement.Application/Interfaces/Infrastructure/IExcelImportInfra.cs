@@ -5,6 +5,6 @@ namespace AttendanceManagement.Application.Interfaces.Infrastructure
     public interface IExcelImportInfra
     {
         Task<string> GetExcelTemplateFilePath(int excelImportId, int performanceId);
-        Task<string> ImportExcelAsync(ExcelImportDto excelImportDto);
+        Task<ExcelImportResultDto> ImportExcelAsync(ExcelImportDto excelImportDto);
     }
 }

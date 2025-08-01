@@ -761,6 +761,26 @@
 				Internal Server Error - An unexpected error occurred while processing the request.
 			</response>
 		</member>
+		<member name="M:AttendanceController.GetFreezedAttendanceRecords(AttendanceManagement.Application.Dtos.Attendance.AttendanceStatusResponse)">
+			<summary>
+				Retrieves freezed attendance records based on the provided attendance status filters.
+			</summary>
+			<param name="attendanceStatus" type="AttendanceManagement.Application.Dtos.Attendance.AttendanceStatusResponse">
+				The filter model containing Staff ID, Department ID, Division ID, Branch ID, Company ID, or date range for retrieving freezed attendance records.
+			</param>
+			<returns>
+				Returns a list of freezed attendance records matching the specified criteria.
+			</returns>
+			<response code="200">
+				Successfully retrieved the freezed attendance records.
+			</response>
+			<response code="404">
+				Not Found - No freezed attendance records found for the given parameters.
+			</response>
+			<response code="500">
+				Internal Server Error - An unexpected error occurred while processing the request.
+			</response>
+		</member>
 		<member name="M:AttendanceController.FreezeAttendanceRecords(AttendanceManagement.Application.Dtos.Attendance.AttendanceFreezeRequest)">
 			<summary>
 				Freezes the selected attendance records based on the provided request.

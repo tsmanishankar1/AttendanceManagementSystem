@@ -29,6 +29,9 @@ public class AttendanceApp : IAttendanceApp
     public async Task<List<AttendanceRecordDto>> GetAttendanceRecords(AttendanceStatusResponse attendanceStatus)
         => await _attendanceInfra.GetAttendanceRecords(attendanceStatus);
 
+    public async Task<List<AttendanceRecordDto>> GetFreezedAttendanceRecords(AttendanceStatusResponse attendanceStatus)
+    => await _attendanceInfra.GetFreezedAttendanceRecords(attendanceStatus);
+
     public async Task<SmaxTransactionResponse?> GetCheckInCheckOutAsync(int staffId)
         => await _attendanceInfra.GetCheckInCheckOutAsync(staffId);
 

@@ -2197,7 +2197,6 @@ public class ApplicationInfra : IApplicationInfra
             .Where(x => x.Id == staffId && x.IsActive == true)
             .Select(x => x.AccessLevel)
             .FirstOrDefaultAsync();
-        bool isSuperAdmin = approverRole == "SUPER ADMIN" || approverRole == "HR ADMIN";
         var results = new List<RequestNotificationResponse>();
         async Task<int> GetCount<T>(DbSet<T> dbSet, int appTypeId) where T : class
         {
@@ -2210,8 +2209,7 @@ public class ApplicationInfra : IApplicationInfra
                     EF.Property<bool>(x.Requisition, "IsActive") &&
                     EF.Property<int>(x.Requisition, "ApplicationTypeId") == appTypeId &&
                     (
-                        isSuperAdmin
-                        || (EF.Property<bool?>(x.Requisition, "Status1") == null && x.Staff.ApprovalLevel1 == staffId)
+                        (EF.Property<bool?>(x.Requisition, "Status1") == null && (x.Staff.ApprovalLevel1 == staffId))
                         || (EF.Property<bool?>(x.Requisition, "Status1") == true &&
                             EF.Property<bool?>(x.Requisition, "Status2") == null &&
                             x.Staff.ApprovalLevel2 == staffId)

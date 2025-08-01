@@ -50,13 +50,51 @@ public class ExcelImportController : ControllerBase
         try
         {
             var result = await _excelImportService.ImportExcelAsync(excelImportDto);
-            var response = new
+
+            var displayResult = new
             {
-                Success = true,
-                Message = result
+                result.TotalRecords,
+                result.SuccessCount,
+                result.ErrorCount,
+                Message = result.ErrorCount == 0
+                    ? "Excel uploaded successfully."
+                    : "Something went wrong! Kindly verify the Excel.",
             };
-            await _loggingService.AuditLog("Excel Import", "POST", "/api/ExcelImport/ImportExcel", result, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
-            return Ok(response);
+
+            if (result.ErrorCount > 0)
+            {
+                await _loggingService.LogError(
+                    "Excel Import",
+                    "POST",
+                    "/api/ExcelImport/ImportExcel",
+                    "Excel import completed with errors",
+                    JsonSerializer.Serialize(result.ErrorMessages),
+                    string.Empty,
+                    excelImportDto.CreatedBy,
+                    JsonSerializer.Serialize(excelImportDto));
+
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = displayResult
+                });
+            }
+            else
+            {
+                await _loggingService.AuditLog(
+                    "Excel Import",
+                    "POST",
+                    "/api/ExcelImport/ImportExcel",
+                    "Excel uploaded successfully",
+                    excelImportDto.CreatedBy,
+                    JsonSerializer.Serialize(excelImportDto));
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = displayResult
+                });
+            }
         }
         catch (MessageNotFoundException ex)
         {

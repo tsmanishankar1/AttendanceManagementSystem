@@ -12,6 +12,7 @@ namespace AttendanceManagement.Application.Interfaces.Infrastructure
         Task<List<AttendanceRecordResponse>> AttendanceRecords();
         Task<List<StaffInfoDto>> GetAllStaffsByDepartmentAndDivision(GetStaffByDepartmentDivision staff);
         Task<List<AttendanceRecordDto>> GetAttendanceRecords(AttendanceStatusResponse attendanceStatus);
+        Task<List<AttendanceRecordDto>> GetFreezedAttendanceRecords(AttendanceStatusResponse attendanceStatus);
         Task<string> FreezeAttendanceRecords(AttendanceFreezeRequest attendanceFreezeRequest);
     }
 }

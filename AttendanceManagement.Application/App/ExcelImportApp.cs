@@ -15,6 +15,6 @@ public class ExcelImportApp : IExcelImportApp
     public async Task<string> GetExcelTemplateFilePath(int excelImportId, int performanceId)
         => await _excelImportInfra.GetExcelTemplateFilePath(excelImportId, performanceId);
 
-    public async Task<string> ImportExcelAsync(ExcelImportDto excelImportDto)
+    public async Task<ExcelImportResultDto> ImportExcelAsync(ExcelImportDto excelImportDto)
         => await _excelImportInfra.ImportExcelAsync(excelImportDto);
 }

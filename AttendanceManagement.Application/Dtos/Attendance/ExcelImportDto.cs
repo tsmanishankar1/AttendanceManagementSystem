@@ -12,4 +12,13 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int CreatedBy { get; set; }
         public IFormFile File { get; set; } = null!;
     }
+
+    public class ExcelImportResultDto
+    {
+        public int TotalRecords { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public List<string> ErrorMessages { get; set; } = new();
+    }
+
 }

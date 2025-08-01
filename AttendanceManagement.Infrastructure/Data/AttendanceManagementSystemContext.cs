@@ -471,7 +471,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<Announcement>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Announce__3214EC07A35B8636");
+            entity.HasKey(e => e.Id).HasName("PK__Announce__3214EC071AF44DC2");
 
             entity.ToTable("Announcement");
 

@@ -247,7 +247,7 @@ public class AttendanceInfra : IAttendanceInfra
                             join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id
                             where staff.IsActive == true
                                   && !ar.IsDeleted
-                                  && ar.IsFreezed == null
+                                  && (ar.IsFreezed == null || ar.IsFreezed == false)
                                   && ar.StaffId == attendanceStatus.StaffId
                                   && staff.DepartmentId == attendanceStatus.DepartmentId
                                   && staff.DivisionId == attendanceStatus.DivisionId
@@ -286,6 +286,56 @@ public class AttendanceInfra : IAttendanceInfra
                             })
                             .ToListAsync();
         if(result.Count == 0) throw new MessageNotFoundException("No attendance record found");
+        return result;
+    }
+
+    public async Task<List<AttendanceRecordDto>> GetFreezedAttendanceRecords(AttendanceStatusResponse attendanceStatus)
+    {
+        await DepartmentAndDivision(attendanceStatus.DepartmentId, attendanceStatus.DivisionId);
+        var result = await (
+                            from ar in _attendanceContext.AttendanceRecords
+                            join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id
+                            where staff.IsActive == true
+                                  && !ar.IsDeleted
+                                  && ar.IsFreezed == true
+                                  && ar.StaffId == attendanceStatus.StaffId
+                                  && staff.DepartmentId == attendanceStatus.DepartmentId
+                                  && staff.DivisionId == attendanceStatus.DivisionId
+                                  && (
+                                        (attendanceStatus.FromDate.HasValue && attendanceStatus.ToDate.HasValue &&
+                                         ar.AttendanceDate >= attendanceStatus.FromDate.Value &&
+                                         ar.AttendanceDate <= attendanceStatus.ToDate.Value)
+                                        ||
+                                        (attendanceStatus.FromMonth.HasValue && attendanceStatus.ToMonth.HasValue &&
+                                         ar.AttendanceDate.Month >= attendanceStatus.FromMonth.Value &&
+                                         ar.AttendanceDate.Month <= attendanceStatus.ToMonth.Value)
+                                     )
+                            select new AttendanceRecordDto
+                            {
+                                Id = ar.Id,
+                                StaffId = ar.StaffId,
+                                StaffCreationId = staff.StaffId,
+                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                                FirstIn = ar.FirstIn,
+                                LastOut = ar.LastOut,
+                                ShiftId = ar.ShiftId,
+                                IsEarlyComing = ar.IsEarlyComing,
+                                IsLateComing = ar.IsLateComing,
+                                IsEarlyGoing = ar.IsEarlyGoing,
+                                IsLateGoing = ar.IsLateGoing,
+                                BreakHours = ar.BreakHour,
+                                ExtraBreakHours = ar.ExtraBreakHours,
+                                IsBreakHoursExceed = ar.IsBreakHoursExceed,
+                                StatusId = ar.StatusId,
+                                IsHolidayWorkingEligible = ar.IsHolidayWorkingEligible,
+                                Norm = ar.Norm,
+                                CompletedFileCouunt = ar.CompletedFileCount,
+                                TotalFte = ar.TotalFte,
+                                IsFteAchieved = ar.IsFteAchieved,
+                                AttendanceDate = ar.AttendanceDate
+                            })
+                            .ToListAsync();
+        if (result.Count == 0) throw new MessageNotFoundException("No attendance record found");
         return result;
     }
 

@@ -22,7 +22,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             var eventType = await _context.EventTypes.AnyAsync(e => e.Id == eventTypeId && e.IsActive);
             if (!eventType) throw new MessageNotFoundException("Event type not found");
             var today = DateOnly.FromDateTime(DateTime.Now);
-            var tenDaysAgo = today.AddDays(-10);
+            var tenDaysAgo = today.AddDays(-2);
             var currentYear = today.Year;
             var result = new List<object>();
             var staffWithAnniversaries = await _context.StaffCreations
@@ -317,6 +317,8 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 Title = announcementDto.Title,
                 Description = announcementDto.Description,
+                StartDate = announcementDto.StartDate,
+                EndDate = announcementDto.EndDate,
                 IsActive = announcementDto.IsActive,
                 CreatedBy = announcementDto.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
@@ -335,6 +337,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                                              Id = an.Id,
                                              Title = an.Title,
                                              Description = an.Description,
+                                             StartDate = an.StartDate,
+                                             EndDate = an.EndDate,
                                              IsActive = an.IsActive,
                                              CreatedBy = an.CreatedBy,
                                              Date = DateOnly.FromDateTime(an.UpdatedUtc ?? an.CreatedUtc)
@@ -354,6 +358,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                                              Id = an.Id,
                                              Title = an.Title,
                                              Description = an.Description,
+                                             StartDate = an.StartDate,
+                                             EndDate = an.EndDate,
                                              IsActive = an.IsActive,
                                              CreatedBy = an.CreatedBy,
                                              Date = DateOnly.FromDateTime(an.UpdatedUtc ?? an.CreatedUtc)
@@ -369,6 +375,8 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (existingAnnouncement == null) throw new MessageNotFoundException("Announcement not found");
             existingAnnouncement.Title = announcementResponse.Title;
             existingAnnouncement.Description = announcementResponse.Description;
+            existingAnnouncement.StartDate = announcementResponse.StartDate;
+            existingAnnouncement.EndDate = announcementResponse.EndDate;
             existingAnnouncement.IsActive = announcementResponse.IsActive;
             existingAnnouncement.UpdatedBy = announcementResponse.CreatedBy;
             existingAnnouncement.UpdatedUtc = DateTime.UtcNow;

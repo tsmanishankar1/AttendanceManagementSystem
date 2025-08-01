@@ -160,6 +160,29 @@ public class AttendanceController : ControllerBase
         }
     }
 
+    [HttpPost("GetFreezedAttendanceRecords")]
+    public async Task<IActionResult> GetFreezedAttendanceRecords(AttendanceStatusResponse attendanceStatus)
+    {
+        try
+        {
+            var results = await _smaxTransactionService.GetFreezedAttendanceRecords(attendanceStatus);
+            var response = new
+            {
+                Success = true,
+                Message = results
+            };
+            return Ok(response);
+        }
+        catch (MessageNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("GetAttendanceRecords")]
     public async Task<IActionResult> GetAttendanceRecords(AttendanceStatusResponse attendanceStatus)
     {
