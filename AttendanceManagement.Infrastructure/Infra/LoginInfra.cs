@@ -181,6 +181,7 @@ public class LoginInfra : ILoginInfra
                     new Claim("DivisionName", divisionName),
                     new Claim("RoleId", role.Id.ToString()),
                     new Claim("Role", role.Name),
+                    new Claim("IsNonProduction", userName1.IsNonProduction.ToString()),
                     new Claim("ProfilePhoto", profilePhoto),
                     new Claim("ApproverId", staff.ApprovalLevel1.ToString()), 
                     new Claim("ApproverName", approverFullName)
