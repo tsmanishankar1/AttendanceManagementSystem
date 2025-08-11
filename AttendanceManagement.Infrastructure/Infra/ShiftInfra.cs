@@ -43,13 +43,18 @@ namespace AttendanceManagement.Infrastructure.Infra
             var allShift = await (from shift in _context.Shifts
                                   join shiftType in _context.ShiftTypeDropDowns
                                   on shift.ShiftTypeId equals shiftType.Id into shiftTypeGroup
-                                  from shiftType in shiftTypeGroup.DefaultIfEmpty() 
+                                  from shiftType in shiftTypeGroup.DefaultIfEmpty()
+                                  join division in _context.DivisionMasters
+                                  on shift.DivisionId equals division.Id into divisionGroup
+                                  from division in divisionGroup.DefaultIfEmpty()
                                   select new ShiftResponse
                                   {
                                       ShiftId = shift.Id,
                                       ShiftName = shift.Name,
                                       ShiftTypeId = shift.ShiftTypeId,
-                                      ShiftTypeName = shiftType.Name, 
+                                      ShiftTypeName = shiftType.Name,
+                                      DivisionId = shift.DivisionId,
+                                      DivisionName = division.Name,
                                       ShortName = shift.ShortName,
                                       StartTime = shift.StartTime,
                                       EndTime = shift.EndTime,
@@ -76,6 +81,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 Name = newShift.ShiftName,
                 ShortName = newShift.ShortName,
                 ShiftTypeId = newShift.ShiftTypeId,
+                DivisionId = newShift.DivisionId,
                 StartTime = newShift.StartTime,
                 EndTime = newShift.EndTime,
                 IsActive = newShift.IsActive,
@@ -99,6 +105,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             existingShift.Name = updatedShift.ShiftName;
             existingShift.ShortName = updatedShift.ShortName;
             existingShift.ShiftTypeId = updatedShift.ShiftTypeId;
+            existingShift.DivisionId = updatedShift.DivisionId;
             existingShift.StartTime = updatedShift.StartTime;
             existingShift.EndTime = updatedShift.EndTime;
             existingShift.IsActive = updatedShift.IsActive;

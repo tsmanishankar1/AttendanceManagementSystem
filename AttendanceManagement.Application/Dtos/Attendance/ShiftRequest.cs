@@ -9,6 +9,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         [MaxLength(5)]
         public string ShortName { get; set; } = null!;
         public int ShiftTypeId { get; set; }
+        public int DivisionId { get; set; }
+
         [MaxLength(20)]
         public string StartTime { get; set; } = null!;
         [MaxLength(20)]
@@ -50,6 +52,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int ShiftTypeId { get; set; }
         public string ShiftTypeName { get; set; } = null!;
         public string ShiftName { get; set; } = null!;
+        public int? DivisionId { get; set; }
+        public string? DivisionName { get; set; }
         public string ShortName { get; set; } = null!;
         public string StartTime { get; set; } = null!;
         public string EndTime { get; set; } = null!;
@@ -63,6 +67,8 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         [MaxLength(100)]
         public string ShiftName { get; set; } = null!;
         public int ShiftTypeId { get; set; }
+        public int DivisionId { get; set; }
+
         [MaxLength(5)]
         public string ShortName { get; set; } = null!;
         [MaxLength(20)]

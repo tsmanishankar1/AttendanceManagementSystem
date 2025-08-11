@@ -4745,7 +4745,11 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Shift_ShiftType");
 
-            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ShiftUpdatedByNavigations)
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.InverseUpdatedByNavigation)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK_Shift_DivisionId");
+
+            entity.HasOne(d => d.UpdatedBy1).WithMany(p => p.ShiftUpdatedBy1s)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPSHI");
         });

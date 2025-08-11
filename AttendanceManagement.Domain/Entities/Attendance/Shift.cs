@@ -26,6 +26,7 @@ public partial class Shift
     public string ShortName { get; set; } = null!;
 
     public int ShiftTypeId { get; set; }
+    public int? DivisionId { get; set; }
 
     public virtual ICollection<AssignShift> AssignShifts { get; set; } = new List<AssignShift>();
 
@@ -34,6 +35,7 @@ public partial class Shift
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<HeadCount> HeadCounts { get; set; } = new List<HeadCount>();
+    public virtual ICollection<Shift> InverseUpdatedByNavigation { get; set; } = new List<Shift>();
 
     public virtual ICollection<RegularShift> RegularShifts { get; set; } = new List<RegularShift>();
 
@@ -43,5 +45,7 @@ public partial class Shift
 
     public virtual ShiftTypeDropDown ShiftType { get; set; } = null!;
 
-    public virtual StaffCreation? UpdatedByNavigation { get; set; }
+    public virtual StaffCreation? UpdatedBy1 { get; set; }
+
+    public virtual Shift? UpdatedByNavigation { get; set; }
 }

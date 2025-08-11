@@ -823,7 +823,7 @@ public partial class StaffCreation
 
     public virtual ICollection<ShiftType> ShiftTypeUpdatedByNavigations { get; set; } = new List<ShiftType>();
 
-    public virtual ICollection<Shift> ShiftUpdatedByNavigations { get; set; } = new List<Shift>();
+    public virtual ICollection<Shift> ShiftUpdatedBy1s { get; set; } = new List<Shift>();
 
     public virtual ICollection<SkillInventory> SkillInventoryCreatedByNavigations { get; set; } = new List<SkillInventory>();
 
