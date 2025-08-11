@@ -614,7 +614,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             }
             if (yearAppraisalData.All(s => !s.IsActive))
             {
-                throw new ConflictException("The salary revision letter for the selected year has already been generated");
+                throw new ConflictException("Letter has already been generated");
             }
             var resultFilePaths = new List<string>();
             var appraisalSheets = yearAppraisalData.Where(s => s.IsActive).Distinct().ToList();
@@ -728,7 +728,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                    + (appraisalSheet.EmployeeEsicontributionPerAnnumAfterApp ?? 0) + (appraisalSheet.ProfessionalTaxPerAnnumAfterApp ?? 0) + (appraisalSheet.GmcperAnnumAfterApp ?? 0)),
                     TotalAppraisal = appraisalSheet.TotalAppraisal
                 };
-                if (appraisal == null) throw new MessageNotFoundException("Appraisal sheet not found");
+                if (appraisal == null) throw new MessageNotFoundException("Letter not found");
                 var file = _letterGenerationService.GenerateAppraisalLetterPdf(appraisal, fileName);
                 byte[] pdfBytes = System.IO.File.ReadAllBytes(file);
                 string base64Pdf = Convert.ToBase64String(pdfBytes);
@@ -752,7 +752,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 appraisalSheet.UpdatedUtc = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
-            return "Appraisal letter generated and email sent successfully";
+            return "Appraisal letter generated successfully";
         }
 
         public async Task<(Stream PdfStream, string FileName)> ViewAppraisalLetter(int staffId)
@@ -770,12 +770,12 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new FileNotFoundException("Appraisal letter not found");
+                throw new FileNotFoundException("Letter not found");
             }
             var filePath = letterGeneration.LetterPath;
             if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
             {
-                throw new FileNotFoundException("PDF file not found at the specified path");
+                throw new FileNotFoundException("Letter not found");
             }
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = Path.GetFileName(filePath);
@@ -797,12 +797,12 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Appraisal letter not found");
+                throw new MessageNotFoundException("Letter not found");
             }
             string file = letterGeneration.FileName ?? string.Empty;
             if (string.IsNullOrWhiteSpace(file))
             {
-                throw new MessageNotFoundException("File is empty");
+                throw new MessageNotFoundException("Letter not found");
             }
             return Path.Combine(_workspaceLetter, file);
         }
@@ -818,7 +818,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .OrderByDescending(x => x.CreatedUtc)
                 .FirstOrDefaultAsync();
             var letter = await _context.LetterGenerations.FirstOrDefaultAsync(x => x.Id == letterGeneration.Id && x.IsActive);
-            if (letter == null) throw new MessageNotFoundException("Appraisal letter not found");
+            if (letter == null) throw new MessageNotFoundException("Letter not found");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(x => x.Id == letterAcceptance.AcceptedBy && x.IsActive == true);
             if(staff == null) throw new MessageNotFoundException("Staff not found");
             var empId = staff.StaffId;
@@ -1256,9 +1256,9 @@ namespace AttendanceManagement.Infrastructure.Infra
         {
             var selfEval = await _context.KraSelfReviews.FirstOrDefaultAsync(s => s.Id == selfEvaluationId && s.IsActive);
             if (selfEval == null) throw new MessageNotFoundException("Self evaluation not found");
-            if (string.IsNullOrWhiteSpace(selfEval.AttachmentsSelf)) throw new FileNotFoundException("No attachment found for this self evaluation");
+            if (string.IsNullOrWhiteSpace(selfEval.AttachmentsSelf)) throw new FileNotFoundException("Attachment not found");
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", selfEval.AttachmentsSelf.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
-            if (!System.IO.File.Exists(filePath)) throw new MessageNotFoundException("Attachment file not found");
+            if (!System.IO.File.Exists(filePath)) throw new MessageNotFoundException("Attachment not found");
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = Path.GetFileName(filePath);
             return (stream, fileName);
@@ -1268,9 +1268,9 @@ namespace AttendanceManagement.Infrastructure.Infra
         {
             var selfEval = await _context.KraManagerReviews.FirstOrDefaultAsync(s => s.Id == managerEvaluationId && s.IsActive);
             if (selfEval == null) throw new MessageNotFoundException("Self evaluation not found");
-            if (string.IsNullOrWhiteSpace(selfEval.AttachmentsManager)) throw new FileNotFoundException("No attachment found for this self evaluation");
+            if (string.IsNullOrWhiteSpace(selfEval.AttachmentsManager)) throw new FileNotFoundException("Attachment not found");
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", selfEval.AttachmentsManager.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
-            if (!System.IO.File.Exists(filePath)) throw new MessageNotFoundException("Attachment file not found");
+            if (!System.IO.File.Exists(filePath)) throw new MessageNotFoundException("Attachment not found");
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = Path.GetFileName(filePath);
             return (stream, fileName);

@@ -142,7 +142,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             var staff = await _context.StaffCreations.AnyAsync(p => p.Id == probationRequest.StaffId && p.IsActive == true);
             if (!staff) throw new MessageNotFoundException("Staff not found");
             var pro = await _context.Probations.AnyAsync(p => p.StaffCreationId == probationRequest.StaffId);
-            if (pro) throw new ConflictException("Probation Details Already Exists");
+            if (pro) throw new ConflictException("Probation already exists");
             var probation = new Probation
             {
                 StaffCreationId = probationRequest.StaffId,
@@ -548,7 +548,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                            }).ToListAsync();
             if (letterGenerations.Count == 0)
             {
-                throw new MessageNotFoundException("No PDF files found");
+                throw new MessageNotFoundException("Letter found");
             }
             return letterGenerations;
         }
@@ -567,17 +567,17 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Confirmation letter not found");
+                throw new MessageNotFoundException("Letter not found");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))
             {
-                throw new MessageNotFoundException("Generated PDF file not found");
+                throw new MessageNotFoundException("Letter not found");
             }
             string file = letterGeneration.FileName ?? string.Empty;
             if (string.IsNullOrWhiteSpace(file))
             {
-                throw new MessageNotFoundException("File is empty");
+                throw new MessageNotFoundException("Letter not found");
             }
             return Path.Combine(_workspacePath, file);
         }
@@ -597,13 +597,13 @@ namespace AttendanceManagement.Infrastructure.Infra
 
             if (letterGeneration == null)
             {
-                throw new FileNotFoundException("Confirmation letter not found");
+                throw new FileNotFoundException("Letter not found");
             }
 
             var filePath = letterGeneration.LetterPath;
             if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
             {
-                throw new FileNotFoundException("PDF file not found at the specified path");
+                throw new FileNotFoundException("Letter not found");
             }
 
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -625,17 +625,17 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .FirstOrDefaultAsync();
             if (letterGeneration == null)
             {
-                throw new MessageNotFoundException("Confirmation letter not found");
+                throw new MessageNotFoundException("Letter not found");
             }
             var filePath = letterGeneration.LetterPath;
             if (!File.Exists(filePath))
             {
-                throw new MessageNotFoundException("Generated PDF file not found");
+                throw new MessageNotFoundException("Letter not found");
             }
             string file = letterGeneration.FileName ?? string.Empty;
             if (string.IsNullOrWhiteSpace(file))
             {
-                throw new MessageNotFoundException("File is empty");
+                throw new MessageNotFoundException("Letter not found");
             }
             return Path.Combine(_workspacePath, file);
         }
