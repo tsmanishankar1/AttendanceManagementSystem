@@ -27,6 +27,8 @@ public partial class DivisionMaster
 
     public virtual ICollection<ProbationTarget> ProbationTargets { get; set; } = new List<ProbationTarget>();
 
+    public virtual ICollection<Shift> Shifts { get; set; } = new List<Shift>();
+
     public virtual ICollection<StaffCreation> StaffCreations { get; set; } = new List<StaffCreation>();
 
     public virtual StaffCreation? UpdatedByNavigation { get; set; }

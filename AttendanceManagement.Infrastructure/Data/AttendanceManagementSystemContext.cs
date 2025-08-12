@@ -818,9 +818,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.FreezedBy)
                 .HasConstraintName("FK_AttendanceRecords_StaffCreation");
 
-            entity.HasOne(d => d.Shift).WithMany(p => p.AttendanceRecords)
+            /*entity.HasOne(d => d.Shift).WithMany(p => p.AttendanceRecords)
                 .HasForeignKey(d => d.ShiftId)
-                .HasConstraintName("FK_Record_Shift");
+                .HasConstraintName("FK_Record_Shift");*/
 
             entity.HasOne(d => d.Staff).WithMany(p => p.AttendanceRecordStaffs)
                 .HasForeignKey(d => d.StaffId)
@@ -4740,16 +4740,16 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_CRSHI");
 
+            entity.HasOne(d => d.Division).WithMany(p => p.Shifts)
+                .HasForeignKey(d => d.DivisionId)
+                .HasConstraintName("FK_Shift_DivisionId");
+
             entity.HasOne(d => d.ShiftType).WithMany(p => p.Shifts)
                 .HasForeignKey(d => d.ShiftTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Shift_ShiftType");
 
-            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.InverseUpdatedByNavigation)
-                .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK_Shift_DivisionId");
-
-            entity.HasOne(d => d.UpdatedBy1).WithMany(p => p.ShiftUpdatedBy1s)
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ShiftUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPSHI");
         });

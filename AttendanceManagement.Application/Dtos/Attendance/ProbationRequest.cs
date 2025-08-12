@@ -64,6 +64,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public decimal? ProductionAchievedPercentageOct { get; set; }
         public decimal? ProductionAchievedPercentageNov { get; set; }
         public decimal? ProductionAchievedPercentageDec { get; set; }
+        public int? NumberOfMonths { get; set; }
         public int ProductivityYear { get; set; }
     }
 

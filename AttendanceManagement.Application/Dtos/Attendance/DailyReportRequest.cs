@@ -145,12 +145,12 @@
         public TimeOnly? TotalHoursWorked { get; set; }
         public string? BreakHours { get; set; }
         public bool? IsBreakHoursExceeded { get; set; }
-        public decimal? ProductiveHours { get; set; }
+        public string? ProductiveHours { get; set; }
         public string AttendanceStatus { get; set; } = null!;
         public string EarlyEntry { get; set; } = null!;
         public string LateEntry { get; set; } = null!;
         public string EarlyExit { get; set; } = null!;
-        public string ExtraHoursWorked { get; set; } = null!;
+        public string? ExtraHoursWorked { get; set; }
     }
 
     public class ManualPunchResponse

@@ -227,6 +227,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                                 ProductionAchievedPercentageOct = report.ProductionAchievedPercentageOct,
                                                 ProductionAchievedPercentageNov = report.ProductionAchievedPercentageNov,
                                                 ProductionAchievedPercentageDec = report.ProductionAchievedPercentageDec,
+                                                NumberOfMonths = report.NumberOfMonths,
                                                 ProductivityYear = report.ProductivityYear
                                             }).ToListAsync();
             if (!matchingProbations.Any())

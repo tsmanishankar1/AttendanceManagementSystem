@@ -116,10 +116,15 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (selectedEmployeesRequest.SelectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
             var employeeIds = selectedEmployeesRequest.SelectedRows.Select(x => x.EmpId).ToList();
             var alreadySelected = await _context.SelectedEmployeesForAppraisals
-                .Where(x => employeeIds.Contains(x.EmployeeId) && x.AppraisalId == selectedEmployeesRequest.AppraisalId && !x.IsActive && x.IsCompleted == true
-                            && (x.AppraisalId != 1 || (x.Year == selectedEmployeesRequest.Year && (selectedEmployeesRequest.Quarter == null || x.Quarter == selectedEmployeesRequest.Quarter) && (selectedEmployeesRequest.Month == null || x.Month == selectedEmployeesRequest.Month))))
+                .Where(x => employeeIds.Contains(x.EmployeeId)
+                    && x.AppraisalId == selectedEmployeesRequest.AppraisalId
+                    && x.Year == selectedEmployeesRequest.Year
+                    && (selectedEmployeesRequest.Quarter == null || x.Quarter == selectedEmployeesRequest.Quarter)
+                    && (selectedEmployeesRequest.Month == null || x.Month == selectedEmployeesRequest.Month)
+                    && x.IsActive)
                 .Select(x => x.EmployeeId)
                 .ToListAsync();
+
             if (alreadySelected.Any())
             {
                 throw new InvalidOperationException("Some selected employees are already moved to MIS");
@@ -153,22 +158,31 @@ namespace AttendanceManagement.Infrastructure.Infra
 
         public async Task<List<SelectedEmployeesResponseSelectedRows>> GetSelectedEmployees(int appraisalId, int year, string? quarter, int? month)
         {
-            var selectedEmployees = await (from staff in _context.SelectedEmployeesForAppraisals
-                                           join s in _context.StaffCreations on staff.EmployeeId equals s.StaffId
-                                           where staff.IsActive == true && staff.AppraisalId == appraisalId && staff.Year == year && (quarter == null || staff.Quarter == quarter) && (month == null || staff.Month == month)
-                                           select new SelectedEmployeesResponseSelectedRows
-                                           {
-                                               EmpId = staff.EmployeeId,
-                                               EmpName = staff.EmployeeName,
-                                               TenureInYears = GetTenure(s.JoiningDate),
-                                               ReportingManagerId = staff.ReportingManagerId,
-                                               ReportingManagers = staff.ReportingManagers,
-                                               Division = staff.Division,
-                                               Department = staff.Department,
-                                               Year = staff.Year,
-                                               Quarter = staff.Quarter,
-                                               IsCompleted = staff.IsCompleted
-                                           }).ToListAsync();
+            var selectedEmployees = await (
+                from staff in _context.SelectedEmployeesForAppraisals
+                join s in _context.StaffCreations
+                    on staff.EmployeeId equals s.StaffId
+                where staff.IsActive
+                      && staff.AppraisalId == appraisalId
+                      && staff.Year == year
+                      && (quarter == null || staff.Quarter == quarter)
+                      && (month == null || staff.Month == month)
+                group new { staff, s } by staff.EmployeeId into g
+                select new SelectedEmployeesResponseSelectedRows
+                {
+                    EmpId = g.First().staff.EmployeeId,
+                    EmpName = g.First().staff.EmployeeName,
+                    TenureInYears = GetTenure(g.First().s.JoiningDate),
+                    ReportingManagerId = g.First().staff.ReportingManagerId,
+                    ReportingManagers = g.First().staff.ReportingManagers,
+                    Division = g.First().staff.Division,
+                    Department = g.First().staff.Department,
+                    Year = g.First().staff.Year,
+                    Quarter = g.First().staff.Quarter,
+                    Month = g.First().staff.Month,
+                    IsCompleted = g.First().staff.IsCompleted
+                }
+            ).ToListAsync();
             if (selectedEmployees == null || !selectedEmployees.Any())
             {
                 throw new MessageNotFoundException("No employees found");
@@ -326,6 +340,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                             {
                                 EmpId = empId,
                                 EmpName = empName,
+                                TenureInYears = GetTenure(staffs.JoiningDate),
                                 ReportingManagerId = reportingManagerId,
                                 ReportingManagers = reportingManager,
                                 Division = division,
@@ -340,6 +355,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                 AppraisalId = uploadMisSheetRequest.AppraisalId,
                                 Year = uploadMisSheetRequest.Year,
                                 Quarter = uploadMisSheetRequest.Quarter,
+                                Month = uploadMisSheetRequest.Month,
                                 IsCompleted = false,
                                 IsActive = true,
                                 CreatedBy = uploadMisSheetRequest.CreatedBy,
@@ -362,7 +378,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                             var rowsToProcess = employeePerformanceReviews.Where(r => !alreadyUploaded.Contains(r.EmpId)).ToList();
                             if (!rowsToProcess.Any())
                             {
-                                throw new ConflictException($"All selected staff have already been uploaded for appraisal year {uploadMisSheetRequest.Year} and {uploadMisSheetRequest.Quarter}");
+                                throw new ConflictException("Selected employees already moved to MIS");
                             }
                             var newRecords = employeePerformanceReviews
                                 .Where(x => !alreadyUploaded.Contains(x.EmpId))
@@ -409,36 +425,73 @@ namespace AttendanceManagement.Infrastructure.Infra
             }
         }
 
-        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(int appraisalId, int year, string ?quarter, int? month)
+        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(
+            int appraisalId,
+            int year,
+            string? quarter,
+            int? month)
         {
-            var selectedEmployees = await (from staff in _context.EmployeePerformanceReviews
-                                           join s in _context.StaffCreations on staff.EmpId equals s.StaffId
-                                           where staff.IsActive == true && staff.AppraisalId == appraisalId && staff.Year == year &&
-                                           (quarter == null || staff.Quarter == quarter) && (month == null || staff.Month == month) && s.IsActive == true
-                                           select new PerformanceReviewResponse
-                                           {
-                                               Id = staff.Id,
-                                               EmpId = staff.EmpId,
-                                               EmpName = staff.EmpName,
-                                               TenureInYears = GetTenure(s.JoiningDate),
-                                               ReportingManagerId = staff.ReportingManagerId,
-                                               ReportingManagers = staff.ReportingManagers,
-                                               Division = staff.Division,
-                                               Department = staff.Department,
-                                               ProductivityPercentage = staff.ProductivityPercentage,
-                                               QualityPercentage = staff.QualityPercentage,
-                                               PresentPercentage = staff.PresentPercentage,
-                                               FinalPercentage = staff.FinalPercentage,
-                                               Grade = staff.Grade,
-                                               AbsentDays = staff.AbsentDays,
-                                               Year = staff.Year,
-                                               Quarter = staff.Quarter,
-                                               IsCompleted = staff.IsCompleted
-                                           }).ToListAsync();
-            if (selectedEmployees == null || !selectedEmployees.Any())
-            {
+            var rawData = await (
+                from staff in _context.EmployeePerformanceReviews
+                join s in _context.StaffCreations
+                    on staff.EmpId equals s.StaffId
+                where staff.IsActive
+                      && staff.AppraisalId == appraisalId
+                      && staff.Year == year
+                      && (quarter == null || staff.Quarter == quarter)
+                      && (!month.HasValue || staff.Month == month)
+                      && s.IsActive == true
+                select new
+                {
+                    staff.Id,
+                    staff.EmpId,
+                    staff.EmpName,
+                    s.JoiningDate,
+                    staff.ReportingManagerId,
+                    staff.ReportingManagers,
+                    staff.Division,
+                    staff.Department,
+                    staff.ProductivityPercentage,
+                    staff.QualityPercentage,
+                    staff.PresentPercentage,
+                    staff.FinalPercentage,
+                    staff.Grade,
+                    staff.AbsentDays,
+                    staff.Year,
+                    staff.Quarter,
+                    staff.Month,
+                    staff.IsCompleted
+                }
+            ).ToListAsync();
+
+            var selectedEmployees = rawData
+                .Select(x => new PerformanceReviewResponse
+                {
+                    Id = x.Id,
+                    EmpId = x.EmpId,
+                    EmpName = x.EmpName,
+                    TenureInYears = GetTenure(x.JoiningDate),
+                    ReportingManagerId = x.ReportingManagerId,
+                    ReportingManagers = x.ReportingManagers,
+                    Division = x.Division,
+                    Department = x.Department,
+                    ProductivityPercentage = x.ProductivityPercentage,
+                    QualityPercentage = x.QualityPercentage,
+                    PresentPercentage = x.PresentPercentage,
+                    FinalPercentage = x.FinalPercentage,
+                    Grade = x.Grade,
+                    AbsentDays = x.AbsentDays,
+                    Year = x.Year,
+                    Quarter = x.Quarter,
+                    Month = x.Month,
+                    IsCompleted = x.IsCompleted
+                })
+                .DistinctBy(x => x.EmpId)
+                .ToList();
+
+            if (!selectedEmployees.Any())
                 throw new MessageNotFoundException("No employees found");
-            }
+
             return selectedEmployees;
         }
 
@@ -496,16 +549,16 @@ namespace AttendanceManagement.Infrastructure.Infra
             var rowsToProcess = selectedRows.Where(r => !existingApprovalReviewIds.Contains(r.Id)).ToList();
             if (!rowsToProcess.Any())
             {
-                throw new InvalidOperationException("All selected employees have already been approved or rejected");
+                throw new InvalidOperationException("Selected employees have already been approved or rejected");
             }
             var newReviewIds = selectedReviewIds.Except(existingApprovalReviewIds).ToList();
             var newApprovals = newReviewIds.Select(id => new AgmApproval
             {
                 EmployeePerformanceReviewId = id,
                 AgmId = staff.Id,
-                IsAgmApproved = false,
                 Year = agmApprovalRequest.Year,
                 Quarter = agmApprovalRequest.Quarter,
+                Month = agmApprovalRequest.Month,
                 IsActive = true,
                 CreatedBy = agmApprovalRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
@@ -533,36 +586,78 @@ namespace AttendanceManagement.Infrastructure.Infra
             return message;
         }
 
-        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeAgmApproval(int appraisalId, int year, string? quarter, int? month)
+        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeAgmApproval(
+            int appraisalId,
+            int year,
+            string? quarter,
+            int? month)
         {
-            var selectedEmployees = await (from staff in _context.AgmApprovals
-                                           join per in _context.EmployeePerformanceReviews on staff.EmployeePerformanceReviewId equals per.Id
-                                           join s in _context.StaffCreations on per.EmpId equals s.StaffId
-                                           where staff.IsActive == true && per.AppraisalId == appraisalId && per.Year == year && (quarter == null || per.Quarter == quarter) && (month == null || per.Month == month)
-                                           select new PerformanceReviewResponse
-                                           {
-                                               Id = staff.Id,
-                                               EmpId = per.EmpId,
-                                               EmpName = per.EmpName,
-                                               TenureInYears = GetTenure(s.JoiningDate),
-                                               ReportingManagerId = per.ReportingManagerId,
-                                               ReportingManagers = per.ReportingManagers,
-                                               Division = per.Division,
-                                               Department = per.Department,
-                                               ProductivityPercentage = per.ProductivityPercentage,
-                                               QualityPercentage = per.QualityPercentage,
-                                               PresentPercentage = per.PresentPercentage,
-                                               FinalPercentage = per.FinalPercentage,
-                                               Grade = per.Grade,
-                                               AbsentDays = per.AbsentDays,
-                                               Year = per.Year,
-                                               Quarter = per.Quarter,
-                                               IsCompleted = staff.IsAgmApproved
-                                           }).ToListAsync();
-            if (selectedEmployees == null || !selectedEmployees.Any())
-            {
+            var rawData = await (
+                from staff in _context.AgmApprovals
+                join per in _context.EmployeePerformanceReviews
+                    on staff.EmployeePerformanceReviewId equals per.Id
+                join s in _context.StaffCreations
+                    on per.EmpId equals s.StaffId
+                where staff.IsActive
+                      && per.AppraisalId == appraisalId
+                      && per.Year == year
+                      && (quarter == null || per.Quarter == quarter)
+                      && (!month.HasValue || per.Month == month)
+                select new
+                {
+                    staff.Id,
+                    per.EmpId,
+                    per.EmpName,
+                    s.JoiningDate,
+                    per.ReportingManagerId,
+                    per.ReportingManagers,
+                    per.Division,
+                    per.Department,
+                    per.ProductivityPercentage,
+                    per.QualityPercentage,
+                    per.PresentPercentage,
+                    per.FinalPercentage,
+                    per.Grade,
+                    per.AbsentDays,
+                    per.Year,
+                    per.Quarter,
+                    per.Month,
+                    IsCompleted = staff.IsAgmApproved
+                }
+            ).ToListAsync();
+
+            var selectedEmployees = rawData
+                .GroupBy(x => x.EmpId)
+                .Select(g =>
+                {
+                    var first = g.First();
+                    return new PerformanceReviewResponse
+                    {
+                        Id = first.Id,
+                        EmpId = first.EmpId,
+                        EmpName = first.EmpName,
+                        TenureInYears = GetTenure(first.JoiningDate),
+                        ReportingManagerId = first.ReportingManagerId,
+                        ReportingManagers = first.ReportingManagers,
+                        Division = first.Division,
+                        Department = first.Department,
+                        ProductivityPercentage = first.ProductivityPercentage,
+                        QualityPercentage = first.QualityPercentage,
+                        PresentPercentage = first.PresentPercentage,
+                        FinalPercentage = first.FinalPercentage,
+                        Grade = first.Grade,
+                        AbsentDays = first.AbsentDays,
+                        Year = first.Year,
+                        Quarter = first.Quarter,
+                        Month = first.Month,
+                        IsCompleted = first.IsCompleted
+                    };
+                })
+                .ToList();
+
+            if (!selectedEmployees.Any())
                 throw new MessageNotFoundException("No employees found");
-            }
+
             return selectedEmployees;
         }
 
@@ -576,22 +671,19 @@ namespace AttendanceManagement.Infrastructure.Infra
             var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
             var selectedIds = selectedRows.Select(r => r.Id).ToList();
             var existingApprovals = await _context.AgmApprovals
-                .Where(a => selectedIds.Contains(a.EmployeePerformanceReviewId) && a.Year == agmApprovalRequest.Year
-                && (agmApprovalRequest.Quarter == null || a.Quarter == agmApprovalRequest.Quarter) && (agmApprovalRequest.Month == null || a.Month == agmApprovalRequest.Month) && a.IsActive && (a.IsAgmApproved == true || a.IsAgmApproved == false))
+                .Where(a => selectedIds.Contains(a.EmployeePerformanceReviewId) && (a.IsAgmApproved == true || a.IsAgmApproved == false))
                 .ToListAsync();
             var alreadyApprovedIds = existingApprovals.Select(a => a.EmployeePerformanceReviewId).ToHashSet();
             var rowsToProcess = selectedRows.Where(r => !alreadyApprovedIds.Contains(r.Id)).ToList();
             if (!rowsToProcess.Any())
             {
-                throw new InvalidOperationException("All selected employees have already been approved or rejected");
+                throw new InvalidOperationException("Selected employees have already been approved or rejected");
             }
             foreach ( var row in rowsToProcess)
             {
                 var employeeReview = await _context.AgmApprovals.FirstOrDefaultAsync(x => x.Id == row.Id && x.IsActive);
-                if (employeeReview == null) throw new MessageNotFoundException($"Employee report not found");
+                if (employeeReview == null) throw new MessageNotFoundException($"Employee performance review not found");
                 employeeReview.IsAgmApproved = agmApprovalRequest.IsApproved;
-                employeeReview.Year = agmApprovalRequest.Year;
-                employeeReview.Quarter = agmApprovalRequest.Quarter;
                 employeeReview.IsActive = false;
                 employeeReview.UpdatedBy = agmApprovalRequest.ApprovedBy;
                 employeeReview.UpdatedUtc = DateTime.UtcNow;
@@ -963,7 +1055,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             .ToList();
             if (!rowsToInsert.Any())
             {
-                throw new InvalidOperationException("All selected employees have already been moved.");
+                throw new InvalidOperationException("Selected employees have already been moved.");
             }
             var staffList = rowsToInsert.Select(row => new SelectedNonProductionEmployee
             {
@@ -977,6 +1069,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 Department = row.Department,
                 Year = selectedEmployeesRequest.Year,
                 Quarter = selectedEmployeesRequest.Quarter,
+                Month = selectedEmployeesRequest.Month,
                 IsCompleted = false,
                 IsActive = true,
                 CreatedBy = selectedEmployeesRequest.CreatedBy,
@@ -1009,6 +1102,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                                Department = staff.Department,
                                                Year = staff.Year,
                                                Quarter = staff.Quarter,
+                                               Month = staff.Month,
                                                IsCompleted = staff.IsCompleted
                                            }).ToListAsync();
             if (selectedEmployees == null || !selectedEmployees.Any())

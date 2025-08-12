@@ -172,7 +172,7 @@ public class ExcelImportInfra : IExcelImportInfra
                         "Attd Score", "Attd %", "Attd Grade", "Final Total", "Total Score", "Final Score %", "Final Grade", "Production Achieved % Jan",
                         "Production Achieved % Feb", "Production Achieved % Mar", "Production Achieved % Apr", "Production Achieved % May",
                         "Production Achieved % Jun", "Production Achieved % Jul", "Production Achieved % Aug", "Production Achieved % Sep",
-                        "Production Achieved % Oct","Production Achieved % Nov", "Production Achieved % Dec"
+                        "Production Achieved % Oct","Production Achieved % Nov", "Production Achieved % Dec", "No Of Months"
                     };
                 }
                 else if (excelImportDto.ExcelImportId == 19)
@@ -1629,6 +1629,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             ProductionAchievedPercentageDec = decimal.TryParse(worksheet.Cells[row, columnIndexes["Production Achieved % Dec"]]?.Text.Trim(), out decimal dec) ? dec : (decimal?)null,
                             ProductivityYear = excelImportDto.Year ?? 0,
                             Month = excelImportDto.Month ?? 0,
+                            NumberOfMonths = int.TryParse(worksheet.Cells[row, columnIndexes["No Of Months"]].Text.Trim(), out int numberOfMonths) ? numberOfMonths : (int?)0,
                             IsActive = true,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
