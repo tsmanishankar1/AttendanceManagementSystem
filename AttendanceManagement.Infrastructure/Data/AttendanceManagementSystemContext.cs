@@ -802,7 +802,6 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.Property(e => e.LastOut).HasColumnType("datetime");
             entity.Property(e => e.TotalFte).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
-
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AttendanceRecordCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
