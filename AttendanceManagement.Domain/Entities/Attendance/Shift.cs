@@ -31,6 +31,8 @@ public partial class Shift
 
     public virtual ICollection<AssignShift> AssignShifts { get; set; } = new List<AssignShift>();
 
+    public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
+
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
     public virtual DivisionMaster? Division { get; set; }

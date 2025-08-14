@@ -98,8 +98,6 @@ public partial class AttendanceManagementSystemContext : DbContext
 
     public virtual DbSet<EmployeeAppraisalSheet> EmployeeAppraisalSheets { get; set; }
 
-    public virtual DbSet<EmployeePerformance> EmployeePerformances { get; set; }
-
     public virtual DbSet<EmployeePerformanceReview> EmployeePerformanceReviews { get; set; }
 
     public virtual DbSet<EmploymentHistory> EmploymentHistories { get; set; }
@@ -199,10 +197,6 @@ public partial class AttendanceManagementSystemContext : DbContext
     public virtual DbSet<PerformanceRatingScale> PerformanceRatingScales { get; set; }
 
     public virtual DbSet<PerformanceReport> PerformanceReports { get; set; }
-
-    public virtual DbSet<PerformanceReviewCycle> PerformanceReviewCycles { get; set; }
-
-    public virtual DbSet<PerformanceReviewEmployee> PerformanceReviewEmployees { get; set; }
 
     public virtual DbSet<PerformanceUploadType> PerformanceUploadTypes { get; set; }
 
@@ -439,7 +433,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<AgmApproval>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AgmAppro__3214EC07C5019607");
+            entity.HasKey(e => e.Id).HasName("PK__AgmAppro__3214EC0749F6032F");
 
             entity.ToTable("AgmApproval");
 
@@ -516,7 +510,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<AppraisalAnnexureA>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Appraisa__3214EC07A7D394CB");
+            entity.HasKey(e => e.Id).HasName("PK__Appraisa__3214EC07C2109704");
 
             entity.ToTable("AppraisalAnnexureA");
 
@@ -704,7 +698,7 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__AssignShift__C0A838818477FD71");
 
-            entity.ToTable("AssignShift", tb => tb.HasTrigger("trg_ReprocessAttendance_OnShiftAssign"));
+            entity.ToTable("AssignShift");
 
             entity.Property(e => e.CreatedUtc)
                 .HasColumnType("datetime")
@@ -818,9 +812,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.FreezedBy)
                 .HasConstraintName("FK_AttendanceRecords_StaffCreation");
 
-            /*entity.HasOne(d => d.Shift).WithMany(p => p.AttendanceRecords)
+            entity.HasOne(d => d.Shift).WithMany(p => p.AttendanceRecords)
                 .HasForeignKey(d => d.ShiftId)
-                .HasConstraintName("FK_Record_Shift");*/
+                .HasConstraintName("FK_Record_Shift");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.AttendanceRecordStaffs)
                 .HasForeignKey(d => d.StaffId)
@@ -1006,7 +1000,7 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Business__3214EC0749A220F3");
 
-            entity.ToTable("BusinessTravel", tb => tb.HasTrigger("trg_UpdateAttendanceAfterBusinessTravelApproval"));
+            entity.ToTable("BusinessTravel");
 
             entity.Property(e => e.ApprovedOn).HasColumnType("datetime");
             entity.Property(e => e.CancelledOn).HasColumnType("datetime");
@@ -1168,7 +1162,7 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__CommonPe__EFA6FB2F77BA7162");
 
-            entity.ToTable("CommonPermission", tb => tb.HasTrigger("trg_UpdateAttendanceAfterPermissionApproval"));
+            entity.ToTable("CommonPermission");
 
             entity.Property(e => e.ApprovedOn).HasColumnType("datetime");
             entity.Property(e => e.CancelledOn).HasColumnType("datetime");
@@ -1222,7 +1216,7 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__CompOffA__3214EC07300CCF6D");
 
-            entity.ToTable("CompOffAvail", tb => tb.HasTrigger("trg_UpdateAttendanceAfterCompOffApproval"));
+            entity.ToTable("CompOffAvail");
 
             entity.Property(e => e.ApprovedOn).HasColumnType("datetime");
             entity.Property(e => e.CancelledOn).HasColumnType("datetime");
@@ -1738,7 +1732,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<EmployeeAcceptance>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0787DB0808");
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07C1FCDE3C");
 
             entity.ToTable("EmployeeAcceptance");
 
@@ -1774,7 +1768,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<EmployeeAppraisalSheet>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC077410E977");
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07E3EB9362");
 
             entity.ToTable("EmployeeAppraisalSheet");
 
@@ -1918,37 +1912,9 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasConstraintName("FK_EASUPId");
         });
 
-        modelBuilder.Entity<EmployeePerformance>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07C6F1946B");
-
-            entity.ToTable("EmployeePerformance");
-
-            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
-            entity.Property(e => e.Designation)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.EmployeeCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.EmployeeName)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.FinalPercentage).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.Grade)
-                .HasMaxLength(10)
-                .IsUnicode(false);
-            entity.Property(e => e.HrComments).IsUnicode(false);
-            entity.Property(e => e.PresentPercentage).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.ProductivityPercentage).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.QualityPercentage).HasColumnType("decimal(5, 2)");
-            entity.Property(e => e.TenureYears).HasColumnType("decimal(4, 2)");
-            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
-        });
-
         modelBuilder.Entity<EmployeePerformanceReview>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07E67937AE");
+            entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC077CBA3B93");
 
             entity.ToTable("EmployeePerformanceReview");
 
@@ -2216,7 +2182,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<Goal>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Goals__3214EC073F533D95");
+            entity.HasKey(e => e.Id).HasName("PK__Goals__3214EC079FA5BCB0");
 
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.EvaluationPeriod)
@@ -2248,7 +2214,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<GoalAssignment>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__GoalAssi__3214EC073B8F9C53");
+            entity.HasKey(e => e.Id).HasName("PK__GoalAssi__3214EC07C3E7692C");
 
             entity.ToTable("GoalAssignment");
 
@@ -2594,7 +2560,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<KraManagerReview>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__KraManag__3214EC07F5507987");
+            entity.HasKey(e => e.Id).HasName("PK__KraManag__3214EC07420CDCC9");
 
             entity.ToTable("KraManagerReview");
 
@@ -2627,7 +2593,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<KraSelfReview>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__KraSelfR__3214EC074BE96815");
+            entity.HasKey(e => e.Id).HasName("PK__KraSelfR__3214EC075D3C3B6F");
 
             entity.ToTable("KraSelfReview");
 
@@ -2814,7 +2780,7 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__LeaveReq__6094218E496A4B2D");
 
-            entity.ToTable("LeaveRequisition", tb => tb.HasTrigger("trg_UpdateAttendanceAfterLeaveApproval"));
+            entity.ToTable("LeaveRequisition");
 
             entity.Property(e => e.ApprovedOn).HasColumnType("datetime");
             entity.Property(e => e.CancelledOn).HasColumnType("datetime");
@@ -3149,7 +3115,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<MonthlyPerformance>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__MonthlyP__3214EC07CF558459");
+            entity.HasKey(e => e.Id).HasName("PK__MonthlyP__3214EC07A94BB22B");
 
             entity.ToTable("MonthlyPerformance");
 
@@ -3243,7 +3209,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<NonProductionEmployeePerformanceReview>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__NonProdu__3214EC079A7AEE84");
+            entity.HasKey(e => e.Id).HasName("PK__NonProdu__3214EC07C718921B");
 
             entity.ToTable("NonProductionEmployeePerformanceReview");
 
@@ -3364,7 +3330,7 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__OnDutyRe__3214EC0734F1670C");
 
-            entity.ToTable("OnDutyRequisition", tb => tb.HasTrigger("trg_UpdateAttendanceAfterOnDutyApproval"));
+            entity.ToTable("OnDutyRequisition");
 
             entity.Property(e => e.ApprovedOn).HasColumnType("datetime");
             entity.Property(e => e.CancelledOn).HasColumnType("datetime");
@@ -3473,7 +3439,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<PaySheet>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PaySheet__3214EC07868242CE");
+            entity.HasKey(e => e.Id).HasName("PK__PaySheet__3214EC079338218F");
 
             entity.ToTable("PaySheet");
 
@@ -3557,21 +3523,21 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PaySheetCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PaySheet__Create__79A8DF5A");
+                .HasConstraintName("FK__PaySheet__Create__76CC72AF");
 
             entity.HasOne(d => d.Department).WithMany(p => p.PaySheets)
                 .HasForeignKey(d => d.DepartmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PaySheet__Depart__78B4BB21");
+                .HasConstraintName("FK__PaySheet__Depart__77C096E8");
 
             entity.HasOne(d => d.Designation).WithMany(p => p.PaySheets)
                 .HasForeignKey(d => d.DesignationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PaySheet__Design__77C096E8");
+                .HasConstraintName("FK__PaySheet__Design__78B4BB21");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PaySheetUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__PaySheet__Update__7A9D0393");
+                .HasConstraintName("FK__PaySheet__Update__79A8DF5A");
         });
 
         modelBuilder.Entity<PaySlip>(entity =>
@@ -3708,7 +3674,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<PerformanceReport>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC073435951D");
+            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC07CE62BCE5");
 
             entity.ToTable("PerformanceReport");
 
@@ -3761,60 +3727,6 @@ public partial class AttendanceManagementSystemContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceReportUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_UPEPRId");
-        });
-
-        modelBuilder.Entity<PerformanceReviewCycle>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC07AA445CB0");
-
-            entity.ToTable("PerformanceReviewCycle");
-
-            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
-            entity.Property(e => e.From)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-            entity.Property(e => e.To)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
-
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PerformanceReviewCycleCreatedByNavigations)
-                .HasForeignKey(d => d.CreatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CRPRC");
-
-            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceReviewCycleUpdatedByNavigations)
-                .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK_UPPRC");
-        });
-
-        modelBuilder.Entity<PerformanceReviewEmployee>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Performa__3214EC074EC334CF");
-
-            entity.ToTable("PerformanceReviewEmployee");
-
-            entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
-            entity.Property(e => e.UpdatedUtc).HasColumnType("datetime");
-
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PerformanceReviewEmployeeCreatedByNavigations)
-                .HasForeignKey(d => d.CreatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CRPRE");
-
-            entity.HasOne(d => d.PerformanceCycle).WithMany(p => p.PerformanceReviewEmployees)
-                .HasForeignKey(d => d.PerformanceCycleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PCPRE");
-
-            entity.HasOne(d => d.Staff).WithMany(p => p.PerformanceReviewEmployeeStaffs)
-                .HasForeignKey(d => d.StaffId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SIPRE");
-
-            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PerformanceReviewEmployeeUpdatedByNavigations)
-                .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK_UPPRE");
         });
 
         modelBuilder.Entity<PerformanceUploadType>(entity =>
@@ -4002,11 +3914,6 @@ public partial class AttendanceManagementSystemContext : DbContext
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PreviousEmployment_CreatedBy");
-
-            entity.HasOne(d => d.Staff).WithMany(p => p.PreviousEmploymentStaffs)
-                .HasForeignKey(d => d.StaffId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PreviousEmployment_StaffId");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.PreviousEmploymentUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
@@ -4236,7 +4143,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<QuarterlyPerformance>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Quarterl__3214EC0723D89AD8");
+            entity.HasKey(e => e.Id).HasName("PK__Quarterl__3214EC07E44B91FB");
 
             entity.ToTable("QuarterlyPerformance");
 
@@ -4344,7 +4251,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__RefreshT__3214EC077C366A90");
+            entity.HasKey(e => e.Id).HasName("PK__RefreshT__3214EC07EA4CEF9A");
 
             entity.ToTable("RefreshToken");
 
@@ -4618,7 +4525,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<SelectedEmployeesForAppraisal>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Selected__3214EC07C82DC83F");
+            entity.HasKey(e => e.Id).HasName("PK__Selected__3214EC074688D8BC");
 
             entity.ToTable("SelectedEmployeesForAppraisal");
 
@@ -4666,7 +4573,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<SelectedNonProductionEmployee>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Selected__3214EC0701494B5E");
+            entity.HasKey(e => e.Id).HasName("PK__Selected__3214EC07CB15A346");
 
             entity.Property(e => e.CreatedUtc).HasColumnType("datetime");
             entity.Property(e => e.Department)
@@ -5674,7 +5581,7 @@ public partial class AttendanceManagementSystemContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__WorkFrom__3214EC070BEF0A30");
 
-            entity.ToTable("WorkFromHome", tb => tb.HasTrigger("trg_UpdateAttendanceAfterWfhApproval"));
+            entity.ToTable("WorkFromHome");
 
             entity.Property(e => e.ApprovedOn).HasColumnType("datetime");
             entity.Property(e => e.CancelledOn).HasColumnType("datetime");
@@ -5851,7 +5758,7 @@ public partial class AttendanceManagementSystemContext : DbContext
 
         modelBuilder.Entity<YearlyPerformance>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__YearlyPe__3214EC0775BB2705");
+            entity.HasKey(e => e.Id).HasName("PK__YearlyPe__3214EC0743021048");
 
             entity.ToTable("YearlyPerformance");
 

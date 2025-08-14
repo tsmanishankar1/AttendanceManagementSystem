@@ -33,7 +33,5 @@ public partial class PreviousEmployment
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 
-    public virtual StaffCreation Staff { get; set; } = null!;
-
     public virtual StaffCreation? UpdatedByNavigation { get; set; }
 }

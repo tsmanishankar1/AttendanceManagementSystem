@@ -24,7 +24,6 @@ public partial class AssignShift
     public int? UpdatedBy { get; set; }
 
     public DateTime? UpdatedUtc { get; set; }
-    public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
 
     public virtual StaffCreation CreatedByNavigation { get; set; } = null!;
 

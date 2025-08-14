@@ -659,16 +659,6 @@ public partial class StaffCreation
 
     public virtual ICollection<PerformanceReport> PerformanceReportUpdatedByNavigations { get; set; } = new List<PerformanceReport>();
 
-    public virtual ICollection<PerformanceReviewCycle> PerformanceReviewCycleCreatedByNavigations { get; set; } = new List<PerformanceReviewCycle>();
-
-    public virtual ICollection<PerformanceReviewCycle> PerformanceReviewCycleUpdatedByNavigations { get; set; } = new List<PerformanceReviewCycle>();
-
-    public virtual ICollection<PerformanceReviewEmployee> PerformanceReviewEmployeeCreatedByNavigations { get; set; } = new List<PerformanceReviewEmployee>();
-
-    public virtual ICollection<PerformanceReviewEmployee> PerformanceReviewEmployeeStaffs { get; set; } = new List<PerformanceReviewEmployee>();
-
-    public virtual ICollection<PerformanceReviewEmployee> PerformanceReviewEmployeeUpdatedByNavigations { get; set; } = new List<PerformanceReviewEmployee>();
-
     public virtual ICollection<PerformanceUploadType> PerformanceUploadTypeCreatedByNavigations { get; set; } = new List<PerformanceUploadType>();
 
     public virtual ICollection<PerformanceUploadType> PerformanceUploadTypeUpdatedByNavigations { get; set; } = new List<PerformanceUploadType>();
@@ -694,8 +684,6 @@ public partial class StaffCreation
     public virtual ICollection<PrefixLeaveType> PrefixLeaveTypeUpdatedByNavigations { get; set; } = new List<PrefixLeaveType>();
 
     public virtual ICollection<PreviousEmployment> PreviousEmploymentCreatedByNavigations { get; set; } = new List<PreviousEmployment>();
-
-    public virtual ICollection<PreviousEmployment> PreviousEmploymentStaffs { get; set; } = new List<PreviousEmployment>();
 
     public virtual ICollection<PreviousEmployment> PreviousEmploymentUpdatedByNavigations { get; set; } = new List<PreviousEmployment>();
 
