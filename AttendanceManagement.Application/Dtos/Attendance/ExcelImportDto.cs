@@ -20,5 +20,4 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int ErrorCount { get; set; }
         public List<string> ErrorMessages { get; set; } = new();
     }
-
 }

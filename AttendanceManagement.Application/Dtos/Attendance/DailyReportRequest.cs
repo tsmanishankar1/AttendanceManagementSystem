@@ -197,7 +197,7 @@
         public string Branch { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public string Shift { get; set; } = null!;
+        public string? Shift { get; set; }
         public TimeOnly? InTime { get; set; }
     }
 
@@ -206,7 +206,7 @@
         public int StaffId { get; set; }
         public string StaffCreationId { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public DateOnly? SwipeDate { get; set; }
+        public string? SwipeDate { get; set; }
         public TimeOnly? SwipeTime { get; set; }
         public string ReaderName { get; set; } = null!;
         public string PunchType { get; set; } = null!;
