@@ -114,7 +114,7 @@ public class ApplicationInfra : IApplicationInfra
         var entityType = entity.GetType();
         var isCancelledProperty = entityType.GetProperty("IsCancelled");
         var cancelledOnProperty = entityType.GetProperty("CancelledOn");
-        var updatedByProperty = entityType.GetProperty("CancellededBy");
+        var updatedByProperty = entityType.GetProperty("CancelledBy");
         var isActiveProperty = entityType.GetProperty("IsActive");
 
         if (isCancelledProperty == null)
@@ -230,7 +230,7 @@ public class ApplicationInfra : IApplicationInfra
         var entityType = entity.GetType();
         var isCancelledProperty = entityType.GetProperty("IsCancelled");
         var cancelledOnProperty = entityType.GetProperty("CancelledOn");
-        var updatedByProperty = entityType.GetProperty("CancellededBy");
+        var updatedByProperty = entityType.GetProperty("CancelledBy");
         var isActiveProperty = entityType.GetProperty("IsActive");
 
         if (isCancelledProperty == null)
