@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
+using AttendanceManagement.Application.Interfaces.Infrastructure;
+using AttendanceManagement.Domain.Entities.Attendance;
+using AttendanceManagement.Infrastructure.Data;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.ComponentModel.DataAnnotations;
 using LicenseContext = OfficeOpenXml.LicenseContext;
-using AttendanceManagement.Infrastructure.Data;
-using AttendanceManagement.Application.Interfaces.Infrastructure;
-using AttendanceManagement.Application.Dtos.Attendance;
-using AttendanceManagement.Domain.Entities.Attendance;
-using Microsoft.AspNetCore.Http;
 namespace AttendanceManagement.Infrastructure.Infra
 {
     public class AppraisalManagementInfra : IAppraisalManagementInfra
@@ -425,11 +426,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             }
         }
 
-        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(
-            int appraisalId,
-            int year,
-            string? quarter,
-            int? month)
+        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeReview(int appraisalId, int year, string? quarter, int? month)
         {
             var rawData = await (
                 from staff in _context.EmployeePerformanceReviews
@@ -586,11 +583,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             return message;
         }
 
-        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeAgmApproval(
-            int appraisalId,
-            int year,
-            string? quarter,
-            int? month)
+        public async Task<List<PerformanceReviewResponse>> GetSelectedEmployeeAgmApproval(int appraisalId, int year, string? quarter, int? month)
         {
             var rawData = await (
                 from staff in _context.AgmApprovals
@@ -1114,9 +1107,23 @@ namespace AttendanceManagement.Infrastructure.Infra
 
         public async Task<string> CreateKra(KraDto kraDto)
         {
+            if (kraDto == null || kraDto.SelectedRows == null || !kraDto.SelectedRows.Any())
+                throw new ValidationException("No KRA data provided.");
             var selectedRows = kraDto.SelectedRows;
             foreach (var item in selectedRows)
             {
+                var existingWeightage = await _context.Goals
+                    .Where(g => g.AppraisalId == item.AppraisalId &&
+                                g.Year == item.Year &&
+                                g.Quarter == item.Quarter &&
+                                g.Month == item.Month &&
+                                g.IsActive)
+                    .SumAsync(g => (int?)g.Weightage) ?? 0;
+
+                var newTotal = existingWeightage + item.Weightage;
+                if (newTotal > 100)
+                    throw new InvalidOperationException("Total KRA weightage limit is exceeded");
+
                 var kra = new Goal
                 {
                     Kra = item.Kra,
@@ -1228,6 +1235,16 @@ namespace AttendanceManagement.Infrastructure.Infra
 
         public async Task<string> CreateSelfEvaluation(SelfEvaluationRequest selfEvaluationRequest)
         {
+            var goal = await _context.Goals.FirstOrDefaultAsync(g => g.Id == selfEvaluationRequest.GoalId && g.IsActive);
+            if (goal == null)
+                throw new MessageNotFoundException("Kra not found");
+            var alreadySubmitted = await _context.KraSelfReviews
+                .AnyAsync(sr => sr.GoalId == selfEvaluationRequest.GoalId &&
+                                sr.AppraisalId == selfEvaluationRequest.AppraisalId &&
+                                sr.CreatedBy == selfEvaluationRequest.CreatedBy &&
+                                sr.IsActive);
+            if (alreadySubmitted)
+                throw new ConflictException("You have already submitted a self-evaluation for this kra.");
             string? savedFilePath = null;
             if (selfEvaluationRequest.AttachmentsSelf != null && selfEvaluationRequest.AttachmentsSelf.Length > 0)
             {
@@ -1371,6 +1388,12 @@ namespace AttendanceManagement.Infrastructure.Infra
         }
         public async Task<string> CreateManagerEvaluation(ManagerEvaluationRequest managerEvaluationRequest)
         {
+            var selfReview = await _context.KraSelfReviews.FirstOrDefaultAsync(s => s.Id == managerEvaluationRequest.KraSelfReviewId && s.IsActive);
+            if (selfReview == null) throw new MessageNotFoundException("Self-evaluation not found");
+            var alreadyEvaluated = await _context.KraManagerReviews
+                .AnyAsync(mr => mr.KraSelfReviewId == managerEvaluationRequest.KraSelfReviewId && mr.IsActive);
+            if (alreadyEvaluated)
+                throw new ConflictException("A manager evaluation for this self-evaluation has already been submitted.");
             string? savedFilePath = null;
             if (managerEvaluationRequest.AttachmentsManager != null && managerEvaluationRequest.AttachmentsManager.Length > 0)
             {
@@ -1393,8 +1416,6 @@ namespace AttendanceManagement.Infrastructure.Infra
             await _context.KraManagerReviews.AddAsync(managerEvaluation);
             await _context.SaveChangesAsync();
 
-            var selfReview = await _context.KraSelfReviews.FirstOrDefaultAsync(s => s.Id == managerEvaluationRequest.KraSelfReviewId && s.IsActive);
-            if (selfReview == null) throw new MessageNotFoundException("Self-evaluation record not found");
             var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == selfReview.CreatedBy && s.IsActive == true);
             if (staff == null) throw new MessageNotFoundException("Staff record not found");
             var manager = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == managerEvaluationRequest.CreatedBy && s.IsActive == true);

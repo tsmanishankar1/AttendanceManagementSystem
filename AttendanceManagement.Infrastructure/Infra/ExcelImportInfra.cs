@@ -1,11 +1,12 @@
-﻿using OfficeOpenXml;
-using LicenseContext = OfficeOpenXml.LicenseContext;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
+﻿using AttendanceManagement.Application.Dtos.Attendance;
 using AttendanceManagement.Application.Interfaces.Infrastructure;
-using AttendanceManagement.Infrastructure.Data;
-using AttendanceManagement.Application.Dtos.Attendance;
 using AttendanceManagement.Domain.Entities.Attendance;
+using AttendanceManagement.Infrastructure.Data;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using System.Text.RegularExpressions;
+using LicenseContext = OfficeOpenXml.LicenseContext;
 namespace AttendanceManagement.Infrastructure.Infra;
 public class ExcelImportInfra : IExcelImportInfra
 {
@@ -293,8 +294,21 @@ public class ExcelImportInfra : IExcelImportInfra
                     var staffCreations = new List<StaffCreation>();
                     var errorLogs = new List<string>();
                     var validDepartmentIds = _context.DepartmentMasters.Where(d => d.IsActive).Select(d => d.Id).ToHashSet();
+                    var staffIdsInExcel = new HashSet<string>();
+                    var existingStaffIds = await _context.StaffCreations.Where(s => s.IsActive == true).Select(s => s.StaffId).ToHashSetAsync();
                     for (int row = 2; row <= rowCount; row++)
                     {
+                        var staffId = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
+                        if (existingStaffIds.Contains(staffId))
+                        {
+                            errorLogs.Add($"StaffId '{staffId}' already exists at row {row}");
+                            continue;
+                        }
+                        if (!staffIdsInExcel.Add(staffId))
+                        {
+                            errorLogs.Add($"Duplicate StaffId '{staffId}' found in Excel at row {row}");
+                            continue;
+                        }
                         var branchName = worksheet.Cells[row, columnIndexes["Branch"]].Text.Trim();
                         if (string.IsNullOrEmpty(branchName))
                         {
@@ -487,7 +501,7 @@ public class ExcelImportInfra : IExcelImportInfra
                         var staffCreation = new StaffCreation
                         {
                             CardCode = worksheet.Cells[row, columnIndexes["CardCode"]].Text.Trim(),
-                            StaffId = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim(),
+                            StaffId = staffId,
                             Title = worksheet.Cells[row, columnIndexes["Title"]].Text.Trim(),
                             FirstName = worksheet.Cells[row, columnIndexes["FirstName"]].Text.Trim(),
                             LastName = worksheet.Cells[row, columnIndexes["LastName"]].Text.Trim(),
@@ -680,39 +694,88 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var departmentMasters = new List<DepartmentMaster>();
                     var errorLogs = new List<string>();
+
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var departmentName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
                         if (string.IsNullOrEmpty(departmentName))
                         {
-                            errorLogs.Add($"Department name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Department name is required.");
                             continue;
                         }
-                        var isActive = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
-                        if (string.IsNullOrEmpty(isActive))
+                        if (departmentName.Length > 50)
                         {
-                            errorLogs.Add($"IsActive is empty at {row}");
+                            errorLogs.Add($"Row {row}: Department name is too long (max 100 chars).");
                             continue;
                         }
+                        if (_context.DepartmentMasters.Any(d => d.Name == departmentName))
+                        {
+                            errorLogs.Add($"Row {row}: Department name '{departmentName}' already exists.");
+                            continue;
+                        }
+
+                        var isActiveText = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
+                        if (string.IsNullOrEmpty(isActiveText))
+                        {
+                            errorLogs.Add($"Row {row}: IsActive is required.");
+                            continue;
+                        }
+                        if (!bool.TryParse(isActiveText, out var isActive))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid IsActive value '{isActiveText}'. Must be true/false.");
+                            continue;
+                        }
+
+                        var shortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
+                        if (shortName.Length > 50)
+                        {
+                            errorLogs.Add($"Row {row}: ShortName is too long (max 50 chars).");
+                            continue;
+                        }
+
+                        var phoneText = worksheet.Cells[row, columnIndexes["Phone"]].Text.Trim();
+                        long phone = 0;
+                        if (!string.IsNullOrEmpty(phoneText) && !long.TryParse(phoneText, out phone))
+                        {
+                            errorLogs.Add($"Row {row}: Phone '{phoneText}' is not a valid number.");
+                            continue;
+                        }
+
+                        var email = worksheet.Cells[row, columnIndexes["Email"]].Text.Trim();
+                        if (!string.IsNullOrEmpty(email) && !Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid email format '{email}'.");
+                            continue;
+                        }
+
+                        if (_context.DepartmentMasters.Any(d => d.Email == email))
+                        {
+                            errorLogs.Add($"Row {row}: Department name '{departmentName}' already exists.");
+                            continue;
+                        }
+
                         var departmentMaster = new DepartmentMaster
                         {
                             Name = departmentName,
-                            ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
-                            Phone = long.TryParse(worksheet.Cells[row, columnIndexes["Phone"]].Text, out var phone) ? phone : 0,
+                            ShortName = shortName,
+                            Phone = phone,
                             Fax = worksheet.Cells[row, columnIndexes["Fax"]].Text.Trim(),
-                            Email = worksheet.Cells[row, columnIndexes["Email"]].Text.Trim(),
-                            IsActive = bool.TryParse(isActive, out var hide) ? hide : false,
+                            Email = email,
+                            IsActive = isActive,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
+
                         departmentMasters.Add(departmentMaster);
                     }
+
                     if (departmentMasters.Any())
                     {
                         await _context.DepartmentMasters.AddRangeAsync(departmentMasters);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = departmentMasters.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -721,42 +784,65 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var designationMasters = new List<DesignationMaster>();
                     var errorLogs = new List<string>();
+
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var designationName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
                         if (string.IsNullOrEmpty(designationName))
                         {
-                            errorLogs.Add($"Designation name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Designation name is required.");
                             continue;
                         }
-                        var designation = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.Name.ToLower() == designationName.ToLower() && d.IsActive);
-                        if (designation == null)
+                        if (designationName.Length > 50)
                         {
-                            errorLogs.Add($"Designation {designation} not found at {row}");
+                            errorLogs.Add($"Row {row}: Designation name is too long (max 50 chars).");
                             continue;
                         }
-                        var isActive = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
-                        if (string.IsNullOrEmpty(isActive))
+
+                        if (await _context.DesignationMasters.AnyAsync(d => d.Name.ToLower() == designationName.ToLower()))
                         {
-                            errorLogs.Add($"IsActive is empty at {row}");
+                            errorLogs.Add($"Row {row}: Designation '{designationName}' already exists.");
                             continue;
                         }
+
+                        var isActiveText = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
+                        if (string.IsNullOrEmpty(isActiveText))
+                        {
+                            errorLogs.Add($"Row {row}: IsActive is required.");
+                            continue;
+                        }
+                        if (!bool.TryParse(isActiveText, out var isActive))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid IsActive value '{isActiveText}'. Must be true/false.");
+                            continue;
+                        }
+
+                        var shortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
+                        if (shortName.Length > 50)
+                        {
+                            errorLogs.Add($"Row {row}: ShortName is too long (max 50 chars).");
+                            continue;
+                        }
+
                         var designationMaster = new DesignationMaster
                         {
                             Name = designationName,
-                            ShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim(),
-                            IsActive = bool.TryParse(isActive, out var hide) ? hide : false,
+                            ShortName = shortName,
+                            IsActive = isActive,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
+
                         designationMasters.Add(designationMaster);
                     }
+
                     if (designationMasters.Any())
                     {
                         await _context.DesignationMasters.AddRangeAsync(designationMasters);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = designationMasters.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -765,42 +851,77 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var divisionMasters = new List<DivisionMaster>();
                     var errorLogs = new List<string>();
+                    var excelDivisionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var divisionName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
                         if (string.IsNullOrEmpty(divisionName))
                         {
-                            errorLogs.Add($"Division name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Division name is required.");
                             continue;
                         }
+                        if (divisionName.Length > 50)
+                        {
+                            errorLogs.Add($"Row {row}: Division name too long (max 50 chars).");
+                            continue;
+                        }
+
+                        if (!excelDivisionNames.Add(divisionName))
+                        {
+                            errorLogs.Add($"Row {row}: Duplicate division '{divisionName}' found in Excel.");
+                            continue;
+                        }
+
+                        if (await _context.DivisionMasters.AnyAsync(d => d.Name.ToLower() == divisionName.ToLower()))
+                        {
+                            errorLogs.Add($"Row {row}: Division '{divisionName}' already exists");
+                            continue;
+                        }
+
                         var divisionShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
                         if (string.IsNullOrEmpty(divisionShortName))
                         {
-                            errorLogs.Add($"Division short name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Division short name is required.");
                             continue;
                         }
-                        var isActive = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
-                        if (string.IsNullOrEmpty(isActive))
+                        if (divisionShortName.Length > 20)
                         {
-                            errorLogs.Add($"IsActive is empty at {row}");
+                            errorLogs.Add($"Row {row}: Short name too long (max 20 chars).");
                             continue;
                         }
+
+                        var isActiveText = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
+                        if (string.IsNullOrEmpty(isActiveText))
+                        {
+                            errorLogs.Add($"Row {row}: IsActive is required.");
+                            continue;
+                        }
+                        if (!bool.TryParse(isActiveText, out var isActive))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid IsActive value '{isActiveText}'. Must be true/false.");
+                            continue;
+                        }
+
                         var divisionMaster = new DivisionMaster
                         {
                             Name = divisionName,
                             ShortName = divisionShortName,
-                            IsActive = bool.TryParse(isActive, out var hide) ? hide : false,
+                            IsActive = isActive,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
+
                         divisionMasters.Add(divisionMaster);
                     }
+
                     if (divisionMasters.Any())
                     {
                         await _context.DivisionMasters.AddRangeAsync(divisionMasters);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = divisionMasters.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -809,42 +930,77 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var costCentreMasters = new List<CostCentreMaster>();
                     var errorLogs = new List<string>();
+                    var excelCostCentreNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var costcentreName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
                         if (string.IsNullOrEmpty(costcentreName))
                         {
-                            errorLogs.Add($"Cost centre name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Cost centre name is required.");
                             continue;
                         }
+                        if (costcentreName.Length > 50)
+                        {
+                            errorLogs.Add($"Row {row}: Cost centre name too long (max 50 chars).");
+                            continue;
+                        }
+
+                        if (!excelCostCentreNames.Add(costcentreName))
+                        {
+                            errorLogs.Add($"Row {row}: Duplicate cost centre '{costcentreName}' found in Excel.");
+                            continue;
+                        }
+
+                        if (await _context.CostCentreMasters.AnyAsync(c => c.Name.ToLower() == costcentreName.ToLower()))
+                        {
+                            errorLogs.Add($"Row {row}: Cost centre '{costcentreName}' already exists");
+                            continue;
+                        }
+
                         var costcentreShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
                         if (string.IsNullOrEmpty(costcentreShortName))
                         {
-                            errorLogs.Add($"Cost centre short name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Cost centre short name is required.");
                             continue;
                         }
-                        var isActive = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
-                        if (string.IsNullOrEmpty(isActive))
+                        if (costcentreShortName.Length > 5)
                         {
-                            errorLogs.Add($"IsActive is empty at {row}");
+                            errorLogs.Add($"Row {row}: Short name too long (max 5 chars).");
                             continue;
                         }
+
+                        var isActiveText = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
+                        if (string.IsNullOrEmpty(isActiveText))
+                        {
+                            errorLogs.Add($"Row {row}: IsActive is required.");
+                            continue;
+                        }
+                        if (!bool.TryParse(isActiveText, out var isActive))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid IsActive value '{isActiveText}'. Must be true/false.");
+                            continue;
+                        }
+
                         var costCentreMaster = new CostCentreMaster
                         {
                             Name = costcentreName,
                             ShortName = costcentreShortName,
-                            IsActive = bool.TryParse(isActive, out var hide) ? hide : false,
+                            IsActive = isActive,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
+
                         costCentreMasters.Add(costCentreMaster);
                     }
+
                     if (costCentreMasters.Any())
                     {
                         await _context.CostCentreMasters.AddRangeAsync(costCentreMasters);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = costCentreMasters.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -853,42 +1009,77 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var volumes = new List<Volume>();
                     var errorLogs = new List<string>();
+                    var excelVolumeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var volumeName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
                         if (string.IsNullOrEmpty(volumeName))
                         {
-                            errorLogs.Add($"Volume name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Volume name is required.");
                             continue;
                         }
+                        if (volumeName.Length > 100)
+                        {
+                            errorLogs.Add($"Row {row}: Volume name too long (max 100 chars).");
+                            continue;
+                        }
+
+                        if (!excelVolumeNames.Add(volumeName))
+                        {
+                            errorLogs.Add($"Row {row}: Duplicate volume '{volumeName}' found in Excel.");
+                            continue;
+                        }
+
+                        if (await _context.Volumes.AnyAsync(v => v.Name.ToLower() == volumeName.ToLower()))
+                        {
+                            errorLogs.Add($"Row {row}: Volume '{volumeName}' already exists");
+                            continue;
+                        }
+
                         var volumeShortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
                         if (string.IsNullOrEmpty(volumeShortName))
                         {
-                            errorLogs.Add($"Volume short name is empty at {row}");
+                            errorLogs.Add($"Row {row}: Volume short name is required.");
                             continue;
                         }
-                        var isActive = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
-                        if (string.IsNullOrEmpty(isActive))
+                        if (volumeShortName.Length > 20)
                         {
-                            errorLogs.Add($"IsActive is empty at {row}");
+                            errorLogs.Add($"Row {row}: Volume short name too long (max 20 chars).");
                             continue;
                         }
+
+                        var isActiveText = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
+                        if (string.IsNullOrEmpty(isActiveText))
+                        {
+                            errorLogs.Add($"Row {row}: IsActive is required.");
+                            continue;
+                        }
+                        if (!bool.TryParse(isActiveText, out var isActive))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid IsActive value '{isActiveText}'. Must be true/false.");
+                            continue;
+                        }
+
                         var volume = new Volume
                         {
                             Name = volumeName,
                             ShortName = volumeShortName,
-                            IsActive = bool.TryParse(isActive, out var hide) ? hide : false,
+                            IsActive = isActive,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
+
                         volumes.Add(volume);
                     }
+
                     if (volumes.Any())
                     {
                         await _context.Volumes.AddRangeAsync(volumes);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = volumes.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -897,63 +1088,112 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var manualPunchRequisitions = new List<ManualPunchRequistion>();
                     var errorLogs = new List<string>();
+
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
                         if (string.IsNullOrEmpty(applicationTypeName))
                         {
-                            errorLogs.Add($"Application type is empty at {row}");
+                            errorLogs.Add($"Row {row}: Application Type is required.");
                             continue;
                         }
-                        var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
+                        var applicationType = await _context.ApplicationTypes
+                            .FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
                         if (applicationType == null)
                         {
-                            errorLogs.Add($"Application Type '{applicationTypeName}' not found at row {row}");
+                            errorLogs.Add($"Row {row}: Application Type '{applicationTypeName}' not found or inactive.");
                             continue;
                         }
+
                         var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                         if (string.IsNullOrEmpty(staffIdText))
                         {
-                            errorLogs.Add($"Staff is empty at {row}");
+                            errorLogs.Add($"Row {row}: Staff ID is required.");
                             continue;
                         }
                         var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
                         if (staff == null)
                         {
-                            errorLogs.Add($"Staff '{staffIdText}' not found at row {row}");
+                            errorLogs.Add($"Row {row}: Staff '{staffIdText}' not found or inactive.");
                             continue;
                         }
-                        var selectedPunch = worksheet.Cells[row, columnIndexes["SelectPunch"]].Text.Trim().ToLower();
+
+                        var selectedPunch = worksheet.Cells[row, columnIndexes["SelectPunch"]].Text.Trim();
+                        if (string.IsNullOrEmpty(selectedPunch))
+                        {
+                            errorLogs.Add($"Row {row}: SelectPunch is required.");
+                            continue;
+                        }
+                        var validPunches = new[] { "in", "out", "in & out" };
+                        if (!validPunches.Contains(selectedPunch.ToLower()))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid SelectPunch '{selectedPunch}'. Allowed values: In, Out, In & Out.");
+                            continue;
+                        }
+
                         DateTime? inPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["InPunch"]]?.Text, out var parsedInPunch) ? parsedInPunch : null;
                         DateTime? outPunch = DateTime.TryParse(worksheet.Cells[row, columnIndexes["OutPunch"]]?.Text, out var parsedOutPunch) ? parsedOutPunch : null;
-                        if (selectedPunch == "In & Out")
+
+                        if (selectedPunch.Equals("In", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (!inPunch.HasValue || !outPunch.HasValue)
+                            if (!inPunch.HasValue)
                             {
-                                errorLogs.Add($"Invalid InPunch or OutPunch format at row {row}");
+                                errorLogs.Add($"Row {row}: InPunch is required when SelectPunch = 'In'.");
                                 continue;
                             }
                         }
+                        else if (selectedPunch.Equals("Out", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (!outPunch.HasValue)
+                            {
+                                errorLogs.Add($"Row {row}: OutPunch is required when SelectPunch = 'Out'.");
+                                continue;
+                            }
+                        }
+                        else if (selectedPunch.Equals("In & Out", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (!inPunch.HasValue || !outPunch.HasValue)
+                            {
+                                errorLogs.Add($"Row {row}: Both InPunch and OutPunch are required when SelectPunch = 'In & Out'.");
+                                continue;
+                            }
+                            if (inPunch >= outPunch)
+                            {
+                                errorLogs.Add($"Row {row}: InPunch must be earlier than OutPunch.");
+                                continue;
+                            }
+                        }
+
+                        var remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim();
+                        if (!string.IsNullOrEmpty(remarks) && remarks.Length > 255)
+                        {
+                            errorLogs.Add($"Row {row}: Remarks too long (max 255 characters).");
+                            continue;
+                        }
+
                         var manualPunchRequisition = new ManualPunchRequistion
                         {
                             StaffId = staff.Id,
                             SelectPunch = selectedPunch,
-                            InPunch = inPunch.HasValue ? inPunch.Value : (DateTime?)null,
-                            OutPunch = outPunch.HasValue ? outPunch.Value : (DateTime?)null,
-                            Remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim(),
+                            InPunch = inPunch,
+                            OutPunch = outPunch,
+                            Remarks = remarks,
                             IsActive = true,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow,
                             ApplicationTypeId = applicationType.Id
                         };
+
                         manualPunchRequisitions.Add(manualPunchRequisition);
                     }
+
                     if (manualPunchRequisitions.Any())
                     {
                         await _context.ManualPunchRequistions.AddRangeAsync(manualPunchRequisitions);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = manualPunchRequisitions.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -962,86 +1202,130 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var commonPermissions = new List<CommonPermission>();
                     var errorLogs = new List<string>();
+
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var applicationTypeName = worksheet.Cells[row, columnIndexes["ApplicationType"]].Text.Trim();
-                        var applicationType = await _context.ApplicationTypes.FirstOrDefaultAsync(a => a.Name == applicationTypeName && a.IsActive);
-                        if (applicationType == null)
+                        if (string.IsNullOrEmpty(applicationTypeName))
                         {
-                            errorLogs.Add($"Application Type '{applicationTypeName}' not found at row {row}");
+                            errorLogs.Add($"Row {row}: Application Type is required.");
                             continue;
                         }
+                        var applicationType = await _context.ApplicationTypes
+                            .FirstOrDefaultAsync(a => a.Name.ToLower() == applicationTypeName.ToLower() && a.IsActive);
+                        if (applicationType == null)
+                        {
+                            errorLogs.Add($"Row {row}: Application Type '{applicationTypeName}' not found or inactive.");
+                            continue;
+                        }
+
                         var staffIdText = worksheet.Cells[row, columnIndexes["StaffId"]].Text.Trim();
                         if (string.IsNullOrEmpty(staffIdText))
                         {
-                            errorLogs.Add($"Staff is empty at row {row}");
+                            errorLogs.Add($"Row {row}: Staff ID is required.");
                             continue;
                         }
                         var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == staffIdText && s.IsActive == true);
                         if (staff == null)
                         {
-                            errorLogs.Add($"Staff '{staffIdText}' not found at row {row}");
+                            errorLogs.Add($"Row {row}: Staff '{staffIdText}' not found or inactive.");
                             continue;
                         }
+
+                        var permissionDateText = worksheet.Cells[row, columnIndexes["PermissionDate"]].Text.Trim();
+                        if (!DateOnly.TryParse(permissionDateText, out var permissionDate))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid PermissionDate '{permissionDateText}'.");
+                            continue;
+                        }
+
                         var startTimeText = worksheet.Cells[row, columnIndexes["StartTime"]].Text.Trim();
                         var endTimeText = worksheet.Cells[row, columnIndexes["EndTime"]].Text.Trim();
-                        var permissionDateText = worksheet.Cells[row, columnIndexes["PermissionDate"]].Text.Trim();
-                        var startTime = TimeOnly.Parse(startTimeText);
-                        var endTime = TimeOnly.Parse(endTimeText);
-                        var permissionDate = DateOnly.Parse(permissionDateText);
-                        var startOfMonth = new DateOnly(permissionDate.Year, permissionDate.Month, 1);
-                        var endOfMonth = new DateOnly(permissionDate.Year, permissionDate.Month, DateTime.DaysInMonth(permissionDate.Year, permissionDate.Month));
-                        var monthName = permissionDate.ToString("MMMM");
-                        var existingPermissionOnDate = await _context.CommonPermissions.AnyAsync(p => p.StaffId == staff.Id && p.PermissionDate == permissionDate);
-                        if (existingPermissionOnDate)
+
+                        if (!TimeOnly.TryParse(startTimeText, out var startTime))
                         {
-                            errorLogs.Add($"Permission for the date {permissionDate:yyyy-MM-dd} already exists at row {row}");
+                            errorLogs.Add($"Row {row}: Invalid StartTime '{startTimeText}'.");
                             continue;
                         }
-                        var permissionsThisMonth = await _context.CommonPermissions
-                            .Where(p => p.StaffId == staff.Id && p.PermissionDate >= startOfMonth && p.PermissionDate <= endOfMonth)
-                            .ToListAsync();
-                        var totalMinutesUsed = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
+                        if (!TimeOnly.TryParse(endTimeText, out var endTime))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid EndTime '{endTimeText}'.");
+                            continue;
+                        }
+
                         var newRequestMinutes = (endTime - startTime).TotalMinutes;
                         if (newRequestMinutes <= 0)
                         {
-                            errorLogs.Add($"End time must be greater than start time at row {row}");
+                            errorLogs.Add($"Row {row}: EndTime must be greater than StartTime.");
                             continue;
                         }
                         if (newRequestMinutes > 120)
                         {
-                            errorLogs.Add("Permission duration cannot exceed 2 hours");
+                            errorLogs.Add($"Row {row}: Permission duration cannot exceed 2 hours.");
                             continue;
                         }
+
+                        var existingPermissionOnDate = await _context.CommonPermissions
+                            .AnyAsync(p => p.StaffId == staff.Id && p.PermissionDate == permissionDate);
+                        if (existingPermissionOnDate)
+                        {
+                            errorLogs.Add($"Row {row}: Permission already exists on {permissionDate:yyyy-MM-dd}.");
+                            continue;
+                        }
+
+                        var startOfMonth = new DateOnly(permissionDate.Year, permissionDate.Month, 1);
+                        var endOfMonth = new DateOnly(permissionDate.Year, permissionDate.Month,
+                            DateTime.DaysInMonth(permissionDate.Year, permissionDate.Month));
+                        var permissionsThisMonth = await _context.CommonPermissions
+                            .Where(p => p.StaffId == staff.Id && p.PermissionDate >= startOfMonth && p.PermissionDate <= endOfMonth)
+                            .ToListAsync();
+
+                        var totalMinutesUsed = permissionsThisMonth.Sum(p => TimeSpan.Parse(p.TotalHours).TotalMinutes);
                         if (totalMinutesUsed + newRequestMinutes > 120)
                         {
-                            errorLogs.Add($"Cumulative permission time for {monthName} cannot exceed 2 hours at row {row}");
+                            errorLogs.Add($"Row {row}: Monthly limit exceeded. {totalMinutesUsed + newRequestMinutes} minutes > 120 minutes.");
                             continue;
                         }
-                        var formattedDuration = $"{(int)newRequestMinutes / 60:D2}:{(int)newRequestMinutes % 60:D2}";
+
+                        var permissionType = worksheet.Cells[row, columnIndexes["PermissionType"]].Text.Trim();
+                        if (string.IsNullOrEmpty(permissionType))
+                        {
+                            errorLogs.Add($"Row {row}: PermissionType is required.");
+                            continue;
+                        }
+
+                        var remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim();
+                        if (!string.IsNullOrEmpty(remarks) && remarks.Length > 255)
+                        {
+                            errorLogs.Add($"Row {row}: Remarks too long (max 255 chars).");
+                            continue;
+                        }
+
                         var totalHours = (endTime - startTime).ToString("hh\\:mm");
                         var commonPermission = new CommonPermission
                         {
-                            PermissionType = worksheet.Cells[row, columnIndexes["PermissionType"]].Text.Trim(),
+                            PermissionType = permissionType,
                             StartTime = startTime,
                             EndTime = endTime,
                             TotalHours = totalHours,
                             StaffId = staff.Id,
                             PermissionDate = permissionDate,
                             ApplicationTypeId = applicationType.Id,
-                            Remarks = worksheet.Cells[row, columnIndexes["Remarks"]].Text.Trim(),
+                            Remarks = remarks,
                             IsActive = true,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
                         commonPermissions.Add(commonPermission);
                     }
+
                     if (commonPermissions.Any())
                     {
                         await _context.CommonPermissions.AddRangeAsync(commonPermissions);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = commonPermissions.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -1105,40 +1389,99 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var shiftMasters = new List<Shift>();
                     var errorLogs = new List<string>();
+
                     for (int row = 2; row <= rowCount; row++)
                     {
-                        var shiftType = worksheet.Cells[row, columnIndexes["Shift Type"]].Text.Trim();
-                        var shiftTypeId = await _context.ShiftTypeDropDowns.FirstOrDefaultAsync(s => s.Name == shiftType && s.IsActive);
-                        if (shiftTypeId == null)
+                        var shiftTypeName = worksheet.Cells[row, columnIndexes["Shift Type"]].Text.Trim();
+                        if (string.IsNullOrEmpty(shiftTypeName))
                         {
-                            errorLogs.Add($"Shift type '{shiftType}' not found at row {row}");
+                            errorLogs.Add($"Row {row}: Shift Type is required.");
                             continue;
                         }
-                        var isActive = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
-                        if (string.IsNullOrEmpty(isActive))
+                        var shiftType = await _context.ShiftTypeDropDowns
+                            .FirstOrDefaultAsync(s => s.Name.ToLower() == shiftTypeName.ToLower() && s.IsActive);
+                        if (shiftType == null)
                         {
-                            errorLogs.Add($"IsActive is empty at {row}");
+                            errorLogs.Add($"Row {row}: Shift Type '{shiftTypeName}' not found or inactive.");
                             continue;
                         }
+
+                        var name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            errorLogs.Add($"Row {row}: Name is required.");
+                            continue;
+                        }
+                        if (name.Length > 100)
+                        {
+                            errorLogs.Add($"Row {row}: Name '{name}' exceeds 100 characters.");
+                            continue;
+                        }
+                        var existingName = await _context.Shifts.AnyAsync(s => s.Name.ToLower() == name.ToLower() && s.IsActive);
+                        if (existingName)
+                        {
+                            errorLogs.Add($"Row {row}: Shift name '{name}' already exists.");
+                            continue;
+                        }
+
+                        var shortName = worksheet.Cells[row, columnIndexes["Short Name"]].Text.Trim();
+                        if (string.IsNullOrEmpty(shortName))
+                        {
+                            errorLogs.Add($"Row {row}: Short Name is required.");
+                            continue;
+                        }
+                        if (shortName.Length > 5)
+                        {
+                            errorLogs.Add($"Row {row}: Short Name '{shortName}' exceeds 5 characters.");
+                            continue;
+                        }
+
+                        var startTimeText = worksheet.Cells[row, columnIndexes["Start Time"]].Text.Trim();
+                        var endTimeText = worksheet.Cells[row, columnIndexes["End Time"]].Text.Trim();
+
+                        if (!TimeOnly.TryParse(startTimeText, out var startTime))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid Start Time '{startTimeText}'.");
+                            continue;
+                        }
+                        if (!TimeOnly.TryParse(endTimeText, out var endTime))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid End Time '{endTimeText}'.");
+                            continue;
+                        }
+                        var isActiveText = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
+                        if (string.IsNullOrEmpty(isActiveText))
+                        {
+                            errorLogs.Add($"Row {row}: IsActive is required.");
+                            continue;
+                        }
+                        if (!bool.TryParse(isActiveText, out var isActive))
+                        {
+                            errorLogs.Add($"Row {row}: Invalid IsActive value '{isActiveText}' (must be True/False).");
+                            continue;
+                        }
+
                         var shiftMaster = new Shift
                         {
-                            Name = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim(),
-                            ShortName = worksheet.Cells[row, columnIndexes["Short Name"]].Text.Trim(),
-                            StartTime = worksheet.Cells[row, columnIndexes["Start Time"]].Text.Trim(),
-                            EndTime = worksheet.Cells[row, columnIndexes["End Time"]].Text.Trim(),
-                            ShiftTypeId = shiftTypeId.Id,
-                            IsActive = bool.TryParse(isActive, out var hide) ? hide : false,
+                            Name = name,
+                            ShortName = shortName,
+                            StartTime = startTime.ToString("HH:mm"),
+                            EndTime = endTime.ToString("HH:mm"),
+                            ShiftTypeId = shiftType.Id,
+                            IsActive = isActive,
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
                         shiftMasters.Add(shiftMaster);
                     }
+
                     if (shiftMasters.Any())
                     {
                         await _context.Shifts.AddRangeAsync(shiftMasters);
                         await _context.SaveChangesAsync();
                         result.SuccessCount = shiftMasters.Count;
                     }
+
                     result.ErrorCount = result.TotalRecords - result.SuccessCount;
                     result.ErrorMessages = errorLogs;
                     return result;
@@ -1668,7 +2011,6 @@ public class ExcelImportInfra : IExcelImportInfra
                         {
                             errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
                             continue;
-
                         }
                         var divisionName = worksheet.Cells[row, columnIndexes["EMP Division"]].Text.Trim();
                         if (string.IsNullOrEmpty(divisionName))
@@ -2074,6 +2416,18 @@ public class ExcelImportInfra : IExcelImportInfra
                             errorLogs.Add($"Staff '{employeeName}' not found at row {row}");
                             continue;
                         }
+                        var appraisalYear = int.TryParse(worksheet.Cells[row, columnIndexes["AppraisalYear"]].Text, out var postalCode) ? postalCode : 0;
+                        if (appraisals.Any(a => a.EmployeeCode == employeeId && a.AppraisalYear == appraisalYear))
+                        {
+                            errorLogs.Add($"Duplicate entry for EmployeeCode '{employeeId}' with AppraisalYear '{appraisalYear}' at row {row}");
+                            continue;
+                        }
+                        var existsInDb = await _context.EmployeeAppraisalSheets.AnyAsync(a => a.EmployeeCode == employeeId && a.AppraisalYear == appraisalYear && a.IsActive);
+                        if (existsInDb)
+                        {
+                            errorLogs.Add($"Appraisal for EmployeeCode '{employeeId}' already exists for AppraisalYear {appraisalYear} (row {row})");
+                            continue;
+                        }
                         var designationName = worksheet.Cells[row, columnIndexes["Designation"]].Text.Trim();
                         if (string.IsNullOrEmpty(designationName))
                         {
@@ -2112,7 +2466,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             Designation = designationName,
                             RevisedDesignation = revisedDesignationName,
                             Department = departmentName,
-                            AppraisalYear = int.TryParse(worksheet.Cells[row, columnIndexes["AppraisalYear"]].Text, out var postalCode) ? postalCode : 0,
+                            AppraisalYear = appraisalYear,
                             BasicCurrentPerAnnum = ParseDecimal(worksheet.Cells[row, columnIndexes["BasicCurrentPerAnnum"]].Text),
                             BasicCurrentPerMonth = ParseDecimal(worksheet.Cells[row, columnIndexes["BasicCurrentPerMonth"]].Text),
                             BasicCurrentPerAnnumAfterApp = ParseDecimal(worksheet.Cells[row, columnIndexes["BasicCurrentPerAnnumAfterApp"]].Text),

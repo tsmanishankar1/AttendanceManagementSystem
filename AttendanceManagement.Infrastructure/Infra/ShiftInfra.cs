@@ -76,14 +76,24 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
             var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Name.ToLower() == newShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
+            var division = await _context.DivisionMasters.AnyAsync(p => p.Id == newShift.DivisionId && p.IsActive);
+            if (!division) throw new MessageNotFoundException("Division not found");
+            if (!TimeOnly.TryParse(newShift.StartTime, out var startTime))
+            {
+                throw new Exception($"Invalid Start Time '{newShift.StartTime}'");
+            }
+            if (!TimeOnly.TryParse(newShift.EndTime, out var endTime))
+            {
+                throw new Exception($"Invalid End Time '{newShift.EndTime}'");
+            }
             var shift = new Shift
             {
                 Name = newShift.ShiftName,
                 ShortName = newShift.ShortName,
                 ShiftTypeId = newShift.ShiftTypeId,
                 DivisionId = newShift.DivisionId,
-                StartTime = newShift.StartTime,
-                EndTime = newShift.EndTime,
+                StartTime = startTime.ToString("HH:mm"),
+                EndTime = endTime.ToString("HH:mm"),
                 IsActive = newShift.IsActive,
                 CreatedBy = newShift.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
@@ -102,12 +112,23 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
             var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Id != updatedShift.ShiftId && s.Name.ToLower() == updatedShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
+            var division = await _context.DivisionMasters.AnyAsync(p => p.Id == updatedShift.DivisionId && p.IsActive);
+            if (!division) throw new MessageNotFoundException("Division not found");
+            if (!TimeOnly.TryParse(updatedShift.StartTime, out var startTime))
+            {
+                throw new Exception($"Invalid Start Time '{updatedShift.StartTime}'");
+            }
+            if (!TimeOnly.TryParse(updatedShift.EndTime, out var endTime))
+            {
+                throw new Exception($"Invalid End Time '{updatedShift.EndTime}'");
+            }
+
             existingShift.Name = updatedShift.ShiftName;
             existingShift.ShortName = updatedShift.ShortName;
             existingShift.ShiftTypeId = updatedShift.ShiftTypeId;
             existingShift.DivisionId = updatedShift.DivisionId;
-            existingShift.StartTime = updatedShift.StartTime;
-            existingShift.EndTime = updatedShift.EndTime;
+            existingShift.StartTime = startTime.ToString("HH:mm");
+            existingShift.EndTime = endTime.ToString("HH:mm");
             existingShift.IsActive = updatedShift.IsActive;
             existingShift.UpdatedBy = updatedShift.UpdatedBy;
             existingShift.UpdatedUtc = DateTime.UtcNow;

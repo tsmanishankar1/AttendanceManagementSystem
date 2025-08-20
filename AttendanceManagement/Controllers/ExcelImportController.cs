@@ -63,16 +63,7 @@ public class ExcelImportController : ControllerBase
 
             if (result.ErrorCount > 0)
             {
-                await _loggingService.LogError(
-                    "Excel Import",
-                    "POST",
-                    "/api/ExcelImport/ImportExcel",
-                    "Excel import completed with errors",
-                    JsonSerializer.Serialize(result.ErrorMessages),
-                    string.Empty,
-                    excelImportDto.CreatedBy,
-                    JsonSerializer.Serialize(excelImportDto));
-
+                await _loggingService.LogError("Excel Import", "POST", "/api/ExcelImport/ImportExcel", "Excel import completed with errors", JsonSerializer.Serialize(result.ErrorMessages), string.Empty, excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -81,14 +72,7 @@ public class ExcelImportController : ControllerBase
             }
             else
             {
-                await _loggingService.AuditLog(
-                    "Excel Import",
-                    "POST",
-                    "/api/ExcelImport/ImportExcel",
-                    "Excel uploaded successfully",
-                    excelImportDto.CreatedBy,
-                    JsonSerializer.Serialize(excelImportDto));
-
+                await _loggingService.AuditLog("Excel Import", "POST", "/api/ExcelImport/ImportExcel", "Excel uploaded successfully", excelImportDto.CreatedBy, JsonSerializer.Serialize(excelImportDto));
                 return Ok(new
                 {
                     Success = true,
