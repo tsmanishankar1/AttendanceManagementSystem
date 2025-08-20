@@ -43,17 +43,7 @@ public class LoginInfra : ILoginInfra
         {
             return (accessToken, existingRefreshToken.Token);
         }
-        var refreshToken = new RefreshToken
-        {
-            Token = GenerateRefreshToken(user.StaffCreationId),
-            UserId = user.StaffCreationId,
-            ExpiryDate = DateTime.UtcNow.AddDays(7),
-            IsActive = true,
-            CreatedBy = user.StaffCreationId,
-            CreatedUtc = DateTime.UtcNow
-        };
-        await _context.RefreshTokens.AddAsync(refreshToken);
-        await _context.SaveChangesAsync();
+        var refreshToken = await CreateRefreshToken(user.StaffCreationId);
         return (accessToken, refreshToken.Token);
     }
 
@@ -106,8 +96,17 @@ public class LoginInfra : ILoginInfra
         if (division == null) throw new MessageNotFoundException("Division not found");
         await DeactivateRefreshToken(refreshTokenEntity, user.StaffCreationId);
         var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name);
-        var newRefreshToken = await CreateRefreshToken(user.StaffCreationId);
-        return (newAccessToken, newRefreshToken.Token);
+        var slidingThreshold = TimeSpan.FromDays(1);
+        if ((refreshTokenEntity.ExpiryDate - DateTime.UtcNow) <= slidingThreshold)
+        {
+            refreshTokenEntity.ExpiryDate = DateTime.UtcNow.AddDays(7);
+            refreshTokenEntity.UpdatedUtc = DateTime.UtcNow;
+            refreshTokenEntity.UpdatedBy = user.StaffCreationId;
+
+            _context.RefreshTokens.Update(refreshTokenEntity);
+            await _context.SaveChangesAsync();
+        }
+        return (newAccessToken, refreshTokenEntity.Token);
     }
 
     private async Task<RefreshToken> CreateRefreshToken(int userId)
