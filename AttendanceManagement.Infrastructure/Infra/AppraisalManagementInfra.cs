@@ -1198,7 +1198,10 @@ namespace AttendanceManagement.Infrastructure.Infra
                     {
                         ga.StaffId,
                         EmpId = ga.Staff.StaffId,
-                        StaffName = $"{ga.Staff.FirstName}{(string.IsNullOrWhiteSpace(ga.Staff.LastName) ? "" : " " + ga.Staff.LastName)}"
+                        StaffName = $"{ga.Staff.FirstName}{(string.IsNullOrWhiteSpace(ga.Staff.LastName) ? "" : " " + ga.Staff.LastName)}",
+                        ManagerEmpId = ga.Staff.ApprovalLevel1Navigation.StaffId,
+                        ManagerName = ga.Staff.ApprovalLevel1Navigation.FirstName +
+                      (string.IsNullOrWhiteSpace(ga.Staff.ApprovalLevel1Navigation.LastName) ? "" : " " + ga.Staff.ApprovalLevel1Navigation.LastName)
                     }).ToList()
                 }
             ).ToListAsync();
@@ -1213,17 +1216,19 @@ namespace AttendanceManagement.Infrastructure.Infra
                     Month = kra.Month,
                     CreatedBy = kra.CreatedBy,
                     AssignedStaffIds = isSuperAdmin || kra.CreatedBy == createdBy
-                        ? kra.AssignedStaff.Select(a => a.StaffId).Distinct().ToList()
-                        : kra.AssignedStaff
-                            .Where(a => a.StaffId == createdBy)
-                            .Select(a => a.StaffId)
-                            .ToList(),
-                    AssignedStaffNames = isSuperAdmin || kra.CreatedBy == createdBy
                         ? kra.AssignedStaff.Select(a => a.EmpId).Distinct().ToList()
                         : kra.AssignedStaff
                             .Where(a => a.StaffId == createdBy)
                             .Select(a => a.EmpId)
-                            .ToList()
+                            .ToList(),
+                    AssignedStaffNames = isSuperAdmin || kra.CreatedBy == createdBy
+                        ? kra.AssignedStaff.Select(a => a.StaffName).Distinct().ToList()
+                        : kra.AssignedStaff
+                            .Where(a => a.StaffId == createdBy)
+                            .Select(a => a.StaffName)
+                            .ToList(),
+                    ManagerId = kra.AssignedStaff.Select(a => a.ManagerEmpId).Distinct().FirstOrDefault(),
+                    ManagerName = kra.AssignedStaff.Select(a => a.ManagerName).Distinct().FirstOrDefault()
                 })
                 .ToList();
 
@@ -1332,6 +1337,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                 join goal in _context.Goals on selfReview.GoalId equals goal.Id
                 join assignment in _context.GoalAssignments on goal.Id equals assignment.GoalId
                 join staff in _context.StaffCreations on selfReview.CreatedBy equals staff.Id
+                join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id into mgrJoin
+                from manager in mgrJoin.DefaultIfEmpty()
                 where selfReview.AppraisalId == appraisalId
                       && goal.Year == year
                       && (quarter == null || goal.Quarter == quarter)
@@ -1342,7 +1349,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                           (isApprovalLevel1 && staff.ApprovalLevel1 == approverId) ||
                           (isApprovalLevel2 && staff.ApprovalLevel2 == approverId)
                       )
-                group new { selfReview, goal, staff } by selfReview.Id into g
+                group new { selfReview, goal, staff, manager } by selfReview.Id into g
                 select new SelfEvaluationResponse
                 {
                     Id = g.Key,
@@ -1353,8 +1360,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     AttachmentsSelf = g.First().selfReview.AttachmentsSelf,
                     StaffId = g.First().staff.StaffId,
                     StaffName = g.First().staff.FirstName + (string.IsNullOrWhiteSpace(g.First().staff.LastName) ? "" : " " + g.First().staff.LastName),
+                    ManagerId = g.First().manager != null ? g.First().manager.StaffId : null,
+                    ManagerName = g.First().manager != null
+                    ? g.First().manager.FirstName + (string.IsNullOrWhiteSpace(g.First().manager.LastName) ? "" : " " + g.First().manager.LastName)
+                    : null,
+                    Weightage = g.First().goal.Weightage,
                     Year = g.First().goal.Year,
                     Quarter = g.First().goal.Quarter,
+                    Month = g.First().goal.Month,
                     IsSelfEvaluation = g.First().selfReview.IsSelfEvaluation,
                     CreatedBy = g.First().selfReview.CreatedBy
                 }
@@ -1474,8 +1487,11 @@ namespace AttendanceManagement.Infrastructure.Infra
                     ManagerEvaluationComments = managerEval.ManagerEvaluationComments,
                     AttachmentsManager = managerEval.AttachmentsManager,
                     IsCompleted = managerEval.IsCompleted,
+                    StaffId = staff.StaffId,
+                    StaffName = staff.FirstName + (string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName),
                     ManagerId = manager.StaffId,
                     ManagerName = manager.FirstName + (string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName),
+                    Weightage = goal.Weightage,
                     Year = goal.Year,
                     Quarter = goal.Quarter,
                     Month = goal.Month,

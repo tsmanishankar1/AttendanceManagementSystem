@@ -28,8 +28,10 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string? Quarter { get; set; }
         public int? Month { get; set; }
         public int CreatedBy { get; set; }
-        public List<int> AssignedStaffIds { get; set; } = new();
+        public List<string> AssignedStaffIds { get; set; } = new();
         public List<string>? AssignedStaffNames { get; set; }
+        public string? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
     }
 
     public class SelfEvaluationRequest
@@ -66,6 +68,9 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public string? AttachmentsSelf { get; set; }
         public string StaffId { get; set; } = null!;
         public string StaffName { get; set; } = null!;
+        public string? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
+        public decimal Weightage { get; set; }
         public int Year { get; set; }
         public string? Quarter { get; set; }
         public int? Month { get; set; }
@@ -105,8 +110,11 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public decimal ManagerScore { get; set; }
         public string ManagerEvaluationComments { get; set; } = null!;
         public string? AttachmentsManager { get; set; }
+        public string StaffId { get; set; } = null!;
+        public string StaffName { get; set; } = null!;
         public string ManagerId { get; set; } = null!;
         public string ManagerName { get; set; } = null!;
+        public decimal Weightage { get; set; }
         public int Year { get; set; }
         public string? Quarter { get; set; }
         public int? Month { get; set; }
