@@ -572,7 +572,6 @@ public class ExcelImportInfra : IExcelImportInfra
                             OfficialEmail = worksheet.Cells[row, columnIndexes["OfficialEmail"]]?.Text.Trim() ?? string.Empty,
                             IsNonProduction = bool.TryParse(worksheet.Cells[row, columnIndexes["IsNonProduction"]].Text?.Trim(), out bool isNonProduction),
                             CreatedBy = excelImportDto.CreatedBy,
-                            IsActive = true,
                             CreatedUtc = DateTime.UtcNow
                         };
                         staffCreations.Add(staffCreation);

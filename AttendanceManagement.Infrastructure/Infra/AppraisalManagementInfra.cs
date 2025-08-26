@@ -174,7 +174,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     EmpId = g.First().staff.EmployeeId,
                     EmpName = g.First().staff.EmployeeName,
                     TenureInYears = GetTenure(g.First().s.JoiningDate),
-                    ReportingManagerId = g.First().staff.ReportingManagerId,
+                    ReportingManagerId = g.First().staff.ReportingManagerId!,
                     ReportingManagers = g.First().staff.ReportingManagers,
                     Division = g.First().staff.Division,
                     Department = g.First().staff.Department,
@@ -1089,7 +1089,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                                EmpId = staff.EmployeeId,
                                                EmpName = staff.EmployeeName,
                                                TenureInYears = GetTenure(s.JoiningDate),
-                                               ReportingManagerId = staff.ReportingManagerId,
+                                               ReportingManagerId = staff.ReportingManagerId!,
                                                ReportingManagers = staff.ReportingManagers,
                                                Division = staff.Division,
                                                Department = staff.Department,
@@ -1110,35 +1110,43 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (kraDto == null || kraDto.SelectedRows == null || !kraDto.SelectedRows.Any())
                 throw new ValidationException("No KRA data provided.");
             var selectedRows = kraDto.SelectedRows;
+
             foreach (var item in selectedRows)
             {
-                var existingWeightage = await _context.Goals
-                    .Where(g => g.AppraisalId == item.AppraisalId &&
-                                g.Year == item.Year &&
-                                g.Quarter == item.Quarter &&
-                                g.Month == item.Month &&
-                                g.IsActive)
-                    .SumAsync(g => (int?)g.Weightage) ?? 0;
-
-                var newTotal = existingWeightage + item.Weightage;
-                if (newTotal > 100)
-                    throw new InvalidOperationException("Total KRA weightage limit is exceeded");
-
-                var kra = new Goal
-                {
-                    Kra = item.Kra,
-                    Weightage = item.Weightage,
-                    EvaluationPeriod = item.Quarter,
-                    Year = item.Year,
-                    Quarter = item.Quarter,
-                    Month = item.Month,
-                    AppraisalId = item.AppraisalId,
-                    IsActive = true,
-                    CreatedBy = kraDto.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                };
                 foreach (var staffId in item.StaffId)
                 {
+                    var staff = await _context.StaffCreations
+                        .Where(s => s.Id == staffId && s.IsActive == true)
+                        .Select(s => s.StaffId)
+                        .FirstOrDefaultAsync();
+                    var existingWeightage = await _context.GoalAssignments
+                        .Where(ga => ga.StaffId == staffId &&
+                                     ga.Goal.AppraisalId == item.AppraisalId &&
+                                     ga.Goal.Year == item.Year &&
+                                     ga.Goal.Quarter == item.Quarter &&
+                                     ga.Goal.Month == item.Month &&
+                                     ga.IsActive &&
+                                     ga.Goal.IsActive)
+                        .SumAsync(ga => (int?)ga.Goal.Weightage) ?? 0;
+
+                    var newTotal = existingWeightage + item.Weightage;
+                    if (newTotal > 100)
+                        throw new InvalidOperationException($"KRA already assigned for staff {staff}");
+
+                    var kra = new Goal
+                    {
+                        Kra = item.Kra,
+                        Weightage = item.Weightage,
+                        EvaluationPeriod = item.Quarter,
+                        Year = item.Year,
+                        Quarter = item.Quarter,
+                        Month = item.Month,
+                        AppraisalId = item.AppraisalId,
+                        IsActive = true,
+                        CreatedBy = kraDto.CreatedBy,
+                        CreatedUtc = DateTime.UtcNow
+                    };
+
                     var goalAssignment = new GoalAssignment
                     {
                         StaffId = staffId,
@@ -1146,6 +1154,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         CreatedBy = kraDto.CreatedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
+
                     var notification = new ApprovalNotification
                     {
                         StaffId = staffId,
@@ -1154,15 +1163,18 @@ namespace AttendanceManagement.Infrastructure.Infra
                         CreatedBy = kraDto.CreatedBy,
                         CreatedUtc = DateTime.UtcNow
                     };
+
                     await _context.ApprovalNotifications.AddAsync(notification);
                     await _context.SaveChangesAsync();
+
                     goalAssignment.ApprovalNotificationId = notification.Id;
                     kra.GoalAssignments.Add(goalAssignment);
-                }
 
-                await _context.Goals.AddAsync(kra);
+                    await _context.Goals.AddAsync(kra);
+                    await _context.SaveChangesAsync();
+                }
             }
-            await _context.SaveChangesAsync();
+
             return "KRA submitted successfully";
         }
 
@@ -1769,7 +1781,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                                       EmpId = hr.EmpId,
                                       EmpName = hr.EmpName,
                                       TenureInYears = GetTenure(s.JoiningDate),
-                                      ReportingManagerId = hr.ReportingManagerId,
+                                      ReportingManagerId = hr.ReportingManagerId!,
                                       ReportingManagers = hr.ReportingManagers,
                                       Division = hr.Division,
                                       Department = hr.Department,
