@@ -89,6 +89,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -111,6 +114,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -170,6 +176,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -271,6 +280,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -310,6 +322,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }  
         public string? CancelledOn { get; set; }  
         public string? CancelledBy { get; set; }
@@ -347,6 +362,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -373,6 +391,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -412,6 +433,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -438,6 +462,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }
@@ -475,6 +502,9 @@
         public string? Approval2Status { get; set; }
         public string? Approved2On { get; set; }
         public string? Approved2By { get; set; }
+        public string? RejectedStatus { get; set; }
+        public string? RejectedOn { get; set; }
+        public string? RejectedBy { get; set; }
         public string? IsCancelled { get; set; }
         public string? CancelledOn { get; set; }
         public string? CancelledBy { get; set; }

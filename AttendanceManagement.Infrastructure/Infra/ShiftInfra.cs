@@ -76,8 +76,11 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
             var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Name.ToLower() == newShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
-            var division = await _context.DivisionMasters.AnyAsync(p => p.Id == newShift.DivisionId && p.IsActive);
-            if (!division) throw new MessageNotFoundException("Division not found");
+            if (newShift.DivisionId.HasValue)
+            {
+                var divisionExists = await _context.DivisionMasters.AnyAsync(p => p.Id == newShift.DivisionId.Value && p.IsActive);
+                if (!divisionExists) throw new MessageNotFoundException($"Division not found");
+            }
             if (!TimeOnly.TryParse(newShift.StartTime, out var startTime))
             {
                 throw new Exception($"Invalid Start Time '{newShift.StartTime}'");
@@ -112,8 +115,11 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
             var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Id != updatedShift.ShiftId && s.Name.ToLower() == updatedShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
-            var division = await _context.DivisionMasters.AnyAsync(p => p.Id == updatedShift.DivisionId && p.IsActive);
-            if (!division) throw new MessageNotFoundException("Division not found");
+            if (updatedShift.DivisionId.HasValue)
+            {
+                var divisionExists = await _context.DivisionMasters.AnyAsync(p => p.Id == updatedShift.DivisionId.Value && p.IsActive);
+                if (!divisionExists) throw new MessageNotFoundException($"Division not found");
+            }
             if (!TimeOnly.TryParse(updatedShift.StartTime, out var startTime))
             {
                 throw new Exception($"Invalid Start Time '{updatedShift.StartTime}'");
@@ -185,7 +191,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         .ToListAsync();
                     if (existingAssignedShift.Count > 0)
                     {
-                        throw new ConflictException($"Shift already assigned for staff {staffName}");
+                        throw new ConflictException($"Shift already assigned on {fromDate} for staff {staffName}");
                     }
                     var shiftAssign = new AssignShift
                     {

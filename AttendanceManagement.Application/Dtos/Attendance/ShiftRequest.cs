@@ -9,7 +9,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         [MaxLength(5)]
         public string ShortName { get; set; } = null!;
         public int ShiftTypeId { get; set; }
-        public int DivisionId { get; set; }
+        public int? DivisionId { get; set; }
 
         [MaxLength(20)]
         public string StartTime { get; set; } = null!;
@@ -67,7 +67,7 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         [MaxLength(100)]
         public string ShiftName { get; set; } = null!;
         public int ShiftTypeId { get; set; }
-        public int DivisionId { get; set; }
+        public int? DivisionId { get; set; }
 
         [MaxLength(5)]
         public string ShortName { get; set; } = null!;

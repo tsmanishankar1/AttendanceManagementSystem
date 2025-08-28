@@ -55,9 +55,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     from per in perJoin.DefaultIfEmpty()
                     join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
                     from agm in agmJoin.DefaultIfEmpty()
-                    where staff.IsActive == true
-                          && division.IsActive
-                          && department.IsActive
+                    where staff.IsActive == true && division.IsActive && department.IsActive && staff.OrganizationTypeId != 1
                           && !staff.IsNonProduction && !(selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month))
                     select new AppraisalDto
                     {
@@ -976,10 +974,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     join per in _context.NonProductionEmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId)
                         on staff.StaffId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
-                    where staff.IsActive == true
-                          && division.IsActive
-                          && department.IsActive
-                          && staff.IsNonProduction
+                    where staff.IsActive == true && division.IsActive && department.IsActive && staff.IsNonProduction && staff.OrganizationTypeId != 1
                           && !(selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month))
                     select new AppraisalDto
                     {
@@ -1119,6 +1114,10 @@ namespace AttendanceManagement.Infrastructure.Infra
                         .Where(s => s.Id == staffId && s.IsActive == true)
                         .Select(s => s.StaffId)
                         .FirstOrDefaultAsync();
+
+                    var isRegistered = await _context.UserManagements.AnyAsync(u => u.StaffCreationId == staffId && u.IsActive);
+                    if (!isRegistered) throw new InvalidOperationException($"Staff {staff} is not registered. Cannot assign KRA.");
+
                     var existingWeightage = await _context.GoalAssignments
                         .Where(ga => ga.StaffId == staffId &&
                                      ga.Goal.AppraisalId == item.AppraisalId &&
