@@ -144,7 +144,7 @@
         public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public string ShiftName { get; set; } = null!;
+        public string? ShiftName { get; set; }
         public DateOnly? Date { get; set; }
         public TimeOnly? InTime { get; set; }
         public TimeOnly? OutTime { get; set; }
@@ -153,9 +153,9 @@
         public bool? IsBreakHoursExceeded { get; set; }
         public string? ProductiveHours { get; set; }
         public string AttendanceStatus { get; set; } = null!;
-        public string EarlyEntry { get; set; } = null!;
-        public string LateEntry { get; set; } = null!;
-        public string EarlyExit { get; set; } = null!;
+        public string? EarlyEntry { get; set; }
+        public string? LateEntry { get; set; }
+        public string? EarlyExit { get; set; }
         public string? ExtraHoursWorked { get; set; }
     }
 

@@ -205,87 +205,110 @@ public class AttendanceInfra : IAttendanceInfra
         return attendanceList;
     }
 
-    private async Task DepartmentAndDivision(int? departmentId, int? divisionId)
+    private async Task DepartmentAndDivision(List<int>? departmentIds, List<int>? divisionIds)
     {
-        if(departmentId != null)
+        if (departmentIds != null && departmentIds.Any())
         {
-            var department = await _attendanceContext.DepartmentMasters.AnyAsync(d => d.Id == departmentId && d.IsActive);
-            if (!department) throw new MessageNotFoundException("Department not found");
+            var existingDepartments = await _attendanceContext.DepartmentMasters
+                .Where(d => departmentIds.Contains(d.Id) && d.IsActive)
+                .Select(d => d.Id)
+                .ToListAsync();
+
+            var missingDepartments = departmentIds.Except(existingDepartments).ToList();
+
+            if (missingDepartments.Any())
+                throw new MessageNotFoundException($"Departments not found: {string.Join(", ", missingDepartments)}");
         }
-        if(divisionId != null)
+
+        if (divisionIds != null && divisionIds.Any())
         {
-            var division = await _attendanceContext.DivisionMasters.AnyAsync(d => d.Id == divisionId && d.IsActive);
-            if (!division) throw new MessageNotFoundException("Division not found");
+            var existingDivisions = await _attendanceContext.DivisionMasters
+                .Where(d => divisionIds.Contains(d.Id) && d.IsActive)
+                .Select(d => d.Id)
+                .ToListAsync();
+
+            var missingDivisions = divisionIds.Except(existingDivisions).ToList();
+
+            if (missingDivisions.Any())
+                throw new MessageNotFoundException($"Divisions not found: {string.Join(", ", missingDivisions)}");
         }
     }
 
     public async Task<List<StaffInfoDto>> GetAllStaffsByDepartmentAndDivision(GetStaffByDepartmentDivision staff)
     {
         await DepartmentAndDivision(staff.DepartmentId, staff.DivisionId);
-        var staffInfo = await (from staffs in _attendanceContext.StaffCreations
-                               join dept in _attendanceContext.DepartmentMasters on staffs.DepartmentId equals dept.Id
-                               join div in _attendanceContext.DivisionMasters on staffs.DivisionId equals div.Id
-                               where staffs.IsActive == true && dept.IsActive && div.IsActive
-                                     && ((!staff.DepartmentId.HasValue || staffs.DepartmentId == staff.DepartmentId)) && ((!staff.DivisionId.HasValue || staffs.DivisionId == staff.DivisionId))
-                               select new StaffInfoDto
-                               {
-                                   StaffId = staffs.Id,
-                                   StaffName = $"{staffs.FirstName}{(string.IsNullOrWhiteSpace(staffs.LastName) ? "" : " " + staffs.LastName)}",
-                                   DepartmentName = dept.Name
-                               })
-                               .ToListAsync();
 
-        if (staffInfo.Count == 0) throw new MessageNotFoundException("No staffs found");
+        var staffInfo = await (
+            from staffs in _attendanceContext.StaffCreations
+            join dept in _attendanceContext.DepartmentMasters on staffs.DepartmentId equals dept.Id
+            join div in _attendanceContext.DivisionMasters on staffs.DivisionId equals div.Id
+            where staffs.IsActive == true && dept.IsActive && div.IsActive
+                  && (staff.DepartmentId == null || staff.DepartmentId.Contains(staffs.DepartmentId))
+                  && (staff.DivisionId == null || staff.DivisionId.Contains(staffs.DivisionId))
+            select new StaffInfoDto
+            {
+                StaffId = staffs.Id,
+                StaffName = $"{staffs.FirstName}{(string.IsNullOrWhiteSpace(staffs.LastName) ? "" : " " + staffs.LastName)}",
+                DepartmentName = dept.Name
+            })
+            .ToListAsync();
+
+        if (!staffInfo.Any())
+            throw new MessageNotFoundException("No staffs found");
+
         return staffInfo;
     }
 
     public async Task<List<AttendanceRecordDto>> GetAttendanceRecords(AttendanceStatusResponse attendanceStatus)
     {
         await DepartmentAndDivision(attendanceStatus.DepartmentId, attendanceStatus.DivisionId);
+
         var result = await (
-                            from ar in _attendanceContext.AttendanceRecords
-                            join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id
-                            where staff.IsActive == true
-                                  && !ar.IsDeleted
-                                  && (ar.IsFreezed == null || ar.IsFreezed == false)
-                                  && ar.StaffId == attendanceStatus.StaffId
-                                  && staff.DepartmentId == attendanceStatus.DepartmentId
-                                  && staff.DivisionId == attendanceStatus.DivisionId
-                                  && (
-                                        (attendanceStatus.FromDate.HasValue && attendanceStatus.ToDate.HasValue &&
-                                         ar.AttendanceDate >= attendanceStatus.FromDate.Value &&
-                                         ar.AttendanceDate <= attendanceStatus.ToDate.Value)
-                                        ||
-                                        (attendanceStatus.FromMonth.HasValue && attendanceStatus.ToMonth.HasValue &&
-                                         ar.AttendanceDate.Month >= attendanceStatus.FromMonth.Value &&
-                                         ar.AttendanceDate.Month <= attendanceStatus.ToMonth.Value)
-                                     )
-                            select new AttendanceRecordDto
-                            {
-                                Id = ar.Id,
-                                StaffId = ar.StaffId,
-                                StaffCreationId = staff.StaffId,
-                                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                                FirstIn = ar.FirstIn,
-                                LastOut = ar.LastOut,
-                                ShiftId = ar.ShiftId,
-                                IsEarlyComing = ar.IsEarlyComing,
-                                IsLateComing = ar.IsLateComing,
-                                IsEarlyGoing = ar.IsEarlyGoing,
-                                IsLateGoing = ar.IsLateGoing,
-                                BreakHours = ar.BreakHour,
-                                ExtraBreakHours = ar.ExtraBreakHours,
-                                IsBreakHoursExceed = ar.IsBreakHoursExceed,
-                                StatusId = ar.StatusId,
-                                IsHolidayWorkingEligible = ar.IsHolidayWorkingEligible,
-                                Norm = ar.Norm,
-                                CompletedFileCouunt = ar.CompletedFileCount,
-                                TotalFte = ar.TotalFte,
-                                IsFteAchieved = ar.IsFteAchieved,
-                                AttendanceDate = ar.AttendanceDate
-                            })
-                            .ToListAsync();
-        if(result.Count == 0) throw new MessageNotFoundException("No attendance record found");
+            from ar in _attendanceContext.AttendanceRecords
+            join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id
+            where staff.IsActive == true && !ar.IsDeleted
+                  && (ar.IsFreezed == null || ar.IsFreezed == false)
+                  && ar.StaffId == attendanceStatus.StaffId
+                  && (attendanceStatus.DepartmentId == null || attendanceStatus.DepartmentId.Contains(staff.DepartmentId))
+                  && (attendanceStatus.DivisionId == null || attendanceStatus.DivisionId.Contains(staff.DivisionId))
+                  && (
+                        (attendanceStatus.FromDate.HasValue && attendanceStatus.ToDate.HasValue &&
+                         ar.AttendanceDate >= attendanceStatus.FromDate.Value &&
+                         ar.AttendanceDate <= attendanceStatus.ToDate.Value)
+                        ||
+                        (attendanceStatus.FromMonth.HasValue && attendanceStatus.ToMonth.HasValue &&
+                         ar.AttendanceDate.Month >= attendanceStatus.FromMonth.Value &&
+                         ar.AttendanceDate.Month <= attendanceStatus.ToMonth.Value)
+                     )
+            select new AttendanceRecordDto
+            {
+                Id = ar.Id,
+                StaffId = ar.StaffId,
+                StaffCreationId = staff.StaffId,
+                StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+                FirstIn = ar.FirstIn,
+                LastOut = ar.LastOut,
+                ShiftId = ar.ShiftId,
+                IsEarlyComing = ar.IsEarlyComing,
+                IsLateComing = ar.IsLateComing,
+                IsEarlyGoing = ar.IsEarlyGoing,
+                IsLateGoing = ar.IsLateGoing,
+                BreakHours = ar.BreakHour,
+                ExtraBreakHours = ar.ExtraBreakHours,
+                IsBreakHoursExceed = ar.IsBreakHoursExceed,
+                StatusId = ar.StatusId,
+                IsHolidayWorkingEligible = ar.IsHolidayWorkingEligible,
+                Norm = ar.Norm,
+                CompletedFileCouunt = ar.CompletedFileCount,
+                TotalFte = ar.TotalFte,
+                IsFteAchieved = ar.IsFteAchieved,
+                AttendanceDate = ar.AttendanceDate
+            })
+            .ToListAsync();
+
+        if (!result.Any())
+            throw new MessageNotFoundException("No attendance record found");
+
         return result;
     }
 
@@ -299,8 +322,8 @@ public class AttendanceInfra : IAttendanceInfra
                                   && !ar.IsDeleted
                                   && ar.IsFreezed == true
                                   && ar.StaffId == attendanceStatus.StaffId
-                                  && staff.DepartmentId == attendanceStatus.DepartmentId
-                                  && staff.DivisionId == attendanceStatus.DivisionId
+                                  && (attendanceStatus.DepartmentId == null || attendanceStatus.DepartmentId.Contains(staff.DepartmentId))
+                                  && (attendanceStatus.DivisionId == null || attendanceStatus.DivisionId.Contains(staff.DivisionId))
                                   && (
                                         (attendanceStatus.FromDate.HasValue && attendanceStatus.ToDate.HasValue &&
                                          ar.AttendanceDate >= attendanceStatus.FromDate.Value &&

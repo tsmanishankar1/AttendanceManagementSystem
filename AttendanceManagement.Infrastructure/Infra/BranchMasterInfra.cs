@@ -173,4 +173,19 @@ public class BranchMasterInfra : IBranchMasterInfra
     {
         return await _context.RefreshTokens.ToListAsync();
     }
+
+    public async Task<List<AssignShift>> GetAssignShift()
+    {
+        return await _context.AssignShifts.ToListAsync();
+    }
+
+    public async Task<List<AuditLog>> GetAuditLog()
+    {
+        return await _context.AuditLogs.ToListAsync();
+    }
+
+    public async Task<List<ErrorLog>> GetErrorLog()
+    {
+        return await _context.ErrorLogs.ToListAsync();
+    }
 }

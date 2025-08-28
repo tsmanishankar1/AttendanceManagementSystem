@@ -52,4 +52,13 @@ public class BranchMasterApp : IBranchMasterApp
 
     public async Task<List<RefreshToken>> GetRefreshToken()
         => await _branchMasterInfra.GetRefreshToken();
+
+    public async Task<List<AssignShift>> GetAssignShift()
+    => await _branchMasterInfra.GetAssignShift();
+
+    public async Task<List<AuditLog>> GetAuditLog()
+    => await _branchMasterInfra.GetAuditLog();
+
+    public async Task<List<ErrorLog>> GetErrorLog()
+    => await _branchMasterInfra.GetErrorLog();
 }

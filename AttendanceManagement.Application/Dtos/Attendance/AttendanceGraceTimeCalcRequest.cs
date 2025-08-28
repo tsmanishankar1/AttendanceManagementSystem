@@ -25,8 +25,8 @@
     public class AttendanceStatusResponse
     {
         public int StaffId { get; set; }
-        public int? DepartmentId {  get; set; }
-        public int? DivisionId { get; set; }
+        public List<int>? DepartmentId { get; set; }
+        public List<int>? DivisionId { get; set; }
         public DateOnly? FromDate { get; set; }
         public DateOnly? ToDate { get; set; }
         public int? FromMonth { get; set; }
@@ -35,8 +35,8 @@
 
     public class GetStaffByDepartmentDivision
     {
-        public int? DepartmentId { get; set; }
-        public int? DivisionId { get; set; }
+        public List<int>? DepartmentId { get; set; }
+        public List<int>? DivisionId { get; set; }
     }
 
     public class AttendanceFreezeRequest

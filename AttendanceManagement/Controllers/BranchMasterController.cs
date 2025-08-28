@@ -281,6 +281,78 @@ public class BranchMasterController : ControllerBase
         }
     }
 
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetAssignShift")]
+    public IActionResult GetAssignShift()
+    {
+        try
+        {
+            var branches = _service.GetAssignShift();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetAuditLog")]
+    public IActionResult GetAuditLog()
+    {
+        try
+        {
+            var branches = _service.GetAuditLog();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("GetErrorLog")]
+    public IActionResult GetErrorLog()
+    {
+        try
+        {
+            var branches = _service.GetErrorLog();
+            var response = new
+            {
+                Success = true,
+                Message = branches
+            };
+            return Ok(response);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return ErrorClass.NotFoundResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
     [HttpPost("CreateBranch")]
     public async Task<IActionResult> Create(BranchMasterRequest branchMasterRequest)
     {

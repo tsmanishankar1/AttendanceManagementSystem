@@ -589,7 +589,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     on staff.EmployeePerformanceReviewId equals per.Id
                 join s in _context.StaffCreations
                     on per.EmpId equals s.StaffId
-                where staff.IsActive
+                where staff.IsActive && staff.IsAgmApproved == null
                       && per.AppraisalId == appraisalId
                       && per.Year == year
                       && (quarter == null || per.Quarter == quarter)

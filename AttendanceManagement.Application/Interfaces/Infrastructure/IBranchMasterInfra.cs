@@ -18,5 +18,8 @@ namespace AttendanceManagement.Application.Interfaces.Infrastructure
         Task<List<Feedback>> GetFeedbacks();
         Task<List<ProbationReport>> GetProbationReports();
         Task<List<RefreshToken>> GetRefreshToken();
+        Task<List<AssignShift>> GetAssignShift();
+        Task<List<AuditLog>> GetAuditLog();
+        Task<List<ErrorLog>> GetErrorLog();
     }
 }
