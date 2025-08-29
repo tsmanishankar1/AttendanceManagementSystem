@@ -24,7 +24,7 @@
 
     public class AttendanceStatusResponse
     {
-        public int StaffId { get; set; }
+        public List<int> StaffId { get; set; } = null!;
         public List<int>? DepartmentId { get; set; }
         public List<int>? DivisionId { get; set; }
         public DateOnly? FromDate { get; set; }

@@ -662,9 +662,9 @@ namespace AttendanceManagement.Infrastructure.Infra
             var name = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
             var selectedIds = selectedRows.Select(r => r.Id).ToList();
             var existingApprovals = await _context.AgmApprovals
-                .Where(a => selectedIds.Contains(a.EmployeePerformanceReviewId) && (a.IsAgmApproved == true || a.IsAgmApproved == false))
+                .Where(a => selectedIds.Contains(a.Id) && (a.IsAgmApproved == true || a.IsAgmApproved == false))
                 .ToListAsync();
-            var alreadyApprovedIds = existingApprovals.Select(a => a.EmployeePerformanceReviewId).ToHashSet();
+            var alreadyApprovedIds = existingApprovals.Select(a => a.Id).ToHashSet();
             var rowsToProcess = selectedRows.Where(r => !alreadyApprovedIds.Contains(r.Id)).ToList();
             if (!rowsToProcess.Any())
             {

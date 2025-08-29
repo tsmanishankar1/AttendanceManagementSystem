@@ -38,7 +38,7 @@ public class LoginInfra : ILoginInfra
         var division = _context.DivisionMasters.FirstOrDefault(d => d.Id == staff.DivisionId && d.IsActive);
         if (division == null) throw new MessageNotFoundException("Division not found");
         var existingRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.UserId == user.StaffCreationId && r.IsActive && r.ExpiryDate > DateTime.UtcNow);
-        var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name);
+        var accessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name, staff.CategoryId);
         if (existingRefreshToken != null)
         {
             return (accessToken, existingRefreshToken.Token);
@@ -95,7 +95,7 @@ public class LoginInfra : ILoginInfra
         var division = await _context.DivisionMasters.FirstOrDefaultAsync(d => d.Id == staff.DivisionId && d.IsActive);
         if (division == null) throw new MessageNotFoundException("Division not found");
         await DeactivateRefreshToken(refreshTokenEntity, user.StaffCreationId);
-        var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name);
+        var newAccessToken = GenerateJwtToken(user.Username, user.StaffCreationId, staff.DesignationId, designation.Name, staff.DepartmentId, department.Name, staff.DivisionId, division.Name, staff.CategoryId);
         var slidingThreshold = TimeSpan.FromDays(1);
         if ((refreshTokenEntity.ExpiryDate - DateTime.UtcNow) <= slidingThreshold)
         {
@@ -134,7 +134,7 @@ public class LoginInfra : ILoginInfra
         await _context.SaveChangesAsync();
     }
 
-    private string GenerateJwtToken(string userName, int staffId, int designationId, string designation, int departmentId, string department, int divisionId, string divisionName)
+    private string GenerateJwtToken(string userName, int staffId, int designationId, string designation, int departmentId, string department, int divisionId, string divisionName, int categoryId)
     {
         try
         {
@@ -147,13 +147,6 @@ public class LoginInfra : ILoginInfra
             if (staff == null) throw new MessageNotFoundException("Staff not found");
             var role = _context.AccessLevels.FirstOrDefault(e => e.Name == staff.AccessLevel && e.IsActive == true);
             if (role == null) throw new MessageNotFoundException("Role not found");
-
-/*            var designations = _context.DesignationMasters.FirstOrDefault(e => e.Id == designationId && e.IsActive == true);
-            if (designations == null)
-            {
-                throw new MessageNotFoundException("Designation not found");
-            }
-*/
             var approver = _context.StaffCreations.FirstOrDefault(e => e.Id == staff.ApprovalLevel1 && e.IsActive == true);
             if (approver == null) throw new MessageNotFoundException("Approver not found");
             string approverFullName = approver != null ? $"{approver.FirstName}{(string.IsNullOrWhiteSpace(approver.LastName) ? "" : " " + approver.LastName)}" : "N/A";
@@ -178,6 +171,7 @@ public class LoginInfra : ILoginInfra
                     new Claim("DepartmentName", department),
                     new Claim("DivisionId", divisionId.ToString()),
                     new Claim("DivisionName", divisionName),
+                    new Claim("CategoryId", categoryId.ToString()),
                     new Claim("RoleId", role.Id.ToString()),
                     new Claim("Role", role.Name),
                     new Claim("IsNonProduction", userName1.IsNonProduction.ToString()),

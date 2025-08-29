@@ -268,7 +268,7 @@ public class AttendanceInfra : IAttendanceInfra
             join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id
             where staff.IsActive == true && !ar.IsDeleted
                   && (ar.IsFreezed == null || ar.IsFreezed == false)
-                  && ar.StaffId == attendanceStatus.StaffId
+                  && attendanceStatus.StaffId.Contains(ar.StaffId)
                   && (attendanceStatus.DepartmentId == null || attendanceStatus.DepartmentId.Contains(staff.DepartmentId))
                   && (attendanceStatus.DivisionId == null || attendanceStatus.DivisionId.Contains(staff.DivisionId))
                   && (
@@ -321,7 +321,7 @@ public class AttendanceInfra : IAttendanceInfra
                             where staff.IsActive == true
                                   && !ar.IsDeleted
                                   && ar.IsFreezed == true
-                                  && ar.StaffId == attendanceStatus.StaffId
+                                  && attendanceStatus.StaffId.Contains(ar.StaffId)
                                   && (attendanceStatus.DepartmentId == null || attendanceStatus.DepartmentId.Contains(staff.DepartmentId))
                                   && (attendanceStatus.DivisionId == null || attendanceStatus.DivisionId.Contains(staff.DivisionId))
                                   && (
