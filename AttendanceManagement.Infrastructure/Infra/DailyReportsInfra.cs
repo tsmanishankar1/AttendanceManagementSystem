@@ -1506,7 +1506,7 @@ public class DailyReportsInfra : IDailyReportInfra
                     VaccinationNumber = report.VaccinationNumber,
                     IsExempted = report.IsExempted,
                     Comments = report.Comments,
-                    ApprovedOn = report.ApprovedOn,
+                    ApprovedOn = report.ApprovedOn?.ToUniversalTime(),
                     AppliedBy = report.AppliedBy,
                     ApprovedBy = report.ApprovedBy
                 };
