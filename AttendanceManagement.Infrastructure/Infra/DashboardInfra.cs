@@ -3,6 +3,7 @@ using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AttendanceManagement.Infrastructure.Infra
 {
@@ -10,11 +11,13 @@ namespace AttendanceManagement.Infrastructure.Infra
     {
         private readonly AttendanceManagementSystemContext _context;
         private readonly AtrakContext _atrakContext;
-
-        public DashboardInfra(AttendanceManagementSystemContext context, AtrakContext atrakContext)
+        private readonly IMemoryCache _cache;
+        private const string StaffShiftCacheKeyPrefix = "UpcomingShiftsForStaff_";
+        public DashboardInfra(AttendanceManagementSystemContext context, AtrakContext atrakContext, IMemoryCache cache)
         {
             _context = context;
             _atrakContext = atrakContext;
+            _cache = cache;
         }
 
         public async Task<List<object>> GetTodaysAnniversaries(int eventTypeId)
@@ -162,7 +165,7 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<List<NewJoinee>> GetNewJoinee()
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var tenDaysAgo = today.AddDays(-10);
+            var tenDaysAgo = today.AddDays(-2);
 
             var newJoinees = await (from staff in _context.StaffCreations
                                     join org in _context.OrganizationTypes
@@ -292,7 +295,15 @@ namespace AttendanceManagement.Infrastructure.Infra
 
         public async Task<List<object>> GetUpcomingShiftsForStaffAsync(int staffId)
         {
+            var cacheKey = $"{StaffShiftCacheKeyPrefix}{staffId}";
+
+            if (_cache.TryGetValue(cacheKey, out var cachedObj) && cachedObj is List<object> cachedShifts)
+            {
+                return cachedShifts;
+            }
+
             var tomorrow = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+
             var upcomingShifts = await _context.AssignShifts
                 .Where(asg => asg.IsActive &&
                               asg.StaffId == staffId &&
@@ -300,15 +311,23 @@ namespace AttendanceManagement.Infrastructure.Infra
                 .OrderBy(asg => asg.FromDate)
                 .Select(asg => new
                 {
-                   ShiftId = asg.Shift.Id,
-                   ShiftName = asg.Shift.Name,
-                   StartTime = asg.Shift.StartTime,
-                   EndTime = asg.Shift.EndTime,
-                   Date = asg.FromDate
+                    ShiftId = asg.Shift.Id,
+                    ShiftName = asg.Shift.Name,
+                    StartTime = asg.Shift.StartTime,
+                    EndTime = asg.Shift.EndTime,
+                    Date = asg.FromDate
                 })
                 .ToListAsync();
-            if (upcomingShifts.Count == 0) throw new MessageNotFoundException("No Shift is Assigned");
-            return upcomingShifts.Cast<object>().ToList();
+
+            if (upcomingShifts.Count == 0)
+            {
+                throw new MessageNotFoundException("No Shift is Assigned");
+            }
+
+            var result = upcomingShifts.Cast<object>().ToList();
+            _cache.Set(cacheKey, result);
+
+            return result;
         }
 
         public async Task<string> CreateAnnouncement(AnnouncementDto announcementDto)

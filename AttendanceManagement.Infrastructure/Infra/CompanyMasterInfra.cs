@@ -3,87 +3,114 @@ using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AttendanceManagement.Infrastructure.Infra
 {
     public class CompanyMasterInfra : ICompanyMasterInfra
     {
         private readonly AttendanceManagementSystemContext _context;
-
-        public CompanyMasterInfra(AttendanceManagementSystemContext context)
+        private readonly IMemoryCache _cache;
+        private const string CompanyCacheKey = "AllCompanies";
+        public CompanyMasterInfra(AttendanceManagementSystemContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task<List<CompanyMasterResponse>> GetAll()
         {
+            if (_cache.TryGetValue(CompanyCacheKey, out var cachedObj) && cachedObj is List<CompanyMasterResponse> cachedCompanies)
+            {
+                return cachedCompanies;
+            }
+
             var allCompany = await (from company in _context.CompanyMasters
-                              select new CompanyMasterResponse
-                              {
-                                  CompanyMasterId = company.Id,
-                                  FullName = company.Name,
-                                  ShortName = company.ShortName,
-                                  LegalName = company.LegalName,
-                                  Address = company.Address,
-                                  Website = company.Website,
-                                  RegisterNumber = company.RegisterNumber,
-                                  Tngsnumber = company.Tngsnumber,
-                                  Cstnumber = company.Cstnumber,
-                                  Tinnumber = company.Tinnumber,
-                                  ServiceTaxNo = company.ServiceTaxNo,
-                                  Pannumber = company.Pannumber,
-                                  Pfnumber = company.Pfnumber,
-                                  IsActive = company.IsActive,
-                                  CreatedBy = company.CreatedBy
-                              })
-                              .ToListAsync();
+                                    select new CompanyMasterResponse
+                                    {
+                                        CompanyMasterId = company.Id,
+                                        FullName = company.Name,
+                                        ShortName = company.ShortName,
+                                        LegalName = company.LegalName,
+                                        Address = company.Address,
+                                        Website = company.Website,
+                                        RegisterNumber = company.RegisterNumber,
+                                        Tngsnumber = company.Tngsnumber,
+                                        Cstnumber = company.Cstnumber,
+                                        Tinnumber = company.Tinnumber,
+                                        ServiceTaxNo = company.ServiceTaxNo,
+                                        Pannumber = company.Pannumber,
+                                        Pfnumber = company.Pfnumber,
+                                        IsActive = company.IsActive,
+                                        CreatedBy = company.CreatedBy
+                                    })
+                                   .ToListAsync();
+
             if (allCompany.Count == 0)
             {
                 throw new MessageNotFoundException("No company found");
             }
+
+            _cache.Set(CompanyCacheKey, allCompany);
+
             return allCompany;
         }
 
         public async Task<string> Add(CompanyMasterRequest companyMasterRequest)
         {
             var message = "Company created successfully";
-            var duplicateCompany = await _context.CompanyMasters.AnyAsync(c => c.Name.ToLower() == companyMasterRequest.FullName.ToLower());
+
+            var duplicateCompany = await _context.CompanyMasters
+                .AnyAsync(c => c.Name.ToLower() == companyMasterRequest.FullName.ToLower());
             if (duplicateCompany) throw new ConflictException("Company name already exists");
-            CompanyMaster company = new CompanyMaster();
-            company.Name = companyMasterRequest.FullName;
-            company.ShortName = companyMasterRequest.ShortName;
-            company.LegalName = companyMasterRequest.LegalName;
-            company.Address = companyMasterRequest.Address;
-            company.Website = companyMasterRequest.Website;
-            company.RegisterNumber = companyMasterRequest.RegisterNumber;
-            company.Tngsnumber = companyMasterRequest.Tngsnumber;
-            company.Cstnumber = companyMasterRequest.Cstnumber;
-            company.Tinnumber = companyMasterRequest.Tinnumber;
-            company.ServiceTaxNo = companyMasterRequest.ServiceTaxNo;
-            company.Pannumber = companyMasterRequest.Pannumber;
-            company.Pfnumber = companyMasterRequest.Pfnumber;
-            company.IsActive = companyMasterRequest.IsActive;
-            company.CreatedBy = companyMasterRequest.CreatedBy;
-            company.CreatedUtc = DateTime.UtcNow;
+
+            var company = new CompanyMaster
+            {
+                Name = companyMasterRequest.FullName,
+                ShortName = companyMasterRequest.ShortName,
+                LegalName = companyMasterRequest.LegalName,
+                Address = companyMasterRequest.Address,
+                Website = companyMasterRequest.Website,
+                RegisterNumber = companyMasterRequest.RegisterNumber,
+                Tngsnumber = companyMasterRequest.Tngsnumber,
+                Cstnumber = companyMasterRequest.Cstnumber,
+                Tinnumber = companyMasterRequest.Tinnumber,
+                ServiceTaxNo = companyMasterRequest.ServiceTaxNo,
+                Pannumber = companyMasterRequest.Pannumber,
+                Pfnumber = companyMasterRequest.Pfnumber,
+                IsActive = companyMasterRequest.IsActive,
+                CreatedBy = companyMasterRequest.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
 
             await _context.CompanyMasters.AddAsync(company);
             await _context.SaveChangesAsync();
+
+            _cache.Remove(CompanyCacheKey);
+
             return message;
         }
 
         public async Task<string> Update(CompanyMasterDto companyMaster)
         {
             var message = "Company updated successfully";
-            var existingCompany = await _context.CompanyMasters.FirstOrDefaultAsync(d => d.Id == companyMaster.CompanyMasterId);
+
+            var existingCompany = await _context.CompanyMasters
+                .FirstOrDefaultAsync(d => d.Id == companyMaster.CompanyMasterId);
+
             if (existingCompany == null)
             {
-                throw new MessageNotFoundException("Category not found");
+                throw new MessageNotFoundException("Company not found");
             }
+
             if (!string.IsNullOrWhiteSpace(companyMaster.FullName))
             {
-                var duplicateCompany = await _context.CompanyMasters.AnyAsync(c => c.Id != companyMaster.CompanyMasterId && c.Name.ToLower() == companyMaster.FullName.ToLower());
+                var duplicateCompany = await _context.CompanyMasters
+                    .AnyAsync(c => c.Id != companyMaster.CompanyMasterId &&
+                                   c.Name.ToLower() == companyMaster.FullName.ToLower());
                 if (duplicateCompany) throw new ConflictException("Company name already exists");
             }
+
             existingCompany.Name = companyMaster.FullName ?? existingCompany.Name;
             existingCompany.ShortName = companyMaster.ShortName ?? existingCompany.ShortName;
             existingCompany.LegalName = companyMaster.LegalName ?? existingCompany.LegalName;
@@ -101,6 +128,9 @@ namespace AttendanceManagement.Infrastructure.Infra
             existingCompany.UpdatedUtc = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            _cache.Remove(CompanyCacheKey);
+
             return message;
         }
     }

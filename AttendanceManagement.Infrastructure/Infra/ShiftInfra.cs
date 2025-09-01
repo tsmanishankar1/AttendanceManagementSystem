@@ -3,16 +3,20 @@ using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AttendanceManagement.Infrastructure.Infra
 {
     public class ShiftInfra : IShiftInfra
     {
         private readonly AttendanceManagementSystemContext _context;
-
-        public ShiftInfra(AttendanceManagementSystemContext context)
+        private readonly IMemoryCache _cache;
+        private const string ShiftCacheKey = "AllShifts";
+        private const string StaffShiftCacheKeyPrefix = "UpcomingShiftsForStaff_";
+        public ShiftInfra(AttendanceManagementSystemContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
         public async Task<List<StaffsDto>> GetStaffByDivisionIdAsync(int divisionId)
         {
@@ -40,12 +44,17 @@ namespace AttendanceManagement.Infrastructure.Infra
 
         public async Task<List<ShiftResponse>> GetAllShiftsAsync()
         {
+            if (_cache.TryGetValue(ShiftCacheKey, out var cachedObj) && cachedObj is List<ShiftResponse> cachedShifts)
+            {
+                return cachedShifts;
+            }
+
             var allShift = await (from shift in _context.Shifts
                                   join shiftType in _context.ShiftTypeDropDowns
-                                  on shift.ShiftTypeId equals shiftType.Id into shiftTypeGroup
+                                      on shift.ShiftTypeId equals shiftType.Id into shiftTypeGroup
                                   from shiftType in shiftTypeGroup.DefaultIfEmpty()
                                   join division in _context.DivisionMasters
-                                  on shift.DivisionId equals division.Id into divisionGroup
+                                      on shift.DivisionId equals division.Id into divisionGroup
                                   from division in divisionGroup.DefaultIfEmpty()
                                   select new ShiftResponse
                                   {
@@ -62,25 +71,36 @@ namespace AttendanceManagement.Infrastructure.Infra
                                       CreatedBy = shift.CreatedBy
                                   })
                                   .ToListAsync();
+
             if (allShift.Count == 0)
             {
                 throw new MessageNotFoundException("No shifts found");
             }
+
+            _cache.Set(ShiftCacheKey, allShift);
+
             return allShift;
         }
 
         public async Task<string> CreateShiftAsync(ShiftRequest newShift)
         {
             var message = "Shift created successfully";
-            var shiftType = await _context.ShiftTypeDropDowns.AnyAsync(p => p.Id == newShift.ShiftTypeId && p.IsActive);
+
+            var shiftType = await _context.ShiftTypeDropDowns
+                .AnyAsync(p => p.Id == newShift.ShiftTypeId && p.IsActive);
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
-            var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Name.ToLower() == newShift.ShiftName.ToLower());
+
+            var duplicateShiftName = await _context.Shifts
+                .AnyAsync(s => s.Name.ToLower() == newShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
+
             if (newShift.DivisionId.HasValue)
             {
-                var divisionExists = await _context.DivisionMasters.AnyAsync(p => p.Id == newShift.DivisionId.Value && p.IsActive);
-                if (!divisionExists) throw new MessageNotFoundException($"Division not found");
+                var divisionExists = await _context.DivisionMasters
+                    .AnyAsync(p => p.Id == newShift.DivisionId.Value && p.IsActive);
+                if (!divisionExists) throw new MessageNotFoundException("Division not found");
             }
+
             if (!TimeOnly.TryParse(newShift.StartTime, out var startTime))
             {
                 throw new Exception($"Invalid Start Time '{newShift.StartTime}'");
@@ -89,6 +109,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new Exception($"Invalid End Time '{newShift.EndTime}'");
             }
+
             var shift = new Shift
             {
                 Name = newShift.ShiftName,
@@ -101,25 +122,37 @@ namespace AttendanceManagement.Infrastructure.Infra
                 CreatedBy = newShift.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
+
             await _context.Shifts.AddAsync(shift);
             await _context.SaveChangesAsync();
+
+            _cache.Remove(ShiftCacheKey);
+
             return message;
         }
 
         public async Task<string> UpdateShiftAsync(UpdateShift updatedShift)
         {
             var message = "Shift updated successfully";
+
             var existingShift = await _context.Shifts.FirstOrDefaultAsync(s => s.Id == updatedShift.ShiftId);
             if (existingShift == null) throw new MessageNotFoundException("Shift not found");
-            var shiftType = await _context.ShiftTypeDropDowns.AnyAsync(p => p.Id == updatedShift.ShiftTypeId && p.IsActive);
+
+            var shiftType = await _context.ShiftTypeDropDowns
+                .AnyAsync(p => p.Id == updatedShift.ShiftTypeId && p.IsActive);
             if (!shiftType) throw new MessageNotFoundException("Shift type not found");
-            var duplicateShiftName = await _context.Shifts.AnyAsync(s => s.Id != updatedShift.ShiftId && s.Name.ToLower() == updatedShift.ShiftName.ToLower());
+
+            var duplicateShiftName = await _context.Shifts
+                .AnyAsync(s => s.Id != updatedShift.ShiftId && s.Name.ToLower() == updatedShift.ShiftName.ToLower());
             if (duplicateShiftName) throw new ConflictException("Shift name already exists");
+
             if (updatedShift.DivisionId.HasValue)
             {
-                var divisionExists = await _context.DivisionMasters.AnyAsync(p => p.Id == updatedShift.DivisionId.Value && p.IsActive);
-                if (!divisionExists) throw new MessageNotFoundException($"Division not found");
+                var divisionExists = await _context.DivisionMasters
+                    .AnyAsync(p => p.Id == updatedShift.DivisionId.Value && p.IsActive);
+                if (!divisionExists) throw new MessageNotFoundException("Division not found");
             }
+
             if (!TimeOnly.TryParse(updatedShift.StartTime, out var startTime))
             {
                 throw new Exception($"Invalid Start Time '{updatedShift.StartTime}'");
@@ -138,7 +171,11 @@ namespace AttendanceManagement.Infrastructure.Infra
             existingShift.IsActive = updatedShift.IsActive;
             existingShift.UpdatedBy = updatedShift.UpdatedBy;
             existingShift.UpdatedUtc = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
+
+            _cache.Remove(ShiftCacheKey);
+
             return message;
         }
 
@@ -170,20 +207,29 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> AssignShiftToStaffAsync(AssignShiftRequest assignShift)
         {
             var message = "Shift assigned successfully";
-            if (assignShift.selectedRows.Count() == 0) throw new MessageNotFoundException("No rows selected");
+
+            if (assignShift.selectedRows.Count() == 0)
+                throw new MessageNotFoundException("No rows selected");
+
             var selectedRows = assignShift.selectedRows;
+
             foreach (var item in selectedRows)
             {
-                var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Id == assignShift.ShiftId && s.IsActive);
+                var shift = await _context.Shifts
+                    .FirstOrDefaultAsync(s => s.Id == assignShift.ShiftId && s.IsActive);
                 if (shift == null) throw new MessageNotFoundException("Shift not found");
+
                 var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.Id == item.Id && s.IsActive == true);
                 if (staff == null) throw new MessageNotFoundException("Staff not found");
+
                 var staffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}";
                 var fromDate = assignShift.FromDate;
                 var toDate = assignShift.ToDate;
+
                 for (var date = fromDate; date <= toDate; date = date.AddDays(1))
                 {
                     await AttendanceFreezeDate(item.Id, date);
+
                     var existingAssignedShift = await _context.AssignShifts
                         .Where(a => a.FromDate == date &&
                                     a.StaffId == item.Id &&
@@ -193,6 +239,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                     {
                         throw new ConflictException($"Shift already assigned on {fromDate} for staff {staffName}");
                     }
+
                     var shiftAssign = new AssignShift
                     {
                         FromDate = date,
@@ -204,8 +251,13 @@ namespace AttendanceManagement.Infrastructure.Infra
                     };
                     await _context.AssignShifts.AddAsync(shiftAssign);
                 }
+
                 await _context.SaveChangesAsync();
+
+                var cacheKey = $"{StaffShiftCacheKeyPrefix}{item.Id}";
+                _cache.Remove(cacheKey);
             }
+
             return message;
         }
 

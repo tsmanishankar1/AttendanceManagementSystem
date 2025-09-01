@@ -4,7 +4,7 @@ using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AttendanceManagement.Infrastructure.Infra;
 
@@ -12,42 +12,54 @@ public class BranchMasterInfra : IBranchMasterInfra
 {
     private readonly AttendanceManagementSystemContext _context;
     private readonly IWebHostEnvironment _env;
-    public BranchMasterInfra(AttendanceManagementSystemContext context, IWebHostEnvironment env)
+    private readonly IMemoryCache _cache;
+    public BranchMasterInfra(AttendanceManagementSystemContext context, IWebHostEnvironment env, IMemoryCache cache)
     {
         _context = context;
         _env = env;
+        _cache = cache;
     }
 
     public async Task<List<BranchMasterResponse>> GetAllBranches()
     {
-        var allBranch = await (from b in _context.BranchMasters
-                               join c in _context.CompanyMasters
-                               on b.CompanyMasterId equals c.Id
-                               select new BranchMasterResponse
-                               {
-                                   BranchMasterId = b.Id,
-                                   FullName = b.Name,
-                                   ShortName = b.ShortName,
-                                   Address = b.Address,
-                                   City = b.City,
-                                   District = b.District,
-                                   State = b.State,
-                                   Country = b.Country,
-                                   PostalCode = b.PostalCode,
-                                   PhoneNumber = b.PhoneNumber,
-                                   Fax = b.Fax,
-                                   Email = b.Email,
-                                   CompanyMasterId = b.CompanyMasterId,
-                                   CompanyMasterName = c.Name,
-                                   IsHeadOffice = b.IsHeadOffice,
-                                   IsActive = b.IsActive,
-                                   CreatedBy = b.CreatedBy
-                               })
-                          .ToListAsync();
+        const string cacheKey = "allBranches";
+
+        if (_cache.TryGetValue(cacheKey, out var cachedObj) && cachedObj is List<BranchMasterResponse> allBranch)
+        {
+            return allBranch;
+        }
+
+        allBranch = await (from b in _context.BranchMasters
+                           join c in _context.CompanyMasters
+                           on b.CompanyMasterId equals c.Id
+                           select new BranchMasterResponse
+                           {
+                               BranchMasterId = b.Id,
+                               FullName = b.Name,
+                               ShortName = b.ShortName,
+                               Address = b.Address,
+                               City = b.City,
+                               District = b.District,
+                               State = b.State,
+                               Country = b.Country,
+                               PostalCode = b.PostalCode,
+                               PhoneNumber = b.PhoneNumber,
+                               Fax = b.Fax,
+                               Email = b.Email,
+                               CompanyMasterId = b.CompanyMasterId,
+                               CompanyMasterName = c.Name,
+                               IsHeadOffice = b.IsHeadOffice,
+                               IsActive = b.IsActive,
+                               CreatedBy = b.CreatedBy
+                           }).ToListAsync();
+
         if (allBranch.Count == 0)
         {
             throw new MessageNotFoundException("No branches found");
         }
+
+        _cache.Set(cacheKey, allBranch);
+
         return allBranch;
     }
 
@@ -56,8 +68,10 @@ public class BranchMasterInfra : IBranchMasterInfra
         var message = "Branch created successfully.";
         var companyId = await _context.CompanyMasters.AnyAsync(d => d.Id == branchMasterRequest.CompanyMasterId && d.IsActive);
         if (!companyId) throw new MessageNotFoundException("Company not found");
+
         var duplicateBranch = await _context.BranchMasters.AnyAsync(b => b.Name.ToLower() == branchMasterRequest.FullName.ToLower());
         if (duplicateBranch) throw new ConflictException("Branch name already exists");
+
         var branchMaster = new BranchMaster
         {
             Name = branchMasterRequest.FullName,
@@ -77,8 +91,12 @@ public class BranchMasterInfra : IBranchMasterInfra
             CreatedUtc = DateTime.UtcNow,
             CompanyMasterId = branchMasterRequest.CompanyMasterId
         };
+
         await _context.BranchMasters.AddAsync(branchMaster);
         await _context.SaveChangesAsync();
+
+        _cache.Remove("allBranches");
+
         return message;
     }
 
@@ -87,16 +105,16 @@ public class BranchMasterInfra : IBranchMasterInfra
         var message = "Branch updated successfully.";
         var companyId = await _context.CompanyMasters.AnyAsync(d => d.Id == branchMasterRequest.CompanyMasterId && d.IsActive);
         if (!companyId) throw new MessageNotFoundException("Company not found");
+
         var existingBranch = await _context.BranchMasters.FirstOrDefaultAsync(b => b.Id == branchMasterRequest.BranchMasterId);
-        if (existingBranch == null)
-        {
-            throw new MessageNotFoundException("Branch not found");
-        }
+        if (existingBranch == null) throw new MessageNotFoundException("Branch not found");
+
         if (!string.IsNullOrWhiteSpace(branchMasterRequest.FullName))
         {
             var duplicateBranch = await _context.BranchMasters.AnyAsync(b => b.Id != branchMasterRequest.BranchMasterId && b.Name.ToLower() == branchMasterRequest.FullName.ToLower());
             if (duplicateBranch) throw new ConflictException("Branch name already exists");
         }
+
         existingBranch.Name = branchMasterRequest.FullName ?? existingBranch.Name;
         existingBranch.ShortName = branchMasterRequest.ShortName ?? existingBranch.ShortName;
         existingBranch.Address = branchMasterRequest.Address ?? existingBranch.Address;
@@ -115,6 +133,9 @@ public class BranchMasterInfra : IBranchMasterInfra
         existingBranch.CompanyMasterId = branchMasterRequest.CompanyMasterId;
 
         await _context.SaveChangesAsync();
+
+        _cache.Remove("allBranches");
+
         return message;
     }
 
