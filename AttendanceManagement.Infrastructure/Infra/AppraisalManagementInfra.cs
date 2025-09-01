@@ -643,7 +643,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         Year = first.Year,
                         Quarter = first.Quarter,
                         Month = first.Month,
-                        IsCompleted = first.IsCompleted
+                        IsCompleted = false
                     };
                 })
                 .ToList();

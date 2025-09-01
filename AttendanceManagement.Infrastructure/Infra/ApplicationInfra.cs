@@ -866,7 +866,7 @@ public class ApplicationInfra : IApplicationInfra
             }
             else if (workFromHomeAny != null)
             {
-                int compOffStatusId = GetCompOffStatusId(workFromHomeAny.StartDuration, workFromHomeAny.EndDuration);
+                int compOffStatusId = GetWfhStatusId(workFromHomeAny.StartDuration, workFromHomeAny.EndDuration);
                 var wfh = await _context.StatusDropdowns
                     .Where(sd => sd.Id == compOffStatusId && sd.IsActive)
                     .Join(_context.AttendanceStatusColors,
@@ -883,7 +883,7 @@ public class ApplicationInfra : IApplicationInfra
             }
             else if (onDutyAny != null)
             {
-                int compOffStatusId = GetCompOffStatusId(onDutyAny.StartDuration, onDutyAny.EndDuration);
+                int compOffStatusId = GetOnDutyStatusId(onDutyAny.StartDuration, onDutyAny.EndDuration);
                 var onDutyStatus = await _context.StatusDropdowns
                     .Where(sd => sd.Id == compOffStatusId && sd.IsActive)
                     .Join(_context.AttendanceStatusColors,
@@ -900,7 +900,7 @@ public class ApplicationInfra : IApplicationInfra
             }
             else if (businessTravelAny != null)
             {
-                int compOffStatusId = GetCompOffStatusId(businessTravelAny.StartDuration, businessTravelAny.EndDuration);
+                int compOffStatusId = GetBusinessTravelStatusId(businessTravelAny.StartDuration, businessTravelAny.EndDuration);
                 var businessTravelStatus = await _context.StatusDropdowns
                     .Where(sd => sd.Id == compOffStatusId && sd.IsActive)
                     .Join(_context.AttendanceStatusColors,
@@ -1033,6 +1033,35 @@ public class ApplicationInfra : IApplicationInfra
             return 16;
         else if (fromDuration == "Full Day" || toDuration == "Full Day")
             return 14;
+        else
+            return 37;
+    }
+    private int GetWfhStatusId(string fromDuration, string? toDuration)
+    {
+        if (fromDuration == "First Half" || toDuration == "First Half")
+            return 8;
+        else if (fromDuration == "Second Half" || toDuration == "Second Half")
+            return 9;
+        else if (fromDuration == "Full Day" || toDuration == "Full Day")
+            return 7;
+        else
+            return 37;
+    }
+    private int GetOnDutyStatusId(string fromDuration, string? toDuration)
+    {
+        if (fromDuration == "First Half" || toDuration == "First Half")
+            return 5;
+        else if (fromDuration == "Second Half" || toDuration == "Second Half")
+            return 6;
+        else if (fromDuration == "Full Day" || toDuration == "Full Day")
+            return 4;
+        else
+            return 37;
+    }
+    private int GetBusinessTravelStatusId(string fromDuration, string? toDuration)
+    {
+        if (fromDuration == "Full Day" || toDuration == "Full Day")
+            return 10;
         else
             return 37;
     }
