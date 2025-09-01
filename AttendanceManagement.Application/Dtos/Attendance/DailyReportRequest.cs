@@ -350,7 +350,7 @@
         public string Designation { get; set; } = null!;
         public string? Duration { get; set; }
         public DateTime From { get; set; }
-        public string FromDuration { get; set; }
+        public string FromDuration { get; set; } = null!;
         public DateTime? To { get; set; }
         public string? ToDuration { get; set; }
         public string? TotalHoursDays { get; set; }
@@ -491,7 +491,7 @@
         public string Designation { get; set; } = null!;
         public string ShiftName { get; set; } = null!;
         public string TxnDate { get; set; } = null!;
-        public DateTime DurationOfHoursExtension { get; set; }
+        public string DurationOfHoursExtension { get; set; } = null!;
         public DateTime? HoursBeforeShift { get; set; }
         public DateTime? HoursAfterShift { get; set; }
         public string Remarks { get; set; } = null!;

@@ -1368,7 +1368,7 @@ public class DailyReportsInfra : IDailyReportInfra
                     Designation = report.Designation,
                     ShiftName = report.ShiftName,
                     TxnDate = report.TxnDate,
-                    DurationOfHoursExtension = report.DurationOfHoursExtension.ToUniversalTime(),
+                    DurationOfHoursExtension = report.DurationOfHoursExtension,
                     HoursBeforeShift = report.HoursBeforeShift?.ToUniversalTime(),
                     HoursAfterShift = report.HoursAfterShift?.ToUniversalTime(),
                     Remarks = report.Remarks,
