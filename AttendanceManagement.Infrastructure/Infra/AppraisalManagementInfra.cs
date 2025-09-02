@@ -49,14 +49,15 @@ namespace AttendanceManagement.Infrastructure.Infra
                     join division in _context.DivisionMasters on staff.DivisionId equals division.Id
                     join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
                     join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId && s.Year == year && (quarter == null || s.Quarter == quarter) && (month == null || s.Month == month))
+                    on staff.StaffId equals selected.EmployeeId into selectedJoin
                     from selected in selectedJoin.DefaultIfEmpty()
                     join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
                     join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
                     from agm in agmJoin.DefaultIfEmpty()
                     where staff.IsActive == true && division.IsActive && department.IsActive && staff.OrganizationTypeId != 1
-                          && !staff.IsNonProduction && !(selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month))
+                          && !staff.IsNonProduction && selected == null
                     select new AppraisalDto
                     {
                         StaffId = staff.Id,
@@ -67,7 +68,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
-                        IsCompleted = (selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month)) ? selected.IsCompleted : null
+                        IsCompleted = null
                     })
                     .ToListAsync();
 
@@ -83,14 +84,15 @@ namespace AttendanceManagement.Infrastructure.Infra
                     join division in _context.DivisionMasters on staff.DivisionId equals division.Id
                     join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
                     join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                    join selected in _context.SelectedEmployeesForAppraisals.Where(s => s.AppraisalId == appraisalId && s.Year == year && (quarter == null || s.Quarter == quarter) && (month == null || s.Month == month))
+                    on staff.StaffId equals selected.EmployeeId into selectedJoin
                     from selected in selectedJoin.DefaultIfEmpty()
                     join per in _context.EmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
                     join agm in _context.AgmApprovals on per.Id equals agm.EmployeePerformanceReviewId into agmJoin
                     from agm in agmJoin.DefaultIfEmpty()
                     where staff.IsActive == true && division.IsActive && department.IsActive && !staff.IsNonProduction && staff.OrganizationTypeId == 1
-                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && !(selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month))
+                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && selected == null
                     select new ProbationDto
                     {
                         StaffId = staff.Id,
@@ -101,7 +103,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                         ReportingManagers = $"{manager.FirstName}{(string.IsNullOrWhiteSpace(manager.LastName) ? "" : " " + manager.LastName)}",
                         Division = division.Name,
                         Department = department.Name,
-                        IsCompleted = selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month) ? selected.IsCompleted : null
+                        IsCompleted = null
                     })
                     .ToListAsync();
                 if (grouped.Count == 0 || !grouped.Any()) throw new MessageNotFoundException("No employees found");
@@ -977,14 +979,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     join division in _context.DivisionMasters on staff.DivisionId equals division.Id
                     join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
                     join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedNonProductionEmployees.Where(s => s.AppraisalId == appraisalId)
+                    join selected in _context.SelectedNonProductionEmployees.Where(s => s.AppraisalId == appraisalId && s.Year == year && (quarter == null || s.Quarter == quarter) && (month == null || s.Month == month))
                         on staff.StaffId equals selected.EmployeeId into selectedJoin
                     from selected in selectedJoin.DefaultIfEmpty()
                     join per in _context.NonProductionEmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId)
                         on staff.StaffId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
                     where staff.IsActive == true && division.IsActive && department.IsActive && staff.IsNonProduction && staff.OrganizationTypeId != 1
-                          && !(selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month))
+                          && selected == null
                     select new AppraisalDto
                     {
                         StaffId = staff.Id,
@@ -1011,13 +1013,13 @@ namespace AttendanceManagement.Infrastructure.Infra
                     join division in _context.DivisionMasters on staff.DivisionId equals division.Id
                     join department in _context.DepartmentMasters on staff.DepartmentId equals department.Id
                     join manager in _context.StaffCreations on staff.ApprovalLevel1 equals manager.Id
-                    join selected in _context.SelectedNonProductionEmployees.Where(s => s.AppraisalId == appraisalId) on staff.StaffId equals selected.EmployeeId into selectedJoin
+                    join selected in _context.SelectedNonProductionEmployees.Where(s => s.AppraisalId == appraisalId && s.Year == year && (quarter == null || s.Quarter == quarter) && (month == null || s.Month == month))
+                    on staff.StaffId equals selected.EmployeeId into selectedJoin
                     from selected in selectedJoin.DefaultIfEmpty()
                     join per in _context.NonProductionEmployeePerformanceReviews.Where(s => s.AppraisalId == appraisalId) on selected.EmployeeId equals per.EmpId into perJoin
                     from per in perJoin.DefaultIfEmpty()
                     where staff.IsActive == true && division.IsActive && department.IsActive && staff.IsNonProduction && staff.OrganizationTypeId == 1
-                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) &&
-                          !(selected != null && selected.Year == year && (quarter == null || selected.Quarter == quarter) && (month == null || selected.Month == month))
+                          && (appraisalId == 2 ? staff.JoiningDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)) : true) && selected == null
                     select new ProbationDto
                     {
                         StaffId = staff.Id,
@@ -1265,9 +1267,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 throw new MessageNotFoundException("Kra not found");
             var alreadySubmitted = await _context.KraSelfReviews
                 .AnyAsync(sr => sr.GoalId == selfEvaluationRequest.GoalId &&
-                                sr.AppraisalId == selfEvaluationRequest.AppraisalId &&
-                                sr.CreatedBy == selfEvaluationRequest.CreatedBy &&
-                                sr.IsActive);
+                                sr.AppraisalId == selfEvaluationRequest.AppraisalId);
             if (alreadySubmitted)
                 throw new ConflictException("You have already submitted a self-evaluation for this kra.");
             string? savedFilePath = null;

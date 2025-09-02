@@ -7,6 +7,7 @@ using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Infrastructure.Data;
 using AttendanceManagement.Application.Dtos.Attendance;
 using AttendanceManagement.Domain.Entities.Attendance;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AttendanceManagement.Infrastructure.Infra
 {
@@ -17,7 +18,8 @@ namespace AttendanceManagement.Infrastructure.Infra
         private readonly IConfiguration _configuration;
         private readonly IEmailInfra _emailService;
         private readonly string _workspacePath;
-        public StaffCreationInfra(AttendanceManagementSystemContext context, IConfiguration configuration, StoredProcedureDbContext storedProcedureDbContext, IEmailInfra emailService, IWebHostEnvironment env)
+        private readonly IMemoryCache _cache;
+        public StaffCreationInfra(AttendanceManagementSystemContext context, IConfiguration configuration, StoredProcedureDbContext storedProcedureDbContext, IEmailInfra emailService, IWebHostEnvironment env, IMemoryCache cache)
         {
             _context = context;
             _configuration = configuration;
@@ -28,6 +30,8 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 Directory.CreateDirectory(_workspacePath);
             }
+            _cache = cache;
+
         }
         public async Task<string> UpdateApproversAsync(List<int> staffIds, int? approverId1, int? approverId2, int updatedBy)
         {
@@ -1155,11 +1159,22 @@ namespace AttendanceManagement.Infrastructure.Infra
 
             await _context.AddAsync(newEntity);
             await _context.SaveChangesAsync();
+
+            var cacheKey = $"DropDown_{dropDownDetailsRequest.DropDownMasterId}";
+            _cache.Remove(cacheKey);
+
             return $"{newEntity.GetType().Name} created successfully";
         }
 
         public async Task<List<DropDownResponse>> GetAllDropDowns(int id)
         {
+            var cacheKey = $"DropDown_{id}";
+
+            if (_cache.TryGetValue(cacheKey, out var cachedObj) && cachedObj is List<DropDownResponse> cachedResult)
+            {
+                return cachedResult;
+            }
+
             var dropDownQueries = new Dictionary<int, IQueryable<DropDownResponse>>
             {
                 { 1, _context.Titles.Where(t => t.IsActive).Select(t => new DropDownResponse { Id = t.Id, Name = t.Name, CreatedBy = t.CreatedBy }) },
@@ -1228,6 +1243,9 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new MessageNotFoundException("No data found for the given dropdown master");
             }
+
+            _cache.Set(cacheKey, dropDown);
+
             return dropDown;
         }
 
@@ -1308,6 +1326,10 @@ namespace AttendanceManagement.Infrastructure.Infra
 
             _context.Update(entity);
             await _context.SaveChangesAsync();
+
+            var cacheKey = $"DropDown_{dropDownDetailsRequest.DropDownMasterId}";
+            _cache.Remove(cacheKey);
+
             return $"{entityType.Name.Replace("Proxy", "").Replace("_", " ")} updated successfully";
         }
     }

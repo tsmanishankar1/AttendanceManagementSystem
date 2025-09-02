@@ -3,6 +3,8 @@ using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace AttendanceManagement.Infrastructure.Infra
@@ -10,46 +12,22 @@ namespace AttendanceManagement.Infrastructure.Infra
     public class WeeklyOffInfra : IWeeklyOffInfra
     {
         private readonly AttendanceManagementSystemContext _context;
+        private readonly IMemoryCache _cache;
+        private const string WeeklyOffCacheKey = "WeeklyOffs";
 
-        public WeeklyOffInfra(AttendanceManagementSystemContext context)
+        public WeeklyOffInfra(AttendanceManagementSystemContext context, IMemoryCache cache)
         {
             _context = context;
-        }
-        public async Task<string> CreateWeeklyOffAsync(WeeklyOffRequest weeklyOffRequest)
-        {
-            var message = "Weekly offs added successfully";
-            if (weeklyOffRequest.MarkWeeklyOff == null || !weeklyOffRequest.MarkWeeklyOff.Any())
-            {
-                throw new MessageNotFoundException("No weekly off selected.");
-            }
-            var isDuplicate = await _context.WeeklyOffMasters.AnyAsync(w => w.WeeklyOffName.ToLower() == weeklyOffRequest.WeeklyOffName.ToLower());
-            if (isDuplicate) throw new ValidationException("Weekly off name already exists");
-            var weeklyOffMaster = new WeeklyOffMaster
-            {
-                WeeklyOffName = weeklyOffRequest.WeeklyOffName,
-                IsActive = weeklyOffRequest.IsActive,
-                CreatedBy = weeklyOffRequest.CreatedBy,
-                CreatedUtc = DateTime.UtcNow
-            };
-            await _context.WeeklyOffMasters.AddAsync(weeklyOffMaster);
-            await _context.SaveChangesAsync();
-
-            var weeklyOffDetails = weeklyOffRequest.MarkWeeklyOff.Select(mark =>
-                new WeeklyOffDetail
-                {
-                    WeeklyOffMasterId = weeklyOffMaster.Id,
-                    MarkWeeklyOff = mark,
-                    IsActive = true,
-                    CreatedBy = weeklyOffRequest.CreatedBy,
-                    CreatedUtc = DateTime.UtcNow
-                }).ToList();
-            await _context.WeeklyOffDetails.AddRangeAsync(weeklyOffDetails);
-            await _context.SaveChangesAsync();
-            return message;
+            _cache = cache;
         }
 
         public async Task<List<WeeklyOffResponse>> GetAllWeeklyOffsAsync()
         {
+            if (_cache.TryGetValue(WeeklyOffCacheKey, out var cachedObj) && cachedObj is List<WeeklyOffResponse> cachedWeeklyOffs)
+            {
+                return cachedWeeklyOffs;
+            }
+
             var weeklyOffs = await _context.WeeklyOffMasters
                 .Select(w => new WeeklyOffResponse
                 {
@@ -66,23 +44,75 @@ namespace AttendanceManagement.Infrastructure.Infra
                         }).ToList()
                 })
                 .ToListAsync();
+
             if (!weeklyOffs.Any())
-            {
                 throw new MessageNotFoundException("Weekly off not found");
-            }
+
+            _cache.Set(WeeklyOffCacheKey, weeklyOffs);
+
             return weeklyOffs;
+        }
+
+        public async Task<string> CreateWeeklyOffAsync(WeeklyOffRequest weeklyOffRequest)
+        {
+            var message = "Weekly offs added successfully";
+
+            if (weeklyOffRequest.MarkWeeklyOff == null || !weeklyOffRequest.MarkWeeklyOff.Any())
+                throw new MessageNotFoundException("No weekly off selected.");
+
+            var isDuplicate = await _context.WeeklyOffMasters
+                .AnyAsync(w => w.WeeklyOffName.ToLower() == weeklyOffRequest.WeeklyOffName.ToLower());
+
+            if (isDuplicate) throw new ValidationException("Weekly off name already exists");
+
+            var weeklyOffMaster = new WeeklyOffMaster
+            {
+                WeeklyOffName = weeklyOffRequest.WeeklyOffName,
+                IsActive = weeklyOffRequest.IsActive,
+                CreatedBy = weeklyOffRequest.CreatedBy,
+                CreatedUtc = DateTime.UtcNow
+            };
+
+            await _context.WeeklyOffMasters.AddAsync(weeklyOffMaster);
+            await _context.SaveChangesAsync();
+
+            var weeklyOffDetails = weeklyOffRequest.MarkWeeklyOff.Select(mark =>
+                new WeeklyOffDetail
+                {
+                    WeeklyOffMasterId = weeklyOffMaster.Id,
+                    MarkWeeklyOff = mark,
+                    IsActive = true,
+                    CreatedBy = weeklyOffRequest.CreatedBy,
+                    CreatedUtc = DateTime.UtcNow
+                }).ToList();
+
+            await _context.WeeklyOffDetails.AddRangeAsync(weeklyOffDetails);
+            await _context.SaveChangesAsync();
+
+            _cache.Remove(WeeklyOffCacheKey);
+
+            return message;
         }
 
         public async Task<string> UpdateWeeklyOffAsync(UpdateWeeklyOff updatedWeeklyOff)
         {
             var message = "Weekly off updated successfully";
-            var existingWeeklyOffMaster = await _context.WeeklyOffMasters.FirstOrDefaultAsync(w => w.Id == updatedWeeklyOff.WeeklyOffId);
-            if (existingWeeklyOffMaster == null) throw new MessageNotFoundException("Weekly off not found");
+
+            var existingWeeklyOffMaster = await _context.WeeklyOffMasters
+                .FirstOrDefaultAsync(w => w.Id == updatedWeeklyOff.WeeklyOffId);
+
+            if (existingWeeklyOffMaster == null)
+                throw new MessageNotFoundException("Weekly off not found");
+
             if (!string.IsNullOrWhiteSpace(updatedWeeklyOff.WeeklyOffName))
             {
-                var isDuplicate = await _context.WeeklyOffMasters.AnyAsync(w => w.Id != updatedWeeklyOff.WeeklyOffId && w.WeeklyOffName.ToLower() == updatedWeeklyOff.WeeklyOffName.ToLower());
+                var isDuplicate = await _context.WeeklyOffMasters
+                    .AnyAsync(w => w.Id != updatedWeeklyOff.WeeklyOffId &&
+                                   w.WeeklyOffName.ToLower() == updatedWeeklyOff.WeeklyOffName.ToLower());
+
                 if (isDuplicate) throw new ValidationException("Weekly off name already exists");
             }
+
             existingWeeklyOffMaster.WeeklyOffName = updatedWeeklyOff.WeeklyOffName;
             existingWeeklyOffMaster.IsActive = updatedWeeklyOff.IsActive;
             existingWeeklyOffMaster.UpdatedBy = updatedWeeklyOff.UpdatedBy;
@@ -98,6 +128,7 @@ namespace AttendanceManagement.Infrastructure.Infra
                 detail.UpdatedBy = updatedWeeklyOff.UpdatedBy;
                 detail.UpdatedUtc = DateTime.UtcNow;
             }
+
             if (updatedWeeklyOff.MarkWeeklyOff != null && updatedWeeklyOff.MarkWeeklyOff.Any())
             {
                 var newDetails = updatedWeeklyOff.MarkWeeklyOff
@@ -113,7 +144,10 @@ namespace AttendanceManagement.Infrastructure.Infra
 
                 await _context.WeeklyOffDetails.AddRangeAsync(newDetails);
             }
+
             await _context.SaveChangesAsync();
+
+            _cache.Remove(WeeklyOffCacheKey);
 
             return message;
         }
