@@ -2,17 +2,11 @@
 using AttendanceManagement.Application.Interfaces.Infrastructure;
 using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure.Data;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AttendanceManagement.Infrastructure.Infra;
 public class DailyReportsInfra : IDailyReportInfra
@@ -248,18 +242,26 @@ public class DailyReportsInfra : IDailyReportInfra
                     ToDate = report.ToDate,
                     FromDuration = report.FromDuration,
                     ToDuration = report.ToDuration,
-                    AppliedOn = report.AppliedOn.ToUniversalTime(),
+                    AppliedOn = DateTime.SpecifyKind(report.AppliedOn, DateTimeKind.Utc),
+                    Approved1On = report.Approved1On.HasValue
+                    ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                    : null,
+                    Approved2On = report.Approved2On.HasValue
+                    ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                    : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                    ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                    : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                    ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                    : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -315,18 +317,26 @@ public class DailyReportsInfra : IDailyReportInfra
                     WorkedDate = report.WorkedDate,
                     Credit = report.Credit,
                     Reason = report.Reason,
-                    AppliedOn = report.AppliedOn.ToUniversalTime(),
+                    AppliedOn = DateTime.SpecifyKind(report.AppliedOn, DateTimeKind.Utc),
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -670,18 +680,26 @@ public class DailyReportsInfra : IDailyReportInfra
                     EndDate = report.EndDate,
                     TotalDays = report.TotalDays,
                     Reason = report.Reason,
-                    AppliedOn = report.AppliedOn.ToUniversalTime(),
+                    AppliedOn = DateTime.SpecifyKind(report.AppliedOn, DateTimeKind.Utc),
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -790,21 +808,31 @@ public class DailyReportsInfra : IDailyReportInfra
                     Department = report.Department,
                     Designation = report.Designation,
                     PunchType = report.PunchType,
-                    InTime = report.InTime?.ToUniversalTime(),
-                    OutTime = report.OutTime?.ToUniversalTime(),
-                    AppliedOn = report.AppliedOn?.ToUniversalTime(),
+                    InTime = report.InTime,
+                    OutTime = report.OutTime,
+                    AppliedOn = report.AppliedOn.HasValue
+                     ? DateTime.SpecifyKind(report.AppliedOn.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
                     CancelledBy = report.CancelledBy,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime()
                 };
                 result.Add(responseItem);
             }
@@ -858,23 +886,31 @@ public class DailyReportsInfra : IDailyReportInfra
                     Designation = report.Designation,
                     FromDuration = report.FromDuration,
                     ToDuration = report.ToDuration,
-                    From = report.From.ToUniversalTime(),
-                    To = report.To?.ToUniversalTime(),
+                    From = report.From,
+                    To = report.To,
                     Duration = report.Duration,
                     TotalHoursDays = report.TotalHoursDays,
                     Reason = report.Reason,
-                    AppliedOn = report.AppliedOn.ToUniversalTime(),
+                    AppliedOn = DateTime.SpecifyKind(report.AppliedOn, DateTimeKind.Utc),
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -978,7 +1014,7 @@ public class DailyReportsInfra : IDailyReportInfra
                     StaffId = report.StaffId,
                     StaffCreationId = report.StaffCreationId,
                     Name = report.Name,
-                    SwipeDate = report.SwipeDate?.ToUniversalTime(),
+                    SwipeDate = report.SwipeDate,
                     SwipeTime = report.SwipeTime,
                     ReaderName = report.ReaderName,
                     PunchType = report.PunchType,
@@ -1035,24 +1071,32 @@ public class DailyReportsInfra : IDailyReportInfra
                     Department = report.Department,
                     Designation = report.Designation,
                     Duration = report.Duration,
-                    From = report.From.ToUniversalTime(),
+                    From = DateTime.SpecifyKind(report.From, DateTimeKind.Utc),
                     FromDuration = report.FromDuration,
-                    To = report.To.ToUniversalTime(),
+                    To = DateTime.SpecifyKind(report.To, DateTimeKind.Utc),
                     ToDuration = report.ToDuration,
                     TotalHoursOrDays = report.TotalHoursOrDays,
                     Reason = report.Reason,
-                    AppliedOn = report.AppliedOn.ToUniversalTime(),
+                    AppliedOn = DateTime.SpecifyKind(report.AppliedOn, DateTimeKind.Utc),
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -1108,22 +1152,32 @@ public class DailyReportsInfra : IDailyReportInfra
                     FromDuration = report.FromDuration,
                     ToDuration = report.ToDuration,
                     Duration = report.Duration,
-                    From = report.From?.ToUniversalTime(),
-                    To = report.To?.ToUniversalTime(),
+                    From = report.From,
+                    To = report.To,
                     TotalHoursDays = report.TotalHoursDays,
                     Reason = report.Reason,
-                    AppliedOn = report.AppliedOn?.ToUniversalTime(),
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
+                    AppliedOn = report.AppliedOn.HasValue
+                    ? DateTime.SpecifyKind(report.AppliedOn.Value, DateTimeKind.Utc)
+                    : null,
+                    Approved1On = report.Approved1On.HasValue
+                    ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                    : null,
+                    Approved2On = report.Approved2On.HasValue
+                    ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                    : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                    ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                    : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                    ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                    : null,
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -1176,24 +1230,32 @@ public class DailyReportsInfra : IDailyReportInfra
                     Name = report.Name,
                     Department = report.Department,
                     Designation = report.Designation,
-                    From = report.From.ToUniversalTime(),
-                    To = report.To.ToUniversalTime(),
+                    From = report.From,
+                    To = report.To,
                     PermissionDate = report.PermissionDate,
                     PermissionType = report.PermissionType,
                     TotalHours = report.TotalHours,
                     Reason = report.Reason,
-                    AppliedOn = report.AppliedOn.ToUniversalTime(),
+                    AppliedOn = DateTime.SpecifyKind(report.AppliedOn, DateTimeKind.Utc),
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -1369,21 +1431,33 @@ public class DailyReportsInfra : IDailyReportInfra
                     ShiftName = report.ShiftName,
                     TxnDate = report.TxnDate,
                     DurationOfHoursExtension = report.DurationOfHoursExtension,
-                    HoursBeforeShift = report.HoursBeforeShift?.ToUniversalTime(),
-                    HoursAfterShift = report.HoursAfterShift?.ToUniversalTime(),
+                    HoursBeforeShift = report.HoursBeforeShift.HasValue
+                     ? DateTime.SpecifyKind(report.HoursBeforeShift.Value, DateTimeKind.Utc)
+                     : null,
+                    HoursAfterShift = report.HoursAfterShift.HasValue
+                     ? DateTime.SpecifyKind(report.HoursAfterShift.Value, DateTimeKind.Utc)
+                     : null,
                     Remarks = report.Remarks,
-                    AppliedOn = report.AppliedOn,
+                    AppliedOn = DateTime.SpecifyKind(report.AppliedOn, DateTimeKind.Utc),
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy
                 };
                 result.Add(responseItem);
@@ -1436,22 +1510,36 @@ public class DailyReportsInfra : IDailyReportInfra
                     Name = report.Name,
                     Department = report.Department,
                     Designation = report.Designation,
-                    AttendanceDate = report.AttendanceDate?.ToUniversalTime(),
-                    ShiftIn = report.ShiftIn?.ToUniversalTime(),
-                    ShiftOut = report.ShiftOut?.ToUniversalTime(),
+                    AttendanceDate = report.AttendanceDate,
+                    ShiftIn = report.ShiftIn.HasValue
+                     ? DateTime.SpecifyKind(report.ShiftIn.Value, DateTimeKind.Utc)
+                     : null,
+                    ShiftOut = report.ShiftOut.HasValue
+                     ? DateTime.SpecifyKind(report.ShiftOut.Value, DateTimeKind.Utc)
+                     : null,
                     Approval1Status = report.Approval1Status,
                     Approval2Status = report.Approval2Status,
                     Approved1By = report.Approved1By,
-                    Approved1On = report.Approved1On?.ToUniversalTime(),
+                    AppliedOn = report.AppliedOn.HasValue
+                     ? DateTime.SpecifyKind(report.AppliedOn.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved1On = report.Approved1On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved1On.Value, DateTimeKind.Utc)
+                     : null,
+                    Approved2On = report.Approved2On.HasValue
+                     ? DateTime.SpecifyKind(report.Approved2On.Value, DateTimeKind.Utc)
+                     : null,
+                    CancelledOn = report.CancelledOn.HasValue
+                     ? DateTime.SpecifyKind(report.CancelledOn.Value, DateTimeKind.Utc)
+                     : null,
+                    RejectedOn = report.RejectedOn.HasValue
+                     ? DateTime.SpecifyKind(report.RejectedOn.Value, DateTimeKind.Utc)
+                     : null,
                     Approved2By = report.Approved2By,
-                    Approved2On = report.Approved2On?.ToUniversalTime(),
                     RejectedStatus = report.RejectedStatus,
                     RejectedBy = report.RejectedBy,
-                    RejectedOn = report.RejectedOn?.ToUniversalTime(),
                     CancelledBy = report.CancelledBy,
-                    AppliedOn = report.AppliedOn?.ToUniversalTime(),
-                    IsCancelled = report.IsCancelled,
-                    CancelledOn = report.CancelledOn?.ToUniversalTime()
+                    IsCancelled = report.IsCancelled
                 };
                 result.Add(responseItem);
             }
@@ -1501,12 +1589,14 @@ public class DailyReportsInfra : IDailyReportInfra
                     Name = report.Name,
                     Department = report.Department,
                     Designation = report.Designation,
-                    VaccinationDate = report.VaccinationDate?.ToUniversalTime(),
-                    SecondVaccinatedDate = report.SecondVaccinatedDate?.ToUniversalTime(),
+                    VaccinationDate = report.VaccinationDate,
+                    SecondVaccinatedDate = report.SecondVaccinatedDate,
                     VaccinationNumber = report.VaccinationNumber,
                     IsExempted = report.IsExempted,
                     Comments = report.Comments,
-                    ApprovedOn = report.ApprovedOn?.ToUniversalTime(),
+                    ApprovedOn = report.ApprovedOn.HasValue
+                     ? DateTime.SpecifyKind(report.ApprovedOn.Value, DateTimeKind.Utc)
+                     : null,
                     AppliedBy = report.AppliedBy,
                     ApprovedBy = report.ApprovedBy
                 };

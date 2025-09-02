@@ -54,7 +54,7 @@
         public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public DateTime? TransactionDate { get; set; }
+        public DateOnly? TransactionDate { get; set; }
         public string AttendanceStatus { get; set; } = null!;
     }
 
@@ -269,8 +269,8 @@
         public string? FromDuration { get; set; }
         public string? ToDuration { get; set; }
         public string? Duration { get; set; }
-        public DateTime? From { get; set; }
-        public DateTime? To { get; set; }
+        public DateOnly? From { get; set; }
+        public DateOnly? To { get; set; }
         public string? Reason { get; set; }
         public string? TotalHoursDays { get; set; }
         public DateTime? AppliedOn { get; set; }
@@ -295,8 +295,8 @@
         public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
-        public DateTime? VaccinationDate { get; set; }
-        public DateTime? SecondVaccinatedDate { get; set; }
+        public DateOnly? VaccinationDate { get; set; }
+        public DateOnly? SecondVaccinatedDate { get; set; }
         public int? VaccinationNumber { get; set; }
         public bool? IsExempted { get; set; }
         public string? Comments { get; set; }
@@ -312,7 +312,7 @@
         public string Name { get; set; } = null!;
         public string Department { get; set; } = null!;  
         public string Designation { get; set; } = null!;  
-        public DateTime? AttendanceDate { get; set; } 
+        public DateOnly? AttendanceDate { get; set; } 
         public DateTime? ShiftIn { get; set; }  
         public DateTime? ShiftOut { get; set; }
         public DateTime? AppliedOn { get; set; }
@@ -490,7 +490,7 @@
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string ShiftName { get; set; } = null!;
-        public string TxnDate { get; set; } = null!;
+        public DateOnly TxnDate { get; set; }
         public string DurationOfHoursExtension { get; set; } = null!;
         public DateTime? HoursBeforeShift { get; set; }
         public DateTime? HoursAfterShift { get; set; }

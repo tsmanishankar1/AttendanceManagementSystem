@@ -1783,16 +1783,14 @@ public class ExcelImportInfra : IExcelImportInfra
                             errorLogs.Add($"Staff '{staffIdText}' not found at {row}");
                             continue;
                         }
-                        var shift = worksheet.Cells[row, columnIndexes["Shift"]].Text.Trim();
-                        if (string.IsNullOrEmpty(shift))
+                        var rawShift = worksheet.Cells[row, columnIndexes["Shift"]].Text?.Trim();
+                        var shiftName = rawShift?.Split('(')[0].Trim().ToLower();
+                        var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Name.Trim() == shiftName && s.IsActive);
+                        if (shift == null)
                         {
-                            errorLogs.Add($"Shift type is empty at row {row}");
+                            errorLogs.Add($"Shift '{rawShift}' not found at row {row}");
                             continue;
                         }
-                        var shiftId = await _context.Shifts
-                            .Where(d => d.Name.Trim().ToLower() == shift.Trim().ToLower() && d.IsActive)
-                            .Select(d => d.Id)
-                            .FirstOrDefaultAsync();
                         DateOnly? transactionDate = DateOnly.TryParse(worksheet.Cells[row, columnIndexes["TransactionDate"]].Text, out var parsedDate) ? parsedDate : null;
                         if (!transactionDate.HasValue)
                         {
@@ -1814,7 +1812,7 @@ public class ExcelImportInfra : IExcelImportInfra
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow,
                             StaffId = staff.Id,
-                            ShiftId = shiftId
+                            ShiftId = shift.Id
                         };
                         shiftExtensions.Add(shiftExtension);
                     }
