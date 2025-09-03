@@ -7,5 +7,6 @@
         public string StaffName { get; set; } = null!;
         public string DepartmentName { get; set; } = null!;
         public string? ProfilePhoto { get; set; }
+        public int RoleId { get; set; }
     }
 }
