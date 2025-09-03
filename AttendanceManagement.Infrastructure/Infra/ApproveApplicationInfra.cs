@@ -4,6 +4,7 @@ using AttendanceManagement.Domain.Entities.Attendance;
 using AttendanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace AttendanceManagement.Infrastructure.Infra
 {
@@ -165,14 +166,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                         }
                         await _context.SaveChangesAsync();
 
-                        string requestedTime = leave.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                        DateTime createdUtc = leave!.CreatedUtc;
+                        DateTime updatedUtc = leave.UpdatedUtc ?? DateTime.UtcNow;
+
                         TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-
-                        DateTime approvedDateTime = leave.UpdatedUtc.HasValue
-                            ? TimeZoneInfo.ConvertTimeFromUtc(leave.UpdatedUtc.Value, istZone)
-                            : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-
-                        string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                        string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                                .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                        string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                                .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                         var notification = new ApprovalNotification
                         {
                             StaffId = leave.CreatedBy,
@@ -428,13 +429,14 @@ namespace AttendanceManagement.Infrastructure.Infra
 
                     }
                     await _context.SaveChangesAsync();
+                    DateTime createdUtc = permissionRequest!.CreatedUtc;
+                    DateTime updatedUtc = permissionRequest.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-
-                    DateTime approvedDateTime = permissionRequest.UpdatedUtc.HasValue
-                        ? TimeZoneInfo.ConvertTimeFromUtc(permissionRequest.UpdatedUtc.Value, istZone)
-                        : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Common Permission request approved successfully" : "Common Permission request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your {permissionType} request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -563,15 +565,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                         }
                     }
                     await _context.SaveChangesAsync();
+                    DateTime createdUtc = manualPunch!.CreatedUtc;
+                    DateTime updatedUtc = manualPunch.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-
-                    DateTime approvedDateTime = manualPunch.UpdatedUtc.HasValue
-                        ? TimeZoneInfo.ConvertTimeFromUtc(manualPunch.UpdatedUtc.Value, istZone)
-                        : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
-
-                    string requestedTime = manualPunch!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Manual Punch request approved successfully" : "Manual Punch request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Manual {punchType} Punch request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -695,14 +696,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = onDuty!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = onDuty!.CreatedUtc;
+                    DateTime updatedUtc = onDuty.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-
-                    DateTime approvedDateTime = onDuty.UpdatedUtc.HasValue
-                        ? TimeZoneInfo.ConvertTimeFromUtc(onDuty.UpdatedUtc.Value, istZone)
-                        : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "On Duty request approved successfully" : "On Duty request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your On Duty request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -832,14 +833,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = businessTravel!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = businessTravel!.CreatedUtc;
+                    DateTime updatedUtc = businessTravel.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-
-                    DateTime approvedDateTime = businessTravel.UpdatedUtc.HasValue
-                        ? TimeZoneInfo.ConvertTimeFromUtc(businessTravel.UpdatedUtc.Value, istZone)
-                        : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Business Travel request approved successfully" : "Business Travel request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Business Travel request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -969,14 +970,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = workFromHome!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = workFromHome!.CreatedUtc;
+                    DateTime updatedUtc = workFromHome.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-
-                    DateTime approvedDateTime = workFromHome.UpdatedUtc.HasValue
-                        ? TimeZoneInfo.ConvertTimeFromUtc(workFromHome.UpdatedUtc.Value, istZone)
-                        : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Work From Home request approved successfully" : "Work From Home request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Work From Home request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -1115,14 +1116,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = shiftChange!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = shiftChange!.CreatedUtc;
+                    DateTime updatedUtc = shiftChange.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-
-                    DateTime approvedDateTime = shiftChange.UpdatedUtc.HasValue
-                        ? TimeZoneInfo.ConvertTimeFromUtc(shiftChange.UpdatedUtc.Value, istZone)
-                        : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Shift Change request approved successfully" : "Shift Change request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Shift Change request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -1242,10 +1243,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = shiftExtension!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = shiftExtension!.CreatedUtc;
+                    DateTime updatedUtc = shiftExtension.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                    DateTime approvedDateTime = shiftExtension.UpdatedUtc.HasValue? TimeZoneInfo.ConvertTimeFromUtc(shiftExtension.UpdatedUtc.Value, istZone) : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Shift Extension request approved successfully" : "Shift Extension request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Shift Extension request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -1384,10 +1389,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = weeklyOffHoliday!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = weeklyOffHoliday!.CreatedUtc;
+                    DateTime updatedUtc = weeklyOffHoliday.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                    DateTime approvedDateTime = weeklyOffHoliday.UpdatedUtc.HasValue ? TimeZoneInfo.ConvertTimeFromUtc(weeklyOffHoliday.UpdatedUtc.Value, istZone) : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Weekly Off/ Holiday Working request approved successfully" : "Weekly Off/ Holiday Working request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your Weekly Off/ Holiday Working request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -1545,10 +1554,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = compOffAvail!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = compOffAvail!.CreatedUtc;
+                    DateTime updatedUtc = compOffAvail.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                    DateTime approvedDateTime = compOffAvail.UpdatedUtc.HasValue ? TimeZoneInfo.ConvertTimeFromUtc(compOffAvail.UpdatedUtc.Value, istZone) : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "CompOff Avail request approved successfully" : "CompOff Avail request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your CompOff Avail request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -1686,10 +1699,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = compOffCredit!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = compOffCredit!.CreatedUtc;
+                    DateTime updatedUtc = compOffCredit.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                    DateTime approvedDateTime = compOffCredit.UpdatedUtc.HasValue ? TimeZoneInfo.ConvertTimeFromUtc(compOffCredit.UpdatedUtc.Value, istZone) : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "CompOff Credit request approved successfully" : "CompOff Credit request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved
                         ? $"Your CompOff Credit request has been approved. Approved by - {approverName} on {approvedTime}"
@@ -1811,10 +1828,14 @@ namespace AttendanceManagement.Infrastructure.Infra
                     }
                     await _context.SaveChangesAsync();
 
-                    string requestedTime = reimbursementRequest!.CreatedUtc.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    DateTime createdUtc = reimbursementRequest!.CreatedUtc;
+                    DateTime updatedUtc = reimbursementRequest.UpdatedUtc ?? DateTime.UtcNow;
+
                     TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
-                    DateTime approvedDateTime = reimbursementRequest.UpdatedUtc.HasValue ? TimeZoneInfo.ConvertTimeFromUtc(reimbursementRequest.UpdatedUtc.Value, istZone) : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istZone);
-                    string approvedTime = approvedDateTime.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string requestedTime = TimeZoneInfo.ConvertTimeFromUtc(createdUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
+                    string approvedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedUtc, istZone)
+                                            .ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     //string approvedTime = reimbursementRequest.UpdatedUtc.HasValue ? reimbursementRequest.UpdatedUtc.Value.ToLocalTime().ToString("dd-MMM-yyyy 'at' HH:mm:ss") : DateTime.Now.ToString("dd-MMM-yyyy 'at' HH:mm:ss");
                     message = approveLeaveRequest.IsApproved ? "Reimbursement request approved successfully" : "Reimbursement request rejected successfully";
                     var notificationMessage = approveLeaveRequest.IsApproved

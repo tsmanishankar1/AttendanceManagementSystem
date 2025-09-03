@@ -2260,7 +2260,6 @@ public class ApplicationInfra : IApplicationInfra
         results.Add(new RequestNotificationResponse { ApplicationTypeId = 11, PendingCount = await GetCount(_context.CompOffCredits, 11) });
         results.Add(new RequestNotificationResponse { ApplicationTypeId = 18, PendingCount = await GetCount(_context.Reimbursements, 18) });
 
-        if (results.All(r => r.PendingCount == 0)) throw new MessageNotFoundException("No pending approvals found");
         return results.ToList();
     }
 
