@@ -703,6 +703,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             }
             var resultFilePaths = new List<string>();
             var appraisalSheets = yearAppraisalData.Where(s => s.IsActive).Distinct().ToList();
+            var processedCount = 0;
             foreach (var appraisalSheet in appraisalSheets)
             {
                 var staff = await _context.StaffCreations.FirstOrDefaultAsync(s => s.StaffId == appraisalSheet.EmployeeCode && s.IsActive == true);
@@ -712,7 +713,11 @@ namespace AttendanceManagement.Infrastructure.Infra
                     : $"Appraisal_Letter_Without_DC_{appraisalSheet.EmployeeCode}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
                 var designation = !string.IsNullOrWhiteSpace(appraisalSheet.RevisedDesignation) ? appraisalSheet.RevisedDesignation : appraisalSheet.Designation;
                 var designationName = await _context.DesignationMasters.FirstOrDefaultAsync(d => d.IsActive && d.Name == designation);
-                if(designationName == null) continue;
+                if (designationName == null)
+                {
+                    continue;
+                }
+                processedCount++;
                 if (!string.IsNullOrWhiteSpace(appraisalSheet.RevisedDesignation))
                 {
                     staff.DesignationId = designationName.Id;
@@ -836,6 +841,10 @@ namespace AttendanceManagement.Infrastructure.Infra
                 appraisalSheet.UpdatedBy = createdBy;
                 appraisalSheet.UpdatedUtc = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+            }
+            if (processedCount == 0)
+            {
+                throw new MessageNotFoundException("No valid designations found for any employees in the appraisal data");
             }
             return "Appraisal letter generated successfully";
         }
