@@ -728,7 +728,8 @@ namespace AttendanceManagement.Infrastructure.Infra
                     || (isApprovalLevel1 == null && isApprovalLevel2 == null && (s.ApprovalLevel1 == currentApprovar1 || s.ApprovalLevel2 == currentApprovar1))
                     || (canViewOwnRecord && s.Id == currentApprovar1)
                     )
-                     && (divisionId == null || s.DivisionId == divisionId)
+                     && (divisionId == null ||
+                        (s.DivisionId == divisionId && _context.DivisionMasters.Any(d => d.Id == s.DivisionId && d.IsActive)))
                 );
             var records = await query
                 .Select(s => new StaffCreationResponse
