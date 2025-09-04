@@ -268,7 +268,7 @@ public class AttendanceInfra : IAttendanceInfra
             join staff in _attendanceContext.StaffCreations on ar.StaffId equals staff.Id
             where staff.IsActive == true && !ar.IsDeleted
                   && (ar.IsFreezed == null || ar.IsFreezed == false)
-                  && attendanceStatus.StaffId.Contains(ar.StaffId)
+                  && (attendanceStatus.StaffId == null || !attendanceStatus.StaffId.Any() || attendanceStatus.StaffId.Contains(ar.StaffId))
                   && (attendanceStatus.DepartmentId == null || attendanceStatus.DepartmentId.Contains(staff.DepartmentId))
                   && (attendanceStatus.DivisionId == null || attendanceStatus.DivisionId.Contains(staff.DivisionId))
                   && (
@@ -321,7 +321,7 @@ public class AttendanceInfra : IAttendanceInfra
                             where staff.IsActive == true
                                   && !ar.IsDeleted
                                   && ar.IsFreezed == true
-                                  && attendanceStatus.StaffId.Contains(ar.StaffId)
+                                  && (attendanceStatus.StaffId == null || !attendanceStatus.StaffId.Any() || attendanceStatus.StaffId.Contains(ar.StaffId))
                                   && (attendanceStatus.DepartmentId == null || attendanceStatus.DepartmentId.Contains(staff.DepartmentId))
                                   && (attendanceStatus.DivisionId == null || attendanceStatus.DivisionId.Contains(staff.DivisionId))
                                   && (
@@ -358,7 +358,7 @@ public class AttendanceInfra : IAttendanceInfra
                                 AttendanceDate = ar.AttendanceDate
                             })
                             .ToListAsync();
-        if (result.Count == 0) throw new MessageNotFoundException("No attendance record found");
+        if (result.Count == 0) throw new MessageNotFoundException("No freezed records found");
         return result;
     }
 

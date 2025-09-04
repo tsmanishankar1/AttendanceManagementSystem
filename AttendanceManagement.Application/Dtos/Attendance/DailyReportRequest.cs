@@ -145,7 +145,7 @@
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string? ShiftName { get; set; }
-        public DateOnly? Date { get; set; }
+        public string? Date { get; set; }
         public TimeOnly? InTime { get; set; }
         public TimeOnly? OutTime { get; set; }
         public TimeOnly? TotalHoursWorked { get; set; }

@@ -70,7 +70,6 @@ namespace AttendanceManagement.Application.Dtos.Attendance
     {
         public int StaffId { get; set; }
         public string StaffName { get; set; } = null!;
-        public int OrganizationTypeId { get; set; }
         public List<LeaveDetailDto> LeaveDetails { get; set; } = null!;
     }
 
