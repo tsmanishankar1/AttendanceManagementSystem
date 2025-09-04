@@ -11,7 +11,7 @@ namespace AttendanceManagement.Application.Interfaces.Application
         Task<List<StaffDto>> GetStaffAsync(GetStaff getStaff);
         Task<string> UpdateMyProfile(IndividualStaffUpdate individualStaffUpdate);
         Task<IndividualStaffResponse> GetMyProfile(int staffId);
-        Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprover1, bool? isApprovalLevel1, bool? isApprovalLevel2);
+        Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprover1, bool? isApprovalLevel1, bool? isApprovalLevel2, int? divisionId = null);
         Task<List<StaffCreationResponse>> GetPendingStaffForManagerApproval(int approverId);
         Task<string> ApprovePendingStaffs(ApprovePendingStaff approvePendingStaff);
         Task<string> CreateDropDownMaster(DropDownRequest dropDownRequest);

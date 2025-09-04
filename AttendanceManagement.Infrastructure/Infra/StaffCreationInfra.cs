@@ -708,7 +708,7 @@ namespace AttendanceManagement.Infrastructure.Infra
             return $"/{folderName}/{fileName}";
         }
 
-        public async Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1, bool? isApprovalLevel1, bool? isApprovalLevel2)
+        public async Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(int currentApprovar1, bool? isApprovalLevel1, bool? isApprovalLevel2, int? divisionId = null)
         {
             var approver = await _context.StaffCreations
                 .Where(x => x.Id == currentApprovar1 && x.IsActive == true)
@@ -727,7 +727,9 @@ namespace AttendanceManagement.Infrastructure.Infra
                     || (isApprovalLevel2 == true && isApprovalLevel1 == null && s.ApprovalLevel2 == currentApprovar1)
                     || (isApprovalLevel1 == null && isApprovalLevel2 == null && (s.ApprovalLevel1 == currentApprovar1 || s.ApprovalLevel2 == currentApprovar1))
                     || (canViewOwnRecord && s.Id == currentApprovar1)
-                ));
+                    )
+                     && (divisionId == null || s.DivisionId == divisionId)
+                );
             var records = await query
                 .Select(s => new StaffCreationResponse
                 {

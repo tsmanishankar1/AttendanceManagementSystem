@@ -44,8 +44,8 @@ namespace AttendanceManagement.Application.App
             => await _staffCreationInfra.GetStaffAsync(getStaff);
 
         public async Task<List<StaffCreationResponse>> GetStaffRecordsByApprovalLevelAsync(
-            int currentApprover1, bool? isApprovalLevel1, bool? isApprovalLevel2)
-            => await _staffCreationInfra.GetStaffRecordsByApprovalLevelAsync(currentApprover1, isApprovalLevel1, isApprovalLevel2);
+            int currentApprover1, bool? isApprovalLevel1, bool? isApprovalLevel2, int? divisionId = null)
+            => await _staffCreationInfra.GetStaffRecordsByApprovalLevelAsync(currentApprover1, isApprovalLevel1, isApprovalLevel2, divisionId);
 
         public async Task<string> UpdateApproversAsync(List<int> staffIds, int? approverId1, int? approverId2, int updatedBy)
             => await _staffCreationInfra.UpdateApproversAsync(staffIds, approverId1, approverId2, updatedBy);

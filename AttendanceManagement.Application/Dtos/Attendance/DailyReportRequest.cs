@@ -218,8 +218,8 @@
         public DateTime? SwipeDate { get; set; }
         public TimeOnly? SwipeTime { get; set; }
         public string ReaderName { get; set; } = null!;
-        public string PunchType { get; set; } = null!;
-        public string SwipeLocation { get; set; } = null!;
+        public string? PunchType { get; set; }
+        public string? SwipeLocation { get; set; }
     }
 
     public class NightShiftCountResponse
