@@ -78,6 +78,11 @@ public class HolidayController : ControllerBase
             await _loggingService.AuditLog("Holiday", "POST", "/api/Holiday/AddHolidayMaster", createdHoliday, holiday.CreatedBy, JsonSerializer.Serialize(holiday));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Holiday", "POST", "/api/Holiday/AddHolidayMaster", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holiday.CreatedBy, JsonSerializer.Serialize(holiday));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Holiday", "POST", "/api/Holiday/AddHolidayMaster", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holiday.CreatedBy, JsonSerializer.Serialize(holiday));
@@ -98,6 +103,11 @@ public class HolidayController : ControllerBase
             };
             await _loggingService.AuditLog("Holiday", "POST", "/api/Holiday/UpdateHolidayMaster", updated, updatedHoliday.UpdatedBy, JsonSerializer.Serialize(updatedHoliday));
             return Ok(response);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Holiday", "POST", "/api/Holiday/UpdateHolidayMaster", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, updatedHoliday.UpdatedBy, JsonSerializer.Serialize(updatedHoliday));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (MessageNotFoundException ex)
         {
@@ -124,6 +134,16 @@ public class HolidayController : ControllerBase
             };
             await _loggingService.AuditLog("Holiday Calendar", "POST", "/api/Holiday/AddHolidayCalendarGroup", addHoliday, request.CreatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            await _loggingService.LogError("Holiday Calendar", "POST", "/api/Holiday/AddHolidayCalendarGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.BadResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Holiday Calendar", "POST", "/api/Holiday/AddHolidayCalendarGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.CreatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (Exception ex)
         {
@@ -168,6 +188,16 @@ public class HolidayController : ControllerBase
             };
             await _loggingService.AuditLog("Holiday Calendar Group", "POST", "/api/Holiday/UpdateCalendarGroupById", update, request.UpdatedBy, JsonSerializer.Serialize(request));
             return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            await _loggingService.LogError("Holiday Calendar Group", "POST", "/api/Holiday/UpdateCalendarGroupById", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.BadResponse(ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Holiday Calendar Group", "POST", "/api/Holiday/UpdateCalendarGroupById", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, request.UpdatedBy, JsonSerializer.Serialize(request));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (MessageNotFoundException ex)
         {
@@ -218,6 +248,11 @@ public class HolidayController : ControllerBase
             await _loggingService.AuditLog("Holiday Zone", "POST", "/api/Holiday/AddHolidayZone", createdZone, holidayZone.CreatedBy, JsonSerializer.Serialize(holidayZone));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Holiday Zone", "POST", "/api/Holiday/AddHolidayZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holidayZone.CreatedBy, JsonSerializer.Serialize(holidayZone));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Holiday Zone", "POST", "/api/Holiday/AddHolidayZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holidayZone.CreatedBy, JsonSerializer.Serialize(holidayZone));
@@ -238,6 +273,11 @@ public class HolidayController : ControllerBase
             };
             await _loggingService.AuditLog("Holiday Zone", "POST", "/api/Holiday/UpdateHolidayZone", updatedZone, holidayZone.UpdatedBy, JsonSerializer.Serialize(holidayZone));
             return Ok(response);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Holiday Zone", "POST", "/api/Holiday/UpdateHolidayZone", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, holidayZone.UpdatedBy, JsonSerializer.Serialize(holidayZone));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (MessageNotFoundException ex)
         {

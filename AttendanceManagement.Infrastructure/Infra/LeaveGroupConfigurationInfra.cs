@@ -101,37 +101,43 @@ namespace AttendanceManagement.Infrastructure.Infra
             return allLeave;
         }
 
-        public async Task<string> CreateConfigurations(LeaveGroupConfigurationRequest configurationRequeset)
+        public async Task<string> CreateConfigurations(LeaveGroupConfigurationRequest configurationRequest)
         {
             var message = "Leave group configuration added successfully";
-            var leaveType = await _context.LeaveTypes.AnyAsync(h => h.Id == configurationRequeset.LeaveTypeId && h.IsActive);
+            var leaveType = await _context.LeaveTypes.AnyAsync(h => h.Id == configurationRequest.LeaveTypeId && h.IsActive);
             if (!leaveType) throw new MessageNotFoundException("Leave type not found");
+            var duplicateConfiguration = await _context.LeaveGroupConfigurations
+                .AnyAsync(c => c.LeaveGroupConfigurationName.ToLower() == configurationRequest.LeaveGroupConfigurationName.ToLower()
+                               && c.LeaveTypeId == configurationRequest.LeaveTypeId
+                               && c.IsActive);
+            if (duplicateConfiguration)
+                throw new ConflictException("Leave group configuration name already exists for this leave type");
             var configuration = new LeaveGroupConfiguration
             {
-                LeaveGroupConfigurationName = configurationRequeset.LeaveGroupConfigurationName,
-                LeaveTypeId = configurationRequeset.LeaveTypeId,
-                PaidLeave = configurationRequeset.PaidLeave,
-                Accountable = configurationRequeset.Accountable,
-                CarryForward = configurationRequeset.CarryForward,
-                MaxAccountDays = configurationRequeset.MaxAccountDays,
-                MaxAccountYears = configurationRequeset.MaxAccountYears,
-                MaxDaysPerReq = configurationRequeset.MaxDaysPerReq,
-                MinDaysPerReq = configurationRequeset.MinDaysPerReq,
-                ProRata = configurationRequeset.ProRata,
-                ElgInMonths = configurationRequeset.ElgInMonths,
-                IsCalcToWorkingDays = configurationRequeset.IsCalcToWorkingDays,
-                ClacToWorkingDays = configurationRequeset.ClacToWorkingDays,
-                ConsiderWo = configurationRequeset.ConsiderWo,
-                ConsiderPh = configurationRequeset.ConsiderPh,
-                IsExcessEligibleAllowed = configurationRequeset.IsExcessEligibleAllowed,
-                IsHalfDayApplicable = configurationRequeset.IsHalfDayApplicable,
-                IsEncashmentAllowed = configurationRequeset.IsEncashmentAllowed,
-                CreditFreq = configurationRequeset.CreditFreq,
-                CreditDays = configurationRequeset.CreditDays,
-                RoundOffTo = configurationRequeset.RoundOffTo,
-                RoundOffValue = configurationRequeset.RoundOffValue,
-                IsActive = configurationRequeset.IsActive,
-                CreatedBy = configurationRequeset.CreatedBy,
+                LeaveGroupConfigurationName = configurationRequest.LeaveGroupConfigurationName,
+                LeaveTypeId = configurationRequest.LeaveTypeId,
+                PaidLeave = configurationRequest.PaidLeave,
+                Accountable =configurationRequest.Accountable,
+                CarryForward = configurationRequest.CarryForward,
+                MaxAccountDays = configurationRequest.MaxAccountDays,
+                MaxAccountYears = configurationRequest.MaxAccountYears,
+                MaxDaysPerReq = configurationRequest.MaxDaysPerReq,
+                MinDaysPerReq = configurationRequest.MinDaysPerReq,
+                ProRata = configurationRequest.ProRata,
+                ElgInMonths = configurationRequest.ElgInMonths,
+                IsCalcToWorkingDays = configurationRequest.IsCalcToWorkingDays,
+                ClacToWorkingDays = configurationRequest.ClacToWorkingDays,
+                ConsiderWo = configurationRequest.ConsiderWo,
+                ConsiderPh = configurationRequest.ConsiderPh,
+                IsExcessEligibleAllowed = configurationRequest.IsExcessEligibleAllowed,
+                IsHalfDayApplicable = configurationRequest.IsHalfDayApplicable,
+                IsEncashmentAllowed = configurationRequest.IsEncashmentAllowed,
+                CreditFreq = configurationRequest.CreditFreq,
+                CreditDays = configurationRequest.CreditDays,
+                RoundOffTo = configurationRequest.RoundOffTo,
+                RoundOffValue = configurationRequest.RoundOffValue,
+                IsActive = configurationRequest.IsActive,
+                CreatedBy = configurationRequest.CreatedBy,
                 CreatedUtc = DateTime.UtcNow
             };
             await _context.LeaveGroupConfigurations.AddAsync(configuration);
@@ -149,6 +155,13 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new MessageNotFoundException("Leave configuration group not found");
             }
+            var duplicateConfiguration = await _context.LeaveGroupConfigurations
+            .AnyAsync(c => c.LeaveGroupConfigurationName.ToLower() == configuration.LeaveGroupConfigurationName.ToLower()
+                      && c.LeaveTypeId == configuration.LeaveTypeId
+                      && c.Id != configuration.LeaveGroupConfigurationId
+                      && c.IsActive);
+            if (duplicateConfiguration)
+                throw new ConflictException("Leave group configuration name already exists for this leave type");
             existingTransaction.LeaveGroupConfigurationName = configuration.LeaveGroupConfigurationName ?? existingTransaction.LeaveGroupConfigurationName;
             existingTransaction.LeaveTypeId = configuration.LeaveTypeId ?? existingTransaction.LeaveTypeId;
             existingTransaction.PaidLeave = configuration.PaidLeave ?? existingTransaction.PaidLeave;

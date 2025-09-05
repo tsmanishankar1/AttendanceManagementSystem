@@ -31,6 +31,10 @@ public class PrefixAndSuffixInfra : IPrefixAndSuffixInfra
 
     public async Task<string> AddPrefixLeaveType(PrefixLeaveRequest prefixLeaveType)
     {
+        var duplicatePrefix = await _context.PrefixLeaveTypes
+            .AnyAsync(p => p.Name.ToLower() == prefixLeaveType.PrefixLeaveTypeName.ToLower() && p.IsActive);
+        if (duplicatePrefix)
+            throw new ConflictException("Prefix leave type name already exists");
         var message = "PrefixLeaveType added successfully";
         var prefixLeave = new PrefixLeaveType
         {
@@ -63,6 +67,10 @@ public class PrefixAndSuffixInfra : IPrefixAndSuffixInfra
     public async Task<string> Create(SuffixLeaveRequest suffixLeaveType)
     {
         var message = "Suffix leave added successfully";
+        var duplicateSuffix = await _context.SuffixLeaveTypes
+           .AnyAsync(s => s.Name.ToLower() == suffixLeaveType.SuffixLeaveTypeName.ToLower() && s.IsActive);
+        if (duplicateSuffix)
+            throw new ConflictException("Suffix leave type name already exists");
         var suffixLeave = new SuffixLeaveType
         {
             Name = suffixLeaveType.SuffixLeaveTypeName,

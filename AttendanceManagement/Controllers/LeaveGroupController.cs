@@ -55,6 +55,11 @@ public class LeaveGroupController : ControllerBase
             await _loggingService.AuditLog("Leave Group", "POST", "/api/LeaveGroup/AddLeaveGroup", addLeave, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Leave Group", "POST", "/api/LeaveGroup/AddLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Leave Group", "POST", "/api/LeaveGroup/AddLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, addLeaveGroupDto.CreatedBy, JsonSerializer.Serialize(addLeaveGroupDto));
@@ -75,6 +80,11 @@ public class LeaveGroupController : ControllerBase
             };
             await _loggingService.AuditLog("Leave Group", "POST", "/api/LeaveGroup/UpdateLeaveGroup", updatedLeaveGroup, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
             return Ok(response);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Leave Group", "POST", "/api/LeaveGroup/UpdateLeaveGroup", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveGroup.UpdatedBy, JsonSerializer.Serialize(leaveGroup));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (MessageNotFoundException ex)
         {

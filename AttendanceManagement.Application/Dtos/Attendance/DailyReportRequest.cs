@@ -145,7 +145,7 @@
         public string Department { get; set; } = null!;
         public string Designation { get; set; } = null!;
         public string? ShiftName { get; set; }
-        public DateOnly? Date { get; set; }
+        public string? Date { get; set; }
         public TimeOnly? InTime { get; set; }
         public TimeOnly? OutTime { get; set; }
         public TimeOnly? TotalHoursWorked { get; set; }
@@ -218,8 +218,8 @@
         public DateTime? SwipeDate { get; set; }
         public TimeOnly? SwipeTime { get; set; }
         public string ReaderName { get; set; } = null!;
-        public string PunchType { get; set; } = null!;
-        public string SwipeLocation { get; set; } = null!;
+        public string? PunchType { get; set; }
+        public string? SwipeLocation { get; set; }
     }
 
     public class NightShiftCountResponse

@@ -28,33 +28,16 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (staffInfo.Count == 0) throw new MessageNotFoundException("No staffs found");
             return staffInfo;
         }
-
         public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(List<int> staffIds)
         {
-            var organizationTypeIds = await _context.StaffCreations
-                .Where(staff => staffIds.Contains(staff.Id) && staff.IsActive == true)
-                .Select(staff => staff.OrganizationTypeId)
-                .Distinct()
-                .ToListAsync();
-            if (organizationTypeIds.Count > 1)
-            {
-                throw new InvalidOperationException("The given employees belong to different organizations.");
-            }
             var staffInfo = await (
                 from staff in _context.StaffCreations
-                join assignLeaveGroup in _context.AssignLeaveTypes
-                    on staff.OrganizationTypeId equals assignLeaveGroup.OrganizationTypeId into assignLeaveLeftJoin
-                from assignLeave in assignLeaveLeftJoin.DefaultIfEmpty()
-                join leaveType in _context.LeaveTypes
-                    on assignLeave.LeaveTypeId equals leaveType.Id into leaveTypeLeftJoin
-                from leave in leaveTypeLeftJoin.DefaultIfEmpty()
-                join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
-                where staffIds.Contains(staff.Id)
+                from leave in _context.LeaveTypes 
+                where staffIds.Contains(staff.Id) && staff.IsActive == true
                 let latestCredit = (
                     from credit in _context.IndividualLeaveCreditDebits
-                    where assignLeave != null
-                        && credit.LeaveTypeId == assignLeave.LeaveTypeId
-                        && credit.StaffCreationId == staff.Id
+                    where credit.LeaveTypeId == leave.Id
+                          && credit.StaffCreationId == staff.Id
                     orderby credit.Id descending
                     select (decimal?)credit.AvailableBalance
                 ).FirstOrDefault()
@@ -62,35 +45,97 @@ namespace AttendanceManagement.Infrastructure.Infra
                 {
                     StaffId = staff.Id,
                     StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
-                    OrganizationTypeId = staff.OrganizationTypeId,
-                    LeaveTypeId = leave != null ? leave.Id : (int?)null,
-                    LeaveTypeName = leave != null ? leave.Name : null,
+                    LeaveTypeId = leave.Id,
+                    LeaveTypeName = leave.Name,
                     AvailableBalance = latestCredit ?? 0
                 }
             ).ToListAsync();
-            if (staffInfo.Count == 0) throw new MessageNotFoundException("Staff Information not found.");
 
-#pragma warning disable CS8629 // Nullable value type may be null.
+            if (staffInfo.Count == 0)
+                throw new MessageNotFoundException("Staff Information not found.");
+
             var result = staffInfo
-                .GroupBy(s => new { s.StaffId, s.StaffName, s.OrganizationTypeId })
+                .GroupBy(s => new { s.StaffId, s.StaffName })
                 .Select(g => new StaffLeaveDto
                 {
                     StaffId = g.Key.StaffId,
                     StaffName = g.Key.StaffName,
-                    OrganizationTypeId = g.Key.OrganizationTypeId,
                     LeaveDetails = g
-                        .Where(l => l.LeaveTypeId.HasValue)
                         .Select(l => new LeaveDetailDto
                         {
-                            LeaveTypeId = l.LeaveTypeId.Value,
+                            LeaveTypeId = l.LeaveTypeId,
                             LeaveTypeName = l.LeaveTypeName,
                             AvailableBalance = l.AvailableBalance
                         })
                         .ToList()
                 })
                 .ToList();
+
             return result;
         }
+
+        //        public async Task<List<StaffLeaveDto>> GetStaffInfoByStaffId(List<int> staffIds)
+        //        {
+        //            var organizationTypeIds = await _context.StaffCreations
+        //                .Where(staff => staffIds.Contains(staff.Id) && staff.IsActive == true)
+        //                .Select(staff => staff.OrganizationTypeId)
+        //                .Distinct()
+        //                .ToListAsync();
+        //            if (organizationTypeIds.Count > 1)
+        //            {
+        //                throw new InvalidOperationException("The given employees belong to different organizations.");
+        //            }
+        //            var staffInfo = await (
+        //                from staff in _context.StaffCreations
+        //                join assignLeaveGroup in _context.AssignLeaveTypes
+        //                    on staff.OrganizationTypeId equals assignLeaveGroup.OrganizationTypeId into assignLeaveLeftJoin
+        //                from assignLeave in assignLeaveLeftJoin.DefaultIfEmpty()
+        //                join leaveType in _context.LeaveTypes
+        //                    on assignLeave.LeaveTypeId equals leaveType.Id into leaveTypeLeftJoin
+        //                from leave in leaveTypeLeftJoin.DefaultIfEmpty()
+        //                join org in _context.OrganizationTypes on staff.OrganizationTypeId equals org.Id
+        //                where staffIds.Contains(staff.Id)
+        //                let latestCredit = (
+        //                    from credit in _context.IndividualLeaveCreditDebits
+        //                    where assignLeave != null
+        //                        && credit.LeaveTypeId == assignLeave.LeaveTypeId
+        //                        && credit.StaffCreationId == staff.Id
+        //                    orderby credit.Id descending
+        //                    select (decimal?)credit.AvailableBalance
+        //                ).FirstOrDefault()
+        //                select new
+        //                {
+        //                    StaffId = staff.Id,
+        //                    StaffName = $"{staff.FirstName}{(string.IsNullOrWhiteSpace(staff.LastName) ? "" : " " + staff.LastName)}",
+        //                    OrganizationTypeId = staff.OrganizationTypeId,
+        //                    LeaveTypeId = leave != null ? leave.Id : (int?)null,
+        //                    LeaveTypeName = leave != null ? leave.Name : null,
+        //                    AvailableBalance = latestCredit ?? 0
+        //                }
+        //            ).ToListAsync();
+        //            if (staffInfo.Count == 0) throw new MessageNotFoundException("Staff Information not found.");
+
+        //#pragma warning disable CS8629 // Nullable value type may be null.
+        //            var result = staffInfo
+        //                .GroupBy(s => new { s.StaffId, s.StaffName, s.OrganizationTypeId })
+        //                .Select(g => new StaffLeaveDto
+        //                {
+        //                    StaffId = g.Key.StaffId,
+        //                    StaffName = g.Key.StaffName,
+        //                    OrganizationTypeId = g.Key.OrganizationTypeId,
+        //                    LeaveDetails = g
+        //                        .Where(l => l.LeaveTypeId.HasValue)
+        //                        .Select(l => new LeaveDetailDto
+        //                        {
+        //                            LeaveTypeId = l.LeaveTypeId.Value,
+        //                            LeaveTypeName = l.LeaveTypeName,
+        //                            AvailableBalance = l.AvailableBalance
+        //                        })
+        //                        .ToList()
+        //                })
+        //                .ToList();
+        //            return result;
+        //        }
         public async Task<List<AssignLeaveTypeDTO>> GetAllAssignLeaveTypes()
         {
             var result = await _context.AssignLeaveTypes

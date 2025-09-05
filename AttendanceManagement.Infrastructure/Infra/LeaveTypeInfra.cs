@@ -42,6 +42,10 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> CreateLeaveTypeAsync(LeaveTypeRequest leaveTypeRequest)
         {
             var message = "Leave type added successfully";
+            var duplicateLeaveType = await _context.LeaveTypes
+            .AnyAsync(lt => lt.Name.ToLower() == leaveTypeRequest.Name.ToLower() && lt.IsActive);
+            if (duplicateLeaveType)
+                throw new ConflictException("Leave type name already exists");
             var leaveType = new LeaveType
             {
                 Name = leaveTypeRequest.Name,
@@ -66,7 +70,12 @@ namespace AttendanceManagement.Infrastructure.Infra
             var message = "Leave type updated successfully";
             var existingLeaveType = await _context.LeaveTypes.FirstOrDefaultAsync(s => s.Id == leaveType.LeaveTypeId);
             if (existingLeaveType == null) throw new MessageNotFoundException("Leave type not found");
-
+            var duplicateLeaveType = await _context.LeaveTypes
+            .AnyAsync(lt => lt.Name.ToLower() == leaveType.Name.ToLower()
+                       && lt.Id != leaveType.LeaveTypeId
+                       && lt.IsActive);
+            if (duplicateLeaveType)
+                throw new ConflictException("Leave type name already exists");
             existingLeaveType.Name = leaveType.Name;
             existingLeaveType.ShortName = leaveType.ShortName;
             existingLeaveType.Accountable = leaveType.Accountable;

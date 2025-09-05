@@ -42,10 +42,13 @@ namespace AttendanceManagement.Infrastructure.Infra
             }).ToList();
             return leaveGroupResponses;
         }
-
         public async Task<string> AddLeaveGroupWithTransactionsAsync(AddLeaveGroupDto addLeaveGroupDto)
         {
             var message = "Leave group added successfully";
+            var duplicateGroup = await _context.LeaveGroups
+                .AnyAsync(lg => lg.Name.ToLower() == addLeaveGroupDto.LeaveGroupName.ToLower() && lg.IsActive);
+            if (duplicateGroup)
+                throw new ConflictException("Leave group name already exists");
             var leaveGroup = new LeaveGroup
             {
                 Name = addLeaveGroupDto.LeaveGroupName,
@@ -72,8 +75,6 @@ namespace AttendanceManagement.Infrastructure.Infra
             await _context.SaveChangesAsync();
             return message;
         }
-
-
         public async Task<string> UpdateLeaveGroup(UpdateLeaveGroup leaveGroup)
         {
             var message = "Leave group updated successfully";
@@ -82,6 +83,12 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new MessageNotFoundException("Leave group not found");
             }
+            var duplicateGroup = await _context.LeaveGroups
+            .AnyAsync(lg => lg.Name.ToLower() == leaveGroup.LeaveGroupName.ToLower()
+                        && lg.Id != leaveGroup.LeaveGroupId
+                        && lg.IsActive);
+            if (duplicateGroup)
+                throw new ConflictException("Leave group name already exists");
             existingLeaveGroup.Name = leaveGroup.LeaveGroupName ?? existingLeaveGroup.Name;
             existingLeaveGroup.IsActive = leaveGroup.IsActive;
             existingLeaveGroup.UpdatedBy = leaveGroup.UpdatedBy;
