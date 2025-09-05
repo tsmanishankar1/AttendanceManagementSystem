@@ -19,5 +19,9 @@ namespace AttendanceManagement.Application.Dtos.Attendance
         public int SuccessCount { get; set; }
         public int ErrorCount { get; set; }
         public List<string> ErrorMessages { get; set; } = new();
+        public string? SuccessFilePath { get; set; }
+        public string? ErrorFilePath { get; set; }
+        public string? SuccessFileName { get; set; }
+        public string? ErrorFileName { get; set; }
     }
 }

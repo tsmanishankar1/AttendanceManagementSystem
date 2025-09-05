@@ -17,4 +17,10 @@ public class ExcelImportApp : IExcelImportApp
 
     public async Task<ExcelImportResultDto> ImportExcelAsync(ExcelImportDto excelImportDto)
         => await _excelImportInfra.ImportExcelAsync(excelImportDto);
+
+    public Task<(byte[] FileBytes, string FileName)> GetLatestErrorFileAsync()
+        => _excelImportInfra.GetLatestErrorFileAsync();
+
+    public Task<(byte[] FileBytes, string FileName)> GetLatestSuccessFileAsync()
+        => _excelImportInfra.GetLatestSuccessFileAsync();
 }

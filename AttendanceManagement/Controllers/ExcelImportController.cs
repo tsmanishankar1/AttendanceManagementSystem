@@ -121,4 +121,40 @@ public class ExcelImportController : ControllerBase
             return ErrorClass.ErrorResponse(ex.Message);
         }
     }
+
+    [HttpGet("DownloadSuccessFile")]
+    public async Task<IActionResult> DownloadSuccessFile()
+    {
+        try
+        {
+            var (fileBytes, fileName) = await _excelImportService.GetLatestSuccessFileAsync();
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch(Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
+
+    [HttpGet("DownloadErrorFile")]
+    public async Task<IActionResult> DownloadErrorFile()
+    {
+        try
+        {
+            var (fileBytes, fileName) = await _excelImportService.GetLatestErrorFileAsync();
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ErrorClass.ErrorResponse(ex.Message);
+        }
+    }
 }

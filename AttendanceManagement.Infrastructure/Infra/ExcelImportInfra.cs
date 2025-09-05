@@ -13,6 +13,8 @@ public class ExcelImportInfra : IExcelImportInfra
     private readonly AttendanceManagementSystemContext _context;
     private readonly string _workspacePath;
     private readonly string _excelWorkspacePath;
+    private readonly string _successExcelPath;
+    private readonly string _errorExcelPath;
     public ExcelImportInfra(AttendanceManagementSystemContext context, IWebHostEnvironment env)
     {
         _context = context;
@@ -25,6 +27,17 @@ public class ExcelImportInfra : IExcelImportInfra
         if (!Directory.Exists(_excelWorkspacePath))
         {
             Directory.CreateDirectory(_excelWorkspacePath);
+        }
+        _successExcelPath = Path.Combine(env.ContentRootPath, "wwwroot\\SuccessExcel");
+        if (!Directory.Exists(_successExcelPath))
+        {
+            Directory.CreateDirectory(_successExcelPath);
+        }
+
+        _errorExcelPath = Path.Combine(env.ContentRootPath, "wwwroot\\ErrorExcel");
+        if (!Directory.Exists(_errorExcelPath))
+        {
+            Directory.CreateDirectory(_errorExcelPath);
         }
     }
 
@@ -693,63 +706,64 @@ public class ExcelImportInfra : IExcelImportInfra
                 {
                     var departmentMasters = new List<DepartmentMaster>();
                     var errorLogs = new List<string>();
+                    var successRows = new List<int>();
+                    var errorRows = new List<int>();
 
                     for (int row = 2; row <= rowCount; row++)
                     {
+                        var rowErrors = new List<string>();
+
                         var departmentName = worksheet.Cells[row, columnIndexes["Name"]].Text.Trim();
                         if (string.IsNullOrEmpty(departmentName))
                         {
-                            errorLogs.Add($"Row {row}: Department name is required.");
-                            continue;
+                            rowErrors.Add("Department name is required.");
                         }
-                        if (departmentName.Length > 50)
+                        else if (departmentName.Length > 50)
                         {
-                            errorLogs.Add($"Row {row}: Department name is too long (max 100 chars).");
-                            continue;
+                            rowErrors.Add("Department name is too long (max 50 chars).");
                         }
-                        if (_context.DepartmentMasters.Any(d => d.Name == departmentName))
+                        else if (_context.DepartmentMasters.Any(d => d.Name == departmentName))
                         {
-                            errorLogs.Add($"Row {row}: Department name '{departmentName}' already exists.");
-                            continue;
+                            rowErrors.Add($"Department name '{departmentName}' already exists.");
                         }
 
                         var isActiveText = worksheet.Cells[row, columnIndexes["IsActive"]].Text.Trim();
                         if (string.IsNullOrEmpty(isActiveText))
                         {
-                            errorLogs.Add($"Row {row}: IsActive is required.");
-                            continue;
+                            rowErrors.Add("IsActive is required.");
                         }
-                        if (!bool.TryParse(isActiveText, out var isActive))
+                        else if (!bool.TryParse(isActiveText, out var isActive))
                         {
-                            errorLogs.Add($"Row {row}: Invalid IsActive value '{isActiveText}'. Must be true/false.");
-                            continue;
+                            rowErrors.Add($"Invalid IsActive value '{isActiveText}'. Must be true/false.");
                         }
 
                         var shortName = worksheet.Cells[row, columnIndexes["ShortName"]].Text.Trim();
                         if (shortName.Length > 50)
                         {
-                            errorLogs.Add($"Row {row}: ShortName is too long (max 50 chars).");
-                            continue;
+                            rowErrors.Add("ShortName is too long (max 50 chars).");
                         }
 
                         var phoneText = worksheet.Cells[row, columnIndexes["Phone"]].Text.Trim();
                         long phone = 0;
                         if (!string.IsNullOrEmpty(phoneText) && !long.TryParse(phoneText, out phone))
                         {
-                            errorLogs.Add($"Row {row}: Phone '{phoneText}' is not a valid number.");
-                            continue;
+                            rowErrors.Add($"Phone '{phoneText}' is not a valid number.");
                         }
 
                         var email = worksheet.Cells[row, columnIndexes["Email"]].Text.Trim();
                         if (!string.IsNullOrEmpty(email) && !Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                         {
-                            errorLogs.Add($"Row {row}: Invalid email format '{email}'.");
-                            continue;
+                            rowErrors.Add($"Invalid email format '{email}'.");
+                        }
+                        else if (_context.DepartmentMasters.Any(d => d.Email == email))
+                        {
+                            rowErrors.Add($"Email '{email}' already exists.");
                         }
 
-                        if (_context.DepartmentMasters.Any(d => d.Email == email))
+                        if (rowErrors.Any())
                         {
-                            errorLogs.Add($"Row {row}: Department name '{departmentName}' already exists.");
+                            errorRows.Add(row);
+                            errorLogs.Add($"Row {row}: {string.Join("; ", rowErrors)}");
                             continue;
                         }
 
@@ -760,12 +774,13 @@ public class ExcelImportInfra : IExcelImportInfra
                             Phone = phone,
                             Fax = worksheet.Cells[row, columnIndexes["Fax"]].Text.Trim(),
                             Email = email,
-                            IsActive = isActive,
+                            IsActive = bool.Parse(isActiveText),
                             CreatedBy = excelImportDto.CreatedBy,
                             CreatedUtc = DateTime.UtcNow
                         };
 
                         departmentMasters.Add(departmentMaster);
+                        successRows.Add(row);
                     }
 
                     if (departmentMasters.Any())
@@ -775,8 +790,21 @@ public class ExcelImportInfra : IExcelImportInfra
                         result.SuccessCount = departmentMasters.Count;
                     }
 
-                    result.ErrorCount = result.TotalRecords - result.SuccessCount;
+                    result.ErrorCount = errorRows.Count;
                     result.ErrorMessages = errorLogs;
+
+                    if (successRows.Any())
+                    {
+                        result.SuccessFilePath = await CreateSuccessExcelFileWithOriginal(uploadFilePath, successRows, excelImportDto.File.FileName);
+                        result.SuccessFileName = Path.GetFileName(result.SuccessFilePath);
+                    }
+
+                    if (errorRows.Any())
+                    {
+                        result.ErrorFilePath = await CreateErrorExcelFileWithOriginal(uploadFilePath, errorRows, errorLogs, excelImportDto.File.FileName);
+                        result.ErrorFileName = Path.GetFileName(result.ErrorFilePath);
+                    }
+
                     return result;
                 }
                 else if (excelImportDto.ExcelImportId == 4)
@@ -2611,8 +2639,164 @@ public class ExcelImportInfra : IExcelImportInfra
         };
     }
 
+    public async Task<(byte[] FileBytes, string FileName)> GetLatestSuccessFileAsync()
+    {
+        var latestFile = GetLatestFile(_successExcelPath);
+        if (latestFile == null) throw new FileNotFoundException("No success excel file found");
+        var fileBytes = await File.ReadAllBytesAsync(latestFile.FullName);
+        return (fileBytes, latestFile.Name);
+    }
+
+    public async Task<(byte[] FileBytes, string FileName)> GetLatestErrorFileAsync()
+    {
+        var latestFile = GetLatestFile(_errorExcelPath);
+        if (latestFile == null) throw new FileNotFoundException("No error excel file found");
+        var fileBytes = await File.ReadAllBytesAsync(latestFile.FullName);
+        return (fileBytes, latestFile.Name);
+    }
+
+    private FileInfo? GetLatestFile(string folderPath)
+    {
+        var dir = new DirectoryInfo(folderPath);
+        return dir.Exists
+            ? dir.GetFiles("*.xlsx").OrderByDescending(f => f.LastWriteTimeUtc).FirstOrDefault()
+            : null;
+    }
+
     private decimal ParseDecimal(string value)
     {
         return decimal.TryParse(value.Trim(), out var result) ? result : 0m;
+    }
+
+    private async Task<string> CreateSuccessExcelFileWithOriginal(
+        string uploadFilePath,
+        List<int> successRows,
+        string originalFileName)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        string fileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_Success_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
+        string filePath = Path.Combine(_successExcelPath, fileName);
+
+        using (var originalPackage = new ExcelPackage(new FileInfo(uploadFilePath)))
+        using (var newPackage = new ExcelPackage())
+        {
+            var originalSheet = originalPackage.Workbook.Worksheets[0];
+            var newSheet = newPackage.Workbook.Worksheets.Add("SuccessRecords");
+
+            int lastUsedColumn = GetLastUsedColumn(originalSheet);
+
+            for (int col = 1; col <= lastUsedColumn; col++)
+            {
+                newSheet.Cells[1, col].Value = originalSheet.Cells[1, col].Value;
+                newSheet.Cells[1, col].Style.Font.Bold = true;
+            }
+
+            int statusColumn = lastUsedColumn + 1;
+            newSheet.Cells[1, statusColumn].Value = "SuccessMessage";
+            newSheet.Cells[1, statusColumn].Style.Font.Bold = true;
+
+            int newRow = 2;
+            foreach (var row in successRows)
+            {
+                for (int col = 1; col <= lastUsedColumn; col++)
+                {
+                    newSheet.Cells[newRow, col].Value = originalSheet.Cells[row, col].Value;
+                }
+
+                newSheet.Cells[newRow, statusColumn].Value = "Successfully imported";
+                newRow++;
+            }
+
+            if (newRow > 2)
+            {
+                newSheet.Cells[1, 1, newRow - 1, statusColumn].AutoFitColumns();
+            }
+
+            await newPackage.SaveAsAsync(new FileInfo(filePath));
+        }
+
+        return filePath;
+    }
+
+    private async Task<string> CreateErrorExcelFileWithOriginal(
+        string uploadFilePath,
+        List<int> errorRows,
+        List<string> errorMessages,
+        string originalFileName)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        string fileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_Error_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
+        string filePath = Path.Combine(_errorExcelPath, fileName);
+
+        using (var originalPackage = new ExcelPackage(new FileInfo(uploadFilePath)))
+        using (var newPackage = new ExcelPackage())
+        {
+            var originalSheet = originalPackage.Workbook.Worksheets[0];
+            var newSheet = newPackage.Workbook.Worksheets.Add("ErrorRecords");
+
+            int lastUsedColumn = GetLastUsedColumn(originalSheet);
+
+            for (int col = 1; col <= lastUsedColumn; col++)
+            {
+                newSheet.Cells[1, col].Value = originalSheet.Cells[1, col].Value;
+                newSheet.Cells[1, col].Style.Font.Bold = true;
+            }
+
+            int errorColumn = lastUsedColumn + 1;
+            newSheet.Cells[1, errorColumn].Value = "ErrorMessage";
+            newSheet.Cells[1, errorColumn].Style.Font.Bold = true;
+
+            int newRow = 2;
+            for (int i = 0; i < errorRows.Count; i++)
+            {
+                int originalRow = errorRows[i];
+
+                for (int col = 1; col <= lastUsedColumn; col++)
+                {
+                    newSheet.Cells[newRow, col].Value = originalSheet.Cells[originalRow, col].Value;
+                }
+
+                newSheet.Cells[newRow, errorColumn].Value = CleanErrorMessage(errorMessages[i]);
+                newRow++;
+            }
+
+            if (newRow > 2)
+            {
+                newSheet.Cells[1, 1, newRow - 1, errorColumn].AutoFitColumns();
+            }
+
+            await newPackage.SaveAsAsync(new FileInfo(filePath));
+        }
+
+        return filePath;
+    }
+
+    private int GetLastUsedColumn(ExcelWorksheet worksheet)
+    {
+        if (worksheet.Dimension == null)
+            return 0;
+
+        for (int col = worksheet.Dimension.End.Column; col >= 1; col--)
+        {
+            if (worksheet.Cells[1, col].Value != null &&
+                !string.IsNullOrWhiteSpace(worksheet.Cells[1, col].Value.ToString()))
+            {
+                return col;
+            }
+        }
+
+        return 0;
+    }
+
+    private string CleanErrorMessage(string message)
+    {
+        var colonIndex = message.IndexOf(':');
+        if (colonIndex > -1 && message.StartsWith("Row"))
+        {
+            return message.Substring(colonIndex + 1).Trim();
+        }
+        return message;
     }
 }
