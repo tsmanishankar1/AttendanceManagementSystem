@@ -55,6 +55,11 @@ public class LeaveTypeController : ControllerBase
             await _loggingService.AuditLog("Leave Type", "POST", "/api/LeaveType/CreateLeaveType", createdLeaveType, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
             return Ok(response);
         }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Leave Type", "POST", "/api/LeaveType/CreateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
+            return ErrorClass.ConflictResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             await _loggingService.LogError("Leave Type", "POST", "/api/LeaveType/CreateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.CreatedBy, JsonSerializer.Serialize(leaveType));
@@ -75,6 +80,11 @@ public class LeaveTypeController : ControllerBase
             };
             await _loggingService.AuditLog("Leave Type", "POST", "/api/LeaveType/UpdateLeaveType", updated, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
             return Ok(response);
+        }
+        catch (ConflictException ex)
+        {
+            await _loggingService.LogError("Leave Type", "POST", "/api/LeaveType/UpdateLeaveType", ex.Message, ex.StackTrace ?? string.Empty, ex.InnerException?.ToString() ?? string.Empty, leaveType.UpdatedBy, JsonSerializer.Serialize(leaveType));
+            return ErrorClass.ConflictResponse(ex.Message);
         }
         catch (MessageNotFoundException ex)
         {

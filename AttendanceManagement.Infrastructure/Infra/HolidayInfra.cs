@@ -17,6 +17,14 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> CreateHoliday(HolidayRequest holidayRequest)
         {
             var message = "Holiday added successfully";
+            var duplicateHoliday = await _context.HolidayMasters
+                .AnyAsync(h => h.Name.ToLower() == holidayRequest.HolidayName.ToLower()
+                               && h.HolidayTypeId == holidayRequest.HolidayTypeId
+                               && h.IsActive);
+
+            if (duplicateHoliday)
+                throw new ConflictException("Holiday name already exists for this holiday type");
+
             var holidayType = await _context.HolidayTypes.AnyAsync(h => h.Id == holidayRequest.HolidayTypeId && h.IsActive);
             if (!holidayType) throw new MessageNotFoundException("Holiday type not found");
             var holiday = new HolidayMaster
@@ -69,6 +77,14 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> UpdateHoliday(UpdateHoliday updatedHoliday)
         {
             var message = "Holiday updated successfully";
+            var duplicateHoliday = await _context.HolidayMasters
+                .AnyAsync(h => h.Name.ToLower() == updatedHoliday.HolidayName.ToLower()
+                               && h.HolidayTypeId == updatedHoliday.HolidayTypeId
+                               && h.IsActive && h.Id != updatedHoliday.HolidayMasterId);
+
+            if (duplicateHoliday)
+                throw new ConflictException("Holiday name already exists for this holiday type");
+
             var holidayType = await _context.HolidayTypes.AnyAsync(h => h.Id == updatedHoliday.HolidayTypeId && h.IsActive);
             if (!holidayType) throw new MessageNotFoundException("Holiday type not found");
             var existingHoliday = await _context.HolidayMasters.FirstOrDefaultAsync(h => h.Id == updatedHoliday.HolidayMasterId);
@@ -87,6 +103,17 @@ namespace AttendanceManagement.Infrastructure.Infra
         public async Task<string> CreateHolidayCalendar(HolidayCalendarRequestDto request)
         {
             var message = "Holiday calendar credated successfully";
+            if (string.IsNullOrWhiteSpace(request.GroupName))
+                throw new ArgumentException("Group name is required");
+
+            var duplicateHolidayCalendar = await _context.HolidayCalendarConfigurations
+                .AnyAsync(h => h.IsActive &&
+                               h.Name.ToLower().Trim() == request.GroupName.ToLower().Trim() &&
+                               h.CalendarYear == request.CalendarYear);
+
+            if (duplicateHolidayCalendar)
+                throw new ConflictException("Holiday calendar already exists for this year");
+
             var holidayCalendar = new HolidayCalendarConfiguration
             {
                 Name = request.GroupName,
@@ -170,6 +197,17 @@ namespace AttendanceManagement.Infrastructure.Infra
             {
                 throw new MessageNotFoundException("Holiday calendar not found");
             }
+            if (string.IsNullOrWhiteSpace(request.GroupName))
+                throw new ArgumentException("Group name is required");
+
+            var duplicateHolidayCalendar = await _context.HolidayCalendarConfigurations
+                .AnyAsync(h => h.IsActive &&
+                               h.Name.ToLower().Trim() == request.GroupName.ToLower().Trim() &&
+                               h.CalendarYear == request.CalendarYear && h.Id != request.Id);
+
+            if (duplicateHolidayCalendar)
+                throw new ConflictException("Holiday calendar already exists for this year");
+
             existingCalendar.Name = request.GroupName;
             existingCalendar.CalendarYear = request.CalendarYear;
             existingCalendar.Currents = request.Currents;
@@ -243,6 +281,13 @@ namespace AttendanceManagement.Infrastructure.Infra
             var message = "Holiday zone added successfully";
             var holidayCalander = await _context.HolidayCalendarConfigurations.AnyAsync(h => h.Id == holidayZoneRequest.HolidayCalendarId && h.IsActive);
             if (!holidayCalander) throw new MessageNotFoundException("Holiday calander not found");
+            var duplicateZone = await _context.HolidayZoneConfigurations
+            .AnyAsync(z => z.HolidayCalendarId == holidayZoneRequest.HolidayCalendarId &&
+                       z.HolidayZoneName.ToLower() == holidayZoneRequest.HolidayZoneName.ToLower() &&
+                       z.IsActive);
+
+            if (duplicateZone)
+                throw new ConflictException("Holiday zone name already exists in this calendar");
             var holidayZone = new HolidayZoneConfiguration
             {
                 HolidayZoneName = holidayZoneRequest.HolidayZoneName,
@@ -263,7 +308,14 @@ namespace AttendanceManagement.Infrastructure.Infra
             if (!holidayCalander) throw new MessageNotFoundException("Holiday calander not found");
             var existingHolidayZone = await _context.HolidayZoneConfigurations.FirstOrDefaultAsync(h => h.Id == holidayZone.HolidayZoneId);
             if (existingHolidayZone == null) throw new MessageNotFoundException("Holiday zone not found");
+            var duplicateZone = await _context.HolidayZoneConfigurations
+                .AnyAsync(z => z.HolidayCalendarId == holidayZone.HolidayCalendarId &&
+                               z.HolidayZoneName.ToLower() == holidayZone.HolidayZoneName.ToLower() &&
+                               z.IsActive &&
+                               z.Id != holidayZone.HolidayZoneId);
 
+            if (duplicateZone)
+                throw new ConflictException("Holiday zone name already exists in this calendar");
             existingHolidayZone.HolidayZoneName = holidayZone.HolidayZoneName;
             existingHolidayZone.HolidayCalendarId = holidayZone.HolidayCalendarId;
             existingHolidayZone.IsActive = holidayZone.IsActive;
